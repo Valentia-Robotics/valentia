@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Portabaterías 2 × 18650 (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="460" rx="220" ry="26.4" fill="#000" opacity=".12"/>
+  <rect x="110" y="170" width="380" height="250" rx="18" fill="#1d1d1f"/>
+  <rect x="140" y="195" width="320" height="90" rx="40" fill="#2d6cdf"/><rect x="420" y="195" width="40" height="90" rx="20" fill="#c9ccd1"/><rect x="140" y="300" width="320" height="90" rx="40" fill="#2d6cdf"/><rect x="140" y="300" width="40" height="90" rx="20" fill="#c9ccd1"/>
+  <path d="M490 260c50 0 40 80 80 100" stroke="#d92d20" stroke-width="8" fill="none"/>
+  <path d="M490 290c40 0 30 70 70 86" stroke="#555" stroke-width="8" fill="none"/>
+</svg>

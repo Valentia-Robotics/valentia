@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Estructura de brazo robótico (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="480" rx="230" ry="27.599999999999998" fill="#000" opacity=".12"/>
+  <circle cx="180" cy="370" r="100" fill="#bfe3f5" fill-opacity=".75" stroke="#7fb8d4" stroke-width="5"/>
+  <circle cx="180" cy="370" r="22" fill="#fff"/>
+  <rect x="320" y="120" width="70" height="230" rx="35" fill="#bfe3f5" fill-opacity=".75" stroke="#7fb8d4" stroke-width="5"/>
+  <rect x="420" y="160" width="60" height="190" rx="30" fill="#bfe3f5" fill-opacity=".75" stroke="#7fb8d4" stroke-width="5"/>
+  <path d="M330 390l40 60h40l-30-60zM430 390l-10 60h40l20-60z" fill="#bfe3f5" fill-opacity=".75" stroke="#7fb8d4" stroke-width="5"/>
+  <circle cx="355" cy="150" r="9" fill="#fff"/><circle cx="355" cy="320" r="9" fill="#fff"/><circle cx="450" cy="150" r="9" fill="#fff"/><circle cx="450" cy="320" r="9" fill="#fff"/>
+</svg>

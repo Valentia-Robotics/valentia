@@ -29,7 +29,7 @@ Requisitos completos: `PROMPT.md`.
 1. Planificar primero y esperar aprobación en las decisiones importantes. **Si hay que tomar una decisión importante, preguntar antes.**
 2. **Antes de instalar cualquier paquete, explicar en una frase para qué sirve.**
 3. Trabajar por fases y hacer **un commit de git al terminar cada fase**:
-   (1) base, sistema de diseño, logo y navegación ✅ · (2) inicio y fichas de kit ·
+   (1) base, sistema de diseño, logo y navegación ✅ · (2) inicio y fichas de kit ✅ ·
    (3) configurador · (4) carrito y compra simulada · (5) login, activación y cursos ·
    (6) repaso final de calidad.
 4. Al terminar cada fase: decir exactamente qué comandos ejecutar, qué dirección abrir y qué debería verse.
@@ -59,8 +59,16 @@ Requisitos completos: `PROMPT.md`.
 - Next.js 16.4 (App Router, Turbopack) · React 19.3 · TypeScript 6.0 (typescript-eslint aún no admite la 7)
 - Tailwind CSS 4.3 · Zustand 5 (carrito en localStorage) · lucide-react (iconos)
 - ESLint 9 (eslint-config-next aún no admite ESLint 10) + Prettier 3 (con plugin de Tailwind)
-- Próximas fases: Prisma 7.10 estable (SQLite local, con adaptador better-sqlite3; ojo: el tag "latest" de npm apunta a una 8.0 rc),
-  Auth.js v5 beta (next-auth@beta) con email y contraseña cifrada (bcryptjs), Zod 4, qrcode.
+- Prisma 7.10 estable (el tag "latest" de npm apunta a una 8.0 rc: no actualizar sin preguntar).
+  - Config en `prisma.config.ts` (carga .env con dotenv; Prisma 7 no lo hace solo). Generador `prisma-client` → `src/generated/prisma` (ignorado en git; se crea en postinstall/build).
+  - SQLite local en `prisma/dev.db` (`DATABASE_URL="file:./prisma/dev.db"`) con `@prisma/adapter-better-sqlite3`. Cliente único en `src/lib/db.ts` (import "server-only").
+  - `migrate dev` NO genera el cliente ni ejecuta el seed en Prisma 7: usar `npm run db:generate` / `npm run db:seed`.
+  - Para PostgreSQL: provider + adaptador (`@prisma/adapter-pg`) en db.ts y seed.ts + migraciones nuevas (ver README).
+  - Seed (`prisma/seed.ts`, con tsx) valida `data/*.json` con Zod (`src/lib/validaciones/catalogo.ts`, mensajes en español). En los JSON los precios van en euros; en la BD, en céntimos.
+- Zod 4 · Próximas fases: Auth.js v5 beta (next-auth@beta) con email y contraseña cifrada (bcryptjs), qrcode.
+- Las páginas de kits se generan estáticas en el build leyendo la BD: `npm run build` necesita la BD creada (`npm run setup`).
+- Animación al hacer scroll: clase CSS `aparecer` (scroll-driven animations, sin JS; respeta prefers-reduced-motion).
+- En Windows, al parar `next dev` lanzado en segundo plano, comprobar que el puerto 3000 queda libre (el proceso hijo puede sobrevivir).
 - Next 16: el antiguo `middleware.ts` se llama `proxy.ts`.
 - Alias de importación: `@/` = `src/`.
 
@@ -72,8 +80,11 @@ public/images/         brand/, componentes/, kits/
 scripts/               generar-marca.mjs
 src/app/               (tienda)/, (auth)/, (cuenta)/, activar/, api/, diseno/
 src/components/        ui/, layout/, marca/, tienda/, configurador/, cursos/
-src/config/            marca.ts
-src/lib/               utils.ts (+ db, auth, compatibilidad/, pagos/ en próximas fases)
+src/config/            marca.ts, categorias.ts
+src/lib/               db.ts, catalogo.ts (consultas), validaciones/, utils.ts (+ auth, compatibilidad/, pagos/ en próximas fases)
+src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
+data/                  componentes.json, kits.json, cursos.json (fuente de los datos de prueba)
+prisma/                schema.prisma, migrations/, seed.ts, dev.db
 src/store/             carrito.ts
 src/types/
 ```

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="t">
+  <title id="t">Coche seguidor de líneas (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="400" cy="520" rx="300" ry="22" fill="#000" opacity=".12"/>
+  <path d="M110 505h580" stroke="#1d1d1f" stroke-width="14" stroke-linecap="round" opacity=".85"/>
+  <path d="M150 380h480l40 40v20H120v-30z" fill="#bfe3f5" fill-opacity=".85" stroke="#7fb8d4" stroke-width="5"/>
+  <rect x="300" y="330" width="150" height="56" rx="10" fill="#f2c230"/>
+  <rect x="230" y="270" width="260" height="110" rx="14" fill="#1f7a8c"/>
+  <rect x="255" y="282" width="206" height="22" rx="3" fill="#1d1d1f"/><circle cx="268" cy="293" r="4" fill="#d4af37"/><circle cx="288" cy="293" r="4" fill="#d4af37"/><circle cx="308" cy="293" r="4" fill="#d4af37"/><circle cx="328" cy="293" r="4" fill="#d4af37"/><circle cx="348" cy="293" r="4" fill="#d4af37"/><circle cx="368" cy="293" r="4" fill="#d4af37"/><circle cx="388" cy="293" r="4" fill="#d4af37"/><circle cx="408" cy="293" r="4" fill="#d4af37"/><circle cx="428" cy="293" r="4" fill="#d4af37"/><circle cx="448" cy="293" r="4" fill="#d4af37"/>
+  <rect x="400" y="320" width="70" height="40" rx="5" fill="#1d1d1f"/>
+  <rect x="150" y="300" width="80" height="80" rx="8" fill="#b8322a"/>
+  <rect x="156" y="282" width="8" height="40" rx="2" fill="#3a3a3c"/><rect x="171" y="282" width="8" height="40" rx="2" fill="#3a3a3c"/><rect x="186" y="282" width="8" height="40" rx="2" fill="#3a3a3c"/><rect x="201" y="282" width="8" height="40" rx="2" fill="#3a3a3c"/><rect x="216" y="282" width="8" height="40" rx="2" fill="#3a3a3c"/>
+  <rect x="560" y="300" width="130" height="80" rx="10" fill="#2558c4"/>
+  <circle cx="595" cy="340" r="28" fill="#c9ccd1"/><circle cx="595" cy="340" r="20" fill="#3a3a3c"/>
+  <circle cx="655" cy="340" r="28" fill="#c9ccd1"/><circle cx="655" cy="340" r="20" fill="#3a3a3c"/>
+  <rect x="610" y="440" width="60" height="22" rx="4" fill="#2558c4"/>
+  <path d="M640 462v18" stroke="#3b3bff" stroke-width="6" opacity=".6"/>
+  <circle cx="230" cy="445" r="70" fill="#2b2b2e"/><circle cx="230" cy="445" r="57.4" fill="#3d3d41"/><circle cx="230" cy="445" r="35" fill="#f2c230"/><circle cx="230" cy="445" r="9.8" fill="#e0ad1e"/>
+  <circle cx="610" cy="478" r="22" fill="#c9ccd1"/>
+  <path d="M330 270c-20-60 40-70 60-40" stroke="#2f9e5a" stroke-width="6" fill="none"/>
+  <path d="M430 270c10-50 60-50 80 20" stroke="#f28c28" stroke-width="6" fill="none"/>
+</svg>

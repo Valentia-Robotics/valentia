@@ -38,6 +38,23 @@
   --shadow-tarjeta: 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px rgb(11 11 11 / 0.06);
   --shadow-flotante: 0 12px 40px rgb(11 11 11 / 0.14);
 
+  /* ---------- Animaciones ---------- */
+  --animate-entrada: entrada 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; /* → "animate-entrada" */
+  --animate-latido: latido 0.4s ease-out; /* Pequeño rebote al añadir al carrito */
+
+  @keyframes entrada {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+    }
+  }
+
+  @keyframes latido {
+    50% {
+      scale: 1.25;
+    }
+  }
+
   /* ---------- Alturas fijas ---------- */
   --spacing-nav: 3rem; /* Altura de la barra de navegación (48 px) → clases "h-nav", "pt-nav" */
 }
@@ -76,6 +93,29 @@
   ::selection {
     background-color: var(--color-acento);
     color: white;
+  }
+}
+
+/*
+ * Animación al hacer scroll: añade la clase "aparecer" a cualquier bloque y
+ * aparecerá suavemente cuando entre en pantalla. No necesita JavaScript.
+ * En navegadores que no lo admiten, o con "reducir movimiento", se ve sin animar.
+ */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    translate: 0 48px;
+    scale: 0.97;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .aparecer {
+      animation: aparecer linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
   }
 }
 

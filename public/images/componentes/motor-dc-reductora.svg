@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Motor DC con reductora (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="450" rx="220" ry="26.4" fill="#000" opacity=".12"/>
+  <rect x="90" y="220" width="190" height="130" rx="16" fill="#c9ccd1"/>
+  <rect x="80" y="235" width="20" height="100" rx="6" fill="#a3a7ad"/>
+  <rect x="260" y="180" width="270" height="210" rx="20" fill="#f2c230"/>
+  <rect x="260" y="180" width="270" height="40" rx="12" fill="#e0ad1e"/>
+  <circle cx="440" cy="290" r="36" fill="#e0ad1e"/>
+  <rect x="428" y="200" width="24" height="180" rx="5" fill="#fafafa" stroke="#d9d9d6" stroke-width="3"/>
+  <path d="M110 350c0 40 30 60 60 70" stroke="#d92d20" stroke-width="8" fill="none"/>
+  <path d="M140 350c0 30 20 50 50 58" stroke="#1d1d1f" stroke-width="8" fill="none"/>
+</svg>

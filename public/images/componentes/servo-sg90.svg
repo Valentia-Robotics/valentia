@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Microservo SG90 (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="450" rx="170" ry="20.4" fill="#000" opacity=".12"/>
+  <rect x="160" y="200" width="280" height="220" rx="14" fill="#2d6cdf"/>
+  <rect x="120" y="250" width="360" height="40" rx="8" fill="#2d6cdf"/>
+  <circle cx="140" cy="270" r="8" fill="#f4f4f2"/><circle cx="460" cy="270" r="8" fill="#f4f4f2"/>
+  <rect x="170" y="210" width="260" height="30" rx="8" fill="#5a8cf0" opacity=".6"/>
+  <circle cx="230" cy="190" r="34" fill="#2558c4"/>
+  <rect x="140" y="170" width="190" height="34" rx="17" fill="#fafafa"/>
+  <circle cx="230" cy="187" r="9" fill="#bbb"/>
+  <path d="M440 380c40 0 60 20 70 60" stroke="#8b4513" stroke-width="7" fill="none"/>
+  <path d="M440 390c36 0 54 20 62 56" stroke="#d92d20" stroke-width="7" fill="none"/>
+  <path d="M440 400c30 0 48 22 54 52" stroke="#f28c28" stroke-width="7" fill="none"/>
+</svg>

@@ -8,6 +8,9 @@ build/
 next-env.d.ts
 *.tsbuildinfo
 
+# Cliente de Prisma generado (se crea con "npm install" o "npm run db:generate")
+src/generated/
+
 # Secretos: el archivo .env NUNCA se sube a git (sí .env.example)
 .env
 .env*.local

@@ -1,0 +1,156 @@
+/**
+ * DATOS DE PRUEBA
+ * Lee data/componentes.json, data/kits.json y data/cursos.json, comprueba
+ * que son correctos y los guarda en la base de datos.
+ *
+ * Uso:  npm run db:seed
+ * Se puede ejecutar todas las veces que quieras: borra el catálogo y lo vuelve a crear.
+ */
+import "dotenv/config";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"; // ← SQLite (para PostgreSQL, ver src/lib/db.ts)
+import { z } from "zod";
+import { PrismaClient } from "../src/generated/prisma/client";
+import { esquemaComponente, esquemaCurso, esquemaKit } from "../src/lib/validaciones/catalogo";
+
+// Mensajes de error de validación en español
+z.config(z.locales.es());
+
+const db = new PrismaClient({
+  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! }),
+});
+
+/** Lee un JSON de la carpeta data/ y lo valida. Si hay errores, explica cuáles. */
+async function leerDatos<T extends z.ZodType>(archivo: string, esquema: T): Promise<z.infer<T>> {
+  const ruta = path.join(process.cwd(), "data", archivo);
+  const contenido: unknown = JSON.parse(await readFile(ruta, "utf8"));
+  const resultado = esquema.safeParse(contenido);
+  if (!resultado.success) {
+    throw new Error(`Hay errores en data/${archivo}:\n${z.prettifyError(resultado.error)}`);
+  }
+  return resultado.data;
+}
+
+/** Convierte euros (24.9) en céntimos (2490) */
+const aCentimos = (euros: number) => Math.round(euros * 100);
+
+async function main() {
+  const componentes = await leerDatos("componentes.json", z.array(esquemaComponente));
+  const cursos = await leerDatos("cursos.json", z.array(esquemaCurso));
+  const kits = await leerDatos("kits.json", z.array(esquemaKit));
+
+  // Comprobaciones entre archivos: que los kits apunten a cosas que existen
+  const slugsComponentes = new Set(componentes.map((c) => c.slug));
+  const slugsCursos = new Set(cursos.map((c) => c.slug));
+  for (const kit of kits) {
+    if (!slugsCursos.has(kit.curso)) {
+      throw new Error(
+        `El kit "${kit.slug}" usa el curso "${kit.curso}", que no existe en cursos.json`,
+      );
+    }
+    for (const { slug } of kit.componentes) {
+      if (!slugsComponentes.has(slug)) {
+        throw new Error(
+          `El kit "${kit.slug}" usa el componente "${slug}", que no existe en componentes.json`,
+        );
+      }
+    }
+  }
+  for (const curso of cursos) {
+    for (const leccion of curso.lecciones) {
+      for (const ejercicio of leccion.ejercicios) {
+        if (ejercicio.tipo === "TEST" && ejercicio.correcta >= ejercicio.opciones.length) {
+          throw new Error(`En "${curso.slug} › ${leccion.slug}" la respuesta correcta no existe`);
+        }
+      }
+    }
+  }
+
+  // Borramos el catálogo anterior (en orden, por las relaciones) y lo creamos de nuevo
+  await db.$transaction(async (tx) => {
+    await tx.kitComponente.deleteMany();
+    await tx.kit.deleteMany();
+    await tx.componente.deleteMany();
+    await tx.ejercicio.deleteMany();
+    await tx.leccion.deleteMany();
+    await tx.curso.deleteMany();
+
+    for (const { precio, ...componente } of componentes) {
+      await tx.componente.create({
+        data: { ...componente, precioCentimos: aCentimos(precio) },
+      });
+    }
+
+    for (const curso of cursos) {
+      await tx.curso.create({
+        data: {
+          slug: curso.slug,
+          titulo: curso.titulo,
+          descripcion: curso.descripcion,
+          nivel: curso.nivel,
+          lecciones: {
+            create: curso.lecciones.map((leccion, i) => ({
+              slug: leccion.slug,
+              orden: i + 1,
+              titulo: leccion.titulo,
+              descripcion: leccion.descripcion,
+              videoUrl: leccion.videoUrl,
+              duracionMin: leccion.duracionMin,
+              ejercicios: {
+                create: leccion.ejercicios.map((ejercicio, j) =>
+                  ejercicio.tipo === "TEST"
+                    ? {
+                        orden: j + 1,
+                        tipo: "TEST" as const,
+                        enunciado: ejercicio.enunciado,
+                        opciones: ejercicio.opciones,
+                        correcta: ejercicio.correcta,
+                        explicacion: ejercicio.explicacion,
+                      }
+                    : {
+                        orden: j + 1,
+                        tipo: "RETO" as const,
+                        enunciado: ejercicio.enunciado,
+                        pistas: ejercicio.pistas,
+                        solucion: ejercicio.solucion,
+                      },
+                ),
+              },
+            })),
+          },
+        },
+      });
+    }
+
+    for (const { precio, curso, componentes: piezas, ...kit } of kits) {
+      await tx.kit.create({
+        data: {
+          ...kit,
+          precioCentimos: aCentimos(precio),
+          curso: { connect: { slug: curso } },
+          componentes: {
+            create: piezas.map(({ slug, cantidad }) => ({
+              cantidad,
+              componente: { connect: { slug } },
+            })),
+          },
+        },
+      });
+    }
+  });
+
+  const lecciones = cursos.reduce((total, c) => total + c.lecciones.length, 0);
+  console.log(
+    `✔ Datos cargados: ${componentes.length} componentes, ${kits.length} kits, ` +
+      `${cursos.length} cursos y ${lecciones} lecciones.`,
+  );
+}
+
+main()
+  .catch((error: unknown) => {
+    console.error("✖ No se pudieron cargar los datos de prueba.");
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  })
+  .finally(() => db.$disconnect());

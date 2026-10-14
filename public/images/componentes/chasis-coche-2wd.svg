@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Chasis de coche 2WD (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="470" rx="240" ry="28.799999999999997" fill="#000" opacity=".12"/>
+  <path d="M150 160h300l50 60v170l-50 60H150l-50-60V220z" fill="#bfe3f5" fill-opacity=".75" stroke="#7fb8d4" stroke-width="5"/>
+  <circle cx="190" cy="230" r="8" fill="#fff"/><circle cx="190" cy="380" r="8" fill="#fff"/><circle cx="234" cy="230" r="8" fill="#fff"/><circle cx="234" cy="380" r="8" fill="#fff"/><circle cx="278" cy="230" r="8" fill="#fff"/><circle cx="278" cy="380" r="8" fill="#fff"/><circle cx="322" cy="230" r="8" fill="#fff"/><circle cx="322" cy="380" r="8" fill="#fff"/><circle cx="366" cy="230" r="8" fill="#fff"/><circle cx="366" cy="380" r="8" fill="#fff"/><circle cx="410" cy="230" r="8" fill="#fff"/><circle cx="410" cy="380" r="8" fill="#fff"/>
+  <rect x="60" y="250" width="56" height="120" rx="18" fill="#2b2b2e"/><rect x="72" y="262" width="32" height="96" rx="10" fill="#4a4a4e"/>
+  <rect x="484" y="250" width="56" height="120" rx="18" fill="#2b2b2e"/><rect x="496" y="262" width="32" height="96" rx="10" fill="#4a4a4e"/>
+  <circle cx="300" cy="420" r="26" fill="#c9ccd1"/><circle cx="300" cy="420" r="12" fill="#8e9196"/>
+</svg>

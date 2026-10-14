@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Sensor BMP280 (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="430" rx="140" ry="16.8" fill="#000" opacity=".12"/>
+  <rect x="190" y="170" width="220" height="220" rx="14" fill="#6b3fa0"/>
+  <circle cx="220" cy="200" r="10" fill="#f4f4f2"/><circle cx="380" cy="200" r="10" fill="#f4f4f2"/>
+  <rect x="265" y="230" width="70" height="70" rx="6" fill="#c9ccd1"/><circle cx="315" cy="250" r="5" fill="#777"/>
+  <rect x="215" y="340" width="174" height="22" rx="3" fill="#1d1d1f"/><circle cx="232" cy="351" r="4" fill="#d4af37"/><circle cx="260" cy="351" r="4" fill="#d4af37"/><circle cx="288" cy="351" r="4" fill="#d4af37"/><circle cx="316" cy="351" r="4" fill="#d4af37"/><circle cx="344" cy="351" r="4" fill="#d4af37"/><circle cx="372" cy="351" r="4" fill="#d4af37"/>
+</svg>

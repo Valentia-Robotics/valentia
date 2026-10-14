@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Sensor de línea TCRT5000 (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="440" rx="150" ry="18" fill="#000" opacity=".12"/>
+  <rect x="200" y="130" width="200" height="300" rx="14" fill="#2558c4"/>
+  <rect x="235" y="150" width="130" height="70" rx="8" fill="#1d1d1f"/>
+  <circle cx="270" cy="185" r="20" fill="#3b3bff" opacity=".8"/><circle cx="330" cy="185" r="20" fill="#111"/><circle cx="330" cy="185" r="10" fill="#555"/>
+  <rect x="280" y="260" width="40" height="40" rx="6" fill="#2d6cdf"/><circle cx="300" cy="280" r="12" fill="#e8e8e8"/><path d="M293 280h14M300 273v14" stroke="#777" stroke-width="3"/>
+  <circle cx="240" cy="330" r="8" fill="#d92d20"/><circle cx="360" cy="330" r="8" fill="#7CFC9A"/>
+  <rect x="255" y="380" width="84" height="22" rx="3" fill="#1d1d1f"/><circle cx="271" cy="391" r="4" fill="#d4af37"/><circle cx="297" cy="391" r="4" fill="#d4af37"/><circle cx="323" cy="391" r="4" fill="#d4af37"/>
+</svg>

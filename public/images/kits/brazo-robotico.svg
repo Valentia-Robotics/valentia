@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="t">
+  <title id="t">Brazo robótico (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="420" cy="520" rx="280" ry="22" fill="#000" opacity=".12"/>
+  <rect x="610" y="440" width="70" height="70" rx="10" fill="#2d4bff"/>
+  <ellipse cx="300" cy="500" rx="150" ry="30" fill="#9fcfe6"/>
+  <rect x="160" y="440" width="280" height="60" rx="14" fill="#cfeaf7" stroke="#7fb8d4" stroke-width="5"/>
+  <rect x="255" y="385" width="90" height="62" rx="10" fill="#2d6cdf"/>
+  <path d="M300 400L420 215" stroke="#7fb8d4" stroke-width="68" stroke-linecap="round"/><path d="M300 400L420 215" stroke="#cfeaf7" stroke-width="58" stroke-linecap="round"/>
+  <path d="M420 215L590 330" stroke="#7fb8d4" stroke-width="60" stroke-linecap="round"/><path d="M420 215L590 330" stroke="#cfeaf7" stroke-width="50" stroke-linecap="round"/>
+  <circle cx="300" cy="400" r="30" fill="#2d6cdf"/><circle cx="300" cy="400" r="10" fill="#fafafa"/>
+  <circle cx="420" cy="215" r="30" fill="#2d6cdf"/><circle cx="420" cy="215" r="10" fill="#fafafa"/>
+  <rect x="565" y="310" width="64" height="58" rx="10" fill="#2d6cdf"/>
+  <path d="M600 365l-6 62 16 4 18-60z" fill="#cfeaf7" stroke="#7fb8d4" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M622 362l50 52-12 12-52-44z" fill="#cfeaf7" stroke="#7fb8d4" stroke-width="5" stroke-linejoin="round"/>
+</svg>

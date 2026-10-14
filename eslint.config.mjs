@@ -9,7 +9,14 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Desactiva las reglas de formato: de eso se encarga Prettier.
   prettier,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "node_modules/**"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "node_modules/**",
+    "src/generated/**",
+  ]),
 ]);
 
 export default eslintConfig;

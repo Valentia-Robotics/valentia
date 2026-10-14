@@ -1,0 +1,138 @@
+// ============================================================
+//  ESQUEMA DE LA BASE DE DATOS DE VALENTIA
+//  Cada "model" es una tabla. Los datos de prueba están en data/*.json
+//  y se cargan con "npm run db:seed".
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// En local usamos SQLite (un único archivo, sin instalar nada).
+// Para pasar a PostgreSQL: cambia "sqlite" por "postgresql" (y lee el README).
+datasource db {
+  provider = "sqlite"
+}
+
+enum Categoria {
+  PLACAS
+  MOTORES
+  SENSORES
+  ALIMENTACION
+  CHASIS
+  EXTRAS
+}
+
+enum TipoEjercicio {
+  TEST
+  RETO
+}
+
+/// Un componente que se vende suelto o dentro de un kit
+model Componente {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  nombre           String
+  categoria        Categoria
+  /// Tipo concreto (placa, motor-dc, servo, driver-motores, bateria…). Lo usan las reglas de compatibilidad.
+  tipo             String
+  resumen          String
+  descripcion      String
+  precioCentimos   Int
+  stock            Int
+  imagen           String
+  /// Tensión de funcionamiento en voltios (en una batería: la tensión que entrega)
+  voltaje          Float
+  /// Tensión lógica de las señales (3,3 V o 5 V), si aplica
+  voltajeLogico    Float?
+  /// Consumo típico en miliamperios (en una batería: la corriente máxima que puede dar)
+  consumoMa        Int
+  conector         String
+  /// Pines de la placa que ocupa (en una placa: los pines que ofrece)
+  pines            Int
+  /// Datos técnicos extra para mostrar en la ficha, como lista de pares nombre/valor
+  especificaciones Json
+
+  enKits KitComponente[]
+}
+
+/// Un kit cerrado de Valentia (por ejemplo, el coche seguidor de líneas)
+model Kit {
+  id             String  @id @default(cuid())
+  slug           String  @unique
+  nombre         String
+  eslogan        String
+  descripcion    String
+  precioCentimos Int
+  imagen         String
+  nivel          String
+  edadMinima     Int
+  tiempoMontaje  String
+  /// El kit destacado aparece en la portada
+  destacado      Boolean @default(false)
+  orden          Int     @default(0)
+  /// Puntos fuertes del kit (lista de textos)
+  puntosFuertes  Json
+
+  componentes KitComponente[]
+  curso       Curso           @relation(fields: [cursoId], references: [id])
+  cursoId     String          @unique
+}
+
+/// Qué componentes (y cuántos) lleva cada kit
+model KitComponente {
+  kit          Kit        @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  kitId        String
+  componente   Componente @relation(fields: [componenteId], references: [id], onDelete: Cascade)
+  componenteId String
+  cantidad     Int        @default(1)
+
+  @@id([kitId, componenteId])
+}
+
+/// El curso que acompaña a un kit
+model Curso {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  titulo      String
+  descripcion String
+  nivel       String
+  lecciones   Leccion[]
+  kit         Kit?
+}
+
+model Leccion {
+  id          String      @id @default(cuid())
+  curso       Curso       @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  cursoId     String
+  slug        String
+  orden       Int
+  titulo      String
+  descripcion String
+  /// URL del vídeo (YouTube, Vimeo o .mp4). "PENDIENTE" = todavía no hay vídeo.
+  videoUrl    String
+  duracionMin Int
+  ejercicios  Ejercicio[]
+
+  @@unique([cursoId, slug])
+}
+
+/// Ejercicio de una lección: un test de opción múltiple o un reto práctico
+model Ejercicio {
+  id          String        @id @default(cuid())
+  leccion     Leccion       @relation(fields: [leccionId], references: [id], onDelete: Cascade)
+  leccionId   String
+  orden       Int
+  tipo        TipoEjercicio
+  enunciado   String
+  /// Solo TEST: lista de respuestas posibles
+  opciones    Json?
+  /// Solo TEST: posición (empezando en 0) de la respuesta correcta
+  correcta    Int?
+  explicacion String?
+  /// Solo RETO: pistas que se van desbloqueando
+  pistas      Json?
+  /// Solo RETO: solución que se puede desbloquear
+  solucion    String?
+}

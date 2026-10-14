@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Portapilas 4 × AA (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="470" rx="220" ry="26.4" fill="#000" opacity=".12"/>
+  <rect x="110" y="140" width="380" height="300" rx="18" fill="#1d1d1f"/>
+  <rect x="135" y="165" width="70" height="250" rx="22" fill="#2f9e5a"/><rect x="135" y="165" width="70" height="30" rx="10" fill="#c9ccd1"/><rect x="220" y="165" width="70" height="250" rx="22" fill="#2f9e5a"/><rect x="220" y="385" width="70" height="30" rx="10" fill="#c9ccd1"/><rect x="305" y="165" width="70" height="250" rx="22" fill="#2f9e5a"/><rect x="305" y="165" width="70" height="30" rx="10" fill="#c9ccd1"/><rect x="390" y="165" width="70" height="250" rx="22" fill="#2f9e5a"/><rect x="390" y="385" width="70" height="30" rx="10" fill="#c9ccd1"/>
+  <rect x="440" y="110" width="40" height="34" rx="6" fill="#3a3a3c"/>
+  <path d="M480 300c50 0 40 80 80 100" stroke="#d92d20" stroke-width="8" fill="none"/>
+  <path d="M480 330c40 0 30 70 70 86" stroke="#555" stroke-width="8" fill="none"/>
+</svg>

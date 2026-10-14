@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Servo MG996R (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="470" rx="200" ry="24" fill="#000" opacity=".12"/>
+  <rect x="140" y="180" width="320" height="260" rx="16" fill="#1d1d1f"/>
+  <rect x="95" y="240" width="410" height="46" rx="8" fill="#1d1d1f"/>
+  <circle cx="118" cy="263" r="10" fill="#f4f4f2"/><circle cx="482" cy="263" r="10" fill="#f4f4f2"/>
+  <rect x="160" y="300" width="280" height="40" rx="6" fill="#3a3a3c"/>
+  <circle cx="230" cy="165" r="44" fill="#3a3a3c"/>
+  <circle cx="230" cy="165" r="56" fill="none" stroke="#fafafa" stroke-width="16"/>
+  <circle cx="230" cy="165" r="12" fill="#c9ccd1"/>
+</svg>

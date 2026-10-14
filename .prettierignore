@@ -7,3 +7,5 @@ imagenes
 public
 *.db
 PROMPT.md
+src/generated
+prisma/migrations

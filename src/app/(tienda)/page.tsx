@@ -1,50 +1,29 @@
-import { Logo } from "@/components/marca/Logo";
-import { Boton } from "@/components/ui/Boton";
-import { Contenedor } from "@/components/ui/Contenedor";
+import { BloqueConfigurador } from "@/components/tienda/BloqueConfigurador";
+import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
+import { HeroKit } from "@/components/tienda/HeroKit";
+import { SeccionKit } from "@/components/tienda/SeccionKit";
+import { obtenerKits } from "@/lib/catalogo";
 
 /**
- * Página de inicio (versión provisional de la fase 1).
- * En la fase 2 la sustituiremos por la portada completa con el kit estrella.
+ * PÁGINA DE INICIO (estilo web de Apple)
+ *   1. Portada con el kit estrella (el marcado como "destacado" en data/kits.json)
+ *   2. Una sección por cada uno de los demás kits, alternando fondo oscuro y claro
+ *   3. Bloque "Crea tu propio robot" → configurador
+ *   4. Bloque que explica el curso incluido con el QR de la caja
  */
-export default function Inicio() {
+export default async function Inicio() {
+  const kits = await obtenerKits();
+  const estrella = kits.find((k) => k.destacado) ?? kits[0];
+  const resto = kits.filter((k) => k.id !== estrella?.id);
+
   return (
     <>
-      {/* Bloque claro */}
-      <section className="bg-white">
-        <Contenedor className="flex min-h-[70vh] flex-col items-center justify-center py-24 text-center">
-          <p className="text-sm font-medium tracking-wide text-acento uppercase">
-            Kits de robótica con cursos
-          </p>
-          <h1 className="mt-4 max-w-3xl text-5xl font-medium sm:text-7xl">
-            Atrévete a construir tu propio robot.
-          </h1>
-          <p className="mt-6 max-w-xl text-lg text-gris sm:text-xl">
-            No hace falta saber de electrónica. Cada kit trae todo lo que necesitas y un curso que
-            te acompaña paso a paso.
-          </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Boton href="/kits" variante="acento" tamano="lg">
-              Ver kits
-            </Boton>
-            <Boton href="/configurador" variante="secundario" tamano="lg">
-              Crea tu robot
-            </Boton>
-          </div>
-        </Contenedor>
-      </section>
-
-      {/* Bloque oscuro: el logo en su versión blanca */}
-      <section className="bg-tinta text-white">
-        <Contenedor className="flex flex-col items-center py-24 text-center">
-          <Logo fondo="oscuro" alto={28} className="opacity-95" />
-          <p className="mt-8 max-w-lg text-lg text-gris-claro">
-            Aprender robótica empieza con una pieza. Luego otra. Y de repente, tu robot se mueve.
-          </p>
-          <Boton href="/diseno" variante="enlace-claro" className="mt-6">
-            Ver el sistema de diseño ›
-          </Boton>
-        </Contenedor>
-      </section>
+      {estrella && <HeroKit kit={estrella} />}
+      {resto.map((kit, i) => (
+        <SeccionKit key={kit.id} kit={kit} tema={i % 2 === 0 ? "oscuro" : "claro"} />
+      ))}
+      <BloqueConfigurador />
+      <BloqueCursoQR />
     </>
   );
 }

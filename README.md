@@ -2,7 +2,7 @@
 
 Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloquean con el QR de cada caja.
 
-> Estado: **fase 1 de 6** (base, sistema de diseño, logo y navegación). Este README se completará en la fase 6.
+> Estado: **fase 2 de 6** (portada, kits y base de datos). Este README se completará en la fase 6.
 
 ## Cómo arrancar el proyecto
 
@@ -10,23 +10,28 @@ Necesitas tener instalado [Node.js](https://nodejs.org) 22 o superior.
 
 ```bash
 npm install        # descarga las librerías (solo la primera vez)
+npm run setup      # crea la base de datos y carga los datos de prueba (solo la primera vez)
 npm run dev        # arranca la web en modo desarrollo
 ```
 
 Abre **http://localhost:3000** en el navegador. Cada vez que guardes un archivo, la página se actualiza sola.
 Para pararla, pulsa `Ctrl + C` en la terminal.
 
-Si es la primera vez, copia `.env.example` como `.env` y rellena los valores.
+Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env` **antes** de `npm run setup`.
 
 ### Otros comandos
 
-| Comando          | Para qué sirve                                               |
-| ---------------- | ------------------------------------------------------------ |
-| `npm run build`  | Prepara la versión final y optimizada de la web              |
-| `npm run start`  | Arranca la versión final (después de `build`)                |
-| `npm run lint`   | Revisa el código en busca de errores                         |
-| `npm run format` | Ordena y da formato a todo el código                         |
-| `npm run marca`  | Regenera el favicon, los iconos y las versiones PNG del logo |
+| Comando              | Para qué sirve                                                          |
+| -------------------- | ----------------------------------------------------------------------- |
+| `npm run build`      | Prepara la versión final y optimizada de la web                         |
+| `npm run start`      | Arranca la versión final (después de `build`)                           |
+| `npm run lint`       | Revisa el código en busca de errores                                    |
+| `npm run format`     | Ordena y da formato a todo el código                                    |
+| `npm run marca`      | Regenera el favicon, los iconos y las versiones PNG del logo            |
+| `npm run db:seed`    | Vuelve a cargar los datos de `data/*.json` en la base de datos          |
+| `npm run db:reset`   | Borra la base de datos local y la crea de nuevo con los datos de prueba |
+| `npm run db:migrate` | Aplica cambios de `prisma/schema.prisma` a la base de datos             |
+| `npm run db:studio`  | Abre un panel en el navegador para ver y editar la base de datos        |
 
 ## Qué hay en cada carpeta
 
@@ -34,14 +39,17 @@ Si es la primera vez, copia `.env.example` como `.env` y rellena los valores.
 | --------------------------------------------------- | ----------------------------------------------------------------- |
 | `imagenes/`                                         | Tus originales (logo.png). No se modifican nunca.                 |
 | `public/images/brand/`                              | Logo para la web (SVG y PNG) e iconos                             |
-| `public/images/componentes/`, `public/images/kits/` | Fotos de productos (fase 2)                                       |
+| `public/images/componentes/`, `public/images/kits/` | Imágenes de productos (ilustraciones de muestra en SVG)           |
+| `data/`                                             | **Datos de prueba**: componentes, kits y cursos (archivos JSON)   |
+| `prisma/`                                           | Base de datos: esquema, migraciones, seed y el archivo `dev.db`   |
 | `scripts/`                                          | Programas de ayuda (generar iconos a partir del logo)             |
 | `src/app/`                                          | Las páginas de la web. Cada carpeta es una dirección (`/kits`, …) |
 | `src/app/globals.css`                               | **Sistema de diseño**: colores, tipografías, radios y sombras     |
 | `src/components/`                                   | Piezas reutilizables: botones, barra de navegación, pie, logo…    |
 | `src/config/marca.ts`                               | Nombre, lema y enlaces del menú y del pie                         |
 | `src/store/`                                        | El carrito (se guarda en el navegador)                            |
-| `src/lib/`, `src/types/`                            | Utilidades y tipos de datos                                       |
+| `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades |
+| `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.       |
 
 ## Cómo cambiar…
 
@@ -65,4 +73,40 @@ Edita `public/images/brand/monograma.svg` y ejecuta `npm run marca`.
 
 En `src/config/marca.ts`.
 
-_Productos, imágenes de productos y vídeos de los cursos: se explicará en las próximas fases._
+### Los productos (kits y componentes)
+
+Los datos están en la carpeta `data/`:
+
+- `data/componentes.json`: los 18 componentes (precio en euros, stock, voltaje, consumo, conector, pines…).
+- `data/kits.json`: los 3 kits. En `componentes` se indica qué piezas lleva cada uno y cuántas.
+  El kit con `"destacado": true` es el que sale en la portada.
+- `data/cursos.json`: los cursos, con sus lecciones y ejercicios.
+
+Después de cambiar algo, ejecuta `npm run db:seed` para guardarlo en la base de datos y recarga la página.
+Si hay un error (por ejemplo, un precio escrito como texto), el seed te dirá en qué archivo y en qué línea está.
+
+### Las imágenes de los productos
+
+Las ilustraciones de `public/images/componentes/` y `public/images/kits/` son de muestra.
+Para poner una foto real, guárdala en la misma carpeta y cambia la ruta en el JSON
+(por ejemplo, `"imagen": "/images/kits/brazo-robotico.jpg"`). Después, `npm run db:seed`.
+
+### Los vídeos de los cursos
+
+En `data/cursos.json`, cada lección tiene `"videoUrl": "PENDIENTE"`. Busca la palabra **PENDIENTE**
+y sustitúyela por la dirección del vídeo (YouTube, Vimeo o un archivo .mp4). Después, `npm run db:seed`.
+
+## Base de datos
+
+En local se usa **SQLite**: toda la base de datos es un único archivo, `prisma/dev.db`, que no se sube a git.
+La dirección está en `DATABASE_URL` del archivo `.env`.
+
+### Pasar a PostgreSQL (producción)
+
+1. En `prisma/schema.prisma`, cambia `provider = "sqlite"` por `provider = "postgresql"`.
+2. Instala el adaptador de PostgreSQL: `npm install @prisma/adapter-pg`.
+3. En `src/lib/db.ts` y `prisma/seed.ts`, cambia el adaptador de SQLite por el de PostgreSQL
+   (las instrucciones exactas están en el comentario de `src/lib/db.ts`).
+4. Pon la URL de PostgreSQL en `DATABASE_URL`.
+5. Borra la carpeta `prisma/migrations` y crea una migración nueva con `npm run db:migrate`
+   (las migraciones de SQLite y PostgreSQL no son intercambiables). Después, `npm run db:seed`.

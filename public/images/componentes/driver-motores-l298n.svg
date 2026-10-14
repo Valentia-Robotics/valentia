@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Driver de motores L298N (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="480" rx="210" ry="25.2" fill="#000" opacity=".12"/>
+  <rect x="110" y="130" width="380" height="340" rx="18" fill="#b8322a"/>
+  <circle cx="126" cy="146" r="7" fill="#fff" opacity=".85"/><circle cx="474" cy="146" r="7" fill="#fff" opacity=".85"/><circle cx="126" cy="454" r="7" fill="#fff" opacity=".85"/><circle cx="474" cy="454" r="7" fill="#fff" opacity=".85"/>
+  <rect x="210" y="110" width="180" height="200" rx="6" fill="#1d1d1f"/>
+  <rect x="218" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="237" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="256" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="275" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="294" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="313" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="332" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="351" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/><rect x="370" y="90" width="10" height="210" rx="3" fill="#3a3a3c"/>
+  <rect x="120" y="330" width="70" height="110" rx="6" fill="#2d6cdf"/><rect x="410" y="330" width="70" height="110" rx="6" fill="#2d6cdf"/>
+  <circle cx="155" cy="360" r="12" fill="#c9ccd1"/><circle cx="445" cy="360" r="12" fill="#c9ccd1"/><circle cx="155" cy="410" r="12" fill="#c9ccd1"/><circle cx="445" cy="410" r="12" fill="#c9ccd1"/>
+  <rect x="235" y="350" width="130" height="56" rx="6" fill="#2d6cdf"/>
+  <rect x="225" y="420" width="150" height="22" rx="3" fill="#1d1d1f"/><circle cx="240" cy="431" r="4" fill="#d4af37"/><circle cx="264" cy="431" r="4" fill="#d4af37"/><circle cx="288" cy="431" r="4" fill="#d4af37"/><circle cx="312" cy="431" r="4" fill="#d4af37"/><circle cx="336" cy="431" r="4" fill="#d4af37"/><circle cx="360" cy="431" r="4" fill="#d4af37"/>
+</svg>

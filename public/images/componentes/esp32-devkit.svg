@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="t">
+  <title id="t">Placa ESP32 DevKit (imagen de muestra)</title>
+  <!-- Ilustración provisional de Valentia. Sustitúyela por una foto real con el mismo nombre de archivo. -->
+<ellipse cx="300" cy="480" rx="170" ry="20.4" fill="#000" opacity=".12"/>
+  <rect x="160" y="110" width="280" height="360" rx="18" fill="#26282b"/>
+  <rect x="168" y="140" width="22" height="306" rx="3" fill="#1d1d1f"/><circle cx="179" cy="153" r="4" fill="#d4af37"/><circle cx="179" cy="173" r="4" fill="#d4af37"/><circle cx="179" cy="193" r="4" fill="#d4af37"/><circle cx="179" cy="213" r="4" fill="#d4af37"/><circle cx="179" cy="233" r="4" fill="#d4af37"/><circle cx="179" cy="253" r="4" fill="#d4af37"/><circle cx="179" cy="273" r="4" fill="#d4af37"/><circle cx="179" cy="293" r="4" fill="#d4af37"/><circle cx="179" cy="313" r="4" fill="#d4af37"/><circle cx="179" cy="333" r="4" fill="#d4af37"/><circle cx="179" cy="353" r="4" fill="#d4af37"/><circle cx="179" cy="373" r="4" fill="#d4af37"/><circle cx="179" cy="393" r="4" fill="#d4af37"/><circle cx="179" cy="413" r="4" fill="#d4af37"/><circle cx="179" cy="433" r="4" fill="#d4af37"/>
+  <rect x="410" y="140" width="22" height="306" rx="3" fill="#1d1d1f"/><circle cx="421" cy="153" r="4" fill="#d4af37"/><circle cx="421" cy="173" r="4" fill="#d4af37"/><circle cx="421" cy="193" r="4" fill="#d4af37"/><circle cx="421" cy="213" r="4" fill="#d4af37"/><circle cx="421" cy="233" r="4" fill="#d4af37"/><circle cx="421" cy="253" r="4" fill="#d4af37"/><circle cx="421" cy="273" r="4" fill="#d4af37"/><circle cx="421" cy="293" r="4" fill="#d4af37"/><circle cx="421" cy="313" r="4" fill="#d4af37"/><circle cx="421" cy="333" r="4" fill="#d4af37"/><circle cx="421" cy="353" r="4" fill="#d4af37"/><circle cx="421" cy="373" r="4" fill="#d4af37"/><circle cx="421" cy="393" r="4" fill="#d4af37"/><circle cx="421" cy="413" r="4" fill="#d4af37"/><circle cx="421" cy="433" r="4" fill="#d4af37"/>
+  <rect x="210" y="130" width="180" height="200" rx="8" fill="#c9ccd1"/>
+  <rect x="222" y="142" width="156" height="120" rx="4" fill="#b3b7bd"/>
+  <path d="M225 290h20v20h20v-20h20v20h20v-20h20v20h20v-20h20" fill="none" stroke="#d4af37" stroke-width="5"/>
+  <rect x="270" y="420" width="60" height="40" rx="6" fill="#a3a7ad"/>
+  <circle cx="240" cy="380" r="12" fill="#3a3a3c"/><circle cx="360" cy="380" r="12" fill="#3a3a3c"/>
+</svg>
