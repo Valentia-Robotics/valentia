@@ -5,11 +5,13 @@
  *
  * Uso:  npm run db:seed
  * Se puede ejecutar todas las veces que quieras: borra el catálogo (y los pedidos de prueba) y lo vuelve a crear.
+ * Las cuentas de usuario se conservan, pero pierden sus cursos y su progreso (dependen del catálogo).
  */
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"; // ← SQLite (para PostgreSQL, ver src/lib/db.ts)
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { FORMATO_CODIGO } from "../src/lib/codigos";
@@ -23,6 +25,16 @@ const CODIGOS_DE_PRUEBA: Record<string, string[]> = {
   "coche-seguidor-de-lineas": ["VAL-PRUE-CAR2", "VAL-PRUE-CAR3"],
   "brazo-robotico": ["VAL-PRUE-BRZ2", "VAL-PRUE-BRZ3"],
   "estacion-meteorologica": ["VAL-PRUE-MET2", "VAL-PRUE-MET3"],
+};
+
+/**
+ * Usuario de prueba (solo para desarrollo; también está en el README).
+ * Empieza sin cursos: actívale uno con un código de prueba para ver "Mis cursos".
+ */
+const USUARIO_DE_PRUEBA = {
+  nombre: "Alex Prueba",
+  email: "prueba@valentia.test",
+  contrasena: "robots2026",
 };
 
 // Mensajes de error de validación en español
@@ -162,7 +174,16 @@ async function main() {
     }
   });
 
+  // Usuario de prueba: si ya existe, solo se le vuelve a poner la contraseña de prueba
+  const contrasenaHash = await bcrypt.hash(USUARIO_DE_PRUEBA.contrasena, 10);
+  await db.usuario.upsert({
+    where: { email: USUARIO_DE_PRUEBA.email },
+    create: { nombre: USUARIO_DE_PRUEBA.nombre, email: USUARIO_DE_PRUEBA.email, contrasenaHash },
+    update: { contrasenaHash },
+  });
+
   const lecciones = cursos.reduce((total, c) => total + c.lecciones.length, 0);
+  console.log(`✔ Usuario de prueba: ${USUARIO_DE_PRUEBA.email} / ${USUARIO_DE_PRUEBA.contrasena}`);
   console.log(
     `✔ Datos cargados: ${componentes.length} componentes, ${kits.length} kits, ` +
       `${cursos.length} cursos y ${lecciones} lecciones.`,

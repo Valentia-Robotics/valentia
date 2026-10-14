@@ -7,7 +7,7 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Fase actual: fase 4 terminada · siguiente: fase 5 (login, activación y cursos).** No empezar una fase sin la aprobación del usuario.
+**Fase actual: fase 5 terminada · siguiente: fase 6 (repaso final de calidad).** No empezar una fase sin la aprobación del usuario.
 
 ### Terminado
 
@@ -24,7 +24,7 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
   Robot guardado en localStorage (`src/store/configurador.ts`). Página `/componentes`. Botón genérico `BotonAnadirCarrito`
   (sustituye a BotonAnadirKit), `ui/Dialogo` y `ui/SelectorCantidad` reutilizables para la fase 4. Probado en Chrome headless
   (escritorio y móvil, sin errores de consola).
-- **Fase 4** (carrito y compra simulada): `/carrito`, `/checkout` (formulario con `useActionState` + acción del servidor
+- **Fase 4** (`7a56efb`): `/carrito`, `/checkout` (formulario con `useActionState` + acción del servidor
   en `src/app/(tienda)/checkout/acciones.ts`) y `/pedido/[id]` (confirmación + tarjetas de activación con QR imprimibles,
   `print:hidden` en navegación y pie). El servidor recalcula precios (avisa y actualiza el carrito si cambian), valida con
   Zod (`src/lib/validaciones/pedido.ts`), descuenta stock en una transacción (`src/lib/pedidos.ts`) y crea un código
@@ -34,21 +34,39 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
   (migra los guardados en v1). Seed: códigos de prueba fijos `VAL-PRUE-CAR2/3`, `BRZ2/3`, `MET2/3` y borra pedidos.
   Paquete nuevo: `qrcode` (+ `@types/qrcode`). Envío gratis. Componentes nuevos: `ui/Campo`, `compra/*`.
   Probado en Chrome headless (compra completa, errores de formulario, cambio de precios, stock, impresión y móvil).
+- **Fase 5** (login, activación y cursos): Auth.js `next-auth@5.0.0-beta.32` con Credentials + sesión JWT.
+  Config partida: `src/auth.config.ts` (sin BD: `authorized`, callbacks, `RUTAS_PROTEGIDAS`, `trustHost`) que usa
+  `src/proxy.ts`, y `src/auth.ts` (authorize con bcryptjs). Ruta `api/auth/[...nextauth]`. Comprobación segura en
+  `src/lib/sesion.ts` (`obtenerUsuario` con `cache` + BD, `exigirUsuario(volver)`). Login/registro: `FormularioCuenta` usa
+  `signIn` de `next-auth/react` (redirect:false) y luego `window.location.assign` para que la sesión se vea en toda la web;
+  el registro crea el usuario con la acción `src/app/(auth)/acciones.ts`. `rutaSegura` (validaciones/cuenta.ts) solo deja
+  volver a rutas propias (se queda con pathname+search). `SessionProvider` en `layout/Proveedores.tsx` (las páginas de tienda
+  siguen estáticas); `MenuUsuario` + menú móvil con cerrar sesión. `/activar` (estados: sin código, no existe, usado,
+  sin sesión → login/registro con callbackUrl, ya tienes el curso → el código NO se gasta, activar). `src/lib/activacion.ts`
+  (transacción, `updateMany ... usadoEn: null`). `/cursos`, `/cursos/[slug]` (redirige a la siguiente lección) y
+  `/cursos/[slug]/[leccion]` (temario lateral, vídeo con `src/lib/video.ts`, completar con `useOptimistic`, tests corregidos
+  en servidor y retos con pistas y solución desbloqueable). `src/lib/cursos.ts` nunca envía `correcta`/`explicacion`/`solucion`
+  antes de tiempo. Acciones en `src/app/(cuenta)/cursos/acciones.ts`. Modelos `Usuario`, `CursoUsuario`, `ProgresoLeccion`,
+  `ProgresoEjercicio` + `CodigoActivacion.usuarioId` (migración `usuarios_y_progreso`). Seed: usuario de prueba
+  `prueba@valentia.test` / `robots2026` (sin cursos). Paquetes nuevos: `next-auth@beta`, `bcryptjs`.
+  Probado en Chrome headless: proxy → login con vuelta, contraseña incorrecta, activación, test, pistas y solución, progreso
+  guardado, curso ajeno → 404, código usado por otra cuenta, registro con errores, cerrar sesión y móvil.
 
 ### Pendiente
 
-- **Fase 5 – Login, activación y cursos**: Auth.js v5 (email y contraseña cifrada), `/activar?codigo=`,
-  `/cursos`, lecciones con vídeo, tests y retos, progreso en la BD, rutas protegidas (`proxy.ts`).
-  El seed debe crear un usuario de prueba (credenciales en el README); los códigos sin usar ya existen.
-  Hay que añadir el modelo de usuario y relacionar `CodigoActivacion` con él (hoy solo tiene `usadoEn`).
-  Validar el formato con `FORMATO_CODIGO` (`src/lib/codigos.ts`). Valorar enlazar los pedidos al usuario y proteger
-  `/pedido/[id]` (hoy se accede solo con el id, difícil de adivinar pero público).
 - **Fase 6 – Repaso final de calidad**: accesibilidad, móvil, rendimiento, README completo, lint y build.
+  Ideas anotadas para revisar con el usuario:
+  - El pie de página muestra siempre «Iniciar sesión / Crear cuenta» (es estático), aunque ya hayas entrado.
+  - Sin límite de intentos en login, registro y activación (añadir rate limiting antes de publicar).
+  - `/pedido/[id]` es público para quien tenga el id (difícil de adivinar). Valorar enlazar pedidos al usuario.
+  - Sin «olvidé mi contraseña» (necesitaría enviar emails).
 
 ### Avisos abiertos
 
-- `/configurador` y `/pedido/[id]` son dinámicas, así que `npm start` necesita la BD creada.
-- `npm run db:seed` borra los pedidos de prueba y sus códigos (los códigos dependen de los kits, que se recrean).
+- `/configurador`, `/pedido/[id]`, `/activar`, `/login`, `/registro` y `/cursos/*` son dinámicas: `npm start` necesita la BD.
+- `npm run db:seed` borra los pedidos de prueba y sus códigos (los códigos dependen de los kits, que se recrean), y las
+  cuentas pierden sus cursos y su progreso (dependen del catálogo). Las cuentas en sí se conservan.
+- Las pruebas con Chrome headless no conservan la sesión entre ejecuciones (se cierra de golpe): iniciar sesión en la misma ejecución.
 - No se envían emails: el email del pedido solo se guarda como contacto.
 - `npm audit`: 9 vulnerabilidades "altas", todas en herramientas de desarrollo/compilación: ESLint (braces/micromatch, vía
   eslint-config-next; el "arreglo" bajaría a Next 14) y la CLI de Prisma (deepmerge-ts, mysql2; el "arreglo" bajaría a
@@ -98,7 +116,7 @@ Requisitos completos: `PROMPT.md`.
 2. **Antes de instalar cualquier paquete, explicar en una frase para qué sirve.**
 3. Trabajar por fases y hacer **un commit de git al terminar cada fase**:
    (1) base, sistema de diseño, logo y navegación ✅ · (2) inicio y fichas de kit ✅ ·
-   (3) configurador ✅ · (4) carrito y compra simulada ✅ · (5) login, activación y cursos ·
+   (3) configurador ✅ · (4) carrito y compra simulada ✅ · (5) login, activación y cursos ✅ ·
    (6) repaso final de calidad.
 4. Al terminar cada fase: decir exactamente qué comandos ejecutar, qué dirección abrir y qué debería verse.
 5. `npm run lint` y `npm run build` deben pasar sin errores antes de cada commit.
@@ -133,7 +151,7 @@ Requisitos completos: `PROMPT.md`.
   - `migrate dev` NO genera el cliente ni ejecuta el seed en Prisma 7: usar `npm run db:generate` / `npm run db:seed`.
   - Para PostgreSQL: provider + adaptador (`@prisma/adapter-pg`) en db.ts y seed.ts + migraciones nuevas (ver README).
   - Seed (`prisma/seed.ts`, con tsx) valida `data/*.json` con Zod (`src/lib/validaciones/catalogo.ts`, mensajes en español). En los JSON los precios van en euros; en la BD, en céntimos.
-- Zod 4 · qrcode (QR en SVG con corrección "H" y monograma en el centro) · Próxima fase: Auth.js v5 beta (next-auth@beta) con email y contraseña cifrada (bcryptjs).
+- Zod 4 · qrcode (QR en SVG con corrección "H" y monograma en el centro) · Auth.js v5 beta (next-auth@5.0.0-beta.32) con email y contraseña cifrada (bcryptjs).
 - Las páginas de kits se generan estáticas en el build leyendo la BD: `npm run build` necesita la BD creada (`npm run setup`).
 - Animación al hacer scroll: clase CSS `aparecer` (scroll-driven animations, sin JS; respeta prefers-reduced-motion).
 - En Windows, al parar `next dev` lanzado en segundo plano, comprobar que el puerto 3000 queda libre (el proceso hijo puede sobrevivir).
@@ -147,9 +165,9 @@ imagenes/              originales del usuario (no tocar)
 public/images/         brand/, componentes/, kits/
 scripts/               generar-marca.mjs
 src/app/               (tienda)/, (auth)/, (cuenta)/, activar/, api/, diseno/
-src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cursos/
+src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cuenta/, cursos/
 src/config/            marca.ts, categorias.ts
-src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/ (+ auth en la fase 5)
+src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video.ts (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
 src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
 data/                  componentes.json, kits.json, cursos.json (fuente de los datos de prueba)
 prisma/                schema.prisma, migrations/, seed.ts, dev.db

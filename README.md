@@ -2,7 +2,7 @@
 
 Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloquean con el QR de cada caja.
 
-> Estado: **fase 4 de 6** (portada, kits, configurador, carrito y compra simulada). Este README se completará en la fase 6.
+> Estado: **fase 5 de 6** (portada, kits, configurador, compra simulada, cuentas, activación y cursos). Este README se completará en la fase 6.
 
 ## Cómo arrancar el proyecto
 
@@ -17,7 +17,26 @@ npm run dev        # arranca la web en modo desarrollo
 Abre **http://localhost:3000** en el navegador. Cada vez que guardes un archivo, la página se actualiza sola.
 Para pararla, pulsa `Ctrl + C` en la terminal.
 
-Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env` **antes** de `npm run setup`.
+Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env` **antes** de `npm run setup`
+y genera la clave secreta de las sesiones con `npx auth secret` (o pon en `AUTH_SECRET` un texto largo y aleatorio).
+
+### Cuenta y códigos de prueba
+
+El seed crea un **usuario de prueba** (solo para tu ordenador, no lo uses en la web publicada):
+
+| Email                  | Contraseña   |
+| ---------------------- | ------------ |
+| `prueba@valentia.test` | `robots2026` |
+
+Empieza sin cursos. Para probar todo el recorrido del QR de la caja:
+
+1. Abre **http://localhost:3000/activar?codigo=VAL-PRUE-CAR2** (es lo que abriría el QR).
+2. Pulsa «Ya tengo cuenta: iniciar sesión» y entra con el usuario de prueba. Volverás solo a la activación.
+3. Pulsa «Activar mi curso». El curso del coche aparece en **Mis cursos** (http://localhost:3000/cursos).
+
+**Códigos de activación de prueba** (sin usar): `VAL-PRUE-CAR2`, `VAL-PRUE-CAR3` (coche),
+`VAL-PRUE-BRZ2`, `VAL-PRUE-BRZ3` (brazo) y `VAL-PRUE-MET2`, `VAL-PRUE-MET3` (estación meteorológica).
+Cada vez que ejecutas `npm run db:seed` vuelven a quedar sin usar (y las cuentas pierden sus cursos y su progreso).
 
 ### Otros comandos
 
@@ -50,6 +69,8 @@ Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env
 | `src/store/`                                        | El carrito y el robot del configurador (se guardan en el navegador) |
 | `src/lib/compatibilidad/`                           | **Reglas del configurador** (avisos de compatibilidad)              |
 | `src/lib/pagos/`, `src/lib/pedidos.ts`              | Pago (simulado; preparado para Stripe) y creación de pedidos        |
+| `src/auth.ts`, `src/auth.config.ts`, `src/proxy.ts` | Inicio de sesión (Auth.js) y protección de las páginas de cuenta    |
+| `src/lib/cursos.ts`, `src/lib/activacion.ts`        | Cursos del usuario, progreso y activación de códigos                |
 | `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades   |
 | `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.         |
 
@@ -137,19 +158,39 @@ Para poner una foto real, guárdala en la misma carpeta y cambia la ruta en el J
 ### Los vídeos de los cursos
 
 En `data/cursos.json`, cada lección tiene `"videoUrl": "PENDIENTE"`. Busca la palabra **PENDIENTE**
-y sustitúyela por la dirección del vídeo (YouTube, Vimeo o un archivo .mp4). Después, `npm run db:seed`.
+y sustitúyela por la dirección del vídeo. Después, `npm run db:seed`. Valen:
+
+- YouTube: `https://www.youtube.com/watch?v=…` o `https://youtu.be/…`
+- Vimeo: `https://vimeo.com/123456789`
+- Un archivo de vídeo: guárdalo en `public/videos/` y escribe `/videos/leccion-1.mp4`
+
+Mientras ponga `PENDIENTE`, la lección muestra el aviso «Estamos grabando este vídeo».
+
+### Los ejercicios de los cursos
+
+También en `data/cursos.json`, dentro de cada lección, en `ejercicios`:
+
+- **Test**: `"tipo": "TEST"`, `enunciado`, `opciones` (lista de respuestas), `correcta` (la posición de la
+  respuesta buena **empezando a contar en 0**) y `explicacion`.
+- **Reto**: `"tipo": "RETO"`, `enunciado`, `pistas` (se descubren de una en una) y `solucion`.
+
+La respuesta correcta y la solución nunca se envían al navegador antes de tiempo: las comprueba el servidor.
+
+### Quién puede ver qué
+
+- Las páginas de **Mis cursos** (`/cursos/…`) necesitan haber iniciado sesión. Si no, llevan a `/login`
+  y después vuelven a donde ibas. La lista de rutas protegidas está en `src/auth.config.ts`.
+- Cada usuario solo ve los cursos que ha activado con un código.
 
 ## Base de datos
 
 En local se usa **SQLite**: toda la base de datos es un único archivo, `prisma/dev.db`, que no se sube a git.
 La dirección está en `DATABASE_URL` del archivo `.env`.
 
-Tablas principales: catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`) y compras
-(`Pedido`, `LineaPedido`, `CodigoActivacion`). Puedes verlas con `npm run db:studio`.
-
-**Códigos de activación de prueba** (los crea el seed, sin usar): `VAL-PRUE-CAR2`, `VAL-PRUE-CAR3` (coche),
-`VAL-PRUE-BRZ2`, `VAL-PRUE-BRZ3` (brazo) y `VAL-PRUE-MET2`, `VAL-PRUE-MET3` (estación meteorológica).
-Servirán para probar `/activar` en la fase 5.
+Tablas principales: catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`), compras
+(`Pedido`, `LineaPedido`, `CodigoActivacion`) y cuentas (`Usuario`, `CursoUsuario` = cursos desbloqueados,
+`ProgresoLeccion` y `ProgresoEjercicio`). Puedes verlas con `npm run db:studio`.
+Las contraseñas se guardan **cifradas** con bcrypt: nadie puede leerlas, ni siquiera viendo la base de datos.
 
 ### Pasar a PostgreSQL (producción)
 

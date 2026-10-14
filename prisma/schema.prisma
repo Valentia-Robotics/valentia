@@ -94,18 +94,19 @@ model KitComponente {
 
 /// El curso que acompaña a un kit
 model Curso {
-  id          String    @id @default(cuid())
-  slug        String    @unique
+  id          String         @id @default(cuid())
+  slug        String         @unique
   titulo      String
   descripcion String
   nivel       String
   lecciones   Leccion[]
   kit         Kit?
+  alumnos     CursoUsuario[]
 }
 
 model Leccion {
-  id          String      @id @default(cuid())
-  curso       Curso       @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  id          String            @id @default(cuid())
+  curso       Curso             @relation(fields: [cursoId], references: [id], onDelete: Cascade)
   cursoId     String
   slug        String
   orden       Int
@@ -115,14 +116,15 @@ model Leccion {
   videoUrl    String
   duracionMin Int
   ejercicios  Ejercicio[]
+  progreso    ProgresoLeccion[]
 
   @@unique([cursoId, slug])
 }
 
 /// Ejercicio de una lección: un test de opción múltiple o un reto práctico
 model Ejercicio {
-  id          String        @id @default(cuid())
-  leccion     Leccion       @relation(fields: [leccionId], references: [id], onDelete: Cascade)
+  id          String              @id @default(cuid())
+  leccion     Leccion             @relation(fields: [leccionId], references: [id], onDelete: Cascade)
   leccionId   String
   orden       Int
   tipo        TipoEjercicio
@@ -136,6 +138,7 @@ model Ejercicio {
   pistas      Json?
   /// Solo RETO: solución que se puede desbloquear
   solucion    String?
+  progreso    ProgresoEjercicio[]
 }
 
 // ============================================================
@@ -196,15 +199,77 @@ model LineaPedido {
 /// Código único que va impreso (con su QR) en la caja de cada kit.
 /// Al activarlo, el curso del kit queda en "Mis cursos" del usuario (fase 5).
 model CodigoActivacion {
-  id       String    @id @default(cuid())
+  id        String    @id @default(cuid())
   /// El código en sí, por ejemplo VAL-7KQ2-M9XD
-  codigo   String    @unique
-  kit      Kit       @relation(fields: [kitId], references: [id], onDelete: Cascade)
-  kitId    String
+  codigo    String    @unique
+  kit       Kit       @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  kitId     String
   /// Pedido en el que se vendió (vacío en los códigos de prueba del seed)
-  pedido   Pedido?   @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
-  pedidoId String?
-  creadoEn DateTime  @default(now())
+  pedido    Pedido?   @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+  pedidoId  String?
+  creadoEn  DateTime  @default(now())
   /// Cuándo se activó. Vacío = todavía sin usar
-  usadoEn  DateTime?
+  usadoEn   DateTime?
+  /// Quién lo activó
+  usuario   Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  usuarioId String?
+}
+
+// ============================================================
+//  USUARIOS, CURSOS Y PROGRESO (fase 5)
+// ============================================================
+
+/// Una persona con cuenta en Valentia
+model Usuario {
+  id             String   @id @default(cuid())
+  nombre         String
+  /// Siempre en minúsculas
+  email          String   @unique
+  /// La contraseña cifrada con bcrypt (nunca se guarda la contraseña tal cual)
+  contrasenaHash String
+  creadoEn       DateTime @default(now())
+
+  cursos     CursoUsuario[]
+  codigos    CodigoActivacion[]
+  lecciones  ProgresoLeccion[]
+  ejercicios ProgresoEjercicio[]
+}
+
+/// Un curso desbloqueado por un usuario (al activar el código de su kit)
+model CursoUsuario {
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId      String
+  curso          Curso    @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  cursoId        String
+  desbloqueadoEn DateTime @default(now())
+
+  @@id([usuarioId, cursoId])
+}
+
+/// Lección marcada como completada por un usuario
+model ProgresoLeccion {
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId    String
+  leccion      Leccion  @relation(fields: [leccionId], references: [id], onDelete: Cascade)
+  leccionId    String
+  completadaEn DateTime @default(now())
+
+  @@id([usuarioId, leccionId])
+}
+
+/// Lo que ha hecho un usuario en un ejercicio
+model ProgresoEjercicio {
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId     String
+  ejercicio     Ejercicio @relation(fields: [ejercicioId], references: [id], onDelete: Cascade)
+  ejercicioId   String
+  /// TEST: última opción elegida y si era la correcta
+  respuesta     Int?
+  acertado      Boolean   @default(false)
+  intentos      Int       @default(0)
+  /// RETO: si ha desbloqueado la solución
+  solucionVista Boolean   @default(false)
+  actualizadoEn DateTime  @updatedAt
+
+  @@id([usuarioId, ejercicioId])
 }

@@ -28,3 +28,15 @@ export const FORMATO_CODIGO = /^VAL-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/;
 export function generarNumeroPedido(fecha = new Date()): string {
   return `VAL-${fecha.getFullYear()}-${bloque(6)}`;
 }
+
+/**
+ * Limpia un código escrito a mano: mayúsculas, sin espacios y con sus guiones.
+ * Ejemplo: " val 7kq2m9xd " → "VAL-7KQ2-M9XD"
+ */
+export function normalizarCodigo(texto: string): string {
+  const limpio = texto.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const resto = limpio.startsWith("VAL") ? limpio.slice(3) : limpio;
+  return resto.length === 8
+    ? `VAL-${resto.slice(0, 4)}-${resto.slice(4)}`
+    : texto.trim().toUpperCase();
+}

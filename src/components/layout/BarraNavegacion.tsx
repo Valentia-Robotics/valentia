@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import { Logo } from "@/components/marca/Logo";
 import { enlacesNavegacion, marca } from "@/config/marca";
 import { cn } from "@/lib/utils";
 import { BotonCarrito } from "./BotonCarrito";
+import { MenuUsuario } from "./MenuUsuario";
 
 /**
  * Barra de navegación fija, fina y translúcida (con desenfoque del fondo).
@@ -16,6 +18,7 @@ import { BotonCarrito } from "./BotonCarrito";
 export function BarraNavegacion() {
   const ruta = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const { data: sesion } = useSession();
 
   const estaActivo = (href: string) => ruta === href || ruta.startsWith(`${href}/`);
 
@@ -70,12 +73,7 @@ export function BarraNavegacion() {
 
           <div className="flex items-center gap-1">
             <BotonCarrito />
-            <Link
-              href="/login"
-              className="ml-2 hidden h-8 items-center rounded-boton bg-tinta px-4 text-[13px] font-medium text-white transition-colors hover:bg-grafito md:inline-flex"
-            >
-              Iniciar sesión
-            </Link>
+            <MenuUsuario />
 
             {/* Botón del menú en móvil */}
             <button
@@ -111,9 +109,29 @@ export function BarraNavegacion() {
               </li>
             ))}
             <li className="mt-4 border-t border-linea pt-4">
-              <Link href="/login" onClick={cerrarMenu} className="block py-3 text-lg text-acento">
-                Iniciar sesión
-              </Link>
+              {sesion?.user ? (
+                <>
+                  <p className="py-2 text-sm text-gris">Hola, {sesion.user.name}</p>
+                  <Link
+                    href="/activar"
+                    onClick={cerrarMenu}
+                    className="block py-3 text-lg text-tinta"
+                  >
+                    Activar un kit
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => signOut({ redirectTo: "/" })}
+                    className="block py-3 text-lg text-acento"
+                  >
+                    Cerrar sesión
+                  </button>
+                </>
+              ) : (
+                <Link href="/login" onClick={cerrarMenu} className="block py-3 text-lg text-acento">
+                  Iniciar sesión
+                </Link>
+              )}
             </li>
           </ul>
         </div>

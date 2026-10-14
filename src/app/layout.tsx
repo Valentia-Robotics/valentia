@@ -3,6 +3,7 @@ import { Inter, Jost } from "next/font/google";
 import type { ReactNode } from "react";
 import { BarraNavegacion } from "@/components/layout/BarraNavegacion";
 import { PieDePagina } from "@/components/layout/PieDePagina";
+import { Proveedores } from "@/components/layout/Proveedores";
 import { marca } from "@/config/marca";
 import "./globals.css";
 
@@ -48,14 +49,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Saltar al contenido
         </a>
 
-        <BarraNavegacion />
+        {/* Proveedores comparte la sesión (quién ha iniciado sesión) con toda la web */}
+        <Proveedores>
+          <BarraNavegacion />
 
-        {/* pt-nav deja hueco para la barra de navegación fija */}
-        <main id="contenido" className="flex-1 pt-nav print:pt-0">
-          {children}
-        </main>
+          {/* pt-nav deja hueco para la barra de navegación fija */}
+          <main id="contenido" className="flex-1 pt-nav print:pt-0">
+            {children}
+          </main>
 
-        <PieDePagina />
+          <PieDePagina />
+        </Proveedores>
       </body>
     </html>
   );
