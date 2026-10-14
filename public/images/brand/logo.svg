@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1231 104" role="img" aria-labelledby="t">
+  <title id="t">Valentia</title>
+  <!-- Logotipo de Valentia redibujado en vector a partir de imagenes/logo.png.
+       Las líneas se recortan con clipPath para que los extremos queden horizontales, como en el original. -->
+  <defs><clipPath id="banda"><rect x="0" y="0" width="1231" height="104"/></clipPath></defs>
+  <g clip-path="url(#banda)" fill="none" stroke="#0B0B0B" stroke-width="5" stroke-linejoin="miter" stroke-miterlimit="10">
+    <!-- V -->
+    <path d="M-2.3 -12 L51.5 101 L105.7 -12"/>
+    <!-- Λ -->
+    <path d="M164.1 115 L222.5 3 L280.9 115"/>
+    <!-- L -->
+    <path d="M367.5 -5 V101.5 H439"/>
+    <!-- E -->
+    <path d="M597 2.5 H521.3 V101.5 H597 M521.3 50.5 H588"/>
+    <!-- N -->
+    <path d="M689 110 V1 L777 103 V-5"/>
+    <!-- T -->
+    <path d="M862 2.5 H949 M905.5 2.5 V110"/>
+    <!-- I -->
+    <path d="M1035.5 -5 V110"/>
+    <!-- Λ -->
+    <path d="M1112.6 115 L1174 3 L1235.4 115"/>
+  </g>
+</svg>

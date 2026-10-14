@@ -1,0 +1,27 @@
+# Dependencias (se reinstalan con "npm install")
+node_modules/
+
+# Archivos generados por Next.js
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# Secretos: el archivo .env NUNCA se sube a git (sí .env.example)
+.env
+.env*.local
+!.env.example
+
+# Base de datos local de pruebas (SQLite)
+*.db
+*.db-journal
+prisma/dev.db*
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Nota: la carpeta imagenes/ (originales de la marca) SÍ se guarda en git.

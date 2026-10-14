@@ -1,0 +1,92 @@
+/*
+ * ============================================================
+ *  SISTEMA DE DISEÑO DE VALENTIA
+ *  Todos los colores, tipografías, radios y sombras se definen
+ *  AQUÍ y solo aquí. Si cambias un valor, cambia en toda la web.
+ * ============================================================
+ *
+ * Cómo se usan: cada variable "--color-xxx" crea clases de Tailwind
+ * como "bg-xxx", "text-xxx" o "border-xxx". Ejemplo: --color-acento → "bg-acento".
+ */
+@import "tailwindcss";
+
+@theme {
+  /* ---------- Colores de marca (sacados del logo) ---------- */
+  --color-tinta: #0b0b0b; /* El negro del logo. Textos, botones principales, fondos oscuros */
+  --color-grafito: #1a1a1a; /* Segundo fondo oscuro, para alternar secciones oscuras */
+  --color-niebla: #f4f4f2; /* Fondo claro suave, para alternar con el blanco */
+  --color-gris: #6b6b6b; /* Texto secundario sobre fondo claro (contraste 5,3:1) */
+  --color-gris-claro: #a1a1a1; /* Texto secundario sobre fondo oscuro (contraste 7,6:1) */
+  --color-linea: #d9d9d6; /* Bordes y separadores */
+
+  /* ---------- Acento: "Azul circuito" ---------- */
+  --color-acento: #2d4bff; /* Botones "Añadir", enlaces, contador del carrito */
+  --color-acento-hover: #1f3ae0; /* Acento al pasar el ratón */
+  --color-acento-claro: #7a8cff; /* Acento para usar SOBRE fondos oscuros */
+
+  /* ---------- Estados (avisos de compatibilidad, formularios) ---------- */
+  --color-exito: #157a42;
+  --color-aviso: #b45309;
+  --color-error: #d92d20;
+
+  /* ---------- Radios (esquinas redondeadas) ---------- */
+  --radius-boton: 999px; /* Botones en forma de píldora */
+  --radius-tarjeta: 1.5rem; /* Tarjetas grandes */
+  --radius-control: 0.75rem; /* Campos de formulario, chips */
+
+  /* ---------- Sombras ---------- */
+  --shadow-tarjeta: 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px rgb(11 11 11 / 0.06);
+  --shadow-flotante: 0 12px 40px rgb(11 11 11 / 0.14);
+
+  /* ---------- Alturas fijas ---------- */
+  --spacing-nav: 3rem; /* Altura de la barra de navegación (48 px) → clases "h-nav", "pt-nav" */
+}
+
+/* Tipografías: las carga Next.js (ver src/app/layout.tsx) y aquí les damos nombre. */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif; /* Texto normal */
+  --font-titulo:
+    var(--font-jost), ui-sans-serif, system-ui, sans-serif; /* Titulares → "font-titulo" */
+}
+
+/* ---------- Estilos base de la página ---------- */
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-white font-sans text-tinta antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-titulo tracking-tight text-balance;
+  }
+
+  /* Contorno visible al navegar con teclado (accesibilidad) */
+  :focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-acento);
+    color: white;
+  }
+}
+
+/* Si la persona ha pedido "reducir movimiento" en su sistema, desactivamos animaciones. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

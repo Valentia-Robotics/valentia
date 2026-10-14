@@ -1,0 +1,8 @@
+# Mantener saltos de línea LF (los que espera Prettier) también en Windows
+* text=auto eol=lf
+
+# Archivos binarios: no tocarlos
+*.png binary
+*.jpg binary
+*.ico binary
+*.db binary

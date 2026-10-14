@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="t">
+  <title id="t">Valentia</title>
+  <!-- Monograma "V" de Valentia: la V del logotipo con un trazo más grueso
+       para que se lea bien en tamaños pequeños (favicon, iconos de app). -->
+  <defs><clipPath id="banda"><rect x="0" y="140" width="512" height="236"/></clipPath></defs>
+  <rect width="512" height="512" rx="112" fill="#0B0B0B"/>
+  <path clip-path="url(#banda)" d="M141 110 L256 356 L371 110" fill="none" stroke="#FFFFFF" stroke-width="46" stroke-linejoin="miter" stroke-miterlimit="10"/>
+</svg>
