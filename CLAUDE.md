@@ -76,6 +76,11 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
   - Parte 4: `Kit.visible` (migración `kits_ocultos`; ocultos fuera de portada, /kits, ficha → 404, configurador y checkout;
     sus códigos siguen funcionando). `/admin/kits` con `SelectorPiezas` (buscador), curso (solo cursos sin kit), un solo
     destacado, borrar bloqueado si tiene códigos o pedidos (el curso queda libre).
+  - Parte 5: vídeos en `src/lib/video/` (un archivo por servicio en `proveedores/`; `normalizarVideo`, `analizarVideo`,
+    `fuenteVideo`). `/admin/cursos` (progreso medio en `src/lib/admin/cursos.ts`), lecciones con ↑↓, tests y retos.
+    SIN PROBAR AÚN EN EL NAVEGADOR. Faltan: Parte 6 (códigos en lote, impresión, desactivar → campo `desactivadoEn`,
+    activarCodigo debe rechazarlo; el alumno conserva el curso) y Parte 7 (pruebas, README y CLAUDE.md finales).
+    Pruebas con `prueba@valentia.test` ascendido temporalmente (`npm run admin -- … [--quitar]`).
 
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 

@@ -147,3 +147,47 @@ export const esquemaKitAdmin = z.object({
 });
 
 export type DatosKitAdmin = z.infer<typeof esquemaKitAdmin>;
+
+/* ---------- Cursos, lecciones y ejercicios ---------- */
+
+export const esquemaCursoAdmin = z.object({
+  titulo: textoObligatorio(100),
+  descripcion: textoObligatorio(2000),
+  nivel: z.enum(NIVELES, { error: "Elige un nivel" }),
+});
+
+export const esquemaLeccionAdmin = z.object({
+  titulo: textoObligatorio(120),
+  descripcion: textoObligatorio(4000),
+  duracionMin: entero(1, 600),
+});
+
+export const esquemaTestAdmin = z
+  .object({
+    enunciado: textoObligatorio(500),
+    opciones: z
+      .array(textoObligatorio(200))
+      .min(2, "Un test necesita al menos 2 opciones")
+      .max(6, "Máximo 6 opciones"),
+    correcta: z
+      .string({ error: "Marca cuál es la respuesta correcta" })
+      .min(1, "Marca cuál es la respuesta correcta")
+      .transform(Number),
+    explicacion: textoObligatorio(1000),
+  })
+  .refine(
+    (t) => Number.isInteger(t.correcta) && t.correcta >= 0 && t.correcta < t.opciones.length,
+    {
+      message: "Marca cuál es la respuesta correcta",
+      path: ["correcta"],
+    },
+  );
+
+export const esquemaRetoAdmin = z.object({
+  enunciado: textoObligatorio(1000),
+  pistas: z
+    .array(textoObligatorio(500))
+    .min(1, "Un reto necesita al menos una pista")
+    .max(6, "Máximo 6 pistas"),
+  solucion: textoObligatorio(4000),
+});
