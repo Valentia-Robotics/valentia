@@ -3,6 +3,53 @@
 Lee también `AGENTS.md` (lo genera Next.js): esta versión de Next.js (16) tiene cambios
 importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no conozcas.
 
+## Estado del proyecto
+
+> Actualizar esta sección al terminar cada fase.
+
+**Fase actual: fase 2 terminada · siguiente: fase 3 (configurador).** No empezar una fase sin la aprobación del usuario.
+
+### Terminado
+
+- **Fase 1** (`841b2ac`): proyecto Next.js + TypeScript + Tailwind, sistema de diseño en `globals.css`,
+  logo en SVG y PNG, favicon e iconos con el monograma "V", barra de navegación translúcida con contador
+  de carrito (Zustand), menú móvil, pie de página, página `/diseno`, 404, CLAUDE.md y README.
+- **Fase 2** (`2ce3987`): Prisma 7.10 + SQLite (`prisma.config.ts`, migración y seed validado con Zod),
+  datos de prueba (18 componentes, 3 kits, 3 cursos con 14 lecciones), ilustraciones SVG de muestra,
+  portada estilo Apple, `/kits` y `/kits/[slug]` (añadir al carrito y "Personalizar este kit").
+
+### Pendiente
+
+- **Fase 3 – Configurador** (estilo quiosco): categorías con icono, rejilla de tarjetas, detalle con
+  cantidad, panel "Tu robot", reglas de compatibilidad como datos en `src/lib/compatibilidad`, empezar desde
+  cero o desde un kit (`/configurador?kit=slug`), versión móvil. Incluye la página `/componentes`.
+- **Fase 4 – Carrito y compra simulada**: página `/carrito`, checkout simulado preparado para Stripe,
+  pedido en la BD, código de activación único y QR imprimible con el logo por cada kit.
+- **Fase 5 – Login, activación y cursos**: Auth.js v5 (email y contraseña cifrada), `/activar?codigo=`,
+  `/cursos`, lecciones con vídeo, tests y retos, progreso en la BD, rutas protegidas (`proxy.ts`).
+  El seed debe crear un usuario de prueba y códigos sin usar, con las credenciales en el README.
+- **Fase 6 – Repaso final de calidad**: accesibilidad, móvil, rendimiento, README completo, lint y build.
+
+### Avisos abiertos
+
+- `npm audit`: 5 vulnerabilidades "altas" en herramientas internas de ESLint (braces/micromatch, a través
+  de eslint-config-next). Solo afectan al desarrollo; el "arreglo" de npm bajaría a Next 14. Revisar en la fase 6.
+- npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines, better-sqlite3,
+  esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
+- Vídeos de los cursos: `"videoUrl": "PENDIENTE"` en `data/cursos.json`, a la espera de las URL reales.
+- Decisión opcional del usuario: la portada muestra el kit estrella en el hero y una sección para cada uno
+  de los otros dos kits; se puede cambiar a una sección por cada uno de los tres.
+- Identidad de git configurada solo en este repositorio: `Diego <diegonotsa@gmail.com>`.
+
+### Decisiones aprobadas por el usuario
+
+- Color de acento "Azul circuito" **#2D4BFF** (#7A8CFF sobre fondos oscuros).
+- **Auth.js v5 beta** (`next-auth@beta`).
+- Logo redibujado en **SVG** y monograma **"V"** para el favicon y los iconos (sin tocar `imagenes/logo.png`).
+- Iconos con **lucide-react**.
+- **Euros con IVA incluido** y español de España (**es-ES**).
+- Proyecto trasladado a **`C:\Proyectos\valentia`** (fuera de OneDrive). La carpeta original de OneDrive no se toca.
+
 ## Qué es Valentia
 
 Startup que vende **kits de robótica cerrados** (coche seguidor de líneas, brazo robótico,
