@@ -21,6 +21,9 @@ src/generated/
 *.db-journal
 prisma/dev.db*
 
+# Fotos subidas desde el panel (almacén local; ver src/lib/almacenamiento)
+/subidas/
+
 # Sistema operativo y editores
 .DS_Store
 Thumbs.db

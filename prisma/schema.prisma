@@ -53,6 +53,8 @@ model Componente {
   pines            Int
   /// Datos técnicos extra para mostrar en la ficha, como lista de pares nombre/valor
   especificaciones Json
+  /// false = oculto: no sale en /componentes ni en el configurador (pero sigue dentro de sus kits)
+  visible          Boolean   @default(true)
 
   enKits KitComponente[]
 }

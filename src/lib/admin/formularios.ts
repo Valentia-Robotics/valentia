@@ -28,9 +28,12 @@ export function erroresDeZod(error: z.ZodError): Record<string, string> {
   return errores;
 }
 
-/** Respuesta estándar cuando el formulario tiene errores */
-export function conErrores(error: z.ZodError): EstadoFormulario {
-  const errores = erroresDeZod(error);
+/** Respuesta estándar cuando el formulario tiene errores ("extra": otros errores que añadir) */
+export function conErrores(
+  error: z.ZodError,
+  extra: Record<string, string> = {},
+): EstadoFormulario {
+  const errores = { ...extra, ...erroresDeZod(error) };
   return {
     ok: false,
     mensaje: errores._ ?? "Revisa los campos marcados en rojo.",

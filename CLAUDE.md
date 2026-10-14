@@ -67,6 +67,12 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
     `MarcoWeb` (la raíz ya no pone barra ni pie), piezas del panel en `src/components/admin`, seed solo si la BD está vacía.
   - Parte 2: `/admin` (cifras en `src/lib/admin/estadisticas.ts`) y `/admin/usuarios` (`src/lib/admin/usuarios.ts`;
     los pedidos se cuentan por email porque aún no van unidos a la cuenta).
+  - Parte 3: fotos en `src/lib/almacenamiento` (`subirImagen`/`borrarImagen`; sharp → WebP ≤1600 px; local en `subidas/`,
+    fuera de git, servida por `src/app/subidas/[...ruta]/route.ts`; `nube.ts` es un esqueleto; `ALMACEN_PROVEEDOR`).
+    sharp pasa a dependencia normal. `bodySizeLimit` 6 MB en next.config.ts. `Componente.visible` (migración
+    `componentes_ocultos`): los ocultos no salen en /componentes, configurador ni checkout. `/admin/componentes`
+    (lista, nuevo, editar, ocultar, borrar bloqueado si está en un kit). `refrescarTienda()` = revalidatePath("/", "layout").
+    Formularios: `useFormulario` (no vacía el formulario al fallar) + `EstadoFormulario` + `src/lib/validaciones/admin.ts`.
 
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 

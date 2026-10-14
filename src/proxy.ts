@@ -15,6 +15,6 @@ export default NextAuth(authConfig).auth;
 export const config = {
   // No hace falta pasar por aquí para archivos estáticos ni imágenes
   matcher: [
-    "/((?!api|_next/static|_next/image|images|favicon.ico|.*\\.(?:png|svg|ico|webmanifest)$).*)",
+    "/((?!api|_next/static|_next/image|images|subidas|favicon.ico|.*\\.(?:png|svg|ico|webmanifest)$).*)",
   ],
 };

@@ -57,11 +57,14 @@ export function listaDeEspecificaciones(valor: unknown): Especificacion[] {
 }
 
 /**
- * Todos los componentes, ordenados por categoría (como en el configurador)
- * y, dentro de cada categoría, del más barato al más caro.
+ * Los componentes a la venta (los ocultos desde el panel no salen), ordenados por categoría
+ * (como en el configurador) y, dentro de cada categoría, del más barato al más caro.
  */
 export async function obtenerComponentes(): Promise<ComponenteCatalogo[]> {
-  const filas = await db.componente.findMany({ orderBy: { precioCentimos: "asc" } });
+  const filas = await db.componente.findMany({
+    where: { visible: true },
+    orderBy: { precioCentimos: "asc" },
+  });
   const posicion = (c: string) => CATEGORIAS.indexOf(c as (typeof CATEGORIAS)[number]);
   return filas
     .sort((a, b) => posicion(a.categoria) - posicion(b.categoria))
@@ -84,11 +87,19 @@ export async function obtenerComponentes(): Promise<ComponenteCatalogo[]> {
     }));
 }
 
-/** Los kits con su lista de piezas, para "empezar desde un kit" en el configurador */
+/**
+ * Los kits con su lista de piezas, para "empezar desde un kit" en el configurador.
+ * Solo las piezas que están a la venta: un componente oculto no se puede añadir suelto.
+ */
 export async function obtenerKitsParaConfigurador(): Promise<KitParaConfigurador[]> {
   const kits = await db.kit.findMany({
     orderBy: { orden: "asc" },
-    include: { componentes: { include: { componente: { select: { slug: true } } } } },
+    include: {
+      componentes: {
+        where: { componente: { visible: true } },
+        include: { componente: { select: { slug: true } } },
+      },
+    },
   });
   return kits.map((kit) => ({
     slug: kit.slug,
