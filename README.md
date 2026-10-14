@@ -2,7 +2,7 @@
 
 Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloquean con el QR de cada caja.
 
-> Estado: **fase 2 de 6** (portada, kits y base de datos). Este README se completará en la fase 6.
+> Estado: **fase 4 de 6** (portada, kits, configurador, carrito y compra simulada). Este README se completará en la fase 6.
 
 ## Cómo arrancar el proyecto
 
@@ -28,7 +28,7 @@ Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env
 | `npm run lint`       | Revisa el código en busca de errores                                    |
 | `npm run format`     | Ordena y da formato a todo el código                                    |
 | `npm run marca`      | Regenera el favicon, los iconos y las versiones PNG del logo            |
-| `npm run db:seed`    | Vuelve a cargar los datos de `data/*.json` en la base de datos          |
+| `npm run db:seed`    | Vuelve a cargar `data/*.json` (y borra los pedidos de prueba)           |
 | `npm run db:reset`   | Borra la base de datos local y la crea de nuevo con los datos de prueba |
 | `npm run db:migrate` | Aplica cambios de `prisma/schema.prisma` a la base de datos             |
 | `npm run db:studio`  | Abre un panel en el navegador para ver y editar la base de datos        |
@@ -49,6 +49,7 @@ Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env
 | `src/config/marca.ts`                               | Nombre, lema y enlaces del menú y del pie                           |
 | `src/store/`                                        | El carrito y el robot del configurador (se guardan en el navegador) |
 | `src/lib/compatibilidad/`                           | **Reglas del configurador** (avisos de compatibilidad)              |
+| `src/lib/pagos/`, `src/lib/pedidos.ts`              | Pago (simulado; preparado para Stripe) y creación de pedidos        |
 | `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades   |
 | `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.         |
 
@@ -107,6 +108,26 @@ Los textos y los iconos de las categorías (Placas, Motores…) están en `src/c
 Para abrir el configurador con un kit ya cargado: `/configurador?kit=` seguido del slug del kit
 (por ejemplo, `/configurador?kit=brazo-robotico`).
 
+### La compra (pagos simulados y Stripe)
+
+El recorrido es: **carrito** (`/carrito`) → **finalizar compra** (`/checkout`) → **confirmación** (`/pedido/…`).
+Ahora mismo el pago es **simulado**: no hace falta tarjeta y no se cobra nada. Al pulsar «Pagar»:
+
+1. El servidor vuelve a calcular los precios con la base de datos (nunca se fía de los del navegador).
+   Si han cambiado, actualiza el carrito y te pide que lo revises.
+2. Comprueba que hay stock, lo descuenta y guarda el pedido.
+3. Por **cada kit** comprado crea un **código de activación único** (por ejemplo `VAL-7KQ2-M9XD`).
+   Los componentes sueltos y los robots del configurador no llevan curso ni código.
+4. La página de confirmación enseña la **tarjeta con el QR** tal y como iría impresa en la caja.
+   El botón «Imprimir tarjetas» imprime solo las tarjetas.
+
+El envío es gratis. Para **cobrar de verdad con Stripe**, sigue los pasos que hay escritos en
+`src/lib/pagos/stripe.ts` y cambia en `.env` la línea `PAGOS_PROVEEDOR="simulado"` por `"stripe"`.
+El resto de la web no hay que tocarlo.
+
+Los QR apuntan a la dirección de `NEXT_PUBLIC_SITE_URL` (en `.env`). Cuando la web esté publicada, pon ahí
+su dirección real para que los QR impresos funcionen.
+
 ### Las imágenes de los productos
 
 Las ilustraciones de `public/images/componentes/` y `public/images/kits/` son de muestra.
@@ -122,6 +143,13 @@ y sustitúyela por la dirección del vídeo (YouTube, Vimeo o un archivo .mp4). 
 
 En local se usa **SQLite**: toda la base de datos es un único archivo, `prisma/dev.db`, que no se sube a git.
 La dirección está en `DATABASE_URL` del archivo `.env`.
+
+Tablas principales: catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`) y compras
+(`Pedido`, `LineaPedido`, `CodigoActivacion`). Puedes verlas con `npm run db:studio`.
+
+**Códigos de activación de prueba** (los crea el seed, sin usar): `VAL-PRUE-CAR2`, `VAL-PRUE-CAR3` (coche),
+`VAL-PRUE-BRZ2`, `VAL-PRUE-BRZ3` (brazo) y `VAL-PRUE-MET2`, `VAL-PRUE-MET3` (estación meteorológica).
+Servirán para probar `/activar` en la fase 5.
 
 ### Pasar a PostgreSQL (producción)
 

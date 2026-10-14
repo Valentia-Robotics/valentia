@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <BarraNavegacion />
 
         {/* pt-nav deja hueco para la barra de navegación fija */}
-        <main id="contenido" className="flex-1 pt-nav">
+        <main id="contenido" className="flex-1 pt-nav print:pt-0">
           {children}
         </main>
 

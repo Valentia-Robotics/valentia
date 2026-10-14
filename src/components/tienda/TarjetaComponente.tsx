@@ -55,6 +55,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
             articulo={{
               id: `componente:${componente.slug}`,
               tipo: "componente",
+              slug: componente.slug,
               nombre: componente.nombre,
               precioCentimos: componente.precioCentimos,
               imagen: componente.imagen,

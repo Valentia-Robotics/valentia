@@ -7,7 +7,7 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Fase actual: fase 3 terminada · siguiente: fase 4 (carrito y compra simulada).** No empezar una fase sin la aprobación del usuario.
+**Fase actual: fase 4 terminada · siguiente: fase 5 (login, activación y cursos).** No empezar una fase sin la aprobación del usuario.
 
 ### Terminado
 
@@ -17,31 +17,42 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 - **Fase 2** (`2ce3987`): Prisma 7.10 + SQLite (`prisma.config.ts`, migración y seed validado con Zod),
   datos de prueba (18 componentes, 3 kits, 3 cursos con 14 lecciones), ilustraciones SVG de muestra,
   portada estilo Apple, `/kits` y `/kits/[slug]` (añadir al carrito y "Personalizar este kit").
-- **Fase 3** (configurador): `/configurador` estilo quiosco (categorías con icono, tarjetas, detalle en <dialog> con cantidad,
+- **Fase 3** (`f10469b`, README en `c03b780`): `/configurador` estilo quiosco (categorías con icono, tarjetas, detalle en <dialog> con cantidad,
   panel "Tu robot" con +/−, medidores de pines y energía, avisos con botón para añadir la pieza sugerida, total y
   "Añadir al carrito" como artículo tipo "configuracion"), empezar desde cero o desde un kit (`?kit=slug`, luego se limpia la URL),
   móvil con categorías deslizables y panel inferior. Reglas como datos en `src/lib/compatibilidad/reglas.ts` (motor en `comprobar.ts`).
   Robot guardado en localStorage (`src/store/configurador.ts`). Página `/componentes`. Botón genérico `BotonAnadirCarrito`
   (sustituye a BotonAnadirKit), `ui/Dialogo` y `ui/SelectorCantidad` reutilizables para la fase 4. Probado en Chrome headless
   (escritorio y móvil, sin errores de consola).
+- **Fase 4** (carrito y compra simulada): `/carrito`, `/checkout` (formulario con `useActionState` + acción del servidor
+  en `src/app/(tienda)/checkout/acciones.ts`) y `/pedido/[id]` (confirmación + tarjetas de activación con QR imprimibles,
+  `print:hidden` en navegación y pie). El servidor recalcula precios (avisa y actualiza el carrito si cambian), valida con
+  Zod (`src/lib/validaciones/pedido.ts`), descuenta stock en una transacción (`src/lib/pedidos.ts`) y crea un código
+  `VAL-XXXX-XXXX` por cada unidad de kit al marcar el pedido como PAGADO (`marcarPedidoPagado`, reutilizable por el webhook de
+  Stripe). Pagos en `src/lib/pagos` (`PAGOS_PROVEEDOR=simulado|stripe`; stripe.ts es un esqueleto con los pasos).
+  Modelos `Pedido`, `LineaPedido`, `CodigoActivacion` (migración `pedidos`). Carrito v2: artículos con `slug`/`piezas`
+  (migra los guardados en v1). Seed: códigos de prueba fijos `VAL-PRUE-CAR2/3`, `BRZ2/3`, `MET2/3` y borra pedidos.
+  Paquete nuevo: `qrcode` (+ `@types/qrcode`). Envío gratis. Componentes nuevos: `ui/Campo`, `compra/*`.
+  Probado en Chrome headless (compra completa, errores de formulario, cambio de precios, stock, impresión y móvil).
 
 ### Pendiente
 
-- **Fase 4 – Carrito y compra simulada**: página `/carrito`, checkout simulado preparado para Stripe,
-  pedido en la BD, código de activación único y QR imprimible con el logo por cada kit.
 - **Fase 5 – Login, activación y cursos**: Auth.js v5 (email y contraseña cifrada), `/activar?codigo=`,
   `/cursos`, lecciones con vídeo, tests y retos, progreso en la BD, rutas protegidas (`proxy.ts`).
-  El seed debe crear un usuario de prueba y códigos sin usar, con las credenciales en el README.
+  El seed debe crear un usuario de prueba (credenciales en el README); los códigos sin usar ya existen.
+  Hay que añadir el modelo de usuario y relacionar `CodigoActivacion` con él (hoy solo tiene `usadoEn`).
+  Validar el formato con `FORMATO_CODIGO` (`src/lib/codigos.ts`). Valorar enlazar los pedidos al usuario y proteger
+  `/pedido/[id]` (hoy se accede solo con el id, difícil de adivinar pero público).
 - **Fase 6 – Repaso final de calidad**: accesibilidad, móvil, rendimiento, README completo, lint y build.
 
 ### Avisos abiertos
 
-- Decisión pendiente del usuario: una configuración personalizada (aunque parta de un kit) **no incluye curso ni código QR**;
-  solo los kits. El panel lo avisa cuando el robot es idéntico a un kit. Confirmar en la fase 4.
-- `/configurador` es dinámica (lee `?kit`), así que `npm start` necesita la BD creada.
-
-- `npm audit`: 5 vulnerabilidades "altas" en herramientas internas de ESLint (braces/micromatch, a través
-  de eslint-config-next). Solo afectan al desarrollo; el "arreglo" de npm bajaría a Next 14. Revisar en la fase 6.
+- `/configurador` y `/pedido/[id]` son dinámicas, así que `npm start` necesita la BD creada.
+- `npm run db:seed` borra los pedidos de prueba y sus códigos (los códigos dependen de los kits, que se recrean).
+- No se envían emails: el email del pedido solo se guarda como contacto.
+- `npm audit`: 9 vulnerabilidades "altas", todas en herramientas de desarrollo/compilación: ESLint (braces/micromatch, vía
+  eslint-config-next; el "arreglo" bajaría a Next 14) y la CLI de Prisma (deepmerge-ts, mysql2; el "arreglo" bajaría a
+  Prisma 6). No vienen de `qrcode`. Revisar en la fase 6.
 - npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines, better-sqlite3,
   esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
 - Vídeos de los cursos: `"videoUrl": "PENDIENTE"` en `data/cursos.json`, a la espera de las URL reales.
@@ -56,6 +67,8 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 - Logo redibujado en **SVG** y monograma **"V"** para el favicon y los iconos (sin tocar `imagenes/logo.png`).
 - Iconos con **lucide-react**.
 - **Euros con IVA incluido** y español de España (**es-ES**).
+- El cliente puede **montarse su propio kit** en el configurador (previsto desde el principio). Un robot personalizado,
+  aunque parta de un kit, **no incluye curso ni código QR**: solo los kits cerrados.
 - Proyecto trasladado a **`C:\Proyectos\valentia`** (fuera de OneDrive). La carpeta original de OneDrive no se toca.
 
 ## Qué es Valentia
@@ -85,7 +98,7 @@ Requisitos completos: `PROMPT.md`.
 2. **Antes de instalar cualquier paquete, explicar en una frase para qué sirve.**
 3. Trabajar por fases y hacer **un commit de git al terminar cada fase**:
    (1) base, sistema de diseño, logo y navegación ✅ · (2) inicio y fichas de kit ✅ ·
-   (3) configurador ✅ · (4) carrito y compra simulada · (5) login, activación y cursos ·
+   (3) configurador ✅ · (4) carrito y compra simulada ✅ · (5) login, activación y cursos ·
    (6) repaso final de calidad.
 4. Al terminar cada fase: decir exactamente qué comandos ejecutar, qué dirección abrir y qué debería verse.
 5. `npm run lint` y `npm run build` deben pasar sin errores antes de cada commit.
@@ -120,7 +133,7 @@ Requisitos completos: `PROMPT.md`.
   - `migrate dev` NO genera el cliente ni ejecuta el seed en Prisma 7: usar `npm run db:generate` / `npm run db:seed`.
   - Para PostgreSQL: provider + adaptador (`@prisma/adapter-pg`) en db.ts y seed.ts + migraciones nuevas (ver README).
   - Seed (`prisma/seed.ts`, con tsx) valida `data/*.json` con Zod (`src/lib/validaciones/catalogo.ts`, mensajes en español). En los JSON los precios van en euros; en la BD, en céntimos.
-- Zod 4 · Próximas fases: Auth.js v5 beta (next-auth@beta) con email y contraseña cifrada (bcryptjs), qrcode.
+- Zod 4 · qrcode (QR en SVG con corrección "H" y monograma en el centro) · Próxima fase: Auth.js v5 beta (next-auth@beta) con email y contraseña cifrada (bcryptjs).
 - Las páginas de kits se generan estáticas en el build leyendo la BD: `npm run build` necesita la BD creada (`npm run setup`).
 - Animación al hacer scroll: clase CSS `aparecer` (scroll-driven animations, sin JS; respeta prefers-reduced-motion).
 - En Windows, al parar `next dev` lanzado en segundo plano, comprobar que el puerto 3000 queda libre (el proceso hijo puede sobrevivir).
@@ -134,12 +147,12 @@ imagenes/              originales del usuario (no tocar)
 public/images/         brand/, componentes/, kits/
 scripts/               generar-marca.mjs
 src/app/               (tienda)/, (auth)/, (cuenta)/, activar/, api/, diseno/
-src/components/        ui/, layout/, marca/, tienda/, configurador/, cursos/
+src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cursos/
 src/config/            marca.ts, categorias.ts
-src/lib/               db.ts, catalogo.ts (consultas), validaciones/, utils.ts (+ auth, compatibilidad/, pagos/ en próximas fases)
+src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/ (+ auth en la fase 5)
 src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
 data/                  componentes.json, kits.json, cursos.json (fuente de los datos de prueba)
 prisma/                schema.prisma, migrations/, seed.ts, dev.db
-src/store/             carrito.ts
+src/store/             carrito.ts, configurador.ts
 src/types/
 ```

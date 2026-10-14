@@ -3,8 +3,7 @@
  * Usa Zustand (un "almacén" de datos compartido entre componentes) y lo guarda
  * en el navegador (localStorage) para que no se pierda al recargar la página.
  *
- * En la fase 1 solo lo usamos para el contador de la barra de navegación.
- * En la fase 4 lo conectaremos con la página del carrito y el checkout.
+ * Lo usan el contador de la barra de navegación, la página /carrito y el checkout.
  */
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
@@ -20,6 +19,8 @@ interface EstadoCarrito {
   /** Cambia la cantidad de un artículo. Si llega a 0, lo quita. */
   cambiarCantidad: (id: string, cantidad: number) => void;
   quitar: (id: string) => void;
+  /** Pone los precios que manda el servidor (si han cambiado desde que se añadieron) */
+  actualizarPrecios: (precios: { id: string; precioCentimos: number }[]) => void;
   vaciar: () => void;
 }
 
@@ -55,15 +56,47 @@ export const useCarrito = create<EstadoCarrito>()(
 
       quitar: (id) => set((estado) => ({ articulos: estado.articulos.filter((a) => a.id !== id) })),
 
+      actualizarPrecios: (precios) =>
+        set((estado) => {
+          const nuevo = new Map(precios.map((p) => [p.id, p.precioCentimos]));
+          return {
+            articulos: estado.articulos.map((a) => ({
+              ...a,
+              precioCentimos: nuevo.get(a.id) ?? a.precioCentimos,
+            })),
+          };
+        }),
+
       vaciar: () => set({ articulos: [] }),
     }),
     {
       name: "valentia-carrito", // nombre con el que se guarda en el navegador
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      // Carritos guardados con la versión 1 (antes de la fase 4): rellenamos slug y piezas a partir del id
+      migrate: (guardado, version) => {
+        const estado = guardado as { articulos?: ArticuloCarrito[] };
+        if (version < 2) {
+          estado.articulos = (estado.articulos ?? []).map(completarArticuloAntiguo);
+        }
+        return estado as EstadoCarrito;
+      },
     },
   ),
 );
+
+/** Saca slug y piezas del id (kit:slug, componente:slug, configuracion:slugx2+otro-slugx1) */
+function completarArticuloAntiguo(a: ArticuloCarrito): ArticuloCarrito {
+  const resto = a.id.slice(a.id.indexOf(":") + 1);
+  if (a.tipo === "configuracion") {
+    const piezas = resto.split("+").map((parte) => {
+      const corte = parte.lastIndexOf("x");
+      return { slug: parte.slice(0, corte), cantidad: Number(parte.slice(corte + 1)) };
+    });
+    return { ...a, piezas };
+  }
+  return { ...a, slug: resto };
+}
 
 /* ---------- Cálculos (selectores) ---------- */
 

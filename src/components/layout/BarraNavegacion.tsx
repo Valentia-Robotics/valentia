@@ -32,7 +32,7 @@ export function BarraNavegacion() {
   const cerrarMenu = () => setMenuAbierto(false);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
+    <header className="fixed inset-x-0 top-0 z-50 print:hidden">
       <nav
         aria-label="Navegación principal"
         className={cn(

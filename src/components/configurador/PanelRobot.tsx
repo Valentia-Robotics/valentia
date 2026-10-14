@@ -216,6 +216,7 @@ function crearArticulo(robot: Robot, kit?: KitParaConfigurador): Omit<ArticuloCa
     nombre: kit ? `${kit.nombre} personalizado` : "Mi robot personalizado",
     precioCentimos: robot.totalCentimos,
     imagen: kit?.imagen ?? (placa ?? piezas[0])?.componente.imagen,
+    piezas: piezas.map((p) => ({ slug: p.componente.slug, cantidad: p.cantidad })),
     detalle: piezas.map((p) => `${p.cantidad} × ${p.componente.nombre}`),
   };
 }

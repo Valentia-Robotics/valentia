@@ -107,6 +107,7 @@ export default async function PaginaKit({ params }: Props) {
                   articulo={{
                     id: `kit:${kit.slug}`,
                     tipo: "kit",
+                    slug: kit.slug,
                     nombre: kit.nombre,
                     precioCentimos: kit.precioCentimos,
                     imagen: kit.imagen,

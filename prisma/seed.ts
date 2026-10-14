@@ -4,7 +4,7 @@
  * que son correctos y los guarda en la base de datos.
  *
  * Uso:  npm run db:seed
- * Se puede ejecutar todas las veces que quieras: borra el catálogo y lo vuelve a crear.
+ * Se puede ejecutar todas las veces que quieras: borra el catálogo (y los pedidos de prueba) y lo vuelve a crear.
  */
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
@@ -12,7 +12,18 @@ import path from "node:path";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"; // ← SQLite (para PostgreSQL, ver src/lib/db.ts)
 import { z } from "zod";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { FORMATO_CODIGO } from "../src/lib/codigos";
 import { esquemaComponente, esquemaCurso, esquemaKit } from "../src/lib/validaciones/catalogo";
+
+/**
+ * Códigos de activación de prueba (sin usar) para probar /activar en la fase 5.
+ * Son fijos para poder ponerlos en el README. Cada vez que ejecutas el seed vuelven a quedar sin usar.
+ */
+const CODIGOS_DE_PRUEBA: Record<string, string[]> = {
+  "coche-seguidor-de-lineas": ["VAL-PRUE-CAR2", "VAL-PRUE-CAR3"],
+  "brazo-robotico": ["VAL-PRUE-BRZ2", "VAL-PRUE-BRZ3"],
+  "estacion-meteorologica": ["VAL-PRUE-MET2", "VAL-PRUE-MET3"],
+};
 
 // Mensajes de error de validación en español
 z.config(z.locales.es());
@@ -69,6 +80,10 @@ async function main() {
 
   // Borramos el catálogo anterior (en orden, por las relaciones) y lo creamos de nuevo
   await db.$transaction(async (tx) => {
+    // Los códigos dependen de los kits, así que la tienda vuelve a quedar "como nueva":
+    // se borran también los pedidos de prueba que hayas hecho y sus códigos.
+    await tx.codigoActivacion.deleteMany();
+    await tx.pedido.deleteMany();
     await tx.kitComponente.deleteMany();
     await tx.kit.deleteMany();
     await tx.componente.deleteMany();
@@ -124,6 +139,12 @@ async function main() {
     }
 
     for (const { precio, curso, componentes: piezas, ...kit } of kits) {
+      const codigos = CODIGOS_DE_PRUEBA[kit.slug] ?? [];
+      for (const codigo of codigos) {
+        if (!FORMATO_CODIGO.test(codigo)) {
+          throw new Error(`El código de prueba "${codigo}" no tiene un formato válido`);
+        }
+      }
       await tx.kit.create({
         data: {
           ...kit,
@@ -135,6 +156,7 @@ async function main() {
               componente: { connect: { slug } },
             })),
           },
+          codigos: { create: codigos.map((codigo) => ({ codigo })) },
         },
       });
     }
@@ -144,6 +166,9 @@ async function main() {
   console.log(
     `✔ Datos cargados: ${componentes.length} componentes, ${kits.length} kits, ` +
       `${cursos.length} cursos y ${lecciones} lecciones.`,
+  );
+  console.log(
+    `✔ Códigos de activación de prueba (sin usar): ${Object.values(CODIGOS_DE_PRUEBA).flat().join(", ")}`,
   );
 }
 
