@@ -8,6 +8,7 @@ import { Boton } from "@/components/ui/Boton";
 import { buscarCodigo } from "@/lib/activacion";
 import { FORMATO_CODIGO, normalizarCodigo } from "@/lib/codigos";
 import { db } from "@/lib/db";
+import { ipDelCliente, registrarIntento } from "@/lib/limite";
 import { obtenerUsuario } from "@/lib/sesion";
 
 export const metadata: Metadata = {
@@ -43,6 +44,17 @@ export default async function PaginaActivar({ searchParams }: Props) {
           <FormularioCodigo />
         </div>
       </Marco>
+    );
+  }
+
+  // Máximo de consultas por IP, para que nadie pueda ir probando códigos al azar
+  if (!registrarIntento("consultarCodigo", await ipDelCliente())) {
+    return (
+      <Marco
+        icono={<CircleAlert aria-hidden="true" className="size-10 text-aviso" strokeWidth={1.5} />}
+        titulo="Demasiados intentos."
+        texto="Has probado muchos códigos seguidos. Espera unos minutos y vuelve a escanear el QR de tu caja."
+      />
     );
   }
 

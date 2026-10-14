@@ -36,7 +36,7 @@ export default async function PaginaMisCursos() {
           </div>
           <p className="mt-6 text-sm text-gris">
             ¿Aún no tienes un kit?{" "}
-            <Boton href="/kits" variante="enlace" className="h-auto text-sm">
+            <Boton href="/kits" variante="enlace" className="h-auto text-sm underline">
               Descubre los kits ›
             </Boton>
           </p>
@@ -50,7 +50,7 @@ export default async function PaginaMisCursos() {
           </div>
           <p className="mt-10 text-sm text-gris">
             ¿Tienes otro kit?{" "}
-            <Boton href="/activar" variante="enlace" className="h-auto text-sm">
+            <Boton href="/activar" variante="enlace" className="h-auto text-sm underline">
               Activar un código ›
             </Boton>
           </p>

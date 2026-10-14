@@ -8,6 +8,7 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { ipDelCliente, registrarIntento } from "@/lib/limite";
 import { esquemaRegistro } from "@/lib/validaciones/cuenta";
 
 export interface EstadoRegistro {
@@ -37,6 +38,14 @@ export async function registrarse(formulario: FormData): Promise<EstadoRegistro>
     return {
       ok: false,
       errores: { email: "Ya hay una cuenta con este email. ¿Quieres iniciar sesión?" },
+    };
+  }
+
+  // Máximo de cuentas nuevas por IP; solo cuentan las que se crean de verdad (ver src/lib/limite.ts)
+  if (!registrarIntento("registro", await ipDelCliente())) {
+    return {
+      ok: false,
+      mensaje: "Se han creado muchas cuentas desde aquí. Espera un rato y vuelve a intentarlo.",
     };
   }
 

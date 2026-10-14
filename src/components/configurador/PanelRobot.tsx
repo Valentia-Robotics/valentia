@@ -169,7 +169,10 @@ export function PanelRobot({
               <p className="rounded-control bg-white p-3 text-sm ring-1 ring-linea">
                 Es el kit «{kit.nombre}» tal cual. Si lo compras como kit, incluye su curso y el
                 código QR.{" "}
-                <Link href={`/kits/${kit.slug}`} className="text-acento hover:underline">
+                <Link
+                  href={`/kits/${kit.slug}`}
+                  className="text-acento underline underline-offset-4"
+                >
                   Ver el kit
                 </Link>
               </p>

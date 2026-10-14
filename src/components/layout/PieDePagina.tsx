@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { EnlacesPie } from "@/components/layout/EnlacesPie";
 import { Logo } from "@/components/marca/Logo";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { columnasPie, marca } from "@/config/marca";
@@ -21,18 +21,7 @@ export function PieDePagina() {
               <h2 className="font-sans text-xs font-semibold tracking-wide text-tinta uppercase">
                 {columna.titulo}
               </h2>
-              <ul className="mt-4 space-y-3">
-                {columna.enlaces.map((enlace) => (
-                  <li key={enlace.href}>
-                    <Link
-                      href={enlace.href}
-                      className="text-gris transition-colors hover:text-tinta"
-                    >
-                      {enlace.etiqueta}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <EnlacesPie enlaces={columna.enlaces} enlacesConSesion={columna.enlacesConSesion} />
             </nav>
           ))}
         </div>

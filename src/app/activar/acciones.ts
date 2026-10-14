@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { activarCodigo } from "@/lib/activacion";
 import { FORMATO_CODIGO, normalizarCodigo } from "@/lib/codigos";
+import { registrarIntento } from "@/lib/limite";
 import { obtenerUsuario } from "@/lib/sesion";
 
 export interface EstadoActivacion {
@@ -16,6 +17,9 @@ export async function activar(
 ): Promise<EstadoActivacion> {
   const usuario = await obtenerUsuario();
   if (!usuario) return { mensaje: "Tu sesión ha caducado. Vuelve a iniciar sesión." };
+  if (!registrarIntento("activar", usuario.id)) {
+    return { mensaje: "Demasiados intentos seguidos. Espera unos minutos." };
+  }
 
   const codigo = normalizarCodigo(String(formulario.get("codigo") ?? ""));
   if (!FORMATO_CODIGO.test(codigo)) return { mensaje: "Ese código no tiene un formato válido." };

@@ -45,6 +45,13 @@ export function FormularioCuenta({ modo, volver }: Props) {
         contrasena: formulario.get("contrasena"),
         redirect: false,
       });
+      if (respuesta?.code === "demasiados-intentos") {
+        setEstado({
+          ok: false,
+          mensaje: "Demasiados intentos seguidos. Espera unos minutos y vuelve a probar.",
+        });
+        return;
+      }
       if (!respuesta || respuesta.error) {
         setEstado({ ok: false, mensaje: "El email o la contraseña no son correctos." });
         return;
@@ -109,7 +116,7 @@ export function FormularioCuenta({ modo, volver }: Props) {
         {esRegistro ? "¿Ya tienes cuenta? " : "¿Es tu primera vez? "}
         <Link
           href={`${esRegistro ? "/login" : "/registro"}${enlaceVolver}`}
-          className="text-acento hover:underline"
+          className="text-acento underline underline-offset-4"
         >
           {esRegistro ? "Inicia sesión" : "Crea una cuenta gratis"}
         </Link>

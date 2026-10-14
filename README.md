@@ -2,7 +2,28 @@
 
 Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloquean con el QR de cada caja.
 
-> Estado: **fase 5 de 6** (portada, kits, configurador, compra simulada, cuentas, activación y cursos). Este README se completará en la fase 6.
+> Estado: **versión local completa** (las 6 fases terminadas). Los pagos son simulados y el código está
+> preparado para Stripe y PostgreSQL. Antes de publicarla, sigue la lista [Antes de publicar la web](#antes-de-publicar-la-web).
+
+## Qué tiene la web
+
+| Dirección                               | Qué es                                                                        |
+| --------------------------------------- | ----------------------------------------------------------------------------- |
+| `/`                                     | Portada: kit estrella, una sección por kit, configurador y explicación del QR |
+| `/kits`, `/kits/[kit]`                  | Listado de kits y ficha de cada uno (precio, piezas, temario del curso)       |
+| `/componentes`                          | Componentes sueltos por categoría, con sus datos técnicos                     |
+| `/configurador`                         | Monta tu robot pieza a pieza, con avisos de compatibilidad                    |
+| `/carrito`, `/checkout`, `/pedido/[id]` | Carrito, compra simulada y confirmación con las tarjetas QR imprimibles       |
+| `/login`, `/registro`                   | Iniciar sesión y crear cuenta                                                 |
+| `/activar?codigo=…`                     | Lo que abre el QR de la caja: desbloquea el curso del kit                     |
+| `/cursos`, `/cursos/[curso]/[lección]`  | Mis cursos: vídeos, tests, retos y progreso (necesita iniciar sesión)         |
+| `/diseno`                               | Página interna con el sistema de diseño (colores, tipografías, botones)       |
+
+## Tecnología
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 (SQLite en local, PostgreSQL
+en producción) · Auth.js v5 (email y contraseña cifrada con bcrypt) · Zustand (carrito en el navegador) ·
+Zod (validación) · qrcode · lucide-react (iconos) · ESLint + Prettier.
 
 ## Cómo arrancar el proyecto
 
@@ -71,6 +92,7 @@ Cada vez que ejecutas `npm run db:seed` vuelven a quedar sin usar (y las cuentas
 | `src/lib/pagos/`, `src/lib/pedidos.ts`              | Pago (simulado; preparado para Stripe) y creación de pedidos        |
 | `src/auth.ts`, `src/auth.config.ts`, `src/proxy.ts` | Inicio de sesión (Auth.js) y protección de las páginas de cuenta    |
 | `src/lib/cursos.ts`, `src/lib/activacion.ts`        | Cursos del usuario, progreso y activación de códigos                |
+| `src/lib/limite.ts`                                 | Límite de intentos (login, registro y activación)                   |
 | `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades   |
 | `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.         |
 
@@ -181,6 +203,56 @@ La respuesta correcta y la solución nunca se envían al navegador antes de tiem
 - Las páginas de **Mis cursos** (`/cursos/…`) necesitan haber iniciado sesión. Si no, llevan a `/login`
   y después vuelven a donde ibas. La lista de rutas protegidas está en `src/auth.config.ts`.
 - Cada usuario solo ve los cursos que ha activado con un código.
+
+### Los límites de intentos
+
+Para que nadie pueda probar miles de contraseñas o códigos seguidos, hay un máximo de intentos en
+`src/lib/limite.ts` (por ejemplo, 10 inicios de sesión fallidos cada 15 minutos). Cambia los números en `LIMITES`.
+Se guardan en la memoria del servidor, así que se reinician al reiniciarlo.
+
+## Calidad
+
+Antes de cada versión se ejecuta `npm run lint` (revisa el código) y `npm run build` (compila la web); los dos
+deben terminar sin errores. En la fase 6 se revisaron además todas las páginas, en móvil (390 px) y en ordenador:
+
+- **Accesibilidad:** sin problemas en la auditoría automática (axe-core). Se puede navegar con teclado, hay
+  enlace «Saltar al contenido», los formularios tienen etiquetas y mensajes de error que leen los lectores de
+  pantalla, y las animaciones se desactivan si el sistema tiene activado «reducir movimiento».
+- **Móvil:** ninguna página se sale por los lados.
+- **Rendimiento:** cada página descarga unos 160 KB de JavaScript y menos de 310 KB en total. Las páginas de la
+  tienda se generan por adelantado (cargan al instante).
+- **Seguridad:** contraseñas cifradas, sesión en cookie cifrada, precios recalculados en el servidor, respuestas
+  de los tests y soluciones que no llegan al navegador antes de tiempo, límite de intentos y redirecciones
+  solo dentro de la web.
+
+## Antes de publicar la web
+
+Esta versión está pensada para tu ordenador. Para ponerla en internet:
+
+1. **Base de datos:** pasa a PostgreSQL (ver [Pasar a PostgreSQL](#pasar-a-postgresql-producción)).
+2. **Variables de `.env`** en el servidor:
+   - `AUTH_SECRET`: una clave nueva y secreta (`npx auth secret`). No reutilices la de tu ordenador.
+   - `NEXT_PUBLIC_SITE_URL`: la dirección real de la web (los QR impresos apuntan aquí).
+   - `DATABASE_URL`: la de PostgreSQL.
+3. **Pagos reales:** activa Stripe (ver `src/lib/pagos/stripe.ts`) y quita los textos de «pago simulado»
+   (están en `src/components/compra/FormularioCheckout.tsx` y en el pie de página).
+4. **Datos de prueba:** no ejecutes `npm run db:seed` en producción. Crea solo los productos y cursos reales
+   y **no** el usuario de prueba ni los códigos `VAL-PRUE-…`.
+5. **Pendiente para más adelante** (necesitan un servicio de envío de emails): «¿Olvidaste tu contraseña?» y
+   enviar la confirmación del pedido por email. También se podría unir cada pedido a la cuenta de quien lo hace
+   (hoy la página `/pedido/…` la ve quien tenga su dirección, que es muy difícil de adivinar).
+6. Si la web llega a funcionar en **varios servidores** a la vez, el límite de intentos tendrá que guardarse en un
+   sitio compartido (por ejemplo Redis) en lugar de en memoria (ver `src/lib/limite.ts`).
+
+## Actualizar las librerías
+
+`npm outdated` muestra qué librerías tienen versiones nuevas. Las actualizaciones pequeñas (por ejemplo,
+de 16.4.0 a 16.4.1) suelen ser seguras: después ejecuta `npm run lint` y `npm run build`. **No** actualices todavía
+a Prisma 8, ESLint 10 ni TypeScript 7: son versiones nuevas que aún no son compatibles con el resto del proyecto.
+
+`npm audit` avisa de algunas vulnerabilidades en herramientas de desarrollo (ESLint y la línea de comandos de
+Prisma). No afectan a la web que ven los visitantes, y su «arreglo automático» bajaría a versiones antiguas que
+romperían el proyecto: lo correcto es esperar a que publiquen la corrección.
 
 ## Base de datos
 

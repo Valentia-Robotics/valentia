@@ -38,8 +38,15 @@ export const enlacesNavegacion: EnlaceNavegacion[] = [
   { href: "/cursos", etiqueta: "Mis cursos" },
 ];
 
-/** Columnas de enlaces del pie de página */
-export const columnasPie: { titulo: string; enlaces: EnlaceNavegacion[] }[] = [
+/**
+ * Columnas de enlaces del pie de página.
+ * "enlacesConSesion" (opcional) sustituye a "enlaces" cuando el usuario ha iniciado sesión.
+ */
+export const columnasPie: {
+  titulo: string;
+  enlaces: EnlaceNavegacion[];
+  enlacesConSesion?: EnlaceNavegacion[];
+}[] = [
   {
     titulo: "Tienda",
     enlaces: [
@@ -61,6 +68,10 @@ export const columnasPie: { titulo: string; enlaces: EnlaceNavegacion[] }[] = [
     enlaces: [
       { href: "/login", etiqueta: "Iniciar sesión" },
       { href: "/registro", etiqueta: "Crear cuenta" },
+    ],
+    enlacesConSesion: [
+      { href: "/cursos", etiqueta: "Mis cursos" },
+      { href: "/activar", etiqueta: "Activar un kit" },
     ],
   },
 ];

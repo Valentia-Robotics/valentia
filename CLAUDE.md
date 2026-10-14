@@ -7,7 +7,8 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Fase actual: fase 5 terminada · siguiente: fase 6 (repaso final de calidad).** No empezar una fase sin la aprobación del usuario.
+**Las 6 fases están terminadas: versión local completa.** Siguiente paso posible (a decidir con el usuario): preparar la
+publicación (lista «Antes de publicar la web» del README). No empezar trabajo nuevo grande sin la aprobación del usuario.
 
 ### Terminado
 
@@ -34,7 +35,7 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
   (migra los guardados en v1). Seed: códigos de prueba fijos `VAL-PRUE-CAR2/3`, `BRZ2/3`, `MET2/3` y borra pedidos.
   Paquete nuevo: `qrcode` (+ `@types/qrcode`). Envío gratis. Componentes nuevos: `ui/Campo`, `compra/*`.
   Probado en Chrome headless (compra completa, errores de formulario, cambio de precios, stock, impresión y móvil).
-- **Fase 5** (login, activación y cursos): Auth.js `next-auth@5.0.0-beta.32` con Credentials + sesión JWT.
+- **Fase 5** (`c9e5423`): Auth.js `next-auth@5.0.0-beta.32` con Credentials + sesión JWT.
   Config partida: `src/auth.config.ts` (sin BD: `authorized`, callbacks, `RUTAS_PROTEGIDAS`, `trustHost`) que usa
   `src/proxy.ts`, y `src/auth.ts` (authorize con bcryptjs). Ruta `api/auth/[...nextauth]`. Comprobación segura en
   `src/lib/sesion.ts` (`obtenerUsuario` con `cache` + BD, `exigirUsuario(volver)`). Login/registro: `FormularioCuenta` usa
@@ -51,15 +52,21 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
   `prueba@valentia.test` / `robots2026` (sin cursos). Paquetes nuevos: `next-auth@beta`, `bcryptjs`.
   Probado en Chrome headless: proxy → login con vuelta, contraseña incorrecta, activación, test, pistas y solución, progreso
   guardado, curso ajeno → 404, código usado por otra cuenta, registro con errores, cerrar sesión y móvil.
+- **Fase 6** (repaso final de calidad): auditoría con axe-core (instalado solo en el scratchpad, no en el proyecto) de
+  15 páginas en móvil 390 px y escritorio → 0 problemas tras subrayar los enlaces dentro de texto (el aviso de contraste
+  de la ficha de kit era un falso positivo de la animación `aparecer`; con reduced-motion da 0). Sin desborde horizontal.
+  Peso: ~155–170 KB de JS y <310 KB por página. Límite de intentos en memoria `src/lib/limite.ts` (`LIMITES`: login por
+  IP+email con `CredentialsSignin` code "demasiados-intentos", registro por IP solo al crear, activar por usuario,
+  consultar código en `/activar` por IP). Pie de página según sesión (`EnlacesPie` + `enlacesConSesion` en marca.ts).
+  Actualizaciones menores: next/eslint-config-next 16.4.1, react 19.3.1, dotenv 18.0.8. README final (páginas, tecnología,
+  calidad, «Antes de publicar», actualizar librerías).
 
-### Pendiente
+### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 
-- **Fase 6 – Repaso final de calidad**: accesibilidad, móvil, rendimiento, README completo, lint y build.
-  Ideas anotadas para revisar con el usuario:
-  - El pie de página muestra siempre «Iniciar sesión / Crear cuenta» (es estático), aunque ya hayas entrado.
-  - Sin límite de intentos en login, registro y activación (añadir rate limiting antes de publicar).
-  - `/pedido/[id]` es público para quien tenga el id (difícil de adivinar). Valorar enlazar pedidos al usuario.
-  - Sin «olvidé mi contraseña» (necesitaría enviar emails).
+- PostgreSQL, Stripe real, `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción, quitar textos de «pago simulado».
+- Necesitan servicio de emails: «¿Olvidaste tu contraseña?» y confirmación del pedido por email.
+- Valorar enlazar los pedidos al usuario (hoy `/pedido/[id]` es accesible con el id, difícil de adivinar).
+- Con varios servidores, el límite de intentos debería ir a Redis u otro almacén compartido.
 
 ### Avisos abiertos
 
@@ -70,7 +77,8 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 - No se envían emails: el email del pedido solo se guarda como contacto.
 - `npm audit`: 9 vulnerabilidades "altas", todas en herramientas de desarrollo/compilación: ESLint (braces/micromatch, vía
   eslint-config-next; el "arreglo" bajaría a Next 14) y la CLI de Prisma (deepmerge-ts, mysql2; el "arreglo" bajaría a
-  Prisma 6). No vienen de `qrcode`. Revisar en la fase 6.
+  Prisma 6). Revisado en la fase 6: no afectan a la web en ejecución (mysql2 ni se usa). Esperar a versiones corregidas.
+- `graphify-out/` (salida de la herramienta graphify del usuario) no está en git ni en .gitignore: no tocarla sin preguntar.
 - npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines, better-sqlite3,
   esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
 - Vídeos de los cursos: `"videoUrl": "PENDIENTE"` en `data/cursos.json`, a la espera de las URL reales.
@@ -117,7 +125,7 @@ Requisitos completos: `PROMPT.md`.
 3. Trabajar por fases y hacer **un commit de git al terminar cada fase**:
    (1) base, sistema de diseño, logo y navegación ✅ · (2) inicio y fichas de kit ✅ ·
    (3) configurador ✅ · (4) carrito y compra simulada ✅ · (5) login, activación y cursos ✅ ·
-   (6) repaso final de calidad.
+   (6) repaso final de calidad ✅.
 4. Al terminar cada fase: decir exactamente qué comandos ejecutar, qué dirección abrir y qué debería verse.
 5. `npm run lint` y `npm run build` deben pasar sin errores antes de cada commit.
 6. Componentes pequeños y reutilizables, tipos de TypeScript y **comentarios en español** en las partes clave.
@@ -142,7 +150,7 @@ Requisitos completos: `PROMPT.md`.
 
 ## Tecnología y versiones
 
-- Next.js 16.4 (App Router, Turbopack) · React 19.3 · TypeScript 6.0 (typescript-eslint aún no admite la 7)
+- Next.js 16.4.1 (App Router, Turbopack) · React 19.3.1 · TypeScript 6.0 (typescript-eslint aún no admite la 7)
 - Tailwind CSS 4.3 · Zustand 5 (carrito en localStorage) · lucide-react (iconos)
 - ESLint 9 (eslint-config-next aún no admite ESLint 10) + Prettier 3 (con plugin de Tailwind)
 - Prisma 7.10 estable (el tag "latest" de npm apunta a una 8.0 rc: no actualizar sin preguntar).
@@ -167,7 +175,7 @@ scripts/               generar-marca.mjs
 src/app/               (tienda)/, (auth)/, (cuenta)/, activar/, api/, diseno/
 src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cuenta/, cursos/
 src/config/            marca.ts, categorias.ts
-src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video.ts (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
+src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video.ts, limite.ts (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
 src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
 data/                  componentes.json, kits.json, cursos.json (fuente de los datos de prueba)
 prisma/                schema.prisma, migrations/, seed.ts, dev.db
