@@ -73,6 +73,9 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
     `componentes_ocultos`): los ocultos no salen en /componentes, configurador ni checkout. `/admin/componentes`
     (lista, nuevo, editar, ocultar, borrar bloqueado si está en un kit). `refrescarTienda()` = revalidatePath("/", "layout").
     Formularios: `useFormulario` (no vacía el formulario al fallar) + `EstadoFormulario` + `src/lib/validaciones/admin.ts`.
+  - Parte 4: `Kit.visible` (migración `kits_ocultos`; ocultos fuera de portada, /kits, ficha → 404, configurador y checkout;
+    sus códigos siguen funcionando). `/admin/kits` con `SelectorPiezas` (buscador), curso (solo cursos sin kit), un solo
+    destacado, borrar bloqueado si tiene códigos o pedidos (el curso queda libre).
 
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 

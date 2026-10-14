@@ -48,7 +48,7 @@ async function calcularLineas(tx: Tx, articulos: ArticuloPedido[]) {
   );
 
   const [kits, componentes] = await Promise.all([
-    tx.kit.findMany({ where: { slug: { in: slugsKits } } }),
+    tx.kit.findMany({ where: { slug: { in: slugsKits }, visible: true } }),
     // Los componentes ocultos desde el panel no se pueden comprar sueltos
     tx.componente.findMany({ where: { slug: { in: slugsComponentes }, visible: true } }),
   ]);

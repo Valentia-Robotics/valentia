@@ -116,3 +116,34 @@ export const esquemaComponenteAdmin = z.object({
 });
 
 export type DatosComponenteAdmin = z.infer<typeof esquemaComponenteAdmin>;
+
+/* ---------- Kits ---------- */
+
+export const NIVELES = ["Principiante", "Intermedio", "Avanzado"] as const;
+
+export const esquemaKitAdmin = z.object({
+  nombre: textoObligatorio(80),
+  eslogan: textoObligatorio(140),
+  descripcion: textoObligatorio(3000),
+  precio: precioEnCentimos,
+  nivel: z.enum(NIVELES, { error: "Elige un nivel" }),
+  edadMinima: entero(3, 99),
+  tiempoMontaje: textoObligatorio(40),
+  orden: entero(0, 999),
+  destacado: z.boolean(),
+  visible: z.boolean(),
+  puntosFuertes: z
+    .array(textoObligatorio(120))
+    .min(1, "Añade al menos un punto fuerte")
+    .max(8, "Máximo 8 puntos fuertes"),
+  cursoId: z.string().min(1, "Elige el curso que incluye el kit"),
+  componentes: z
+    .array(z.object({ id: z.string().min(1), cantidad: entero(1, 50) }))
+    .min(1, "Un kit necesita al menos un componente")
+    .refine(
+      (piezas) => new Set(piezas.map((p) => p.id)).size === piezas.length,
+      "Hay un componente repetido",
+    ),
+});
+
+export type DatosKitAdmin = z.infer<typeof esquemaKitAdmin>;

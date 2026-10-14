@@ -76,6 +76,8 @@ model Kit {
   orden          Int     @default(0)
   /// Puntos fuertes del kit (lista de textos)
   puntosFuertes  Json
+  /// false = oculto: no se vende ni aparece en la tienda (sus códigos siguen funcionando)
+  visible        Boolean @default(true)
 
   componentes KitComponente[]
   curso       Curso              @relation(fields: [cursoId], references: [id])

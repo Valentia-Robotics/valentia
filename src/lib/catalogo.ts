@@ -20,17 +20,21 @@ const incluirDetalleKit = {
   componentes: { include: { componente: true } },
 };
 
-/** Todos los kits, en el orden indicado en data/kits.json */
+/** Los kits a la venta (los ocultos desde el panel no salen), por su "orden" */
 export function obtenerKits() {
   return db.kit.findMany({
+    where: { visible: true },
     orderBy: { orden: "asc" },
     include: { curso: { select: { titulo: true, _count: { select: { lecciones: true } } } } },
   });
 }
 
-/** Un kit con todos sus detalles, o null si no existe */
+/** Un kit a la venta con todos sus detalles, o null si no existe o está oculto */
 export async function obtenerKitPorSlug(slug: string) {
-  const kit = await db.kit.findUnique({ where: { slug }, include: incluirDetalleKit });
+  const kit = await db.kit.findFirst({
+    where: { slug, visible: true },
+    include: incluirDetalleKit,
+  });
   if (!kit) return null;
   // Ordenamos las piezas por categoría (placas, motores, sensores…) como en el configurador
   const posicion = (c: string) => CATEGORIAS.indexOf(c as (typeof CATEGORIAS)[number]);
@@ -93,6 +97,7 @@ export async function obtenerComponentes(): Promise<ComponenteCatalogo[]> {
  */
 export async function obtenerKitsParaConfigurador(): Promise<KitParaConfigurador[]> {
   const kits = await db.kit.findMany({
+    where: { visible: true },
     orderBy: { orden: "asc" },
     include: {
       componentes: {
