@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
   Wrench,
 } from "lucide-react";
-import { BotonAnadirKit } from "@/components/tienda/BotonAnadirKit";
+import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { Etiqueta } from "@/components/ui/Etiqueta";
@@ -103,11 +103,15 @@ export default async function PaginaKit({ params }: Props) {
               </ul>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <BotonAnadirKit
-                  slug={kit.slug}
-                  nombre={kit.nombre}
-                  precioCentimos={kit.precioCentimos}
-                  imagen={kit.imagen}
+                <BotonAnadirCarrito
+                  articulo={{
+                    id: `kit:${kit.slug}`,
+                    tipo: "kit",
+                    nombre: kit.nombre,
+                    precioCentimos: kit.precioCentimos,
+                    imagen: kit.imagen,
+                  }}
+                  className="w-full sm:w-auto"
                 />
                 <Boton
                   href={`/configurador?kit=${kit.slug}`}

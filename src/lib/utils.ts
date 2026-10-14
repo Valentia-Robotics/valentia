@@ -20,3 +20,15 @@ const formatoEuros = new Intl.NumberFormat("es-ES", {
 export function formatearPrecio(centimos: number): string {
   return formatoEuros.format(centimos / 100);
 }
+
+const formatoNumero = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 });
+
+/** Escribe un número a la española. Ejemplo: 3.3 → "3,3"; 1500 → "1500" */
+export function formatearNumero(numero: number): string {
+  return formatoNumero.format(numero);
+}
+
+/** Elige la forma singular o plural. Ejemplo: plural(2, "pieza", "piezas") → "2 piezas" */
+export function plural(cantidad: number, singular: string, plural: string): string {
+  return `${cantidad} ${cantidad === 1 ? singular : plural}`;
+}

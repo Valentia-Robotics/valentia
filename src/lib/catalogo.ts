@@ -5,6 +5,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { CATEGORIAS } from "@/lib/validaciones/catalogo";
+import type { ComponenteCatalogo, Especificacion, KitParaConfigurador } from "@/types/catalogo";
 
 /** Los kits que se muestran juntos con su curso y sus componentes */
 const incluirDetalleKit = {
@@ -45,4 +46,56 @@ export type KitResumen = Awaited<ReturnType<typeof obtenerKits>>[number];
 /** Convierte un campo JSON con una lista de textos en string[] (o lista vacía) */
 export function listaDeTextos(valor: unknown): string[] {
   return Array.isArray(valor) ? valor.filter((v): v is string => typeof v === "string") : [];
+}
+
+/** Convierte el campo JSON "especificaciones" en una lista de pares nombre/valor */
+export function listaDeEspecificaciones(valor: unknown): Especificacion[] {
+  if (!Array.isArray(valor)) return [];
+  return valor.filter(
+    (v): v is Especificacion => typeof v?.nombre === "string" && typeof v?.valor === "string",
+  );
+}
+
+/**
+ * Todos los componentes, ordenados por categoría (como en el configurador)
+ * y, dentro de cada categoría, del más barato al más caro.
+ */
+export async function obtenerComponentes(): Promise<ComponenteCatalogo[]> {
+  const filas = await db.componente.findMany({ orderBy: { precioCentimos: "asc" } });
+  const posicion = (c: string) => CATEGORIAS.indexOf(c as (typeof CATEGORIAS)[number]);
+  return filas
+    .sort((a, b) => posicion(a.categoria) - posicion(b.categoria))
+    .map((fila) => ({
+      slug: fila.slug,
+      nombre: fila.nombre,
+      categoria: fila.categoria,
+      tipo: fila.tipo,
+      resumen: fila.resumen,
+      descripcion: fila.descripcion,
+      precioCentimos: fila.precioCentimos,
+      stock: fila.stock,
+      imagen: fila.imagen,
+      voltaje: fila.voltaje,
+      voltajeLogico: fila.voltajeLogico,
+      consumoMa: fila.consumoMa,
+      conector: fila.conector,
+      pines: fila.pines,
+      especificaciones: listaDeEspecificaciones(fila.especificaciones),
+    }));
+}
+
+/** Los kits con su lista de piezas, para "empezar desde un kit" en el configurador */
+export async function obtenerKitsParaConfigurador(): Promise<KitParaConfigurador[]> {
+  const kits = await db.kit.findMany({
+    orderBy: { orden: "asc" },
+    include: { componentes: { include: { componente: { select: { slug: true } } } } },
+  });
+  return kits.map((kit) => ({
+    slug: kit.slug,
+    nombre: kit.nombre,
+    eslogan: kit.eslogan,
+    imagen: kit.imagen,
+    precioCentimos: kit.precioCentimos,
+    piezas: kit.componentes.map((c) => ({ slug: c.componente.slug, cantidad: c.cantidad })),
+  }));
 }

@@ -7,7 +7,7 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Fase actual: fase 2 terminada · siguiente: fase 3 (configurador).** No empezar una fase sin la aprobación del usuario.
+**Fase actual: fase 3 terminada · siguiente: fase 4 (carrito y compra simulada).** No empezar una fase sin la aprobación del usuario.
 
 ### Terminado
 
@@ -17,12 +17,16 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 - **Fase 2** (`2ce3987`): Prisma 7.10 + SQLite (`prisma.config.ts`, migración y seed validado con Zod),
   datos de prueba (18 componentes, 3 kits, 3 cursos con 14 lecciones), ilustraciones SVG de muestra,
   portada estilo Apple, `/kits` y `/kits/[slug]` (añadir al carrito y "Personalizar este kit").
+- **Fase 3** (configurador): `/configurador` estilo quiosco (categorías con icono, tarjetas, detalle en <dialog> con cantidad,
+  panel "Tu robot" con +/−, medidores de pines y energía, avisos con botón para añadir la pieza sugerida, total y
+  "Añadir al carrito" como artículo tipo "configuracion"), empezar desde cero o desde un kit (`?kit=slug`, luego se limpia la URL),
+  móvil con categorías deslizables y panel inferior. Reglas como datos en `src/lib/compatibilidad/reglas.ts` (motor en `comprobar.ts`).
+  Robot guardado en localStorage (`src/store/configurador.ts`). Página `/componentes`. Botón genérico `BotonAnadirCarrito`
+  (sustituye a BotonAnadirKit), `ui/Dialogo` y `ui/SelectorCantidad` reutilizables para la fase 4. Probado en Chrome headless
+  (escritorio y móvil, sin errores de consola).
 
 ### Pendiente
 
-- **Fase 3 – Configurador** (estilo quiosco): categorías con icono, rejilla de tarjetas, detalle con
-  cantidad, panel "Tu robot", reglas de compatibilidad como datos en `src/lib/compatibilidad`, empezar desde
-  cero o desde un kit (`/configurador?kit=slug`), versión móvil. Incluye la página `/componentes`.
 - **Fase 4 – Carrito y compra simulada**: página `/carrito`, checkout simulado preparado para Stripe,
   pedido en la BD, código de activación único y QR imprimible con el logo por cada kit.
 - **Fase 5 – Login, activación y cursos**: Auth.js v5 (email y contraseña cifrada), `/activar?codigo=`,
@@ -31,6 +35,11 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 - **Fase 6 – Repaso final de calidad**: accesibilidad, móvil, rendimiento, README completo, lint y build.
 
 ### Avisos abiertos
+
+- Decisión pendiente del usuario: una configuración personalizada (aunque parta de un kit) **no incluye curso ni código QR**;
+  solo los kits. El panel lo avisa cuando el robot es idéntico a un kit. Confirmar en la fase 4.
+- README: falta documentar el configurador y cómo editar las reglas de compatibilidad (hacerlo al empezar la fase 4).
+- `/configurador` es dinámica (lee `?kit`), así que `npm start` necesita la BD creada.
 
 - `npm audit`: 5 vulnerabilidades "altas" en herramientas internas de ESLint (braces/micromatch, a través
   de eslint-config-next). Solo afectan al desarrollo; el "arreglo" de npm bajaría a Next 14. Revisar en la fase 6.
@@ -77,7 +86,7 @@ Requisitos completos: `PROMPT.md`.
 2. **Antes de instalar cualquier paquete, explicar en una frase para qué sirve.**
 3. Trabajar por fases y hacer **un commit de git al terminar cada fase**:
    (1) base, sistema de diseño, logo y navegación ✅ · (2) inicio y fichas de kit ✅ ·
-   (3) configurador · (4) carrito y compra simulada · (5) login, activación y cursos ·
+   (3) configurador ✅ · (4) carrito y compra simulada · (5) login, activación y cursos ·
    (6) repaso final de calidad.
 4. Al terminar cada fase: decir exactamente qué comandos ejecutar, qué dirección abrir y qué debería verse.
 5. `npm run lint` y `npm run build` deben pasar sin errores antes de cada commit.

@@ -55,6 +55,21 @@
     }
   }
 
+  --animate-subir: subir 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; /* Panel que sube desde abajo (móvil) */
+  --animate-resaltar: resaltar 1.2s ease-out; /* Fondo azul que se desvanece al añadir una pieza */
+
+  @keyframes subir {
+    from {
+      translate: 0 100%;
+    }
+  }
+
+  @keyframes resaltar {
+    from {
+      background-color: rgb(45 75 255 / 0.14);
+    }
+  }
+
   /* ---------- Alturas fijas ---------- */
   --spacing-nav: 3rem; /* Altura de la barra de navegación (48 px) → clases "h-nav", "pt-nav" */
 }
@@ -90,9 +105,29 @@
     border-radius: 4px;
   }
 
+  /* Con una ventana emergente abierta, la página de detrás no se mueve */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  /* Hueco al final de la página para que la barra fija de abajo (configurador en móvil) no tape el pie */
+  @media (width < 64rem) {
+    body:has([data-barra-inferior]) {
+      padding-bottom: 5.5rem;
+    }
+  }
+
   ::selection {
     background-color: var(--color-acento);
     color: white;
+  }
+}
+
+/* Oculta la barra de desplazamiento (por ejemplo, en las categorías deslizables del móvil) */
+@utility sin-barra {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
