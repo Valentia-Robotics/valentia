@@ -65,6 +65,8 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
   - Parte 1: enum `Rol` (CLIENTE/ADMIN, migración `roles`), `exigirAdmin()` en páginas y `exigirAdminEnAccion()` en acciones
     (src/lib/sesion.ts), `/admin` en RUTAS_PROTEGIDAS, script `npm run admin -- email [--quitar]`, layouts por zona con
     `MarcoWeb` (la raíz ya no pone barra ni pie), piezas del panel en `src/components/admin`, seed solo si la BD está vacía.
+  - Parte 2: `/admin` (cifras en `src/lib/admin/estadisticas.ts`) y `/admin/usuarios` (`src/lib/admin/usuarios.ts`;
+    los pedidos se cuentan por email porque aún no van unidos a la cuenta).
 
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 
