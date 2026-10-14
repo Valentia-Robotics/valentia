@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, LogOut, QrCode } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, QrCode } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,11 @@ export function MenuUsuario() {
           <ElementoMenu href="/activar" icono={QrCode} alPulsar={cerrar}>
             Activar un kit
           </ElementoMenu>
+          {sesion.user.rol === "ADMIN" && (
+            <ElementoMenu href="/admin" icono={LayoutDashboard} alPulsar={cerrar}>
+              Panel de administración
+            </ElementoMenu>
+          )}
           <li>
             <button
               type="button"

@@ -119,6 +119,15 @@ export function BarraNavegacion() {
                   >
                     Activar un kit
                   </Link>
+                  {sesion.user.rol === "ADMIN" && (
+                    <Link
+                      href="/admin"
+                      onClick={cerrarMenu}
+                      className="block py-3 text-lg text-tinta"
+                    >
+                      Panel de administración
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={() => signOut({ redirectTo: "/" })}

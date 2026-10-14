@@ -1,11 +1,14 @@
 /**
- * DATOS DE PRUEBA
+ * DATOS INICIALES
  * Lee data/componentes.json, data/kits.json y data/cursos.json, comprueba
  * que son correctos y los guarda en la base de datos.
  *
- * Uso:  npm run db:seed
- * Se puede ejecutar todas las veces que quieras: borra el catálogo (y los pedidos de prueba) y lo vuelve a crear.
- * Las cuentas de usuario se conservan, pero pierden sus cursos y su progreso (dependen del catálogo).
+ * La base de datos es la fuente de verdad: el catálogo se cambia desde el panel /admin.
+ * Por eso este script SOLO carga los datos si la base de datos está vacía; si ya hay
+ * catálogo, no toca nada (así nunca se pierden los cambios hechos en el panel).
+ *
+ * Uso:  npm run db:seed      → carga los datos iniciales (solo si no hay catálogo)
+ *       npm run db:reset     → BORRA TODO (catálogo, pedidos, cuentas) y vuelve a cargarlos
  */
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
@@ -90,19 +93,21 @@ async function main() {
     }
   }
 
-  // Borramos el catálogo anterior (en orden, por las relaciones) y lo creamos de nuevo
-  await db.$transaction(async (tx) => {
-    // Los códigos dependen de los kits, así que la tienda vuelve a quedar "como nueva":
-    // se borran también los pedidos de prueba que hayas hecho y sus códigos.
-    await tx.codigoActivacion.deleteMany();
-    await tx.pedido.deleteMany();
-    await tx.kitComponente.deleteMany();
-    await tx.kit.deleteMany();
-    await tx.componente.deleteMany();
-    await tx.ejercicio.deleteMany();
-    await tx.leccion.deleteMany();
-    await tx.curso.deleteMany();
+  // Si ya hay catálogo, no tocamos nada: puede tener cambios hechos desde el panel
+  const [hayComponentes, hayKits, hayCursos] = await Promise.all([
+    db.componente.count(),
+    db.kit.count(),
+    db.curso.count(),
+  ]);
+  if (hayComponentes + hayKits + hayCursos > 0) {
+    console.log("✔ La base de datos ya tiene catálogo: no se ha cambiado nada.");
+    console.log("  Los productos y cursos se gestionan desde el panel /admin.");
+    console.log("  Para empezar de cero (lo borra TODO, también las cuentas): npm run db:reset");
+    return;
+  }
 
+  // Base de datos vacía: creamos el catálogo inicial (todo o nada, en una transacción)
+  await db.$transaction(async (tx) => {
     for (const { precio, ...componente } of componentes) {
       await tx.componente.create({
         data: { ...componente, precioCentimos: aCentimos(precio) },

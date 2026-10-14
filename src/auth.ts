@@ -41,7 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           usuario !== null && (await bcrypt.compare(datos.data.contrasena, usuario.contrasenaHash));
         if (!usuario || !correcta) return null;
 
-        return { id: usuario.id, name: usuario.nombre, email: usuario.email };
+        return { id: usuario.id, name: usuario.nombre, email: usuario.email, rol: usuario.rol };
       },
     }),
   ],

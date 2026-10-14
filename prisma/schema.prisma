@@ -219,6 +219,13 @@ model CodigoActivacion {
 //  USUARIOS, CURSOS Y PROGRESO (fase 5)
 // ============================================================
 
+/// Qué puede hacer cada cuenta. El registro público siempre crea CLIENTE.
+/// Para hacer ADMIN a alguien: npm run admin -- su@email.com
+enum Rol {
+  CLIENTE
+  ADMIN
+}
+
 /// Una persona con cuenta en Valentia
 model Usuario {
   id             String   @id @default(cuid())
@@ -227,6 +234,7 @@ model Usuario {
   email          String   @unique
   /// La contraseña cifrada con bcrypt (nunca se guarda la contraseña tal cual)
   contrasenaHash String
+  rol            Rol      @default(CLIENTE)
   creadoEn       DateTime @default(now())
 
   cursos     CursoUsuario[]

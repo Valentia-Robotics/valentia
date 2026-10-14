@@ -7,7 +7,7 @@
 import type { NextAuthConfig } from "next-auth";
 
 /** Rutas que necesitan haber iniciado sesión */
-export const RUTAS_PROTEGIDAS = ["/cursos"];
+export const RUTAS_PROTEGIDAS = ["/cursos", "/admin"];
 
 export const authConfig = {
   // Nuestras propias páginas en lugar de las que trae Auth.js
@@ -26,13 +26,15 @@ export const authConfig = {
       );
       return !protegida || Boolean(auth?.user);
     },
-    /** Guardamos el id y el nombre del usuario en la sesión */
+    /** Guardamos el id y el rol del usuario en la sesión (el nombre y el email ya van por defecto) */
     jwt({ token, user }) {
       if (user?.id) token.sub = user.id;
+      if (user?.rol) token.rol = user.rol;
       return token;
     },
     session({ session, token }) {
       if (token.sub) session.user.id = token.sub;
+      session.user.rol = token.rol;
       return session;
     },
   },

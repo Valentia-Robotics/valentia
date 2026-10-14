@@ -61,6 +61,11 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
   Actualizaciones menores: next/eslint-config-next 16.4.1, react 19.3.1, dotenv 18.0.8. README final (páginas, tecnología,
   calidad, «Antes de publicar», actualizar librerías).
 
+- **Panel de administración** (en curso, 7 partes aprobadas; ver «Panel de administración» más abajo):
+  - Parte 1: enum `Rol` (CLIENTE/ADMIN, migración `roles`), `exigirAdmin()` en páginas y `exigirAdminEnAccion()` en acciones
+    (src/lib/sesion.ts), `/admin` en RUTAS_PROTEGIDAS, script `npm run admin -- email [--quitar]`, layouts por zona con
+    `MarcoWeb` (la raíz ya no pone barra ni pie), piezas del panel en `src/components/admin`, seed solo si la BD está vacía.
+
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 
 - PostgreSQL, Stripe real, `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción, quitar textos de «pago simulado».
