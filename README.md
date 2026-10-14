@@ -35,21 +35,22 @@ Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env
 
 ## Qué hay en cada carpeta
 
-| Carpeta                                             | Contenido                                                         |
-| --------------------------------------------------- | ----------------------------------------------------------------- |
-| `imagenes/`                                         | Tus originales (logo.png). No se modifican nunca.                 |
-| `public/images/brand/`                              | Logo para la web (SVG y PNG) e iconos                             |
-| `public/images/componentes/`, `public/images/kits/` | Imágenes de productos (ilustraciones de muestra en SVG)           |
-| `data/`                                             | **Datos de prueba**: componentes, kits y cursos (archivos JSON)   |
-| `prisma/`                                           | Base de datos: esquema, migraciones, seed y el archivo `dev.db`   |
-| `scripts/`                                          | Programas de ayuda (generar iconos a partir del logo)             |
-| `src/app/`                                          | Las páginas de la web. Cada carpeta es una dirección (`/kits`, …) |
-| `src/app/globals.css`                               | **Sistema de diseño**: colores, tipografías, radios y sombras     |
-| `src/components/`                                   | Piezas reutilizables: botones, barra de navegación, pie, logo…    |
-| `src/config/marca.ts`                               | Nombre, lema y enlaces del menú y del pie                         |
-| `src/store/`                                        | El carrito (se guarda en el navegador)                            |
-| `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades |
-| `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.       |
+| Carpeta                                             | Contenido                                                           |
+| --------------------------------------------------- | ------------------------------------------------------------------- |
+| `imagenes/`                                         | Tus originales (logo.png). No se modifican nunca.                   |
+| `public/images/brand/`                              | Logo para la web (SVG y PNG) e iconos                               |
+| `public/images/componentes/`, `public/images/kits/` | Imágenes de productos (ilustraciones de muestra en SVG)             |
+| `data/`                                             | **Datos de prueba**: componentes, kits y cursos (archivos JSON)     |
+| `prisma/`                                           | Base de datos: esquema, migraciones, seed y el archivo `dev.db`     |
+| `scripts/`                                          | Programas de ayuda (generar iconos a partir del logo)               |
+| `src/app/`                                          | Las páginas de la web. Cada carpeta es una dirección (`/kits`, …)   |
+| `src/app/globals.css`                               | **Sistema de diseño**: colores, tipografías, radios y sombras       |
+| `src/components/`                                   | Piezas reutilizables: botones, barra de navegación, pie, logo…      |
+| `src/config/marca.ts`                               | Nombre, lema y enlaces del menú y del pie                           |
+| `src/store/`                                        | El carrito y el robot del configurador (se guardan en el navegador) |
+| `src/lib/compatibilidad/`                           | **Reglas del configurador** (avisos de compatibilidad)              |
+| `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades   |
+| `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.         |
 
 ## Cómo cambiar…
 
@@ -84,6 +85,27 @@ Los datos están en la carpeta `data/`:
 
 Después de cambiar algo, ejecuta `npm run db:seed` para guardarlo en la base de datos y recarga la página.
 Si hay un error (por ejemplo, un precio escrito como texto), el seed te dirá en qué archivo y en qué línea está.
+
+### Las reglas del configurador
+
+El configurador (**http://localhost:3000/configurador**) avisa cuando las piezas no encajan.
+Las reglas están en `src/lib/compatibilidad/reglas.ts` y son una lista de datos; no hace falta saber programar
+para cambiarlas. Hay cuatro tipos:
+
+- `necesita`: unas piezas necesitan otras (un motor necesita un driver, que mueve 2 motores).
+- `maximo`: no más de X piezas de un tipo (una sola placa).
+- `voltaje`: compara los voltios de una pieza con los de la placa o la batería.
+- `capacidad`: pines de la placa o corriente de la batería, lo usado frente a lo que hay.
+
+Cada regla tiene un `nivel` (`error`, `aviso` o `info`), un `titulo` y un `mensaje`. Las palabras entre llaves,
+como `{piezas}` o `{usados}`, se rellenan solas. Con `sugerencia` (el slug de un componente) aparece un botón
+para añadir esa pieza. Las reglas usan el campo `tipo` de cada componente de `data/componentes.json`
+(`placa`, `motor-dc`, `servo`, `bateria`…). Si creas un tipo nuevo, añádelo también en las reglas que le afecten.
+
+Los textos y los iconos de las categorías (Placas, Motores…) están en `src/config/categorias.ts`.
+
+Para abrir el configurador con un kit ya cargado: `/configurador?kit=` seguido del slug del kit
+(por ejemplo, `/configurador?kit=brazo-robotico`).
 
 ### Las imágenes de los productos
 

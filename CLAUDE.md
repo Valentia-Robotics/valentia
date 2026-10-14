@@ -38,7 +38,6 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 - Decisión pendiente del usuario: una configuración personalizada (aunque parta de un kit) **no incluye curso ni código QR**;
   solo los kits. El panel lo avisa cuando el robot es idéntico a un kit. Confirmar en la fase 4.
-- README: falta documentar el configurador y cómo editar las reglas de compatibilidad (hacerlo al empezar la fase 4).
 - `/configurador` es dinámica (lee `?kit`), así que `npm start` necesita la BD creada.
 
 - `npm audit`: 5 vulnerabilidades "altas" en herramientas internas de ESLint (braces/micromatch, a través
