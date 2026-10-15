@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { CircleAlert } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { registrarse, type EstadoRegistro } from "@/app/(auth)/acciones";
+import { iniciarSesion, registrarse, type EstadoCuenta } from "@/app/(auth)/acciones";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
+import { Aviso } from "./Aviso";
 
 interface Props {
   modo: "login" | "registro";
@@ -16,11 +16,13 @@ interface Props {
 
 /**
  * Formulario para iniciar sesión o crear una cuenta.
- * Al terminar recarga la página de destino para que toda la web vea la sesión nueva.
+ * Si hace falta un código (cuenta nueva o dispositivo nuevo), lleva a /verificar.
+ * Si entra directamente, recarga la página de destino para que toda la web vea la sesión.
  */
 export function FormularioCuenta({ modo, volver }: Props) {
   const [enviando, setEnviando] = useState(false);
-  const [estado, setEstado] = useState<EstadoRegistro>({ ok: false });
+  const [estado, setEstado] = useState<EstadoCuenta>({ ok: false });
+  const router = useRouter();
   const esRegistro = modo === "registro";
 
   async function alEnviar(evento: FormEvent<HTMLFormElement>) {
@@ -30,38 +32,22 @@ export function FormularioCuenta({ modo, volver }: Props) {
     setEstado({ ok: false });
 
     try {
-      // 1. Si es un registro, primero creamos la cuenta en el servidor
-      if (esRegistro) {
-        const resultado = await registrarse(formulario);
-        if (!resultado.ok) {
-          setEstado(resultado);
-          return;
-        }
-      }
-
-      // 2. Iniciamos sesión con Auth.js
-      const respuesta = await signIn("credentials", {
-        email: formulario.get("email"),
-        contrasena: formulario.get("contrasena"),
-        redirect: false,
-      });
-      if (respuesta?.code === "demasiados-intentos") {
-        setEstado({
-          ok: false,
-          mensaje: "Demasiados intentos seguidos. Espera unos minutos y vuelve a probar.",
-        });
+      const resultado = await (esRegistro ? registrarse(formulario) : iniciarSesion(formulario));
+      if (!resultado.ok) {
+        setEstado(resultado);
+        setEnviando(false);
         return;
       }
-      if (!respuesta || respuesta.error) {
-        setEstado({ ok: false, mensaje: "El email o la contraseña no son correctos." });
+      // Si todo va bien, el botón sigue en "Un momento…" hasta cambiar de página
+      if (resultado.paso === "verificar") {
+        // Hay que escribir el código que acabamos de enviar por email
+        router.push(`/verificar?callbackUrl=${encodeURIComponent(volver)}`);
         return;
       }
-
-      // 3. ¡Dentro! Vamos a la página de destino (recargándola)
+      // ¡Dentro! Vamos a la página de destino (recargándola)
       window.location.assign(volver);
     } catch {
       setEstado({ ok: false, mensaje: "Algo ha fallado. Inténtalo de nuevo en unos segundos." });
-    } finally {
       setEnviando(false);
     }
   }
@@ -71,15 +57,7 @@ export function FormularioCuenta({ modo, volver }: Props) {
 
   return (
     <form onSubmit={alEnviar} noValidate className="mt-8 space-y-5">
-      {estado.mensaje && (
-        <p
-          role="alert"
-          className="flex items-start gap-3 rounded-control bg-error/8 p-4 text-sm text-error"
-        >
-          <CircleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-          {estado.mensaje}
-        </p>
-      )}
+      {estado.mensaje && <Aviso>{estado.mensaje}</Aviso>}
 
       {esRegistro && (
         <Campo

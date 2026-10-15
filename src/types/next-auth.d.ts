@@ -9,11 +9,14 @@ declare module "next-auth" {
   }
   interface User {
     rol?: "CLIENTE" | "ADMIN";
+    /** El dispositivo de confianza al que va unida la sesión */
+    dispositivoId?: string;
   }
 }
 
 declare module "@auth/core/jwt" {
   interface JWT {
     rol?: "CLIENTE" | "ADMIN";
+    dispositivoId?: string;
   }
 }

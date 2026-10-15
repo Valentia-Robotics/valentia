@@ -26,10 +26,14 @@ export const authConfig = {
       );
       return !protegida || Boolean(auth?.user);
     },
-    /** Guardamos el id y el rol del usuario en la sesión (el nombre y el email ya van por defecto) */
+    /**
+     * Guardamos el id, el rol y el dispositivo del usuario en la sesión (el nombre y el email
+     * ya van por defecto). En src/auth.ts se añade la comprobación con la base de datos.
+     */
     jwt({ token, user }) {
       if (user?.id) token.sub = user.id;
       if (user?.rol) token.rol = user.rol;
+      if (user?.dispositivoId) token.dispositivoId = user.dispositivoId;
       return token;
     },
     session({ session, token }) {
