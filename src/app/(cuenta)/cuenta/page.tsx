@@ -46,7 +46,7 @@ export default async function PaginaMiCuenta() {
         <h1 className="mt-2 text-4xl font-medium sm:text-5xl">Mi cuenta.</h1>
         <p className="mt-3 text-gris">
           Has entrado como{" "}
-          <strong className="font-medium break-all text-tinta">{usuario.email}</strong>.
+          <strong className="font-medium wrap-anywhere text-tinta">{usuario.email}</strong>.
         </p>
       </header>
 

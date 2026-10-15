@@ -66,8 +66,9 @@ export default async function PaginaVerificar(props: {
     <TarjetaCuenta titulo={texto.titulo}>
       <p id="explicacion-codigo" className="mt-2 text-gris">
         <MailCheck aria-hidden="true" className="mr-1.5 mb-0.5 inline size-5 text-acento" />
-        {texto.intro} <strong className="font-medium break-all text-tinta">{datos.email}</strong>.
-        Caduca en {CODIGO.minutosValidez} minutos.
+        {texto.intro}{" "}
+        <strong className="font-medium wrap-anywhere text-tinta">{datos.email}</strong>. Caduca en{" "}
+        {CODIGO.minutosValidez} minutos.
       </p>
       <FormularioCodigo
         esperaInicial={datos.esperaReenvio}

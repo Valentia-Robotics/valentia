@@ -284,3 +284,16 @@ export async function terminarVerificacion(id: string): Promise<boolean> {
   await borrarCookieVerificacion();
   return marcada.count === 1;
 }
+
+/**
+ * Para "¿Olvidaste tu contraseña?": la verificación de este navegador si ya se escribió
+ * el código correcto hace menos de 10 minutos (o null). Solo entonces se puede elegir
+ * la contraseña nueva.
+ */
+export async function recuperacionConfirmada() {
+  const v = await verificacionActual();
+  if (!v || v.motivo !== "RECUPERAR" || v.usadoEn || !v.confirmadoEn || !v.usuario) return null;
+  const caduca = v.confirmadoEn.getTime() + CODIGO.minutosValidez * 60_000;
+  if (caduca < Date.now()) return null;
+  return { id: v.id, usuario: v.usuario, email: v.email };
+}

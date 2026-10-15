@@ -85,6 +85,13 @@ export function FormularioCuenta({ modo, volver }: Props) {
         error={e.contrasena}
         ayuda={esRegistro ? "Al menos 8 caracteres." : undefined}
       />
+      {!esRegistro && (
+        <p className="-mt-2 text-right text-sm">
+          <Link href="/recuperar" className="text-acento underline underline-offset-4">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </p>
+      )}
 
       <Boton type="submit" variante="acento" tamano="lg" disabled={enviando} className="w-full">
         {enviando ? "Un momento…" : esRegistro ? "Crear mi cuenta" : "Iniciar sesión"}
