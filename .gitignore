@@ -24,6 +24,9 @@ prisma/dev.db*
 # Fotos subidas desde el panel (almacén local; ver src/lib/almacenamiento)
 /subidas/
 
+# Correos de prueba guardados en desarrollo (ver src/lib/correo/consola.ts y /dev/correos)
+/.correos-dev/
+
 # Sistema operativo y editores
 .DS_Store
 Thumbs.db
