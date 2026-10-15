@@ -70,6 +70,7 @@ export const columnasPie: {
       { href: "/registro", etiqueta: "Crear cuenta" },
     ],
     enlacesConSesion: [
+      { href: "/cuenta", etiqueta: "Mi cuenta" },
       { href: "/cursos", etiqueta: "Mis cursos" },
       { href: "/activar", etiqueta: "Activar un kit" },
     ],

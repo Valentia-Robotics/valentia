@@ -1,0 +1,77 @@
+import type { Metadata } from "next";
+import { KeyRound, ShieldCheck } from "lucide-react";
+import { FormularioContrasena } from "@/components/cuenta/FormularioContrasena";
+import { MisDispositivos, type DispositivoVista } from "@/components/cuenta/MisDispositivos";
+import { Contenedor } from "@/components/ui/Contenedor";
+import { exigirUsuario } from "@/lib/sesion";
+import { haceCuanto } from "@/lib/utils";
+import { idDeEsteNavegador, listarDispositivos } from "@/lib/verificacion/dispositivos";
+
+export const metadata: Metadata = { title: "Mi cuenta", robots: { index: false } };
+
+const formatoFecha = new Intl.DateTimeFormat("es-ES", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Europe/Madrid",
+});
+
+/** MI CUENTA: dispositivos de confianza y cambio de contraseña */
+export default async function PaginaMiCuenta() {
+  const usuario = await exigirUsuario("/cuenta");
+  const [dispositivos, esteId] = await Promise.all([
+    listarDispositivos(usuario.id),
+    idDeEsteNavegador(),
+  ]);
+
+  // Preparamos los textos aquí (en el servidor) para que no cambien al cargar la página
+  const vista: DispositivoVista[] = dispositivos
+    .map((d) => ({
+      id: d.id,
+      nombre: d.nombre,
+      ultimoUso: haceCuanto(d.ultimoUsoEn),
+      desde: formatoFecha.format(d.creadoEn),
+      hasta: formatoFecha.format(d.caducaEn),
+      esEste: d.id === esteId,
+    }))
+    // Este dispositivo, siempre el primero
+    .sort((a, b) => Number(b.esEste) - Number(a.esEste));
+
+  return (
+    <Contenedor className="py-12 sm:py-16">
+      <header className="max-w-2xl">
+        <p className="text-sm font-medium tracking-wide text-acento uppercase">
+          Hola, {usuario.nombre.split(" ")[0]}
+        </p>
+        <h1 className="mt-2 text-4xl font-medium sm:text-5xl">Mi cuenta.</h1>
+        <p className="mt-3 text-gris">
+          Has entrado como{" "}
+          <strong className="font-medium break-all text-tinta">{usuario.email}</strong>.
+        </p>
+      </header>
+
+      <section aria-labelledby="titulo-dispositivos" className="mt-12 max-w-2xl">
+        <h2 id="titulo-dispositivos" className="flex items-center gap-2 text-2xl font-medium">
+          <ShieldCheck aria-hidden="true" className="size-6 text-acento" />
+          Mis dispositivos
+        </h2>
+        <p className="mt-2 mb-6 text-gris">
+          En estos dispositivos ya confirmaste con un código que eras tú, así que no te lo volvemos
+          a pedir hasta la fecha indicada. ¿No reconoces alguno? Elimínalo y cambia tu contraseña.
+        </p>
+        <MisDispositivos dispositivos={vista} />
+      </section>
+
+      <section aria-labelledby="titulo-contrasena" className="mt-14 max-w-2xl">
+        <h2 id="titulo-contrasena" className="flex items-center gap-2 text-2xl font-medium">
+          <KeyRound aria-hidden="true" className="size-6 text-acento" />
+          Cambiar contraseña
+        </h2>
+        <p className="mt-2 mb-6 text-gris">
+          Por seguridad, al cambiarla cerraremos la sesión en todos tus dispositivos menos en este.
+        </p>
+        <FormularioContrasena />
+      </section>
+    </Contenedor>
+  );
+}

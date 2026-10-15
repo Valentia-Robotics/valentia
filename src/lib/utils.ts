@@ -32,3 +32,23 @@ export function formatearNumero(numero: number): string {
 export function plural(cantidad: number, singular: string, plural: string): string {
   return `${cantidad} ${cantidad === 1 ? singular : plural}`;
 }
+
+const formatoRelativo = new Intl.RelativeTimeFormat("es-ES", { numeric: "auto" });
+
+/** Cuánto hace de una fecha, en palabras. Ejemplo: "hace 5 minutos", "ayer", "hace 3 días" */
+export function haceCuanto(fecha: Date, ahora = Date.now()): string {
+  const segundos = Math.round((fecha.getTime() - ahora) / 1000);
+  const unidades: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 365 * 24 * 3600],
+    ["month", 30 * 24 * 3600],
+    ["day", 24 * 3600],
+    ["hour", 3600],
+    ["minute", 60],
+  ];
+  for (const [unidad, tamano] of unidades) {
+    if (Math.abs(segundos) >= tamano) {
+      return formatoRelativo.format(Math.round(segundos / tamano), unidad);
+    }
+  }
+  return "ahora mismo";
+}

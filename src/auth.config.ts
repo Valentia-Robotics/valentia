@@ -7,7 +7,7 @@
 import type { NextAuthConfig } from "next-auth";
 
 /** Rutas que necesitan haber iniciado sesión */
-export const RUTAS_PROTEGIDAS = ["/cursos", "/admin"];
+export const RUTAS_PROTEGIDAS = ["/cursos", "/cuenta", "/admin"];
 
 export const authConfig = {
   // Nuestras propias páginas en lugar de las que trae Auth.js

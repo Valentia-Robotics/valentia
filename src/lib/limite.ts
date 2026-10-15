@@ -17,6 +17,10 @@ export const LIMITES = {
   registro: { maximo: 5, minutos: 60 },
   activar: { maximo: 15, minutos: 15 },
   consultarCodigo: { maximo: 40, minutos: 15 },
+  /** Cambiar la contraseña desde "Mi cuenta" (por usuario) */
+  cambiarContrasena: { maximo: 5, minutos: 15 },
+  /** Pedir un código de "¿Olvidaste tu contraseña?" (por IP; además, máximo 5 códigos por email y hora) */
+  recuperar: { maximo: 10, minutos: 15 },
 } as const;
 
 export type AccionLimitada = keyof typeof LIMITES;

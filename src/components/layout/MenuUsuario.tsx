@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, LayoutDashboard, LogOut, QrCode } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, QrCode, UserRound } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
  * En ordenador: botón "Iniciar sesión" o, si ya has entrado, un círculo con tu inicial
- * que abre un menú (Mis cursos, Activar un kit, Cerrar sesión).
+ * que abre un menú (Mis cursos, Activar un kit, Mi cuenta, Cerrar sesión).
  */
 export function MenuUsuario() {
   const { data: sesion, status } = useSession();
@@ -75,6 +75,9 @@ export function MenuUsuario() {
           </ElementoMenu>
           <ElementoMenu href="/activar" icono={QrCode} alPulsar={cerrar}>
             Activar un kit
+          </ElementoMenu>
+          <ElementoMenu href="/cuenta" icono={UserRound} alPulsar={cerrar}>
+            Mi cuenta
           </ElementoMenu>
           {sesion.user.rol === "ADMIN" && (
             <ElementoMenu href="/admin" icono={LayoutDashboard} alPulsar={cerrar}>

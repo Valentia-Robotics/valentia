@@ -119,6 +119,13 @@ export function BarraNavegacion() {
                   >
                     Activar un kit
                   </Link>
+                  <Link
+                    href="/cuenta"
+                    onClick={cerrarMenu}
+                    className="block py-3 text-lg text-tinta"
+                  >
+                    Mi cuenta
+                  </Link>
                   {sesion.user.rol === "ADMIN" && (
                     <Link
                       href="/admin"

@@ -14,8 +14,10 @@ import { cn } from "@/lib/utils";
  *   claro      → blanco, para usar sobre fondos oscuros
  *   enlace     → texto azul con flecha, al estilo "Más información ›"
  *   enlace-claro → igual, pero en azul claro para fondos oscuros
+ *   peligro    → rojo, para confirmar algo que no se puede deshacer
  */
-type Variante = "primario" | "acento" | "secundario" | "claro" | "enlace" | "enlace-claro";
+type Variante =
+  "primario" | "acento" | "secundario" | "claro" | "enlace" | "enlace-claro" | "peligro";
 type Tamano = "md" | "lg" | "xl";
 
 const estilosVariante: Record<Variante, string> = {
@@ -25,6 +27,7 @@ const estilosVariante: Record<Variante, string> = {
   claro: "bg-white text-tinta hover:bg-niebla",
   enlace: "text-acento hover:underline underline-offset-4 px-0!",
   "enlace-claro": "text-acento-claro hover:underline underline-offset-4 px-0!",
+  peligro: "bg-error text-white hover:bg-error/90",
 };
 
 const estilosTamano: Record<Tamano, string> = {
