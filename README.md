@@ -16,15 +16,19 @@ Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloqu
 | `/configurador`                         | Monta tu robot pieza a pieza, con avisos de compatibilidad                    |
 | `/carrito`, `/checkout`, `/pedido/[id]` | Carrito, compra simulada y confirmación con las tarjetas QR imprimibles       |
 | `/login`, `/registro`                   | Iniciar sesión y crear cuenta                                                 |
+| `/verificar`                            | Escribir el código de 6 cifras enviado por email                              |
+| `/recuperar`                            | ¿Olvidaste tu contraseña? (código por email y contraseña nueva)               |
+| `/cuenta`                               | Mi cuenta: dispositivos de confianza, cerrar sesión en todos, contraseña      |
 | `/activar?codigo=…`                     | Lo que abre el QR de la caja: desbloquea el curso del kit                     |
 | `/cursos`, `/cursos/[curso]/[lección]`  | Mis cursos: vídeos, tests, retos y progreso (necesita iniciar sesión)         |
 | `/diseno`                               | Página interna con el sistema de diseño (colores, tipografías, botones)       |
 | `/admin`                                | **Panel de administración** (solo administradores, ver más abajo)             |
+| `/dev/correos`                          | Solo con `npm run dev`: los correos que la web «habría enviado»               |
 
 ## Tecnología
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 (SQLite en local, PostgreSQL
-en producción) · Auth.js v5 (email y contraseña cifrada con bcrypt) · Zustand (carrito en el navegador) ·
+en producción) · Auth.js v5 (email y contraseña cifrada con bcrypt, verificación con código por email) · Zustand (carrito en el navegador) ·
 Zod (validación) · qrcode · lucide-react (iconos) · ESLint + Prettier.
 
 ## Cómo arrancar el proyecto
@@ -45,7 +49,7 @@ y genera la clave secreta de las sesiones con `npx auth secret` (o pon en `AUTH_
 
 ### Cuenta y códigos de prueba
 
-El seed crea un **usuario de prueba** (solo para tu ordenador, no lo uses en la web publicada):
+El seed crea un **usuario de prueba**, con el email ya verificado (solo para tu ordenador, no lo uses en la web publicada):
 
 | Email                  | Contraseña   |
 | ---------------------- | ------------ |
@@ -54,12 +58,58 @@ El seed crea un **usuario de prueba** (solo para tu ordenador, no lo uses en la 
 Empieza sin cursos. Para probar todo el recorrido del QR de la caja:
 
 1. Abre **http://localhost:3000/activar?codigo=VAL-PRUE-CAR2** (es lo que abriría el QR).
-2. Pulsa «Ya tengo cuenta: iniciar sesión» y entra con el usuario de prueba. Volverás solo a la activación.
+2. Pulsa «Ya tengo cuenta: iniciar sesión» y entra con el usuario de prueba. La primera vez en cada navegador
+   te pedirá un código: lo verás en **http://localhost:3000/dev/correos** (ver más abajo). Volverás solo a la activación.
 3. Pulsa «Activar mi curso». El curso del coche aparece en **Mis cursos** (http://localhost:3000/cursos).
 
 **Códigos de activación de prueba** (sin usar): `VAL-PRUE-CAR2`, `VAL-PRUE-CAR3` (coche),
 `VAL-PRUE-BRZ2`, `VAL-PRUE-BRZ3` (brazo) y `VAL-PRUE-MET2`, `VAL-PRUE-MET3` (estación meteorológica).
 Con `npm run db:reset` vuelven a quedar sin usar (pero ese comando lo borra todo, ver más abajo).
+
+## Verificación por email
+
+Para proteger las cuentas, la web envía **códigos de 6 cifras** por email:
+
+- **Al registrarse:** la cuenta no puede entrar ni activar cursos hasta escribir el código. Si cierras la página,
+  al volver a iniciar sesión se te pide otro.
+- **Al entrar desde un dispositivo nuevo:** con el código correcto, ese navegador pasa a ser «de confianza»
+  durante **30 días** (**7** para los administradores) y llega un correo de aviso «Se ha iniciado sesión en tu
+  cuenta desde un nuevo dispositivo».
+- **¿Olvidaste tu contraseña?** (enlace en `/login`): código por email y después la contraseña nueva.
+
+Los códigos caducan a los **10 minutos**, sirven una sola vez y admiten **5 intentos**. «Reenviar código» espera
+**60 segundos** entre envíos y como mucho envía **5 por hora** a cada email. Todo esto se cambia en
+`src/lib/verificacion/reglas.ts`. Los mensajes nunca dicen si un email tiene cuenta o no.
+
+En **Mi cuenta** (`/cuenta`) ves tus dispositivos de confianza y puedes eliminarlos (su sesión se cierra al
+momento) o «Cerrar sesión en todos». Al cambiar la contraseña se cierra la sesión en todos los demás.
+
+### Cómo probarlo en tu ordenador
+
+Con `npm run dev` **no se envía ningún correo de verdad**: cada correo aparece en la terminal y en
+**http://localhost:3000/dev/correos** (con su diseño). Esa página no existe en la web publicada.
+
+1. Abre http://localhost:3000/registro y crea una cuenta con cualquier email (por ejemplo `ana@prueba.test`).
+2. Abre http://localhost:3000/dev/correos en otra pestaña, copia el código y pégalo en la primera casilla
+   (o escríbelo). Se envía solo al completar las 6 cifras y entras en **Mis cursos**.
+3. Para ver el código de «dispositivo nuevo», abre una **ventana de incógnito** (es como otro navegador) e
+   inicia sesión con `prueba@valentia.test` / `robots2026`.
+4. Para probar los errores: escribe un código equivocado (te dice cuántos intentos quedan) o equivócate 5 veces.
+5. En http://localhost:3000/cuenta verás las dos ventanas como dispositivos. Elimina la de incógnito y recarga
+   esa ventana: su sesión se habrá cerrado.
+
+### Enviar correos de verdad (al publicar)
+
+El envío está en `src/lib/correo`: el resto de la web solo usa `enviarCorreo()`, así que cambiar de servicio
+no obliga a tocar nada más. Está preparado [Resend](https://resend.com):
+
+1. Crea una cuenta en Resend, verifica tu dominio y crea una clave (API Key).
+2. En el `.env` del servidor: `CORREO_PROVEEDOR="resend"`, `RESEND_API_KEY="re_…"` y
+   `CORREO_REMITENTE="Valentia <hola@tudominio.es>"` (explicado en `.env.example`).
+
+Las plantillas (código, aviso de nuevo dispositivo, contraseña cambiada…) están en
+`src/lib/correo/plantillas.ts`. El logo de los correos se carga desde `NEXT_PUBLIC_SITE_URL`, así que solo se ve
+cuando la web está publicada.
 
 ## Panel de administración
 
@@ -161,6 +211,9 @@ ejecutar `npm run admin -- tu@email.com`.
 | `src/auth.ts`, `src/auth.config.ts`, `src/proxy.ts` | Inicio de sesión (Auth.js) y protección de las páginas de cuenta    |
 | `src/lib/cursos.ts`, `src/lib/activacion.ts`        | Cursos del usuario, progreso y activación de códigos                |
 | `src/lib/limite.ts`                                 | Límite de intentos (login, registro y activación)                   |
+| `src/lib/verificacion/`                             | Códigos por email y dispositivos de confianza (y sus reglas)        |
+| `src/lib/correo/`                                   | Envío de correos (terminal en desarrollo, Resend) y plantillas      |
+| `.correos-dev/`                                     | Correos de prueba de `/dev/correos` (no se sube a git)              |
 | `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades   |
 | `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.         |
 
@@ -242,7 +295,7 @@ antes de tiempo: las comprueba el servidor.
 
 ### Quién puede ver qué
 
-- Las páginas de **Mis cursos** (`/cursos/…`) y del **panel** (`/admin/…`) necesitan haber iniciado sesión. Si no, llevan a `/login`
+- Las páginas de **Mis cursos** (`/cursos/…`), **Mi cuenta** (`/cuenta`) y del **panel** (`/admin/…`) necesitan haber iniciado sesión. Si no, llevan a `/login`
   y después vuelven a donde ibas. La lista de rutas protegidas está en `src/auth.config.ts`.
 - Cada usuario solo ve los cursos que ha activado con un código.
 - El panel, además, solo lo pueden usar las cuentas con rol ADMIN (`src/lib/sesion.ts`: `exigirAdmin` y `exigirAdminEnAccion`).
@@ -250,8 +303,9 @@ antes de tiempo: las comprueba el servidor.
 ### Los límites de intentos
 
 Para que nadie pueda probar miles de contraseñas o códigos seguidos, hay un máximo de intentos en
-`src/lib/limite.ts` (por ejemplo, 10 inicios de sesión fallidos cada 15 minutos). Cambia los números en `LIMITES`.
-Se guardan en la memoria del servidor, así que se reinician al reiniciarlo.
+`src/lib/limite.ts` (por ejemplo, 10 intentos de inicio de sesión cada 15 minutos). Cambia los números en `LIMITES`.
+Se guardan en la memoria del servidor, así que se reinician al reiniciarlo. Los límites de los códigos por email
+(intentos, espera y envíos por hora) se guardan en la base de datos y están en `src/lib/verificacion/reglas.ts`.
 
 ## Calidad
 
@@ -264,7 +318,8 @@ deben terminar sin errores. En la fase 6 se revisaron además todas las páginas
 - **Móvil:** ninguna página se sale por los lados.
 - **Rendimiento:** cada página descarga unos 160 KB de JavaScript y menos de 310 KB en total. Las páginas de la
   tienda se generan por adelantado (cargan al instante).
-- **Seguridad:** contraseñas cifradas, sesión en cookie cifrada, precios recalculados en el servidor, respuestas
+- **Seguridad:** contraseñas cifradas, códigos por email y dispositivos de confianza guardados solo como huella
+  (hash), sesión en cookie cifrada unida a su dispositivo, precios recalculados en el servidor, respuestas
   de los tests y soluciones que no llegan al navegador antes de tiempo, límite de intentos y redirecciones
   solo dentro de la web.
 
@@ -285,10 +340,12 @@ Esta versión está pensada para tu ordenador. Para ponerla en internet:
 6. **Fotos en la nube:** el disco de muchos servidores se borra en cada despliegue. Sigue los pasos de
    `src/lib/almacenamiento/nube.ts` (S3, R2 o similar) y pon `ALMACEN_PROVEEDOR="nube"` en `.env`.
    Copia a la nube las fotos que tengas en `subidas/`.
-7. **Pendiente para más adelante** (necesitan un servicio de envío de emails): «¿Olvidaste tu contraseña?» y
-   enviar la confirmación del pedido por email. También se podría unir cada pedido a la cuenta de quien lo hace
+7. **Correos reales:** activa Resend (ver [Enviar correos de verdad](#enviar-correos-de-verdad-al-publicar)). Sin
+   esto, nadie podría registrarse ni entrar desde un dispositivo nuevo.
+8. **Pendiente para más adelante:** enviar la confirmación del pedido por email (el módulo de correo ya está
+   listo). También se podría unir cada pedido a la cuenta de quien lo hace
    (hoy la página `/pedido/…` la ve quien tenga su dirección, que es muy difícil de adivinar).
-8. Si la web llega a funcionar en **varios servidores** a la vez, el límite de intentos tendrá que guardarse en un
+9. Si la web llega a funcionar en **varios servidores** a la vez, el límite de intentos tendrá que guardarse en un
    sitio compartido (por ejemplo Redis) en lugar de en memoria (ver `src/lib/limite.ts`).
 
 ## Actualizar las librerías

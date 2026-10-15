@@ -16,7 +16,7 @@ export function Aviso({
       role={tipo === "error" ? "alert" : "status"}
       className={cn(
         "flex items-start gap-3 rounded-control p-4 text-sm",
-        tipo === "error" ? "bg-error/8 text-error" : "bg-exito/8 text-exito",
+        tipo === "error" ? "bg-error/8 text-error-oscuro" : "bg-exito/8 text-exito",
       )}
     >
       <Icono aria-hidden="true" className="mt-0.5 size-5 shrink-0" />

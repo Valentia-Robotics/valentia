@@ -7,7 +7,7 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Las 6 fases y el panel de administración (7 partes) están terminados.** Siguiente paso posible (a decidir con el usuario): preparar la
+**Las 6 fases, el panel de administración (7 partes) y la verificación por email (7 partes) están terminados.** Siguiente paso posible (a decidir con el usuario): preparar la
 publicación (lista «Antes de publicar la web» del README). No empezar trabajo nuevo grande sin la aprobación del usuario.
 
 ### Terminado
@@ -87,12 +87,37 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
   - Notas técnicas: piezas del panel `BotonAdmin`, `Caja`, `Tabla`, `campos.tsx`, `BotonConfirmar` (confirmación antes de
     borrar), `ListaEditable`, `BotonesMover`. Cada página llama a `exigirAdmin(ruta)` y cada acción a
     `exigirAdminEnAccion()`. Slugs fijos tras crear. Para probar: ascender `prueba@valentia.test` con `npm run admin` y
-    quitarle el rol al acabar (el usuario quiere ser el ÚNICO administrador).
+    quitarle el rol al acabar (el usuario quiere ser el ÚNICO administrador). Los ADMIN también necesitan código en
+    cada navegador nuevo (confianza de 7 días).
+
+- **Verificación por email** (7 partes desde `3f5c98d`; uso y pruebas en el README «Verificación por email»):
+  - Correo: `src/lib/correo` (`enviarCorreo()`; `consola.ts` con `npm run dev` SIEMPRE, guarda en `.correos-dev/`
+    fuera de git; `resend.ts` con fetch, sin paquete; `CORREO_PROVEEDOR`, `RESEND_API_KEY`, `CORREO_REMITENTE`).
+    Plantillas en `plantillas.ts` (HTML con tablas y estilos en línea; escapan los datos del usuario). `/dev/correos`
+    (404 si NODE_ENV ≠ development).
+  - BD (migración `verificacion_por_email`, marca verificadas las cuentas que ya existían): `Usuario.emailVerificadoEn`,
+    `Verificacion` (tokenHash de la cookie `valentia_verificacion`, codigoHash = HMAC con AUTH_SECRET de
+    motivo:email:código, intentos, caducaEn, enviadoEn, confirmadoEn, usadoEn; `usuarioId` null = señuelo),
+    `EnvioCodigo` (límite por hora por email), `DispositivoConfianza` (tokenHash de la cookie `valentia_dispositivo`,
+    nombre legible, caducaEn, `paseHash` de un solo uso). Reglas en `src/lib/verificacion/reglas.ts`.
+  - Flujo: las acciones `iniciarSesion`/`registrarse` (`src/app/(auth)/acciones.ts`) comprueban la contraseña;
+    sin verificar → código REGISTRO; navegador sin confianza → código DISPOSITIVO; con confianza → `abrirSesion()`
+    (`entrar.ts`: pase de 60 s → `signIn("credentials", { pase })` en el servidor). Auth.js SOLO acepta pases.
+    El `jwt` de `src/auth.ts` llama a `comprobarSesion` en cada lectura: si el dispositivo ya no vale devuelve null
+    (sesión cerrada) y refresca el rol. Registro con email existente y recuperar con email sin cuenta → señuelo.
+    Si se repite el envío antes de 60 s se reutiliza el mismo código (no sale otro correo).
+  - Pantallas: `/verificar` (`CasillasCodigo`: pegar, autocomplete one-time-code, envío automático), `/recuperar` →
+    `/verificar` → `/recuperar/nueva` (cierra todas las sesiones y deja dentro a este navegador), `/cuenta` (Mis
+    dispositivos, cerrar sesión en todos, cambiar contraseña: conserva este dispositivo). `TarjetaCuenta`, `Aviso`,
+    variante `peligro` de `Boton`, token `--color-error-oscuro` (texto de error sobre fondo rojo claro).
+  - `npm run admin` acorta a 7 días los dispositivos del nuevo ADMIN. Probado en Chrome headless (escritorio y móvil,
+    también con `npm start`) y axe-core: 0 problemas en las pantallas nuevas (salvo `/dev/correos`, solo desarrollo).
 
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 
 - PostgreSQL, Stripe real, `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción, quitar textos de «pago simulado».
-- Necesitan servicio de emails: «¿Olvidaste tu contraseña?» y confirmación del pedido por email.
+- Activar Resend (u otro proveedor) en producción: sin correos reales nadie puede registrarse ni entrar desde un
+  dispositivo nuevo. Pendiente: confirmación del pedido por email (el módulo de correo ya existe).
 - Valorar enlazar los pedidos al usuario (hoy `/pedido/[id]` es accesible con el id, difícil de adivinar).
 - Con varios servidores, el límite de intentos debería ir a Redis u otro almacén compartido.
 
@@ -103,7 +128,12 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
   borra TODO (también la cuenta del administrador: luego registrarse y `npm run admin -- email`).
 - `subidas/` (fotos del panel) no está en git: hay que copiarla junto con la BD. En producción, almacén en la nube.
 - Las pruebas con Chrome headless no conservan la sesión entre ejecuciones (se cierra de golpe): iniciar sesión en la misma ejecución.
-- No se envían emails: el email del pedido solo se guarda como contacto.
+- En desarrollo los correos no salen: se ven en la terminal y en `/dev/correos`. El email del pedido solo se guarda
+  como contacto (aún no se envía confirmación).
+- Para probar el login en Chrome headless: cada navegador nuevo pide código; leerlo del último JSON de
+  `.correos-dev/`. Los límites (login 10/15 min por IP+email en memoria; 5 códigos/hora por email en la tabla
+  `EnvioCodigo`) se agotan rápido en pruebas: reiniciar `npm run dev` o vaciar `EnvioCodigo`.
+- Tras `prisma generate` con tablas nuevas hay que reiniciar `npm run dev` (el cliente de la BD queda en memoria).
 - `npm audit`: 9 vulnerabilidades "altas", todas en herramientas de desarrollo/compilación: ESLint (braces/micromatch, vía
   eslint-config-next; el "arreglo" bajaría a Next 14) y la CLI de Prisma (deepmerge-ts, mysql2; el "arreglo" bajaría a
   Prisma 6). Revisado en la fase 6: no afectan a la web en ejecución (mysql2 ni se usa). Esperar a versiones corregidas.
@@ -205,10 +235,10 @@ imagenes/              originales del usuario (no tocar)
 public/images/         brand/, componentes/, kits/
 scripts/               generar-marca.mjs, hacer-admin.ts (npm run admin)
 subidas/               fotos subidas desde el panel (fuera de git)
-src/app/               (tienda)/, (auth)/, (cuenta)/, activar/, api/, diseno/, admin/, subidas/ (sirve las fotos)
+src/app/               (tienda)/, (auth)/ (login, registro, verificar, recuperar), (cuenta)/ (cursos, cuenta), activar/, api/, diseno/, admin/, subidas/ (sirve las fotos), dev/correos (solo desarrollo)
 src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cuenta/, cursos/, admin/
 src/config/            marca.ts, categorias.ts
-src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video/, limite.ts, admin/, almacenamiento/ (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
+src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video/, limite.ts, admin/, almacenamiento/, correo/, verificacion/ (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
 src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
 data/                  componentes.json, kits.json, cursos.json (solo datos iniciales; la BD manda)
 prisma/                schema.prisma, migrations/, seed.ts, dev.db
