@@ -2,8 +2,9 @@
 
 Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloquean con el QR de cada caja.
 
-> Estado: **versión local completa** (las 6 fases terminadas). Los pagos son simulados y el código está
-> preparado para Stripe y PostgreSQL. Antes de publicarla, sigue la lista [Antes de publicar la web](#antes-de-publicar-la-web).
+> Estado: **versión local completa** (las 6 fases terminadas) con **panel de administración** en `/admin`.
+> Los pagos son simulados y el código está preparado para Stripe, PostgreSQL y guardar las fotos en la nube.
+> Antes de publicarla, sigue la lista [Antes de publicar la web](#antes-de-publicar-la-web).
 
 ## Qué tiene la web
 
@@ -18,6 +19,7 @@ Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloqu
 | `/activar?codigo=…`                     | Lo que abre el QR de la caja: desbloquea el curso del kit                     |
 | `/cursos`, `/cursos/[curso]/[lección]`  | Mis cursos: vídeos, tests, retos y progreso (necesita iniciar sesión)         |
 | `/diseno`                               | Página interna con el sistema de diseño (colores, tipografías, botones)       |
+| `/admin`                                | **Panel de administración** (solo administradores, ver más abajo)             |
 
 ## Tecnología
 
@@ -57,21 +59,82 @@ Empieza sin cursos. Para probar todo el recorrido del QR de la caja:
 
 **Códigos de activación de prueba** (sin usar): `VAL-PRUE-CAR2`, `VAL-PRUE-CAR3` (coche),
 `VAL-PRUE-BRZ2`, `VAL-PRUE-BRZ3` (brazo) y `VAL-PRUE-MET2`, `VAL-PRUE-MET3` (estación meteorológica).
-Cada vez que ejecutas `npm run db:seed` vuelven a quedar sin usar (y las cuentas pierden sus cursos y su progreso).
+Con `npm run db:reset` vuelven a quedar sin usar (pero ese comando lo borra todo, ver más abajo).
+
+## Panel de administración
+
+El panel (**http://localhost:3000/admin**) sirve para gestionar la tienda y los cursos sin tocar código.
+Tiene un diseño propio, más sencillo que el de la tienda, porque es una herramienta de trabajo.
+
+### Quién puede entrar
+
+Cada cuenta tiene un **rol**: `CLIENTE` (todas las que se crean en `/registro`) o `ADMIN`. Solo los ADMIN
+pueden ver el panel; un cliente que escriba `/admin` ve la página de «no encontrado», y si no has iniciado
+sesión te lleva al login. Todo se comprueba en el servidor, en cada página y en cada botón.
+
+Para convertir una cuenta en administradora (tiene que existir antes: créala en `/registro`):
+
+```bash
+npm run admin -- tu@email.com            # le da el rol ADMIN
+npm run admin -- tu@email.com --quitar   # se lo quita
+npm run admin                            # dice quién es ADMIN ahora
+```
+
+El cambio vale al momento. El enlace «Panel de administración» del menú de tu cuenta aparece la próxima vez
+que inicies sesión (mientras tanto, escribe `/admin` en la barra de direcciones).
+
+### Qué se puede hacer
+
+| Sección         | Qué hace                                                                                                              |
+| --------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Inicio**      | Usuarios, nuevos este mes, pedidos, kits vendidos, códigos activados, cursos más activos, últimos pedidos y registros |
+| **Componentes** | Crear, editar, ocultar y borrar. Foto, precio, stock, categoría y datos técnicos para la compatibilidad               |
+| **Kits**        | Crear y editar: piezas elegidas con un buscador, foto, descripción, precio, curso incluido, destacado                 |
+| **Cursos**      | Cursos, lecciones (con ↑ ↓ para ordenarlas), vídeo, tests y retos, y progreso medio de los alumnos                    |
+| **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR, ver quién usó cada uno y cuándo, desactivarlos                     |
+| **Usuarios**    | Lista con buscador: email, fecha de registro, cursos activados y pedidos                                              |
+
+Algunas reglas que conviene saber:
+
+- **Los cambios se ven al momento** en la tienda y en el configurador.
+- **Ocultar** un componente: deja de venderse suelto y desaparece del configurador, pero sigue dentro de sus kits.
+  **Ocultar** un kit: deja de venderse, pero sus códigos QR siguen funcionando.
+- **Borrar** pide siempre confirmación. No se puede borrar un componente que está dentro de un kit, ni un kit
+  que ya tiene códigos o pedidos, ni un curso que va con un kit o que tiene alumnos: el panel te explica por qué
+  y te propone ocultarlo. Los pedidos antiguos nunca cambian (guardan su propia copia de nombres y precios).
+- La **dirección** (slug) de un componente, kit, curso o lección se elige al crearlo y ya no cambia.
+- Cada kit va con **un curso** y cada curso con un solo kit. Para un kit nuevo, crea antes su curso.
+- **Vídeos:** elige YouTube o Vimeo y pega el enlace o solo el identificador (`dQw4w9WgXcQ`, `76979871`).
+  Para añadir otro servicio, crea un archivo en `src/lib/video/proveedores/` (ver `tipos.ts`) y añádelo a la lista.
+- **Códigos:** en «Códigos», elige el kit y la cantidad (por ejemplo 50) y pulsa «Generar códigos». Se abre la
+  página de las tarjetas: pulsa «Imprimir» (4 tarjetas por hoja A4) y mete una en cada caja. Los pedidos de la
+  web siguen creando además su propio código. **Desactivar** un código hace que ya no sirva; si alguien ya lo
+  había activado, conserva su curso. Se puede reactivar.
+- **Fotos:** JPG, PNG o WebP de hasta 5 MB. Se reducen y se convierten a WebP solas, y se guardan en la carpeta
+  `subidas/` del proyecto (no se sube a git: haz copia de seguridad de ella junto con la base de datos).
+
+### La base de datos manda
+
+La base de datos es la **fuente de verdad**: el catálogo y los cursos se cambian desde el panel. Los JSON de
+`data/` son solo los **datos iniciales**: `npm run db:seed` los carga únicamente si la base de datos está vacía,
+y si ya hay catálogo no toca nada. `npm run db:reset` lo **borra todo** (catálogo, pedidos, cuentas, también
+la tuya de administrador) y vuelve a cargar los datos iniciales: después tendrás que registrarte otra vez y
+ejecutar `npm run admin -- tu@email.com`.
 
 ### Otros comandos
 
-| Comando              | Para qué sirve                                                          |
-| -------------------- | ----------------------------------------------------------------------- |
-| `npm run build`      | Prepara la versión final y optimizada de la web                         |
-| `npm run start`      | Arranca la versión final (después de `build`)                           |
-| `npm run lint`       | Revisa el código en busca de errores                                    |
-| `npm run format`     | Ordena y da formato a todo el código                                    |
-| `npm run marca`      | Regenera el favicon, los iconos y las versiones PNG del logo            |
-| `npm run db:seed`    | Vuelve a cargar `data/*.json` (y borra los pedidos de prueba)           |
-| `npm run db:reset`   | Borra la base de datos local y la crea de nuevo con los datos de prueba |
-| `npm run db:migrate` | Aplica cambios de `prisma/schema.prisma` a la base de datos             |
-| `npm run db:studio`  | Abre un panel en el navegador para ver y editar la base de datos        |
+| Comando              | Para qué sirve                                                             |
+| -------------------- | -------------------------------------------------------------------------- |
+| `npm run build`      | Prepara la versión final y optimizada de la web                            |
+| `npm run start`      | Arranca la versión final (después de `build`)                              |
+| `npm run lint`       | Revisa el código en busca de errores                                       |
+| `npm run format`     | Ordena y da formato a todo el código                                       |
+| `npm run marca`      | Regenera el favicon, los iconos y las versiones PNG del logo               |
+| `npm run admin`      | Da o quita el rol de administrador (ver «Panel de administración»)         |
+| `npm run db:seed`    | Carga `data/*.json`, solo si la base de datos está vacía                   |
+| `npm run db:reset`   | **Lo borra todo** y crea la base de datos de nuevo con los datos iniciales |
+| `npm run db:migrate` | Aplica cambios de `prisma/schema.prisma` a la base de datos                |
+| `npm run db:studio`  | Abre un panel en el navegador para ver y editar la base de datos           |
 
 ## Qué hay en cada carpeta
 
@@ -80,9 +143,14 @@ Cada vez que ejecutas `npm run db:seed` vuelven a quedar sin usar (y las cuentas
 | `imagenes/`                                         | Tus originales (logo.png). No se modifican nunca.                   |
 | `public/images/brand/`                              | Logo para la web (SVG y PNG) e iconos                               |
 | `public/images/componentes/`, `public/images/kits/` | Imágenes de productos (ilustraciones de muestra en SVG)             |
-| `data/`                                             | **Datos de prueba**: componentes, kits y cursos (archivos JSON)     |
+| `data/`                                             | **Datos iniciales**: componentes, kits y cursos (archivos JSON)     |
+| `subidas/`                                          | Fotos subidas desde el panel (no se sube a git)                     |
 | `prisma/`                                           | Base de datos: esquema, migraciones, seed y el archivo `dev.db`     |
-| `scripts/`                                          | Programas de ayuda (generar iconos a partir del logo)               |
+| `scripts/`                                          | Programas de ayuda (iconos a partir del logo, hacer administrador)  |
+| `src/app/admin/`, `src/components/admin/`           | **Panel de administración**: páginas, acciones y sus piezas         |
+| `src/lib/admin/`                                    | Consultas del panel (estadísticas, códigos, progreso…)              |
+| `src/lib/almacenamiento/`                           | Dónde se guardan las fotos (local ahora; preparado para la nube)    |
+| `src/lib/video/`                                    | Servicios de vídeo de las lecciones (YouTube, Vimeo…)               |
 | `src/app/`                                          | Las páginas de la web. Cada carpeta es una dirección (`/kits`, …)   |
 | `src/app/globals.css`                               | **Sistema de diseño**: colores, tipografías, radios y sombras       |
 | `src/components/`                                   | Piezas reutilizables: botones, barra de navegación, pie, logo…      |
@@ -120,15 +188,9 @@ En `src/config/marca.ts`.
 
 ### Los productos (kits y componentes)
 
-Los datos están en la carpeta `data/`:
-
-- `data/componentes.json`: los 18 componentes (precio en euros, stock, voltaje, consumo, conector, pines…).
-- `data/kits.json`: los 3 kits. En `componentes` se indica qué piezas lleva cada uno y cuántas.
-  El kit con `"destacado": true` es el que sale en la portada.
-- `data/cursos.json`: los cursos, con sus lecciones y ejercicios.
-
-Después de cambiar algo, ejecuta `npm run db:seed` para guardarlo en la base de datos y recarga la página.
-Si hay un error (por ejemplo, un precio escrito como texto), el seed te dirá en qué archivo y en qué línea está.
+Desde el panel: **http://localhost:3000/admin/componentes** y **/admin/kits**. El kit marcado como
+«destacado» es el que sale en la portada. Los JSON de `data/` ya solo sirven como datos iniciales
+(ver «La base de datos manda»).
 
 ### Las reglas del configurador
 
@@ -171,38 +233,19 @@ El resto de la web no hay que tocarlo.
 Los QR apuntan a la dirección de `NEXT_PUBLIC_SITE_URL` (en `.env`). Cuando la web esté publicada, pon ahí
 su dirección real para que los QR impresos funcionen.
 
-### Las imágenes de los productos
+### Las imágenes, los vídeos y los ejercicios
 
-Las ilustraciones de `public/images/componentes/` y `public/images/kits/` son de muestra.
-Para poner una foto real, guárdala en la misma carpeta y cambia la ruta en el JSON
-(por ejemplo, `"imagen": "/images/kits/brazo-robotico.jpg"`). Después, `npm run db:seed`.
-
-### Los vídeos de los cursos
-
-En `data/cursos.json`, cada lección tiene `"videoUrl": "PENDIENTE"`. Busca la palabra **PENDIENTE**
-y sustitúyela por la dirección del vídeo. Después, `npm run db:seed`. Valen:
-
-- YouTube: `https://www.youtube.com/watch?v=…` o `https://youtu.be/…`
-- Vimeo: `https://vimeo.com/123456789`
-- Un archivo de vídeo: guárdalo en `public/videos/` y escribe `/videos/leccion-1.mp4`
-
-Mientras ponga `PENDIENTE`, la lección muestra el aviso «Estamos grabando este vídeo».
-
-### Los ejercicios de los cursos
-
-También en `data/cursos.json`, dentro de cada lección, en `ejercicios`:
-
-- **Test**: `"tipo": "TEST"`, `enunciado`, `opciones` (lista de respuestas), `correcta` (la posición de la
-  respuesta buena **empezando a contar en 0**) y `explicacion`.
-- **Reto**: `"tipo": "RETO"`, `enunciado`, `pistas` (se descubren de una en una) y `solucion`.
-
-La respuesta correcta y la solución nunca se envían al navegador antes de tiempo: las comprueba el servidor.
+Todo desde el panel: la foto en la ficha de cada componente o kit, y el vídeo, los tests y los retos en
+cada lección de **/admin/cursos**. Mientras una lección no tenga vídeo, muestra el aviso «Estamos grabando
+este vídeo». La respuesta correcta de los tests y la solución de los retos nunca se envían al navegador
+antes de tiempo: las comprueba el servidor.
 
 ### Quién puede ver qué
 
-- Las páginas de **Mis cursos** (`/cursos/…`) necesitan haber iniciado sesión. Si no, llevan a `/login`
+- Las páginas de **Mis cursos** (`/cursos/…`) y del **panel** (`/admin/…`) necesitan haber iniciado sesión. Si no, llevan a `/login`
   y después vuelven a donde ibas. La lista de rutas protegidas está en `src/auth.config.ts`.
 - Cada usuario solo ve los cursos que ha activado con un código.
+- El panel, además, solo lo pueden usar las cuentas con rol ADMIN (`src/lib/sesion.ts`: `exigirAdmin` y `exigirAdminEnAccion`).
 
 ### Los límites de intentos
 
@@ -236,12 +279,16 @@ Esta versión está pensada para tu ordenador. Para ponerla en internet:
    - `DATABASE_URL`: la de PostgreSQL.
 3. **Pagos reales:** activa Stripe (ver `src/lib/pagos/stripe.ts`) y quita los textos de «pago simulado»
    (están en `src/components/compra/FormularioCheckout.tsx` y en el pie de página).
-4. **Datos de prueba:** no ejecutes `npm run db:seed` en producción. Crea solo los productos y cursos reales
-   y **no** el usuario de prueba ni los códigos `VAL-PRUE-…`.
-5. **Pendiente para más adelante** (necesitan un servicio de envío de emails): «¿Olvidaste tu contraseña?» y
+4. **Datos de prueba:** no ejecutes `npm run db:seed` en producción. Crea los productos y cursos reales desde
+   el panel, y **no** el usuario de prueba ni los códigos `VAL-PRUE-…`.
+5. **Administrador:** regístrate en la web publicada y ejecuta allí `npm run admin -- tu@email.com`.
+6. **Fotos en la nube:** el disco de muchos servidores se borra en cada despliegue. Sigue los pasos de
+   `src/lib/almacenamiento/nube.ts` (S3, R2 o similar) y pon `ALMACEN_PROVEEDOR="nube"` en `.env`.
+   Copia a la nube las fotos que tengas en `subidas/`.
+7. **Pendiente para más adelante** (necesitan un servicio de envío de emails): «¿Olvidaste tu contraseña?» y
    enviar la confirmación del pedido por email. También se podría unir cada pedido a la cuenta de quien lo hace
    (hoy la página `/pedido/…` la ve quien tenga su dirección, que es muy difícil de adivinar).
-6. Si la web llega a funcionar en **varios servidores** a la vez, el límite de intentos tendrá que guardarse en un
+8. Si la web llega a funcionar en **varios servidores** a la vez, el límite de intentos tendrá que guardarse en un
    sitio compartido (por ejemplo Redis) en lugar de en memoria (ver `src/lib/limite.ts`).
 
 ## Actualizar las librerías
@@ -260,7 +307,7 @@ En local se usa **SQLite**: toda la base de datos es un único archivo, `prisma/
 La dirección está en `DATABASE_URL` del archivo `.env`.
 
 Tablas principales: catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`), compras
-(`Pedido`, `LineaPedido`, `CodigoActivacion`) y cuentas (`Usuario`, `CursoUsuario` = cursos desbloqueados,
+(`Pedido`, `LineaPedido`, `CodigoActivacion`, `LoteCodigos`) y cuentas (`Usuario` con su `rol`, `CursoUsuario` = cursos desbloqueados,
 `ProgresoLeccion` y `ProgresoEjercicio`). Puedes verlas con `npm run db:studio`.
 Las contraseñas se guardan **cifradas** con bcrypt: nadie puede leerlas, ni siquiera viendo la base de datos.
 
@@ -268,7 +315,7 @@ Las contraseñas se guardan **cifradas** con bcrypt: nadie puede leerlas, ni siq
 
 1. En `prisma/schema.prisma`, cambia `provider = "sqlite"` por `provider = "postgresql"`.
 2. Instala el adaptador de PostgreSQL: `npm install @prisma/adapter-pg`.
-3. En `src/lib/db.ts` y `prisma/seed.ts`, cambia el adaptador de SQLite por el de PostgreSQL
+3. En `src/lib/db.ts`, `prisma/seed.ts` y `scripts/hacer-admin.ts`, cambia el adaptador de SQLite por el de PostgreSQL
    (las instrucciones exactas están en el comentario de `src/lib/db.ts`).
 4. Pon la URL de PostgreSQL en `DATABASE_URL`.
 5. Borra la carpeta `prisma/migrations` y crea una migración nueva con `npm run db:migrate`

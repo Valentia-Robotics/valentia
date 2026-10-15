@@ -46,10 +46,20 @@ export function MenuAdmin({ nombre, email }: { nombre: string; email: string }) 
             Panel
           </span>
         </Link>
-        {/* En el móvil, el enlace a la tienda va arriba a la derecha */}
-        <Link href="/" className="text-sm text-gris hover:text-tinta lg:hidden">
-          Ver tienda
-        </Link>
+        {/* En el móvil, la tienda y cerrar sesión van arriba a la derecha */}
+        <div className="flex items-center gap-3 text-sm text-gris lg:hidden">
+          <Link href="/" className="hover:text-tinta">
+            Ver tienda
+          </Link>
+          <button
+            type="button"
+            onClick={() => signOut({ redirectTo: "/" })}
+            aria-label="Cerrar sesión"
+            className="inline-flex size-8 items-center justify-center rounded-md hover:bg-niebla hover:text-tinta"
+          >
+            <LogOut aria-hidden="true" className="size-4" />
+          </button>
+        </div>
       </div>
 
       <nav aria-label="Secciones del panel" className="mt-3 lg:mt-8 lg:flex-1">

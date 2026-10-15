@@ -7,7 +7,7 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Las 6 fases están terminadas: versión local completa.** Siguiente paso posible (a decidir con el usuario): preparar la
+**Las 6 fases y el panel de administración (7 partes) están terminados.** Siguiente paso posible (a decidir con el usuario): preparar la
 publicación (lista «Antes de publicar la web» del README). No empezar trabajo nuevo grande sin la aprobación del usuario.
 
 ### Terminado
@@ -61,7 +61,7 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
   Actualizaciones menores: next/eslint-config-next 16.4.1, react 19.3.1, dotenv 18.0.8. README final (páginas, tecnología,
   calidad, «Antes de publicar», actualizar librerías).
 
-- **Panel de administración** (en curso, 7 partes aprobadas; ver «Panel de administración» más abajo):
+- **Panel de administración** (`/admin`, 7 partes desde `0a4aaa1`; el uso está explicado en el README):
   - Parte 1: enum `Rol` (CLIENTE/ADMIN, migración `roles`), `exigirAdmin()` en páginas y `exigirAdminEnAccion()` en acciones
     (src/lib/sesion.ts), `/admin` en RUTAS_PROTEGIDAS, script `npm run admin -- email [--quitar]`, layouts por zona con
     `MarcoWeb` (la raíz ya no pone barra ni pie), piezas del panel en `src/components/admin`, seed solo si la BD está vacía.
@@ -82,6 +82,12 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
     (generar lote de 1–500, filtros por estado/kit/lote, buscar por código o email, desactivar/reactivar) y
     `/admin/codigos/lotes/[id]` (tarjetas `TarjetaActivacion` para imprimir, 4 por A4). `activarCodigo` y `/activar`
     rechazan los desactivados; quien ya lo activó conserva el curso. Partes 5 y 6 probadas en Chrome headless.
+  - Parte 7: revisión en móvil 390 px y escritorio de 19 páginas (panel + tienda): sin desborde ni errores de consola.
+    Cerrar sesión también en el menú móvil del panel. README («Panel de administración») y este archivo.
+  - Notas técnicas: piezas del panel `BotonAdmin`, `Caja`, `Tabla`, `campos.tsx`, `BotonConfirmar` (confirmación antes de
+    borrar), `ListaEditable`, `BotonesMover`. Cada página llama a `exigirAdmin(ruta)` y cada acción a
+    `exigirAdminEnAccion()`. Slugs fijos tras crear. Para probar: ascender `prueba@valentia.test` con `npm run admin` y
+    quitarle el rol al acabar (el usuario quiere ser el ÚNICO administrador).
 
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 
@@ -93,8 +99,9 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
 ### Avisos abiertos
 
 - `/configurador`, `/pedido/[id]`, `/activar`, `/login`, `/registro` y `/cursos/*` son dinámicas: `npm start` necesita la BD.
-- `npm run db:seed` borra los pedidos de prueba y sus códigos (los códigos dependen de los kits, que se recrean), y las
-  cuentas pierden sus cursos y su progreso (dependen del catálogo). Las cuentas en sí se conservan.
+- La BD es la fuente de verdad: `npm run db:seed` solo carga `data/*.json` si no hay catálogo. `npm run db:reset` lo
+  borra TODO (también la cuenta del administrador: luego registrarse y `npm run admin -- email`).
+- `subidas/` (fotos del panel) no está en git: hay que copiarla junto con la BD. En producción, almacén en la nube.
 - Las pruebas con Chrome headless no conservan la sesión entre ejecuciones (se cierra de golpe): iniciar sesión en la misma ejecución.
 - No se envían emails: el email del pedido solo se guarda como contacto.
 - `npm audit`: 9 vulnerabilidades "altas", todas en herramientas de desarrollo/compilación: ESLint (braces/micromatch, vía
@@ -103,7 +110,7 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
 - `graphify-out/` (salida de la herramienta graphify del usuario) no está en git ni en .gitignore: no tocarla sin preguntar.
 - npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines, better-sqlite3,
   esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
-- Vídeos de los cursos: `"videoUrl": "PENDIENTE"` en `data/cursos.json`, a la espera de las URL reales.
+- Vídeos de los cursos: `PENDIENTE` en la BD, a la espera de las URL reales (se ponen desde `/admin/cursos`).
 - Decisión opcional del usuario: la portada muestra el kit estrella en el hero y una sección para cada uno
   de los otros dos kits; se puede cambiar a una sección por cada uno de los tres.
 - Identidad de git configurada solo en este repositorio: `Diego <diegonotsa@gmail.com>`.
@@ -117,6 +124,9 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
 - **Euros con IVA incluido** y español de España (**es-ES**).
 - El cliente puede **montarse su propio kit** en el configurador (previsto desde el principio). Un robot personalizado,
   aunque parta de un kit, **no incluye curso ni código QR**: solo los kits cerrados.
+- **Panel de administración**: un solo administrador, el usuario (`diegonotsa@gmail.com`). Códigos: conviven los lotes
+  impresos y los que se crean al pagar. Desactivar un código usado no quita el curso. Borrar algo con dependencias se
+  bloquea y se ofrece ocultar. El seed solo carga datos si la BD está vacía. `sharp` pasa a dependencia normal.
 - Proyecto trasladado a **`C:\Proyectos\valentia`** (fuera de OneDrive). La carpeta original de OneDrive no se toca.
 
 ## Qué es Valentia
@@ -193,13 +203,14 @@ Requisitos completos: `PROMPT.md`.
 ```
 imagenes/              originales del usuario (no tocar)
 public/images/         brand/, componentes/, kits/
-scripts/               generar-marca.mjs
-src/app/               (tienda)/, (auth)/, (cuenta)/, activar/, api/, diseno/
-src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cuenta/, cursos/
+scripts/               generar-marca.mjs, hacer-admin.ts (npm run admin)
+subidas/               fotos subidas desde el panel (fuera de git)
+src/app/               (tienda)/, (auth)/, (cuenta)/, activar/, api/, diseno/, admin/, subidas/ (sirve las fotos)
+src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cuenta/, cursos/, admin/
 src/config/            marca.ts, categorias.ts
-src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video.ts, limite.ts (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
+src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video/, limite.ts, admin/, almacenamiento/ (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
 src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
-data/                  componentes.json, kits.json, cursos.json (fuente de los datos de prueba)
+data/                  componentes.json, kits.json, cursos.json (solo datos iniciales; la BD manda)
 prisma/                schema.prisma, migrations/, seed.ts, dev.db
 src/store/             carrito.ts, configurador.ts
 src/types/
