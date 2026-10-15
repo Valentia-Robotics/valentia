@@ -78,9 +78,10 @@ publicación (lista «Antes de publicar la web» del README). No empezar trabajo
     destacado, borrar bloqueado si tiene códigos o pedidos (el curso queda libre).
   - Parte 5: vídeos en `src/lib/video/` (un archivo por servicio en `proveedores/`; `normalizarVideo`, `analizarVideo`,
     `fuenteVideo`). `/admin/cursos` (progreso medio en `src/lib/admin/cursos.ts`), lecciones con ↑↓, tests y retos.
-    SIN PROBAR AÚN EN EL NAVEGADOR. Faltan: Parte 6 (códigos en lote, impresión, desactivar → campo `desactivadoEn`,
-    activarCodigo debe rechazarlo; el alumno conserva el curso) y Parte 7 (pruebas, README y CLAUDE.md finales).
-    Pruebas con `prueba@valentia.test` ascendido temporalmente (`npm run admin -- … [--quitar]`).
+  - Parte 6: `CodigoActivacion.desactivadoEn` + modelo `LoteCodigos` (migración `lotes_de_codigos`). `/admin/codigos`
+    (generar lote de 1–500, filtros por estado/kit/lote, buscar por código o email, desactivar/reactivar) y
+    `/admin/codigos/lotes/[id]` (tarjetas `TarjetaActivacion` para imprimir, 4 por A4). `activarCodigo` y `/activar`
+    rechazan los desactivados; quien ya lo activó conserva el curso. Partes 5 y 6 probadas en Chrome headless.
 
 ### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
 

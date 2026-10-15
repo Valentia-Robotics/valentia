@@ -1,0 +1,68 @@
+"use server";
+
+/**
+ * ACCIONES DEL PANEL: CÓDIGOS DE ACTIVACIÓN
+ * Cada acción comprueba primero que quien la llama es ADMIN.
+ */
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { conErrores, texto, type EstadoFormulario } from "@/lib/admin/formularios";
+import { crearLote, MAXIMO_LOTE } from "@/lib/admin/codigos";
+import { db } from "@/lib/db";
+import { exigirAdminEnAccion } from "@/lib/sesion";
+import { entero } from "@/lib/validaciones/admin";
+
+const esquemaLote = z.object({
+  kitId: z.string().min(1, "Elige un kit"),
+  cantidad: entero(1, MAXIMO_LOTE),
+});
+
+/** Generar un lote de códigos nuevos y abrir su página para imprimirlos */
+export async function generarLote(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const datos = esquemaLote.safeParse({
+    kitId: texto(formulario, "kitId"),
+    cantidad: texto(formulario, "cantidad"),
+  });
+  if (!datos.success) return conErrores(datos.error);
+
+  const kit = await db.kit.findUnique({ where: { id: datos.data.kitId }, select: { id: true } });
+  if (!kit)
+    return { ok: false, mensaje: "Ese kit ya no existe.", errores: { kitId: "Elige otro kit." } };
+
+  const loteId = await crearLote(datos.data.kitId, datos.data.cantidad);
+  revalidatePath("/admin", "layout");
+  redirect(`/admin/codigos/lotes/${loteId}?nuevo=1`);
+}
+
+/**
+ * Desactivar un código (o volver a activarlo).
+ * Desactivado ya no sirve para activar el curso. Si ya estaba usado, quien lo activó
+ * CONSERVA su curso: solo deja de valer el código.
+ */
+export async function cambiarDesactivacion(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const id = texto(formulario, "id");
+  const codigo = await db.codigoActivacion.findUnique({
+    where: { id },
+    select: { desactivadoEn: true },
+  });
+  if (!codigo) return { ok: false, mensaje: "Este código ya no existe." };
+
+  await db.codigoActivacion.update({
+    where: { id },
+    data: { desactivadoEn: codigo.desactivadoEn ? null : new Date() },
+  });
+  revalidatePath("/admin", "layout");
+  return {
+    ok: true,
+    mensaje: codigo.desactivadoEn ? "Código reactivado." : "Código desactivado.",
+  };
+}

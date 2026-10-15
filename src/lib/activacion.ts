@@ -14,6 +14,7 @@ export function buscarCodigo(codigo: string) {
       codigo: true,
       usadoEn: true,
       usuarioId: true,
+      desactivadoEn: true,
       kit: {
         select: {
           nombre: true,
@@ -30,6 +31,8 @@ export type ResultadoActivacion =
   /** Ya tenía el curso: el código NO se gasta, para que pueda regalarlo */
   | { estado: "ya-tienes"; cursoSlug: string }
   | { estado: "usado" }
+  /** Desactivado desde el panel: ya no sirve */
+  | { estado: "desactivado" }
   | { estado: "no-existe" };
 
 /** Activa un código para un usuario. Todo o nada (transacción). */
@@ -43,6 +46,7 @@ export async function activarCodigo(
       select: {
         usadoEn: true,
         usuarioId: true,
+        desactivadoEn: true,
         kit: { select: { cursoId: true, curso: { select: { slug: true } } } },
       },
     });
@@ -54,6 +58,7 @@ export async function activarCodigo(
       return { estado: "ya-tienes", cursoSlug: curso.slug };
     }
     if (encontrado.usadoEn) return { estado: "usado" };
+    if (encontrado.desactivadoEn) return { estado: "desactivado" };
 
     const yaTiene = await tx.cursoUsuario.findUnique({
       where: { usuarioId_cursoId: { usuarioId, cursoId } },
@@ -62,7 +67,7 @@ export async function activarCodigo(
 
     // Marcamos el código como usado SOLO si nadie lo ha usado mientras tanto
     const marcado = await tx.codigoActivacion.updateMany({
-      where: { codigo, usadoEn: null },
+      where: { codigo, usadoEn: null, desactivadoEn: null },
       data: { usadoEn: new Date(), usuarioId },
     });
     if (marcado.count === 0) return { estado: "usado" };

@@ -94,6 +94,19 @@ export default async function PaginaActivar({ searchParams }: Props) {
     </div>
   );
 
+  // ---------- Código desactivado desde el panel (salvo para quien ya lo activó) ----------
+  if (encontrado.desactivadoEn && encontrado.usuarioId !== usuario?.id) {
+    return (
+      <Marco
+        icono={<CircleAlert aria-hidden="true" className="size-10 text-aviso" strokeWidth={1.5} />}
+        titulo="Este código está desactivado."
+        texto="Ya no se puede usar. Si acabas de comprar el kit y crees que es un error, escríbenos y lo revisamos."
+      >
+        {tarjetaKit}
+      </Marco>
+    );
+  }
+
   // ---------- Código ya usado ----------
   if (encontrado.usadoEn && encontrado.usuarioId !== usuario?.id) {
     return (

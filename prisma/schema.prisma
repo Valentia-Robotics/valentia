@@ -83,6 +83,7 @@ model Kit {
   curso       Curso              @relation(fields: [cursoId], references: [id])
   cursoId     String             @unique
   codigos     CodigoActivacion[]
+  lotes       LoteCodigos[]
 }
 
 /// Qué componentes (y cuántos) lleva cada kit
@@ -203,20 +204,35 @@ model LineaPedido {
 /// Código único que va impreso (con su QR) en la caja de cada kit.
 /// Al activarlo, el curso del kit queda en "Mis cursos" del usuario (fase 5).
 model CodigoActivacion {
-  id        String    @id @default(cuid())
+  id            String       @id @default(cuid())
   /// El código en sí, por ejemplo VAL-7KQ2-M9XD
-  codigo    String    @unique
-  kit       Kit       @relation(fields: [kitId], references: [id], onDelete: Cascade)
-  kitId     String
+  codigo        String       @unique
+  kit           Kit          @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  kitId         String
   /// Pedido en el que se vendió (vacío en los códigos de prueba del seed)
-  pedido    Pedido?   @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
-  pedidoId  String?
-  creadoEn  DateTime  @default(now())
+  pedido        Pedido?      @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+  pedidoId      String?
+  creadoEn      DateTime     @default(now())
   /// Cuándo se activó. Vacío = todavía sin usar
-  usadoEn   DateTime?
+  usadoEn       DateTime?
   /// Quién lo activó
-  usuario   Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
-  usuarioId String?
+  usuario       Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  usuarioId     String?
+  /// Desactivado desde el panel: ya no sirve para activar (quien lo activó antes conserva el curso)
+  desactivadoEn DateTime?
+  /// Lote de impresión en el que se generó (vacío en los códigos creados al pagar un pedido)
+  lote          LoteCodigos? @relation(fields: [loteId], references: [id], onDelete: SetNull)
+  loteId        String?
+}
+
+/// Grupo de códigos generados de una vez desde el panel para imprimirlos y meterlos en las cajas
+model LoteCodigos {
+  id       String             @id @default(cuid())
+  kit      Kit                @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  kitId    String
+  cantidad Int
+  creadoEn DateTime           @default(now())
+  codigos  CodigoActivacion[]
 }
 
 // ============================================================

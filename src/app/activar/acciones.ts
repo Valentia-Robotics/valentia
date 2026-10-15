@@ -26,6 +26,9 @@ export async function activar(
 
   const resultado = await activarCodigo(usuario.id, codigo);
   if (resultado.estado === "no-existe") return { mensaje: "No encontramos ese código." };
+  if (resultado.estado === "desactivado") {
+    return { mensaje: "Este código está desactivado. Si crees que es un error, escríbenos." };
+  }
   if (resultado.estado === "usado") {
     return { mensaje: "Este código ya se ha usado en otra cuenta." };
   }
