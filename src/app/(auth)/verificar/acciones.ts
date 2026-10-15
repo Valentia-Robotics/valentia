@@ -7,6 +7,8 @@
  *   DISPOSITIVO → este navegador pasa a ser de confianza, aviso por email y dentro
  *   RECUPERAR   → a elegir la contraseña nueva (/recuperar/nueva)
  */
+import { enviarCorreo } from "@/lib/correo";
+import { plantillaNuevoDispositivo } from "@/lib/correo/plantillas";
 import { db } from "@/lib/db";
 import { rutaSegura } from "@/lib/validaciones/cuenta";
 import { comprobarCodigo, reenviarCodigo, terminarVerificacion } from "@/lib/verificacion/codigos";
@@ -74,7 +76,7 @@ export async function confirmarCodigo(codigo: string, volver: string): Promise<E
       where: { id: usuarioId },
       // Con REGISTRO acaba de confirmar su email; con DISPOSITIVO ya lo estaba
       data: motivo === "REGISTRO" ? { emailVerificadoEn: new Date() } : {},
-      select: { id: true, rol: true },
+      select: { id: true, rol: true, nombre: true, email: true },
     });
     if (!(await terminarVerificacion(id))) {
       return {
@@ -85,6 +87,18 @@ export async function confirmarCodigo(codigo: string, volver: string): Promise<E
     }
     const dispositivo = await confiarEnEsteNavegador(usuario);
     if (!(await abrirSesion(dispositivo.id))) throw new Error("No se ha abierto la sesión");
+
+    // Aviso por email: si no ha entrado el dueño de la cuenta, sabrá que alguien tiene su contraseña
+    if (motivo === "DISPOSITIVO") {
+      await enviarCorreo(
+        plantillaNuevoDispositivo({
+          para: usuario.email,
+          nombre: usuario.nombre,
+          dispositivo: dispositivo.nombre,
+          fecha: new Date(),
+        }),
+      );
+    }
     return { ok: true, destino: rutaSegura(volver) };
   } catch (error) {
     console.error("Error al confirmar el código:", error);

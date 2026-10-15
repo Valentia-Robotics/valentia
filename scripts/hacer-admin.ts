@@ -8,11 +8,15 @@
  *   npm run admin                            → enseña quién es ADMIN ahora
  *
  * El cambio tiene efecto al momento: el panel /admin mira el rol en la base de datos
- * cada vez. (El enlace «Panel de administración» del menú aparece al volver a iniciar sesión.)
+ * cada vez (y el enlace «Panel de administración» del menú aparece al recargar la página).
+ *
+ * Los administradores tienen que confirmar con un código cada 7 días (los clientes, cada 30):
+ * al dar el rol ADMIN, sus dispositivos de confianza caducan como mucho a los 7 días de crearse.
  */
 import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"; // ← SQLite (para PostgreSQL, ver src/lib/db.ts)
 import { PrismaClient } from "../src/generated/prisma/client";
+import { DIAS_CONFIANZA } from "../src/lib/verificacion/reglas";
 
 const db = new PrismaClient({
   adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! }),
@@ -35,6 +39,20 @@ async function main() {
       return;
     }
     await db.usuario.update({ where: { email }, data: { rol: quitar ? "CLIENTE" : "ADMIN" } });
+
+    // Nuevo ADMIN: su confianza en cada dispositivo dura menos (ver src/lib/verificacion/reglas.ts)
+    if (!quitar) {
+      const dias = DIAS_CONFIANZA.ADMIN * 24 * 60 * 60_000;
+      const dispositivos = await db.dispositivoConfianza.findMany({
+        where: { usuarioId: usuario.id },
+      });
+      for (const d of dispositivos) {
+        const maximo = new Date(d.creadoEn.getTime() + dias);
+        if (d.caducaEn > maximo) {
+          await db.dispositivoConfianza.update({ where: { id: d.id }, data: { caducaEn: maximo } });
+        }
+      }
+    }
     console.log(
       quitar
         ? `✔ ${usuario.nombre} (${email}) ya no es administrador.`
