@@ -179,12 +179,19 @@ async function main() {
     }
   });
 
-  // Usuario de prueba: si ya existe, solo se le vuelve a poner la contraseña de prueba
+  // Usuario de prueba: si ya existe, solo se le vuelve a poner la contraseña de prueba.
+  // Su email ya está verificado (no hace falta código para confirmarlo).
   const contrasenaHash = await bcrypt.hash(USUARIO_DE_PRUEBA.contrasena, 10);
+  const emailVerificadoEn = new Date();
   await db.usuario.upsert({
     where: { email: USUARIO_DE_PRUEBA.email },
-    create: { nombre: USUARIO_DE_PRUEBA.nombre, email: USUARIO_DE_PRUEBA.email, contrasenaHash },
-    update: { contrasenaHash },
+    create: {
+      nombre: USUARIO_DE_PRUEBA.nombre,
+      email: USUARIO_DE_PRUEBA.email,
+      contrasenaHash,
+      emailVerificadoEn,
+    },
+    update: { contrasenaHash, emailVerificadoEn },
   });
 
   const lecciones = cursos.reduce((total, c) => total + c.lecciones.length, 0);

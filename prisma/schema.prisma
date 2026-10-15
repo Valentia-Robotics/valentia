@@ -248,19 +248,91 @@ enum Rol {
 
 /// Una persona con cuenta en Valentia
 model Usuario {
-  id             String   @id @default(cuid())
-  nombre         String
+  id                String    @id @default(cuid())
+  nombre            String
   /// Siempre en minúsculas
-  email          String   @unique
+  email             String    @unique
   /// La contraseña cifrada con bcrypt (nunca se guarda la contraseña tal cual)
-  contrasenaHash String
-  rol            Rol      @default(CLIENTE)
-  creadoEn       DateTime @default(now())
+  contrasenaHash    String
+  rol               Rol       @default(CLIENTE)
+  creadoEn          DateTime  @default(now())
+  /// Cuándo confirmó su email con el código (null = sin confirmar: no puede entrar ni activar cursos)
+  emailVerificadoEn DateTime?
 
-  cursos     CursoUsuario[]
-  codigos    CodigoActivacion[]
-  lecciones  ProgresoLeccion[]
-  ejercicios ProgresoEjercicio[]
+  cursos         CursoUsuario[]
+  codigos        CodigoActivacion[]
+  lecciones      ProgresoLeccion[]
+  ejercicios     ProgresoEjercicio[]
+  verificaciones Verificacion[]
+  dispositivos   DispositivoConfianza[]
+}
+
+/// Para qué se ha enviado un código por email
+enum MotivoVerificacion {
+  /// Confirmar el email de una cuenta nueva
+  REGISTRO
+  /// Iniciar sesión desde un dispositivo nuevo
+  DISPOSITIVO
+  /// Cambiar la contraseña olvidada
+  RECUPERAR
+}
+
+/// Una verificación por código en curso (ver src/lib/verificacion).
+/// El navegador la reconoce por una cookie con un token al azar; aquí solo se guarda su hash.
+model Verificacion {
+  id           String             @id @default(cuid())
+  /// SHA-256 del token de la cookie (nunca el token tal cual)
+  tokenHash    String             @unique
+  /// null en las verificaciones "señuelo" (email sin cuenta o ya registrado): parecen
+  /// iguales por fuera para no desvelar qué emails tienen cuenta, pero ningún código vale
+  usuario      Usuario?           @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId    String?
+  /// El email al que se ha enviado (en minúsculas)
+  email        String
+  motivo       MotivoVerificacion
+  /// HMAC-SHA256 del código de 6 cifras (nunca el código tal cual)
+  codigoHash   String
+  intentos     Int                @default(0)
+  caducaEn     DateTime
+  /// Último envío del código (para la espera entre reenvíos)
+  enviadoEn    DateTime
+  /// Cuándo se escribió el código correcto
+  confirmadoEn DateTime?
+  /// Cuándo se terminó del todo (sesión iniciada o contraseña cambiada): ya no sirve
+  usadoEn      DateTime?
+  creadoEn     DateTime           @default(now())
+
+  @@index([email, motivo])
+}
+
+/// Cada envío de un código, para el límite de envíos por hora de cada email
+model EnvioCodigo {
+  id        String   @id @default(cuid())
+  email     String
+  enviadoEn DateTime @default(now())
+
+  @@index([email, enviadoEn])
+}
+
+/// Un navegador en el que el usuario ha confirmado con un código que es él.
+/// Cada sesión va unida a uno: si se borra, esa sesión se cierra.
+model DispositivoConfianza {
+  id           String    @id @default(cuid())
+  usuario      Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId    String
+  /// SHA-256 del token guardado en la cookie del navegador (nunca el token tal cual)
+  tokenHash    String    @unique
+  /// Nombre legible, por ejemplo "Chrome en Windows"
+  nombre       String
+  creadoEn     DateTime  @default(now())
+  ultimoUsoEn  DateTime  @default(now())
+  /// 30 días para clientes, 7 para administradores
+  caducaEn     DateTime
+  /// "Pase" de un solo uso (hash) que convierte esta confianza en una sesión de Auth.js
+  paseHash     String?   @unique
+  paseCaducaEn DateTime?
+
+  @@index([usuarioId])
 }
 
 /// Un curso desbloqueado por un usuario (al activar el código de su kit)
