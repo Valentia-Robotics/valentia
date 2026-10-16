@@ -34,5 +34,13 @@ export function fichaTecnica(c: ComponenteCatalogo): Especificacion[] {
   }
   datos.push({ nombre: "Conexión", valor: c.conector });
 
-  return [...datos, ...c.especificaciones];
+  // Sin nombres repetidos (p. ej. "Corriente máxima" calculada y también escrita en las
+  // especificaciones): se queda el primero. Además, el nombre se usa como key en las tablas.
+  const vistos = new Set<string>();
+  return [...datos, ...c.especificaciones].filter((dato) => {
+    const clave = dato.nombre.trim().toLowerCase();
+    if (vistos.has(clave)) return false;
+    vistos.add(clave);
+    return true;
+  });
 }
