@@ -4,12 +4,11 @@
  * salvo que se pida mode: "insensitive" (que SQLite no admite). Esta función elige sola.
  */
 import type { Prisma } from "@/generated/prisma/client";
+import { esPostgres } from "@/lib/adaptadorBD";
 
-const esPostgres = /^postgres(ql)?:\/\//.test(process.env.DATABASE_URL ?? "");
+const postgres = esPostgres();
 
 /** Filtro "el texto contiene q" sin distinguir mayúsculas, en cualquier base de datos */
 export function textoContiene(q: string): Prisma.StringFilter {
-  return (
-    esPostgres ? { contains: q, mode: "insensitive" } : { contains: q }
-  ) as Prisma.StringFilter;
+  return (postgres ? { contains: q, mode: "insensitive" } : { contains: q }) as Prisma.StringFilter;
 }

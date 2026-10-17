@@ -5,7 +5,7 @@
   "description": "Web de Valentia: kits de robótica con cursos.",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "node scripts/esquema-postgres.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -18,15 +18,19 @@
     "db:reset": "prisma migrate reset --force && prisma db seed",
     "db:studio": "prisma studio",
     "admin": "tsx scripts/hacer-admin.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:postgres": "node scripts/esquema-postgres.mjs",
+    "fotos:nube": "tsx scripts/fotos-a-la-nube.ts"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@stripe/stripe-js": "^10.1.0",
+    "aws4fetch": "^1.0.20",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^1.57.0",
     "next": "^16.4.1",

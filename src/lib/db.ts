@@ -1,26 +1,15 @@
 /**
  * CONEXIÓN CON LA BASE DE DATOS
  * Crea un único "cliente" de Prisma para toda la web.
- *
- * ─── Para pasar a PostgreSQL en producción ───
- *   1. En prisma/schema.prisma cambia  provider = "sqlite"  por  provider = "postgresql".
- *   2. Instala el adaptador:  npm install @prisma/adapter-pg
- *   3. Aquí abajo (y también en prisma/seed.ts) cambia las líneas marcadas con  ← SQLite  por:
- *        import { PrismaPg } from "@prisma/adapter-pg";
- *        const adaptador = new PrismaPg({ connectionString: process.env.DATABASE_URL });
- *   4. Pon la URL de PostgreSQL en DATABASE_URL y crea las migraciones de nuevo (ver README).
+ * Funciona igual con SQLite (local) y con PostgreSQL (producción): el adaptador
+ * se elige solo según DATABASE_URL (ver src/lib/adaptadorBD.ts y el README).
  */
 import "server-only";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"; // ← SQLite
 import { PrismaClient } from "@/generated/prisma/client";
+import { crearAdaptador } from "@/lib/adaptadorBD";
 
 function crearCliente() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error("Falta DATABASE_URL en el archivo .env (mira .env.example).");
-  }
-  const adaptador = new PrismaBetterSqlite3({ url }); // ← SQLite
-  return new PrismaClient({ adapter: adaptador });
+  return new PrismaClient({ adapter: crearAdaptador() });
 }
 
 // En desarrollo, Next.js recarga el código a menudo. Guardamos el cliente en

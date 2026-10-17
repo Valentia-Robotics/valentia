@@ -14,12 +14,12 @@
  * al dar el rol ADMIN, sus dispositivos de confianza caducan como mucho a los 7 días de crearse.
  */
 import "dotenv/config";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"; // ← SQLite (para PostgreSQL, ver src/lib/db.ts)
+import { crearAdaptador } from "../src/lib/adaptadorBD"; // SQLite o PostgreSQL según DATABASE_URL
 import { PrismaClient } from "../src/generated/prisma/client";
 import { DIAS_CONFIANZA } from "../src/lib/verificacion/reglas";
 
 const db = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! }),
+  adapter: crearAdaptador(),
 });
 
 async function main() {

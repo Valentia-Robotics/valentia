@@ -13,7 +13,7 @@
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"; // ← SQLite (para PostgreSQL, ver src/lib/db.ts)
+import { crearAdaptador } from "../src/lib/adaptadorBD"; // SQLite o PostgreSQL según DATABASE_URL
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -44,7 +44,7 @@ const USUARIO_DE_PRUEBA = {
 z.config(z.locales.es());
 
 const db = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! }),
+  adapter: crearAdaptador(),
 });
 
 /** Lee un JSON de la carpeta data/ y lo valida. Si hay errores, explica cuáles. */

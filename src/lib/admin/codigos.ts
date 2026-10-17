@@ -4,6 +4,7 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { generarCodigoActivacion } from "@/lib/codigos";
+import { textoContiene } from "@/lib/busqueda";
 import { db } from "@/lib/db";
 
 export const CODIGOS_POR_PAGINA = 50;
@@ -35,8 +36,8 @@ export async function listarCodigos(filtros: {
     // Se busca por el código o por el email de quien lo activó
     ...(q && {
       OR: [
-        { codigo: { contains: q.toUpperCase() } },
-        { usuario: { email: { contains: q.toLowerCase() } } },
+        { codigo: textoContiene(q.toUpperCase()) },
+        { usuario: { email: textoContiene(q.toLowerCase()) } },
       ],
     }),
   };

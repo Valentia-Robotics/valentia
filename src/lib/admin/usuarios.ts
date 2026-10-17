@@ -3,6 +3,7 @@
  */
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
+import { textoContiene } from "@/lib/busqueda";
 import { db } from "@/lib/db";
 
 export const USUARIOS_POR_PAGINA = 25;
@@ -11,7 +12,7 @@ export const USUARIOS_POR_PAGINA = 25;
 export async function buscarUsuarios(busqueda: string, pagina: number) {
   const q = busqueda.trim();
   const where: Prisma.UsuarioWhereInput = q
-    ? { OR: [{ email: { contains: q.toLowerCase() } }, { nombre: { contains: q } }] }
+    ? { OR: [{ email: textoContiene(q.toLowerCase()) }, { nombre: textoContiene(q) }] }
     : {};
 
   const [total, filas] = await Promise.all([

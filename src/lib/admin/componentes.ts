@@ -6,6 +6,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import type { Categoria } from "@/generated/prisma/enums";
 import { reglas } from "@/lib/compatibilidad/reglas";
 import type { Selector } from "@/lib/compatibilidad/tipos";
+import { textoContiene } from "@/lib/busqueda";
 import { db } from "@/lib/db";
 import { CATEGORIAS } from "@/lib/validaciones/catalogo";
 
@@ -16,9 +17,9 @@ export async function listarComponentesAdmin(busqueda: string, categoria?: Categ
     ...(categoria && { categoria }),
     ...(q && {
       OR: [
-        { nombre: { contains: q } },
-        { slug: { contains: q.toLowerCase() } },
-        { tipo: { contains: q.toLowerCase() } },
+        { nombre: textoContiene(q) },
+        { slug: textoContiene(q.toLowerCase()) },
+        { tipo: textoContiene(q.toLowerCase()) },
       ],
     }),
   };
