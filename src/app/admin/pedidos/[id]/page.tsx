@@ -45,7 +45,7 @@ export default async function PedidoAdmin({ params }: Props) {
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Caja titulo="Artículos" sinRelleno>
             <Tabla columnas={["Artículo", "Cantidad", "Precio", "Importe"]}>
               {pedido.lineas.map((l) => (
@@ -127,7 +127,7 @@ export default async function PedidoAdmin({ params }: Props) {
           </Caja>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Caja titulo="Estado y seguimiento">
             <FormularioPedido
               pedidoId={pedido.id}

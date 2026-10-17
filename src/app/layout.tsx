@@ -29,6 +29,8 @@ export const metadata: Metadata = {
     locale: "es_ES",
     type: "website",
   },
+  // Tarjeta grande al compartir en X/Twitter (usa la misma imagen: src/app/opengraph-image.tsx)
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

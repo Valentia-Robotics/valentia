@@ -20,7 +20,9 @@
     "admin": "tsx scripts/hacer-admin.ts",
     "postinstall": "prisma generate",
     "db:postgres": "node scripts/esquema-postgres.mjs",
-    "fotos:nube": "tsx scripts/fotos-a-la-nube.ts"
+    "fotos:nube": "tsx scripts/fotos-a-la-nube.ts",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "engines": {
     "node": ">=22"
@@ -63,6 +65,7 @@
     "prisma": "^7.10.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
   }
 }

@@ -37,7 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: kit.nombre,
     description: kit.eslogan,
-    openGraph: { title: kit.nombre, description: kit.eslogan, images: [kit.imagen] },
+    // La imagen para redes es la general de la web (las de los kits son SVG, que las redes no admiten)
+    openGraph: { title: kit.nombre, description: kit.eslogan, images: ["/opengraph-image"] },
   };
 }
 

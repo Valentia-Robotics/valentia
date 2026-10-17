@@ -24,7 +24,7 @@ export function PaginaLegal({
       {borrador && (
         <p
           role="note"
-          className="mb-8 flex items-start gap-3 rounded-tarjeta border-2 border-aviso/50 bg-aviso/8 p-4 text-sm text-aviso"
+          className="mb-8 flex items-start gap-3 rounded-tarjeta border-2 border-aviso/50 bg-aviso/8 p-4 text-sm text-aviso-oscuro"
         >
           <TriangleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
           <span>
@@ -45,7 +45,7 @@ export function PaginaLegal({
           "[&_p]:mt-4 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6",
           "[&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6",
           "[&_a]:text-acento [&_a]:underline [&_a]:underline-offset-2",
-          "[&_table]:mt-4 [&_table]:w-full [&_table]:text-sm [&_td]:border-t [&_td]:border-linea [&_td]:py-2 [&_td]:pr-3 [&_td]:align-top [&_th]:pr-3 [&_th]:pb-2 [&_th]:text-left [&_th]:font-medium",
+          "[&_table]:w-full [&_table]:text-sm [&_td]:border-t [&_td]:border-linea [&_td]:py-2 [&_td]:pr-3 [&_td]:align-top [&_th]:pr-3 [&_th]:pb-2 [&_th]:text-left [&_th]:font-medium",
         ].join(" ")}
       >
         {children}
@@ -64,5 +64,19 @@ export function DatosEmpresa({ datos }: { datos: [string, string][] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Tabla que se puede deslizar de lado en el móvil (y enfocar con el teclado para hacerlo) */
+export function TablaLegal({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <div
+      role="region"
+      aria-label={titulo}
+      tabIndex={0}
+      className="mt-4 overflow-x-auto rounded-control focus-visible:ring-2 focus-visible:ring-acento"
+    >
+      <table className="min-w-[32rem]">{children}</table>
+    </div>
   );
 }

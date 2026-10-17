@@ -30,7 +30,7 @@ Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un
 - [x] 7. Páginas legales (BORRADOR) + banner de cookies (vídeos de terceros solo con consentimiento) + aceptación en checkout.
 - [x] 8. Seguridad: revisión completa, límites de intentos en BD (sirve en serverless), cabeceras (CSP…), páginas de
       error, npm audit, SEGURIDAD.md.
-- [ ] 9. Calidad: Vitest (compatibilidad, precios/envíos) + Playwright (recorrido completo), 404/500, estados de carga,
+- [x] 9. Calidad: Vitest (compatibilidad, precios/envíos) + Playwright (recorrido completo), 404/500, estados de carga,
       SEO (sitemap, robots, imagen para redes), móvil y accesibilidad.
 - [ ] 10. README, CLAUDE.md, INFORME.md, graphify, commit final y `npm run dev`.
 

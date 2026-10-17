@@ -6,8 +6,8 @@ type Tono = "neutro" | "exito" | "aviso" | "error" | "acento";
 const tonos: Record<Tono, string> = {
   neutro: "bg-tinta/5 text-tinta/80",
   exito: "bg-exito/10 text-exito",
-  aviso: "bg-aviso/10 text-aviso",
-  error: "bg-error/10 text-error",
+  aviso: "bg-aviso/10 text-aviso-oscuro",
+  error: "bg-error/10 text-error-oscuro",
   acento: "bg-acento/10 text-acento",
 };
 

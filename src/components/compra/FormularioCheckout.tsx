@@ -101,7 +101,7 @@ export function FormularioCheckout({ cuenta, direcciones, modo }: Props) {
 
   if (modo === "desactivado") {
     return (
-      <p role="alert" className="mt-10 rounded-tarjeta bg-aviso/8 p-6 text-aviso">
+      <p role="alert" className="mt-10 rounded-tarjeta bg-aviso/8 p-6 text-aviso-oscuro">
         Ahora mismo no podemos cobrar pedidos. Vuelve a intentarlo en un rato, por favor.
       </p>
     );
@@ -204,7 +204,7 @@ export function FormularioCheckout({ cuenta, direcciones, modo }: Props) {
               />
             ) : (
               <div className="mt-5 rounded-tarjeta border-2 border-dashed border-aviso/60 bg-aviso/5 p-6">
-                <p className="flex items-center gap-2 font-medium text-aviso">
+                <p className="flex items-center gap-2 font-medium text-aviso-oscuro">
                   <FlaskConical aria-hidden="true" className="size-5" />
                   MODO DE PRUEBA · no se cobra nada
                 </p>

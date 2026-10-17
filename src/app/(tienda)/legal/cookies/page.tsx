@@ -1,7 +1,7 @@
 // ⚠ BORRADOR — pendiente de revisión por un profesional.
 import type { Metadata } from "next";
 import { BotonConfigurarCookies } from "@/components/layout/BotonConfigurarCookies";
-import { PaginaLegal } from "@/components/legal/PaginaLegal";
+import { PaginaLegal, TablaLegal } from "@/components/legal/PaginaLegal";
 import { tienda } from "@/config/tienda";
 
 export const metadata: Metadata = {
@@ -59,7 +59,7 @@ export default function PoliticaCookies() {
       <p>
         No requieren tu consentimiento porque sin ellas no podríamos darte el servicio que pides.
       </p>
-      <table>
+      <TablaLegal titulo="Cookies necesarias">
         <thead>
           <tr>
             <th>Nombre</th>
@@ -76,7 +76,7 @@ export default function PoliticaCookies() {
             </tr>
           ))}
         </tbody>
-      </table>
+      </TablaLegal>
 
       <h2>2. Cookies de terceros opcionales: vídeos de los cursos</h2>
       <p>

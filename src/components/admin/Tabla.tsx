@@ -14,6 +14,7 @@ export function Tabla({
   children,
   vacia,
   className,
+  etiqueta = "Tabla",
 }: {
   /** Títulos de las columnas. Un título vacío ("") no se ve, pero se lee en voz alta como "Acciones". */
   columnas: string[];
@@ -21,9 +22,21 @@ export function Tabla({
   /** Texto que se enseña si no hay filas */
   vacia?: ReactNode;
   className?: string;
+  /** Nombre de la tabla para los lectores de pantalla (por defecto, "Tabla") */
+  etiqueta?: string;
 }) {
   return (
-    <div className={cn("overflow-x-auto", className)}>
+    // relative: el texto oculto de las cabeceras ("Acciones") no se sale del recuadro.
+    // tabIndex y role: si la tabla se desliza de lado, se puede hacer con el teclado.
+    <div
+      className={cn(
+        "relative overflow-x-auto focus-visible:ring-2 focus-visible:ring-acento",
+        className,
+      )}
+      tabIndex={0}
+      role="region"
+      aria-label={etiqueta}
+    >
       <table className="w-full min-w-[36rem] text-left text-sm">
         <thead className="border-b border-linea text-xs text-gris">
           <tr>

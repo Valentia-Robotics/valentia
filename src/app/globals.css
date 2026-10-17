@@ -29,6 +29,7 @@
   --color-aviso: #b45309;
   --color-error: #d92d20;
   --color-error-oscuro: #b42318; /* Texto de error sobre fondo rojo claro (contraste 5,9:1) */
+  --color-aviso-oscuro: #8a3c05; /* Texto de aviso sobre fondo naranja claro (contraste 7:1) */
 
   /* ---------- Radios (esquinas redondeadas) ---------- */
   --radius-boton: 999px; /* Botones en forma de píldora */

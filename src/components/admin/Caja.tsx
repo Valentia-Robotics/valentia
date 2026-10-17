@@ -17,7 +17,8 @@ export function Caja({
   sinRelleno?: boolean;
 }) {
   return (
-    <section className={cn("rounded-lg bg-white ring-1 ring-linea", className)}>
+    // min-w-0: dentro de una rejilla, la caja puede encoger y su tabla se desliza (sin desbordar la página)
+    <section className={cn("min-w-0 rounded-lg bg-white ring-1 ring-linea", className)}>
       {titulo && (
         <div className="flex items-center justify-between gap-3 border-b border-linea px-4 py-3 sm:px-5">
           <h2 className="font-sans text-sm font-semibold">{titulo}</h2>

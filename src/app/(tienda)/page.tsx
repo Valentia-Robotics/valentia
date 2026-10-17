@@ -5,7 +5,14 @@ import { BloqueConfigurador } from "@/components/tienda/BloqueConfigurador";
 import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
 import { HeroKit } from "@/components/tienda/HeroKit";
 import { SeccionKit } from "@/components/tienda/SeccionKit";
+import type { Metadata } from "next";
 import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
+
+export const metadata: Metadata = {
+  description:
+    "Kits de robótica con curso incluido y componentes sueltos. Construye tu propio robot paso a paso, sin saber programar. Envíos a la Comunidad Valenciana.",
+  alternates: { canonical: "/" },
+};
 
 /**
  * PÁGINA DE INICIO (estilo web de Apple)

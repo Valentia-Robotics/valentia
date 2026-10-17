@@ -1,7 +1,7 @@
 // ⚠ BORRADOR — pendiente de revisión por un profesional.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DatosEmpresa, PaginaLegal } from "@/components/legal/PaginaLegal";
+import { DatosEmpresa, PaginaLegal, TablaLegal } from "@/components/legal/PaginaLegal";
 import { tienda } from "@/config/tienda";
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function Privacidad() {
       />
 
       <h2>2. Qué datos tratamos y para qué</h2>
-      <table>
+      <TablaLegal titulo="Datos que tratamos y para qué">
         <thead>
           <tr>
             <th>Finalidad</th>
@@ -80,7 +80,7 @@ export default function Privacidad() {
             <td>Tu consentimiento (art. 6.1.a), que puedes retirar en «Configurar cookies»</td>
           </tr>
         </tbody>
-      </table>
+      </TablaLegal>
       <p>No enviamos publicidad ni elaboramos perfiles comerciales. No vendemos tus datos.</p>
 
       <h2>3. Menores de edad</h2>

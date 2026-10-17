@@ -33,7 +33,10 @@ const csp = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  ...(desarrollo ? [] : ["upgrade-insecure-requests"]),
+  // Solo si la web se sirve por https (si no, "npm start" en local no cargaría nada)
+  ...((process.env.NEXT_PUBLIC_SITE_URL ?? "").startsWith("https://")
+    ? ["upgrade-insecure-requests"]
+    : []),
 ].join("; ");
 
 const cabecerasSeguridad = [
