@@ -1,0 +1,242 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Boton } from "@/components/ui/Boton";
+import { cn } from "@/lib/utils";
+import type { EscenaRobot } from "./escenaRobot";
+import { PIEZAS_ROBOT, explosionDesdeProgreso, piezaActiva, type PiezaRobot } from "./piezasRobot";
+import { RobotEstatico } from "./RobotEstatico";
+
+/** ¿Puede este equipo con el 3D sin ir a tirones ni gastar mucha batería? */
+function equipoAdmite3D(): boolean {
+  const nav = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean };
+  };
+  if (nav.connection?.saveData) return false; // "ahorro de datos" activado
+  if ((nav.hardwareConcurrency ?? 8) < 4) return false;
+  if (nav.deviceMemory !== undefined && nav.deviceMemory < 4) return false;
+  try {
+    const prueba = document.createElement("canvas");
+    return Boolean(prueba.getContext("webgl2") ?? prueba.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
+/** Ejecuta algo cuando el navegador esté desocupado (después de pintar la página) */
+function cuandoEsteLibre(tarea: () => void): () => void {
+  if ("requestIdleCallback" in window) {
+    const id = window.requestIdleCallback(tarea, { timeout: 2500 });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = setTimeout(tarea, 400);
+  return () => clearTimeout(id);
+}
+
+/**
+ * PORTADA: el robot protagonista.
+ * En ordenador (y sin "reducir movimiento") la sección es alta y su contenido se queda fijo
+ * mientras haces scroll: el robot gira, se despieza y se explica cada pieza.
+ *   - Con un equipo capaz: robot en 3D (three.js), cargado después de pintar la página.
+ *   - Si no: el mismo robot en SVG, que se despieza con CSS.
+ * En el móvil o con "reducir movimiento": portada normal con el dibujo montado y la lista de piezas.
+ */
+export function PortadaRobot() {
+  const seccion = useRef<HTMLElement>(null);
+  const lienzo = useRef<HTMLCanvasElement>(null);
+  const escena = useRef<EscenaRobot | null>(null);
+  const [modoScroll, setModoScroll] = useState(false);
+  const [tres, setTres] = useState(false); // el 3D ya está listo
+  const [activa, setActiva] = useState<PiezaRobot["id"] | null>(null);
+  const [alInicio, setAlInicio] = useState(true);
+
+  // 1. ¿Portada animada con el scroll? (las mismas condiciones que el CSS: md + sin reduced-motion)
+  useEffect(() => {
+    const consulta = window.matchMedia(
+      "(min-width: 48rem) and (prefers-reduced-motion: no-preference)",
+    );
+    const actualizar = () => setModoScroll(consulta.matches);
+    actualizar();
+    consulta.addEventListener("change", actualizar);
+    return () => consulta.removeEventListener("change", actualizar);
+  }, []);
+
+  // 2. Avance del scroll → despiece (variable CSS --e para el SVG y progreso para el 3D)
+  useEffect(() => {
+    const elemento = seccion.current;
+    if (!modoScroll || !elemento) return;
+    let pendiente = 0;
+    const calcular = () => {
+      pendiente = 0;
+      const caja = elemento.getBoundingClientRect();
+      const recorrido = caja.height - window.innerHeight;
+      const progreso = recorrido > 0 ? Math.min(1, Math.max(0, -caja.top / recorrido)) : 0;
+      elemento.style.setProperty("--e", explosionDesdeProgreso(progreso).toFixed(3));
+      escena.current?.ponerProgreso(progreso);
+      setActiva(piezaActiva(progreso));
+      setAlInicio(progreso < 0.04);
+    };
+    const alMover = () => {
+      if (!pendiente) pendiente = requestAnimationFrame(calcular);
+    };
+    calcular();
+    window.addEventListener("scroll", alMover, { passive: true });
+    window.addEventListener("resize", alMover);
+    return () => {
+      cancelAnimationFrame(pendiente);
+      window.removeEventListener("scroll", alMover);
+      window.removeEventListener("resize", alMover);
+      elemento.style.removeProperty("--e");
+      setActiva(null);
+    };
+  }, [modoScroll]);
+
+  // 3. Carga diferida del 3D (solo en modo scroll y en equipos capaces)
+  useEffect(() => {
+    const elemento = seccion.current;
+    if (!modoScroll || !elemento || !equipoAdmite3D()) return;
+    let cancelado = false;
+    let visible = true;
+
+    const observador = new IntersectionObserver(([entrada]) => {
+      visible = entrada.isIntersecting;
+      escena.current?.pausar(!visible);
+    });
+    observador.observe(elemento);
+
+    const cancelarEspera = cuandoEsteLibre(async () => {
+      try {
+        const { crearEscenaRobot } = await import("./escenaRobot");
+        if (cancelado || !lienzo.current) return;
+        escena.current = crearEscenaRobot(lienzo.current);
+        escena.current.pausar(!visible);
+        window.dispatchEvent(new Event("scroll")); // para que reciba el progreso actual
+        setTres(true);
+      } catch (error) {
+        console.warn("No se ha podido cargar el robot en 3D; se queda el dibujo.", error);
+      }
+    });
+
+    return () => {
+      cancelado = true;
+      cancelarEspera();
+      observador.disconnect();
+      escena.current?.destruir();
+      escena.current = null;
+      setTres(false);
+    };
+  }, [modoScroll]);
+
+  return (
+    <section
+      ref={seccion}
+      aria-labelledby="titulo-portada"
+      data-pieza-activa={tres ? undefined : (activa ?? undefined)}
+      className="relative bg-white md:motion-safe:h-[320vh]"
+    >
+      <div className="overflow-hidden md:motion-safe:sticky md:motion-safe:top-nav md:motion-safe:h-[calc(100dvh-var(--spacing-nav))]">
+        <div className="mx-auto grid h-full max-w-6xl items-center gap-8 px-4 pt-12 pb-16 sm:px-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:py-8">
+          {/* ---------- Texto ---------- */}
+          <div className="text-center md:text-left">
+            <p className="animate-entrada text-sm font-medium tracking-wide text-acento uppercase">
+              Kits de robótica con curso incluido
+            </p>
+            <h1
+              id="titulo-portada"
+              className="mt-3 animate-entrada text-5xl font-medium [animation-delay:80ms] sm:text-6xl lg:text-7xl"
+            >
+              Construye tu propio robot.
+            </h1>
+            <p className="mt-4 animate-entrada text-lg text-gris [animation-delay:160ms] sm:text-xl">
+              No hace falta saber programar: cada kit trae todas las piezas y un curso que te guía
+              paso a paso.
+            </p>
+            <div className="mt-7 flex animate-entrada flex-wrap items-center justify-center gap-x-6 gap-y-3 [animation-delay:240ms] md:justify-start">
+              <Boton href="/kits" variante="acento" tamano="lg">
+                Ver los kits
+              </Boton>
+              <Boton href="/configurador" variante="enlace" tamano="lg">
+                Crear mi robot ›
+              </Boton>
+            </div>
+
+            {/* Las piezas: en ordenador se iluminan según el scroll; en el móvil, una lista */}
+            <ol
+              aria-label="Las piezas de un robot"
+              className="mt-10 hidden gap-3 text-left md:grid"
+            >
+              {PIEZAS_ROBOT.map((pieza, i) => (
+                <li
+                  key={pieza.id}
+                  className={cn(
+                    "rounded-control border-l-2 py-1 pl-4 transition-all duration-500",
+                    !modoScroll || activa === pieza.id
+                      ? "border-acento opacity-100"
+                      : "border-linea opacity-40",
+                  )}
+                >
+                  <p className="font-titulo text-lg font-medium">
+                    <span className="mr-2 text-sm text-acento tabular-nums">0{i + 1}</span>
+                    {pieza.titulo}
+                  </p>
+                  <p
+                    className={cn(
+                      "text-sm text-gris transition-all duration-500",
+                      modoScroll && activa !== pieza.id && "max-h-0 overflow-hidden opacity-0",
+                    )}
+                  >
+                    {pieza.texto}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* ---------- Robot ---------- */}
+          <div className="relative mx-auto aspect-[32/21] w-full max-w-2xl animate-entrada [animation-delay:320ms] md:max-w-none">
+            <RobotEstatico
+              className={cn(
+                "absolute inset-0 size-full transition-opacity duration-700",
+                tres && "opacity-0",
+              )}
+            />
+            <canvas
+              ref={lienzo}
+              aria-hidden="true"
+              className={cn(
+                "absolute inset-[-12%] size-[124%] transition-opacity duration-700",
+                tres ? "opacity-100" : "pointer-events-none opacity-0",
+              )}
+            />
+          </div>
+
+          {/* Lista de piezas en el móvil */}
+          <ol aria-label="Las piezas de un robot" className="grid gap-3 sm:grid-cols-2 md:hidden">
+            {PIEZAS_ROBOT.map((pieza, i) => (
+              <li key={pieza.id} className="aparecer rounded-tarjeta bg-niebla p-4">
+                <p className="font-titulo text-lg font-medium">
+                  <span className="mr-2 text-sm text-acento tabular-nums">0{i + 1}</span>
+                  {pieza.titulo}
+                </p>
+                <p className="mt-1 text-sm text-gris">{pieza.texto}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {modoScroll && (
+          <p
+            aria-hidden="true"
+            className={cn(
+              "absolute inset-x-0 bottom-6 text-center text-xs tracking-wide text-gris uppercase transition-opacity duration-500",
+              !alInicio && "opacity-0",
+            )}
+          >
+            Desliza para desmontarlo ↓
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}

@@ -4,32 +4,27 @@ import { formatearPrecio } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
 
 /**
- * Portada a pantalla completa con el kit estrella (estilo web de Apple):
+ * Bloque de la portada con el kit estrella (estilo web de Apple):
  * titular grande, subtítulo corto, dos enlaces y una imagen grande centrada.
  */
 export function HeroKit({ kit }: { kit: KitResumen }) {
   return (
     <section
       aria-labelledby="titulo-hero"
-      className="flex min-h-[calc(100dvh-var(--spacing-nav))] flex-col items-center overflow-hidden bg-white px-4 pt-14 text-center sm:pt-20"
+      className="flex flex-col items-center overflow-hidden bg-niebla px-4 pt-20 pb-12 text-center sm:pt-28"
     >
-      <p className="animate-entrada text-sm font-medium tracking-wide text-acento uppercase">
+      <p className="aparecer text-sm font-medium tracking-wide text-acento uppercase">
         Kit estrella · {kit.nivel}
       </p>
-      <h1
-        id="titulo-hero"
-        className="mt-3 animate-entrada text-5xl font-medium [animation-delay:80ms] sm:text-7xl lg:text-8xl"
-      >
+      <h2 id="titulo-hero" className="aparecer mt-3 text-5xl font-medium sm:text-7xl">
         {kit.nombre}
-      </h1>
-      <p className="mt-4 max-w-xl animate-entrada text-lg text-gris [animation-delay:160ms] sm:text-2xl">
-        {kit.eslogan}
-      </p>
-      <p className="mt-3 animate-entrada text-sm text-gris [animation-delay:200ms]">
+      </h2>
+      <p className="aparecer mt-4 max-w-xl text-lg text-gris sm:text-2xl">{kit.eslogan}</p>
+      <p className="aparecer mt-3 text-sm text-gris">
         {formatearPrecio(kit.precioCentimos)} · Curso incluido
       </p>
 
-      <div className="mt-7 flex animate-entrada flex-wrap items-center justify-center gap-x-6 gap-y-3 [animation-delay:240ms]">
+      <div className="aparecer mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
         <Boton href={`/kits/${kit.slug}#comprar`} variante="acento" tamano="lg">
           Comprar
         </Boton>
@@ -38,13 +33,12 @@ export function HeroKit({ kit }: { kit: KitResumen }) {
         </Boton>
       </div>
 
-      <div className="mt-6 flex w-full max-w-4xl flex-1 animate-entrada items-center justify-center [animation-delay:320ms]">
+      <div className="aparecer mt-10 flex w-full max-w-4xl items-center justify-center">
         <Image
           src={kit.imagen}
           alt={`Ilustración del kit ${kit.nombre}`}
           width={800}
           height={600}
-          priority
           unoptimized
           // Altura limitada para que la imagen quepa en la primera pantalla
           className="h-auto max-h-[min(52dvh,560px)] w-auto max-w-full"

@@ -16,7 +16,7 @@ Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un
 
 - [x] 1. Configuración del negocio: `src/config/tienda.ts` (zona CP 03/46/12, envío 4,95 € / gratis ≥ 50 €, IVA 21 %,
       datos de empresa como `[RAZÓN SOCIAL]`…), cálculo de totales puro en `src/lib/precios.ts`, desglose en carrito/checkout.
-- [ ] 2. Portada visual: robot 3D con `three` (carga diferida, se despieza con el scroll), versión estática en
+- [x] 2. Portada visual: robot 3D con `three` (carga diferida, se despieza con el scroll), versión estática en
       móvil/equipos lentos/reduced-motion, animaciones de entrada por sección.
 - [ ] 3. Navegación: sección activa visible (Inicio, Kits…, subpáginas) en escritorio, menú móvil y panel.
 - [ ] 4. Cursos: «Hacer el test» se desbloquea al terminar el vídeo (YouTube IFrame API, Vimeo Player SDK, <video>);

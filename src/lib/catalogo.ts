@@ -29,6 +29,16 @@ export function obtenerKits() {
   });
 }
 
+/** Cifras de la portada: kits y componentes a la venta y lecciones de sus cursos */
+export async function obtenerCifras() {
+  const [kits, componentes, lecciones] = await Promise.all([
+    db.kit.count({ where: { visible: true } }),
+    db.componente.count({ where: { visible: true } }),
+    db.leccion.count({ where: { curso: { kit: { visible: true } } } }),
+  ]);
+  return { kits, componentes, lecciones };
+}
+
 /** Un kit a la venta con todos sus detalles, o null si no existe o está oculto */
 export async function obtenerKitPorSlug(slug: string) {
   const kit = await db.kit.findFirst({
