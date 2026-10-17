@@ -48,7 +48,7 @@ export default async function PaginaActivar({ searchParams }: Props) {
   }
 
   // Máximo de consultas por IP, para que nadie pueda ir probando códigos al azar
-  if (!registrarIntento("consultarCodigo", await ipDelCliente())) {
+  if (!(await registrarIntento("consultarCodigo", await ipDelCliente()))) {
     return (
       <Marco
         icono={<CircleAlert aria-hidden="true" className="size-10 text-aviso" strokeWidth={1.5} />}

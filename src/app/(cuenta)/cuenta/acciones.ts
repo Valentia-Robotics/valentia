@@ -9,6 +9,7 @@
  */
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { erroresDeZod, type EstadoFormulario } from "@/lib/admin/formularios";
 import { enviarCorreo } from "@/lib/correo";
 import { plantillaContrasenaCambiada } from "@/lib/correo/plantillas";
@@ -17,6 +18,9 @@ import { registrarIntento } from "@/lib/limite";
 import { obtenerUsuario } from "@/lib/sesion";
 import { esquemaCambioContrasena } from "@/lib/validaciones/cuenta";
 import { dispositivoDeConfianza, olvidarDispositivos } from "@/lib/verificacion/dispositivos";
+
+/** Identificador de un dispositivo o una dirección (cuid) */
+const esquemaId = z.string().min(1).max(40);
 
 const SIN_SESION = "Tu sesión ha caducado. Vuelve a iniciar sesión.";
 
@@ -31,6 +35,7 @@ export interface EstadoDispositivo {
 export async function eliminarDispositivo(id: string): Promise<EstadoDispositivo> {
   const usuario = await obtenerUsuario();
   if (!usuario) return { ok: false, mensaje: SIN_SESION, sesionCerrada: true };
+  if (!esquemaId.safeParse(id).success) return { ok: false, mensaje: "Dispositivo no válido." };
 
   const esteNavegador = await dispositivoDeConfianza(usuario.id);
   // Solo se borra si es TUYO (where con usuarioId)
@@ -65,7 +70,7 @@ export async function cambiarContrasena(
   if (!datos.success) return { ok: false, errores: erroresDeZod(datos.error) };
 
   // Por si alguien con la sesión abierta intenta adivinar la contraseña actual
-  if (!registrarIntento("cambiarContrasena", usuario.id)) {
+  if (!(await registrarIntento("cambiarContrasena", usuario.id))) {
     return { ok: false, mensaje: "Demasiados intentos seguidos. Espera unos minutos." };
   }
 
@@ -101,7 +106,7 @@ export async function cambiarContrasena(
 /** Borra una de tus direcciones guardadas (solo si es TUYA) */
 export async function eliminarDireccion(id: string): Promise<{ ok: boolean }> {
   const usuario = await obtenerUsuario();
-  if (!usuario || typeof id !== "string" || id.length > 40) return { ok: false };
+  if (!usuario || !esquemaId.safeParse(id).success) return { ok: false };
   const { count } = await db.direccion.deleteMany({ where: { id, usuarioId: usuario.id } });
   revalidatePath("/cuenta");
   return { ok: count === 1 };

@@ -317,6 +317,15 @@ CREATE TABLE "ProgresoEjercicio" (
     CONSTRAINT "ProgresoEjercicio_pkey" PRIMARY KEY ("usuarioId","ejercicioId")
 );
 
+-- CreateTable
+CREATE TABLE "LimiteIntento" (
+    "id" TEXT NOT NULL,
+    "contador" INTEGER NOT NULL DEFAULT 1,
+    "caducaEn" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "LimiteIntento_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Componente_slug_key" ON "Componente"("slug");
 
@@ -373,6 +382,9 @@ CREATE UNIQUE INDEX "DispositivoConfianza_paseHash_key" ON "DispositivoConfianza
 
 -- CreateIndex
 CREATE INDEX "DispositivoConfianza_usuarioId_idx" ON "DispositivoConfianza"("usuarioId");
+
+-- CreateIndex
+CREATE INDEX "LimiteIntento_caducaEn_idx" ON "LimiteIntento"("caducaEn");
 
 -- AddForeignKey
 ALTER TABLE "Kit" ADD CONSTRAINT "Kit_cursoId_fkey" FOREIGN KEY ("cursoId") REFERENCES "Curso"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

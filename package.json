@@ -26,9 +26,9 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.0",
-    "@prisma/adapter-pg": "^7.10.0",
-    "@prisma/client": "^7.10.0",
+    "@prisma/adapter-better-sqlite3": "^7.10.1",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "@stripe/stripe-js": "^10.1.0",
     "aws4fetch": "^1.0.20",
     "bcryptjs": "^3.0.3",
@@ -60,7 +60,7 @@
     "postcss": "^8.5.30",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "prisma": "^7.10.0",
+    "prisma": "^7.10.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"

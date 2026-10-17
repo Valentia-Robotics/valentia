@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { activarCodigo } from "@/lib/activacion";
 import { FORMATO_CODIGO, normalizarCodigo } from "@/lib/codigos";
 import { registrarIntento } from "@/lib/limite";
@@ -17,11 +18,13 @@ export async function activar(
 ): Promise<EstadoActivacion> {
   const usuario = await obtenerUsuario();
   if (!usuario) return { mensaje: "Tu sesión ha caducado. Vuelve a iniciar sesión." };
-  if (!registrarIntento("activar", usuario.id)) {
+  if (!(await registrarIntento("activar", usuario.id))) {
     return { mensaje: "Demasiados intentos seguidos. Espera unos minutos." };
   }
 
-  const codigo = normalizarCodigo(String(formulario.get("codigo") ?? ""));
+  const escrito = z.string().max(40).safeParse(formulario.get("codigo"));
+  if (!escrito.success) return { mensaje: "Ese código no tiene un formato válido." };
+  const codigo = normalizarCodigo(escrito.data);
   if (!FORMATO_CODIGO.test(codigo)) return { mensaje: "Ese código no tiene un formato válido." };
 
   const resultado = await activarCodigo(usuario.id, codigo);

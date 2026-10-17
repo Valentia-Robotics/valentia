@@ -81,7 +81,7 @@ export async function prepararPedido(
   valores.aceptaCondiciones = formulario.get("aceptaCondiciones") === "on" ? "on" : "";
 
   // 0. Límite de intentos por IP (evita que alguien bloquee el stock con pedidos falsos)
-  if (!registrarIntento("checkout", await ipDelCliente())) {
+  if (!(await registrarIntento("checkout", await ipDelCliente()))) {
     return {
       ok: false,
       valores,

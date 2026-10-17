@@ -32,7 +32,7 @@ export async function pedirCodigoRecuperacion(
   const datos = esquemaRecuperar.safeParse({ email: formulario.get("email") });
   if (!datos.success) return { ok: false, errores: erroresDeZod(datos.error) };
 
-  if (!registrarIntento("recuperar", await ipDelCliente())) {
+  if (!(await registrarIntento("recuperar", await ipDelCliente()))) {
     return { ok: false, mensaje: "Demasiados intentos seguidos. Espera unos minutos." };
   }
 

@@ -461,3 +461,14 @@ model ProgresoEjercicio {
 
   @@id([usuarioId, ejercicioId])
 }
+
+/// Contador del límite de intentos (ver src/lib/limite.ts). Se guarda en la base de datos para que
+/// funcione igual con uno o con muchos servidores (hosting "serverless").
+model LimiteIntento {
+  /// acción:huella-de-la-clave:ventana (la IP o el email nunca se guardan tal cual)
+  id       String   @id
+  contador Int      @default(1)
+  caducaEn DateTime
+
+  @@index([caducaEn])
+}

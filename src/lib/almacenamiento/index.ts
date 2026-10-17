@@ -48,7 +48,8 @@ export async function subirImagen(archivo: File, carpeta: string): Promise<strin
 
   let datos: Buffer;
   try {
-    datos = await sharp(Buffer.from(await archivo.arrayBuffer()))
+    // limitInputPixels: rechaza imágenes gigantes hechas para colgar el servidor (40 megapíxeles)
+    datos = await sharp(Buffer.from(await archivo.arrayBuffer()), { limitInputPixels: 40_000_000 })
       .rotate() // respeta la orientación de las fotos hechas con el móvil
       .resize({ width: LADO_MAXIMO, height: LADO_MAXIMO, fit: "inside", withoutEnlargement: true })
       .webp({ quality: 85 })

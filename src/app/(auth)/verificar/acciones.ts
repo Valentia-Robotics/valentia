@@ -10,6 +10,7 @@
 import { enviarCorreo } from "@/lib/correo";
 import { plantillaNuevoDispositivo } from "@/lib/correo/plantillas";
 import { db } from "@/lib/db";
+import { ipDelCliente, registrarIntento } from "@/lib/limite";
 import { rutaSegura } from "@/lib/validaciones/cuenta";
 import { comprobarCodigo, reenviarCodigo, terminarVerificacion } from "@/lib/verificacion/codigos";
 import { confiarEnEsteNavegador } from "@/lib/verificacion/dispositivos";
@@ -25,12 +26,19 @@ export type EstadoCodigo =
       tipo?: "incorrecto" | "agotado" | "caducado" | "reiniciar";
     };
 
+const DEMASIADOS = "Has hecho demasiados intentos seguidos. Espera unos minutos y vuelve a probar.";
+
 /** Solo cifras, y exactamente las que tiene el código */
 const FORMATO = new RegExp(`^[0-9]{${CODIGO.cifras}}$`);
 
 export async function confirmarCodigo(codigo: string, volver: string): Promise<EstadoCodigo> {
   if (typeof codigo !== "string" || !FORMATO.test(codigo)) {
     return { ok: false, tipo: "incorrecto", mensaje: `El código tiene ${CODIGO.cifras} cifras.` };
+  }
+
+  // Límite por IP (además de los 5 intentos de cada código)
+  if (!(await registrarIntento("verificarCodigo", await ipDelCliente()))) {
+    return { ok: false, tipo: "incorrecto", mensaje: DEMASIADOS };
   }
 
   const resultado = await comprobarCodigo(codigo);
@@ -107,5 +115,8 @@ export async function confirmarCodigo(codigo: string, volver: string): Promise<E
 }
 
 export async function pedirOtroCodigo() {
+  if (!(await registrarIntento("reenviarCodigo", await ipDelCliente()))) {
+    return { ok: false as const, mensaje: DEMASIADOS };
+  }
   return reenviarCodigo();
 }

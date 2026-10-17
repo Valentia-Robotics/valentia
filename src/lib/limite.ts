@@ -1,21 +1,31 @@
 /**
  * LÍMITE DE INTENTOS
  * Evita que alguien pruebe miles de contraseñas o códigos seguidos.
- * Cuenta los intentos de cada "clave" (por ejemplo, la IP + el email) en una
- * ventana de tiempo y, si se pasa del máximo, los bloquea hasta que caduquen.
+ * Cuenta los intentos de cada "clave" (por ejemplo, la IP + el email) en una ventana de
+ * tiempo y, si se pasa del máximo, los rechaza hasta que empieza la ventana siguiente.
  *
- * Se guarda en la memoria del servidor: es suficiente con un solo servidor.
- * Si algún día hay varios servidores, habría que guardarlo en un sitio compartido
- * (por ejemplo Redis); basta con cambiar este archivo.
+ * Los contadores se guardan en la BASE DE DATOS (tabla LimiteIntento), así funciona igual con
+ * un servidor que con muchos (hosting "serverless" como Vercel). De la clave solo se guarda
+ * una huella (hash): ni las IP ni los emails quedan escritos tal cual.
  */
 import "server-only";
+import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { db } from "@/lib/db";
 
 /** Límites de cada acción. Cámbialos aquí. */
 export const LIMITES = {
+  /** Iniciar sesión (por IP + email) */
   login: { maximo: 10, minutos: 15 },
+  /** Crear cuenta (por IP) */
   registro: { maximo: 5, minutos: 60 },
+  /** Escribir el código de 6 cifras (por IP; además, 5 intentos por código) */
+  verificarCodigo: { maximo: 30, minutos: 15 },
+  /** Pedir otro código (por IP; además, 5 códigos por email y hora) */
+  reenviarCodigo: { maximo: 10, minutos: 15 },
+  /** Activar un código de kit (por usuario) */
   activar: { maximo: 15, minutos: 15 },
+  /** Consultar si existe un código en /activar (por IP) */
   consultarCodigo: { maximo: 40, minutos: 15 },
   /** Cambiar la contraseña desde "Mi cuenta" (por usuario) */
   cambiarContrasena: { maximo: 5, minutos: 15 },
@@ -27,39 +37,52 @@ export const LIMITES = {
 
 export type AccionLimitada = keyof typeof LIMITES;
 
-const intentos = new Map<string, number[]>();
+function huella(texto: string) {
+  return createHash("sha256").update(texto).digest("base64url").slice(0, 32);
+}
 
 /**
  * Apunta un intento y dice si está permitido.
- * Devuelve false si ya se ha superado el máximo en la ventana de tiempo.
+ * Devuelve false si ya se ha superado el máximo en la ventana de tiempo actual.
+ * Si la base de datos falla, deja pasar (mejor que bloquear a todo el mundo) y lo apunta.
  */
-export function registrarIntento(accion: AccionLimitada, clave: string): boolean {
+export async function registrarIntento(accion: AccionLimitada, clave: string): Promise<boolean> {
   const { maximo, minutos } = LIMITES[accion];
+  const duracion = minutos * 60_000;
   const ahora = Date.now();
-  const desde = ahora - minutos * 60_000;
-  const id = `${accion}:${clave}`;
+  const ventana = Math.floor(ahora / duracion);
+  const id = `${accion}:${huella(clave)}:${ventana}`;
 
-  const recientes = (intentos.get(id) ?? []).filter((momento) => momento > desde);
-  if (recientes.length >= maximo) {
-    intentos.set(id, recientes);
-    return false;
-  }
-  recientes.push(ahora);
-  intentos.set(id, recientes);
+  try {
+    const fila = await db.limiteIntento.upsert({
+      where: { id },
+      create: { id, contador: 1, caducaEn: new Date((ventana + 1) * duracion) },
+      update: { contador: { increment: 1 } },
+    });
 
-  // Limpieza de vez en cuando para que la memoria no crezca sin fin
-  if (intentos.size > 5000) {
-    for (const [otraClave, momentos] of intentos) {
-      if (momentos.every((m) => m <= desde)) intentos.delete(otraClave);
+    // Limpieza de vez en cuando (1 de cada 50 llamadas) para que la tabla no crezca sin fin
+    if (Math.random() < 0.02) {
+      await db.limiteIntento.deleteMany({ where: { caducaEn: { lt: new Date(ahora) } } });
     }
+    return fila.contador <= maximo;
+  } catch (error) {
+    console.error("Límite de intentos: no se ha podido consultar la base de datos.", error);
+    return true;
   }
-  return true;
 }
 
-/** La IP que aparece en las cabeceras de una petición (o "local" si no se conoce) */
+/**
+ * La IP de quien hace la petición. Detrás de un proveedor de hosting (Vercel, Cloudflare…) la
+ * pone el propio proveedor en una cabecera de confianza; "x-forwarded-for" se usa como último
+ * recurso (la puede inventar el navegador si la web no está detrás de un proxy: ver SEGURIDAD.md).
+ */
 export function ipDeCabeceras(cabeceras: Headers): string {
   return (
-    cabeceras.get("x-forwarded-for")?.split(",")[0]?.trim() || cabeceras.get("x-real-ip") || "local"
+    cabeceras.get("cf-connecting-ip") ||
+    cabeceras.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
+    cabeceras.get("x-real-ip") ||
+    cabeceras.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "local"
   );
 }
 

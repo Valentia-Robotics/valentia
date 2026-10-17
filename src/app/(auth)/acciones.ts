@@ -58,7 +58,7 @@ export async function registrarse(formulario: FormData): Promise<EstadoCuenta> {
 
   // Máximo de registros por IP (ver src/lib/limite.ts). Cuentan todos, también los de
   // emails que ya tienen cuenta: si no, el límite desvelaría cuáles existen.
-  if (!registrarIntento("registro", await ipDelCliente())) {
+  if (!(await registrarIntento("registro", await ipDelCliente()))) {
     return {
       ok: false,
       mensaje: "Se han creado muchas cuentas desde aquí. Espera un rato y vuelve a intentarlo.",
@@ -108,7 +108,7 @@ export async function iniciarSesion(formulario: FormData): Promise<EstadoCuenta>
   const { email, contrasena } = datos.data;
 
   // Máximo de intentos por IP y email (ver src/lib/limite.ts)
-  if (!registrarIntento("login", `${await ipDelCliente()}:${email}`)) {
+  if (!(await registrarIntento("login", `${await ipDelCliente()}:${email}`))) {
     return {
       ok: false,
       mensaje: "Demasiados intentos seguidos. Espera unos minutos y vuelve a probar.",
