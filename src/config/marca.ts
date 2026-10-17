@@ -28,15 +28,31 @@ export const marca = {
 export type EnlaceNavegacion = {
   href: string;
   etiqueta: string;
+  /**
+   * Otras direcciones que cuentan como "esta sección" (además de href y sus subpáginas).
+   * Por ejemplo, /activar se marca como "Mis cursos".
+   */
+  tambien?: string[];
 };
 
-/** Enlaces principales de la barra de navegación */
+/** Enlaces principales de la barra de navegación (el que corresponde a la página actual se marca) */
 export const enlacesNavegacion: EnlaceNavegacion[] = [
+  { href: "/", etiqueta: "Inicio" },
   { href: "/kits", etiqueta: "Kits" },
   { href: "/componentes", etiqueta: "Componentes" },
   { href: "/configurador", etiqueta: "Configurador" },
-  { href: "/cursos", etiqueta: "Mis cursos" },
+  { href: "/cursos", etiqueta: "Mis cursos", tambien: ["/activar"] },
 ];
+
+/**
+ * ¿Está la página "ruta" dentro de la sección "enlace"? Cuenta la propia dirección,
+ * sus subpáginas (/kits/coche… → Kits) y las de "tambien". "/" solo cuenta en la portada.
+ */
+export function enSeccion(ruta: string, enlace: Pick<EnlaceNavegacion, "href" | "tambien">) {
+  const coincide = (base: string) =>
+    base === "/" ? ruta === "/" : ruta === base || ruta.startsWith(`${base}/`);
+  return coincide(enlace.href) || (enlace.tambien ?? []).some(coincide);
+}
 
 /**
  * Columnas de enlaces del pie de página.

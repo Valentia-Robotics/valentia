@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BookOpen, LayoutDashboard, LogOut, QrCode, UserRound } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
+import { enSeccion } from "@/config/marca";
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,6 +14,8 @@ import { cn } from "@/lib/utils";
  */
 export function MenuUsuario() {
   const { data: sesion, status } = useSession();
+  const ruta = usePathname();
+  const enCuenta = enSeccion(ruta, { href: "/cuenta" });
   const [abierto, setAbierto] = useState(false);
   const contenedor = useRef<HTMLDivElement>(null);
 
@@ -55,7 +59,11 @@ export function MenuUsuario() {
         aria-expanded={abierto}
         aria-controls="menu-usuario"
         aria-label={`Menú de ${nombre}`}
-        className="flex size-8 items-center justify-center rounded-full bg-tinta font-titulo text-sm text-white transition-colors hover:bg-grafito"
+        className={cn(
+          "flex size-8 items-center justify-center rounded-full bg-tinta font-titulo text-sm text-white transition-colors hover:bg-grafito",
+          // En "Mi cuenta" el círculo lleva un anillo azul: es la sección actual
+          enCuenta && "ring-2 ring-acento ring-offset-2",
+        )}
       >
         {nombre.charAt(0).toUpperCase()}
       </button>
@@ -111,12 +119,17 @@ function ElementoMenu({
   alPulsar: () => void;
   children: string;
 }) {
+  const activo = enSeccion(usePathname(), { href });
   return (
     <li>
       <Link
         href={href}
         onClick={alPulsar}
-        className={cn("flex items-center gap-2.5 rounded-control px-3 py-2 hover:bg-niebla")}
+        aria-current={activo ? "page" : undefined}
+        className={cn(
+          "flex items-center gap-2.5 rounded-control px-3 py-2 hover:bg-niebla",
+          activo && "bg-acento/8 font-medium text-acento",
+        )}
       >
         <Icono aria-hidden="true" className="size-4 text-gris" />
         {children}

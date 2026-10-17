@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { Logo } from "@/components/marca/Logo";
-import { enlacesNavegacion, marca } from "@/config/marca";
+import { enlacesNavegacion, enSeccion, marca, type EnlaceNavegacion } from "@/config/marca";
 import { cn } from "@/lib/utils";
 import { BotonCarrito } from "./BotonCarrito";
 import { MenuUsuario } from "./MenuUsuario";
@@ -20,7 +20,7 @@ export function BarraNavegacion() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { data: sesion } = useSession();
 
-  const estaActivo = (href: string) => ruta === href || ruta.startsWith(`${href}/`);
+  const estaActivo = (enlace: EnlaceNavegacion) => enSeccion(ruta, enlace);
 
   // Cerrar el menú móvil con la tecla Escape
   useEffect(() => {
@@ -53,16 +53,19 @@ export function BarraNavegacion() {
             <Logo alto={16} prioridad />
           </Link>
 
-          {/* Enlaces en ordenador */}
-          <ul className="hidden items-center gap-8 md:flex">
+          {/* Enlaces en ordenador: el de la sección actual va en negrita con una raya azul debajo */}
+          <ul className="hidden h-full items-stretch gap-4 md:flex lg:gap-8">
             {enlacesNavegacion.map((enlace) => (
-              <li key={enlace.href}>
+              <li key={enlace.href} className="flex">
                 <Link
                   href={enlace.href}
-                  aria-current={estaActivo(enlace.href) ? "page" : undefined}
+                  aria-current={estaActivo(enlace) ? "page" : undefined}
                   className={cn(
-                    "text-[13px] transition-colors",
-                    estaActivo(enlace.href) ? "text-tinta" : "text-tinta/70 hover:text-tinta",
+                    "relative flex items-center text-[13px] transition-colors",
+                    "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-acento after:transition-transform",
+                    estaActivo(enlace)
+                      ? "font-medium text-tinta after:scale-x-100"
+                      : "text-tinta/70 after:scale-x-0 hover:text-tinta",
                   )}
                 >
                   {enlace.etiqueta}
@@ -101,10 +104,21 @@ export function BarraNavegacion() {
                 <Link
                   href={enlace.href}
                   onClick={cerrarMenu}
-                  aria-current={estaActivo(enlace.href) ? "page" : undefined}
-                  className="block py-3 font-titulo text-2xl text-tinta"
+                  aria-current={estaActivo(enlace) ? "page" : undefined}
+                  className={cn(
+                    "-mx-3 flex items-center justify-between rounded-control px-3 py-3 font-titulo text-2xl",
+                    estaActivo(enlace) ? "bg-acento/8 text-acento" : "text-tinta",
+                  )}
                 >
                   {enlace.etiqueta}
+                  {estaActivo(enlace) && (
+                    <span
+                      aria-hidden="true"
+                      className="font-sans text-xs font-medium tracking-wide uppercase"
+                    >
+                      Estás aquí
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}
@@ -112,29 +126,26 @@ export function BarraNavegacion() {
               {sesion?.user ? (
                 <>
                   <p className="py-2 text-sm text-gris">Hola, {sesion.user.name}</p>
-                  <Link
-                    href="/activar"
-                    onClick={cerrarMenu}
-                    className="block py-3 text-lg text-tinta"
-                  >
-                    Activar un kit
-                  </Link>
-                  <Link
-                    href="/cuenta"
-                    onClick={cerrarMenu}
-                    className="block py-3 text-lg text-tinta"
-                  >
-                    Mi cuenta
-                  </Link>
-                  {sesion.user.rol === "ADMIN" && (
+                  {[
+                    { href: "/activar", etiqueta: "Activar un kit" },
+                    { href: "/cuenta", etiqueta: "Mi cuenta" },
+                    ...(sesion.user.rol === "ADMIN"
+                      ? [{ href: "/admin", etiqueta: "Panel de administración" }]
+                      : []),
+                  ].map((enlace) => (
                     <Link
-                      href="/admin"
+                      key={enlace.href}
+                      href={enlace.href}
                       onClick={cerrarMenu}
-                      className="block py-3 text-lg text-tinta"
+                      aria-current={estaActivo(enlace) ? "page" : undefined}
+                      className={cn(
+                        "block py-3 text-lg",
+                        estaActivo(enlace) ? "font-medium text-acento" : "text-tinta",
+                      )}
                     >
-                      Panel de administración
+                      {enlace.etiqueta}
                     </Link>
-                  )}
+                  ))}
                   <button
                     type="button"
                     onClick={() => signOut({ redirectTo: "/" })}

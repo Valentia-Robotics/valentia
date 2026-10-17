@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
+import { enSeccion } from "@/config/marca";
+import { cn } from "@/lib/utils";
 import { seleccionarTotalArticulos, useCarrito, useCarritoHidratado } from "@/store/carrito";
 
 /** Icono del carrito con el número de artículos. Lleva a /carrito. */
 export function BotonCarrito() {
+  const ruta = usePathname();
   const hidratado = useCarritoHidratado();
   const total = useCarrito(seleccionarTotalArticulos);
   const cantidad = hidratado ? total : 0;
@@ -15,11 +19,18 @@ export function BotonCarrito() {
       ? "Carrito, vacío"
       : `Carrito, ${cantidad} ${cantidad === 1 ? "artículo" : "artículos"}`;
 
+  // En el carrito y en el checkout, el icono se marca como sección actual
+  const activo = enSeccion(ruta, { href: "/carrito", tambien: ["/checkout"] });
+
   return (
     <Link
       href="/carrito"
       aria-label={etiqueta}
-      className="relative inline-flex size-10 items-center justify-center rounded-full text-tinta/80 transition-colors hover:bg-tinta/5 hover:text-tinta"
+      aria-current={activo ? "page" : undefined}
+      className={cn(
+        "relative inline-flex size-10 items-center justify-center rounded-full transition-colors hover:bg-tinta/5 hover:text-tinta",
+        activo ? "bg-acento/10 text-acento" : "text-tinta/80",
+      )}
     >
       <ShoppingBag aria-hidden="true" className="size-[18px]" strokeWidth={1.6} />
       {cantidad > 0 && (
