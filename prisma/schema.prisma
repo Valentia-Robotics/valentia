@@ -152,9 +152,14 @@ model Ejercicio {
 //  PEDIDOS (fase 4)
 // ============================================================
 
+/// Vida de un pedido. PENDIENTE → PAGADO (solo lo marca el pago confirmado) → PREPARANDO
+/// → ENVIADO → ENTREGADO. CANCELADO: pago no completado o cancelado desde el panel.
 enum EstadoPedido {
   PENDIENTE
   PAGADO
+  PREPARANDO
+  ENVIADO
+  ENTREGADO
   CANCELADO
 }
 
@@ -167,25 +172,74 @@ enum TipoLinea {
 /// Un pedido de la tienda. Se guarda una copia de los datos (nombres y precios)
 /// para que el pedido no cambie aunque luego cambie el catálogo.
 model Pedido {
-  id             String       @id @default(cuid())
+  id                   String       @id @default(cuid())
   /// Número que ve el cliente, por ejemplo VAL-2026-4F7K9Q
-  numero         String       @unique
-  nombre         String
-  email          String
-  direccion      String
-  codigoPostal   String
-  ciudad         String
-  totalCentimos  Int
-  estado         EstadoPedido @default(PENDIENTE)
-  /// Quién cobra el pedido: simulado (ahora) o stripe (más adelante)
-  proveedorPago  String
-  /// Referencia del pago que da el proveedor (en Stripe, el id del pago)
-  referenciaPago String?
-  creadoEn       DateTime     @default(now())
-  pagadoEn       DateTime?
+  numero               String       @unique
+  /// Cuenta que hizo el pedido (vacío si compró como invitado)
+  usuario              Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  usuarioId            String?
+  nombre               String
+  email                String
+  telefono             String       @default("")
+  direccion            String
+  codigoPostal         String
+  ciudad               String
+  provincia            String       @default("")
+  /// Importes en céntimos, IVA incluido (calculados en el servidor, ver src/lib/precios.ts)
+  subtotalCentimos     Int          @default(0)
+  envioCentimos        Int          @default(0)
+  /// IVA incluido en el total
+  ivaCentimos          Int          @default(0)
+  totalCentimos        Int
+  estado               EstadoPedido @default(PENDIENTE)
+  /// Quién cobra el pedido: "simulado" (sin claves de Stripe) o "stripe"
+  proveedorPago        String
+  /// Referencia del pago que da el proveedor (en Stripe, el id del PaymentIntent)
+  referenciaPago       String?      @unique
+  /// Número de seguimiento del transportista (lo pone el panel al enviarlo)
+  numeroSeguimiento    String?
+  /// Cuándo aceptó las condiciones de venta
+  aceptaCondicionesEn  DateTime?
+  creadoEn             DateTime     @default(now())
+  actualizadoEn        DateTime     @default(now()) @updatedAt
+  pagadoEn             DateTime?
+  enviadoEn            DateTime?
+  entregadoEn          DateTime?
+  canceladoEn          DateTime?
+  /// Cuándo se envió el correo de confirmación (para no mandarlo dos veces)
+  correoConfirmacionEn DateTime?
 
   lineas  LineaPedido[]
   codigos CodigoActivacion[]
+
+  @@index([usuarioId])
+  @@index([email])
+  @@index([estado, creadoEn])
+}
+
+/// Dirección de envío guardada en una cuenta (se elige en el checkout)
+model Direccion {
+  id             String   @id @default(cuid())
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId      String
+  nombre         String
+  telefono       String
+  direccion      String
+  codigoPostal   String
+  ciudad         String
+  provincia      String
+  predeterminada Boolean  @default(false)
+  creadoEn       DateTime @default(now())
+
+  @@index([usuarioId])
+}
+
+/// Avisos (webhooks) de Stripe ya procesados: si Stripe repite uno, no se procesa dos veces
+model EventoStripe {
+  /// id del evento de Stripe (evt_…)
+  id         String   @id
+  tipo       String
+  recibidoEn DateTime @default(now())
 }
 
 /// Una línea del pedido: un kit, un componente suelto o un robot personalizado
@@ -267,6 +321,8 @@ model Usuario {
   ejercicios     ProgresoEjercicio[]
   verificaciones Verificacion[]
   dispositivos   DispositivoConfianza[]
+  pedidos        Pedido[]
+  direcciones    Direccion[]
   videosVistos   VideoVisto[]
   resultadosTest ResultadoTest[]
 }

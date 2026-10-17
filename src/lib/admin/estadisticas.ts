@@ -4,6 +4,7 @@
  */
 import "server-only";
 import { db } from "@/lib/db";
+import { PEDIDO_COBRADO } from "@/lib/pedidos";
 import { inicioDelMes } from "./formato";
 
 /** Días que se tienen en cuenta para "cursos más activos" */
@@ -27,11 +28,11 @@ export async function obtenerResumen() {
     db.usuario.count(),
     db.usuario.count({ where: { creadoEn: { gte: inicioDelMes() } } }),
     db.pedido.count(),
-    db.pedido.count({ where: { estado: "PAGADO" } }),
+    db.pedido.count({ where: PEDIDO_COBRADO }),
     // Unidades de kit en pedidos pagados
     db.lineaPedido.aggregate({
       _sum: { cantidad: true },
-      where: { tipo: "KIT", pedido: { estado: "PAGADO" } },
+      where: { tipo: "KIT", pedido: PEDIDO_COBRADO },
     }),
     db.codigoActivacion.count(),
     db.codigoActivacion.count({ where: { usadoEn: { not: null } } }),

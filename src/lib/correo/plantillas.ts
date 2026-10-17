@@ -5,6 +5,7 @@
  * el diseño va con tablas y estilos escritos en cada etiqueta (es lo normal en los correos).
  */
 import { marca } from "@/config/marca";
+import { tienda } from "@/config/tienda";
 import type { Correo } from "./tipos";
 
 /** Colores de globals.css (los correos no pueden leer ese archivo) */
@@ -50,6 +51,8 @@ interface Contenido {
   codigo?: string;
   /** Botón (opcional) */
   boton?: { texto: string; url: string };
+  /** Tabla de importes (opcional): filas [concepto, importe]; "fuerte" resalta la fila (el total) */
+  tabla?: { concepto: string; importe: string; fuerte?: boolean; separador?: boolean }[];
   /** Letra pequeña al final */
   notas?: string[];
 }
@@ -68,6 +71,17 @@ function maquetar(c: Contenido): string {
     : "";
   const boton = c.boton
     ? `<p style="margin:8px 0 24px;"><a href="${c.boton.url}" style="display:inline-block;padding:14px 28px;background:${C.acento};color:#ffffff;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;">${c.boton.texto}</a></p>`
+    : "";
+  const tabla = c.tabla?.length
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;font-size:15px;color:${C.tinta};">
+         ${c.tabla
+           .map((f) => {
+             const borde = f.separador ? `border-top:1px solid ${C.linea};` : "";
+             const peso = f.fuerte ? "font-weight:700;font-size:17px;" : "";
+             return `<tr><td style="padding:6px 0;${borde}${peso}">${f.concepto}</td><td align="right" style="padding:6px 0;white-space:nowrap;${borde}${peso}">${f.importe}</td></tr>`;
+           })
+           .join("")}
+       </table>`
     : "";
   const notas = c.notas?.length
     ? `<div style="margin-top:8px;padding-top:20px;border-top:1px solid ${C.linea};">${c.notas.map(nota).join("")}</div>`
@@ -91,6 +105,7 @@ function maquetar(c: Contenido): string {
       <tr><td style="background:#ffffff;border-radius:24px;padding:36px 32px;">
         <h1 style="margin:0 0 20px;font-size:24px;line-height:1.3;font-weight:600;color:${C.tinta};">${escapar(c.titulo)}</h1>
         ${c.parrafos.map(parrafo).join("")}
+        ${tabla}
         ${codigo}
         ${boton}
         ${notas}
@@ -120,6 +135,8 @@ function enTexto(c: Contenido): string {
     c.titulo,
     "",
     ...c.parrafos.map(quitarHtml),
+    ...(c.tabla ?? []).map((f) => `${quitarHtml(f.concepto)}: ${quitarHtml(f.importe)}`),
+    ...(c.tabla?.length ? [""] : []),
     ...(c.codigo ? ["", `    ${c.codigo}`, ""] : []),
     ...(c.boton ? [`${c.boton.texto}: ${c.boton.url}`, ""] : []),
     ...(c.notas ?? []).map(quitarHtml),
@@ -234,5 +251,95 @@ export function plantillaContrasenaCambiada(datos: { para: string; nombre: strin
     notas: [
       `¿No has sido tú? Recupera tu cuenta cuanto antes con «¿Olvidaste tu contraseña?» en ${urlWeb("/login")}.`,
     ],
+  });
+}
+
+/* ---------- Pedidos ---------- */
+
+const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
+const precio = (centimos: number) => euros.format(centimos / 100);
+
+/** Lo que necesitan los correos de un pedido */
+export interface DatosCorreoPedido {
+  para: string;
+  nombre: string;
+  numero: string;
+  /** Enlace privado al pedido (con su token) */
+  url: string;
+  lineas: { nombre: string; cantidad: number; precioUnitarioCentimos: number }[];
+  subtotalCentimos: number;
+  envioCentimos: number;
+  ivaCentimos: number;
+  totalCentimos: number;
+  ivaPorcentaje: number;
+  direccion: string[];
+  /** Hay kits: su curso se activa con la tarjeta QR de la caja */
+  llevaKits: boolean;
+}
+
+/** Confirmación del pedido pagado, con el resumen y el IVA desglosado */
+export function plantillaPedidoConfirmado(d: DatosCorreoPedido): Correo {
+  return correo(d.para, `Pedido ${d.numero} confirmado`, {
+    resumen: `Hemos recibido tu pago de ${precio(d.totalCentimos)}. ¡Ya estamos preparando tu pedido!`,
+    titulo: "¡Pedido confirmado!",
+    parrafos: [
+      saludo(d.nombre),
+      `Hemos recibido tu pago y ya estamos preparando tu pedido <strong>${escapar(d.numero)}</strong>. Te avisaremos por email cuando salga hacia tu casa.`,
+      "<strong>Resumen</strong>",
+    ],
+    tabla: [
+      ...d.lineas.map((l, i) => ({
+        concepto: `${l.cantidad > 1 ? `${l.cantidad} × ` : ""}${escapar(l.nombre)}`,
+        importe: precio(l.precioUnitarioCentimos * l.cantidad),
+        separador: i === 0,
+      })),
+      { concepto: "Subtotal", importe: precio(d.subtotalCentimos), separador: true },
+      {
+        concepto: "Envío",
+        importe: d.envioCentimos === 0 ? "Gratis" : precio(d.envioCentimos),
+      },
+      { concepto: "Total", importe: precio(d.totalCentimos), fuerte: true, separador: true },
+      {
+        concepto: `<span style="color:${C.gris};font-size:13px;">Base imponible</span>`,
+        importe: `<span style="color:${C.gris};font-size:13px;">${precio(d.totalCentimos - d.ivaCentimos)}</span>`,
+      },
+      {
+        concepto: `<span style="color:${C.gris};font-size:13px;">IVA incluido (${d.ivaPorcentaje} %)</span>`,
+        importe: `<span style="color:${C.gris};font-size:13px;">${precio(d.ivaCentimos)}</span>`,
+      },
+    ],
+    boton: { texto: "Ver mi pedido", url: d.url },
+    notas: [
+      `<strong>Envío a:</strong> ${d.direccion.map(escapar).join(", ")}`,
+      ...(d.llevaKits
+        ? [
+            "Cada kit lleva en la caja una tarjeta con un código QR: escanéalo para desbloquear su curso en «Mis cursos».",
+          ]
+        : []),
+      "Guarda este correo: el botón te lleva a tu pedido en cualquier momento.",
+    ],
+  });
+}
+
+/** Aviso de que el pedido ha salido, con el número de seguimiento */
+export function plantillaPedidoEnviado(d: {
+  para: string;
+  nombre: string;
+  numero: string;
+  url: string;
+  numeroSeguimiento: string | null;
+}): Correo {
+  return correo(d.para, `Tu pedido ${d.numero} ya está en camino`, {
+    resumen: "Tu pedido ha salido de nuestro almacén.",
+    titulo: "¡Tu pedido está en camino!",
+    parrafos: [
+      saludo(d.nombre),
+      `Tu pedido <strong>${escapar(d.numero)}</strong> ha salido de nuestro almacén y pronto estará en tus manos. ¡Ve preparando la mesa de trabajo!`,
+      ...(d.numeroSeguimiento
+        ? [`Número de seguimiento: <strong>${escapar(d.numeroSeguimiento)}</strong>`]
+        : []),
+    ],
+    boton: { texto: "Ver mi pedido", url: d.url },
+    notas: [`Si tienes cualquier problema con la entrega, escríbenos a ${tienda.empresa.email}.`],
   });
 }

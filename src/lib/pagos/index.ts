@@ -1,16 +1,50 @@
 /**
- * PAGOS
- * Elige el "cobrador" según la variable PAGOS_PROVEEDOR del archivo .env:
- *   "simulado" (por defecto) → no cobra nada, ideal para probar
- *   "stripe"                 → cobro real (ver stripe.ts para activarlo)
+ * PAGOS: ¿cómo se cobra?
+ * ──────────────────────────────────────────────────────────────
+ *   "stripe"   → si en .env están STRIPE_SECRET_KEY y NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.
+ *                La tarjeta se escribe en el formulario oficial de Stripe (Payment Element):
+ *                sus datos van directos a Stripe y NUNCA pasan por nuestro servidor.
+ *                El pedido solo se marca como pagado cuando lo confirma el webhook
+ *                (src/app/api/pagos/stripe/route.ts), nunca por lo que diga el navegador.
+ *   "simulado" → sin claves de Stripe: botón «Confirmar pago de prueba», sin tarjeta.
+ *                En la web publicada (NODE_ENV=production) solo funciona si además
+ *                PERMITIR_PAGO_SIMULADO="si" (para no regalar pedidos por un despiste).
+ *   "desactivado" → web publicada sin Stripe ni permiso de pago simulado: no se puede comprar.
+ *
+ * Por seguridad, solo se aceptan claves de PRUEBA (sk_test_… / pk_test_…) salvo que
+ * STRIPE_PERMITIR_CLAVES_REALES="si" (ver README, «Antes de publicar»).
  */
 import "server-only";
-import { pagoSimulado } from "./simulado";
-import { pagoStripe } from "./stripe";
-import type { ProveedorPago } from "./tipos";
 
-export function obtenerProveedorPago(): ProveedorPago {
-  return process.env.PAGOS_PROVEEDOR === "stripe" ? pagoStripe : pagoSimulado;
+export type ModoPago = "stripe" | "simulado" | "desactivado";
+
+/** Error de configuración (se apunta en la terminal; al cliente se le da un mensaje genérico) */
+export class ErrorConfigPagos extends Error {}
+
+export function clavesStripe() {
+  const secreta = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
+  const publica = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ?? "";
+  const webhook = process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "";
+  return { secreta, publica, webhook };
 }
 
-export type { DatosCobro, ProveedorPago, ResultadoCobro } from "./tipos";
+/** Comprueba que las claves son de prueba (o que se ha permitido usar las reales) */
+function comprobarClaves(secreta: string, publica: string) {
+  const reales = secreta.startsWith("sk_live_") || publica.startsWith("pk_live_");
+  if (reales && process.env.STRIPE_PERMITIR_CLAVES_REALES !== "si") {
+    throw new ErrorConfigPagos(
+      'Hay claves REALES de Stripe en .env. Usa claves de prueba (sk_test_/pk_test_) o, al publicar, pon STRIPE_PERMITIR_CLAVES_REALES="si".',
+    );
+  }
+}
+
+export function modoPago(): ModoPago {
+  const { secreta, publica } = clavesStripe();
+  if (secreta && publica) {
+    comprobarClaves(secreta, publica);
+    return "stripe";
+  }
+  const enProduccion = process.env.NODE_ENV === "production";
+  if (!enProduccion || process.env.PERMITIR_PAGO_SIMULADO === "si") return "simulado";
+  return "desactivado";
+}

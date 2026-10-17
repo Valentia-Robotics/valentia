@@ -50,7 +50,10 @@ export const tienda = {
 export type Provincia = (typeof tienda.envio.provincias)[number]["nombre"];
 
 /** Nombres de las provincias a las que enviamos (para el desplegable del checkout) */
-export const provinciasEnvio = tienda.envio.provincias.map((p) => p.nombre);
+export const provinciasEnvio = tienda.envio.provincias.map((p) => p.nombre) as [
+  Provincia,
+  ...Provincia[],
+];
 
 /** true si un dato de la empresa todavía es un marcador del tipo "[NIF]" */
 export function esMarcador(texto: string): boolean {

@@ -32,7 +32,7 @@ export async function buscarUsuarios(busqueda: string, pagina: number) {
     }),
   ]);
 
-  // Los pedidos aún no van unidos a la cuenta: los buscamos por el email del pedido
+  // Pedidos por el email del pedido (incluye los hechos como invitado con ese email)
   const pedidos = await db.pedido.groupBy({
     by: ["email"],
     where: { email: { in: filas.map((u) => u.email) } },

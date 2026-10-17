@@ -21,6 +21,8 @@ export const LIMITES = {
   cambiarContrasena: { maximo: 5, minutos: 15 },
   /** Pedir un código de "¿Olvidaste tu contraseña?" (por IP; además, máximo 5 códigos por email y hora) */
   recuperar: { maximo: 10, minutos: 15 },
+  /** Preparar un pedido en el checkout (por IP): evita bloquear el stock con pedidos falsos */
+  checkout: { maximo: 20, minutos: 15 },
 } as const;
 
 export type AccionLimitada = keyof typeof LIMITES;

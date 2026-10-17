@@ -21,7 +21,7 @@ Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un
 - [x] 3. Navegación: sección activa visible (Inicio, Kits…, subpáginas) en escritorio, menú móvil y panel.
 - [x] 4. Cursos: «Hacer el test» se desbloquea al terminar el vídeo (YouTube IFrame API, Vimeo Player SDK, <video>);
       pantalla `/cursos/[slug]/[leccion]/test` pregunta a pregunta, puntuación, explicaciones, repetir, guardar resultado.
-- [ ] 5. Checkout y pagos: Stripe Payment Element (claves de prueba) + webhook firmado e idempotente; modo simulado sin
+- [x] 5. Checkout y pagos: Stripe Payment Element (claves de prueba) + webhook firmado e idempotente; modo simulado sin
       claves («Confirmar pago de prueba»); envío con teléfono y provincia, CP de la zona; direcciones guardadas e invitado;
       stock reservado al crear y liberado si falla; códigos + correo de confirmación con IVA al pagar; panel de pedidos
       (estados, seguimiento, correo al enviar); historial en Mi cuenta; `/pedido/[id]` protegido.

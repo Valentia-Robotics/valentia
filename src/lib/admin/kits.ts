@@ -3,6 +3,7 @@
  */
 import "server-only";
 import { db } from "@/lib/db";
+import { PEDIDO_COBRADO } from "@/lib/pedidos";
 
 /** Todos los kits (también los ocultos) con sus cifras de ventas y códigos */
 export async function listarKitsAdmin() {
@@ -24,7 +25,7 @@ export async function listarKitsAdmin() {
     // Unidades vendidas de cada kit (pedidos pagados). Los pedidos guardan el slug del kit.
     db.lineaPedido.groupBy({
       by: ["slug"],
-      where: { tipo: "KIT", pedido: { estado: "PAGADO" } },
+      where: { tipo: "KIT", pedido: PEDIDO_COBRADO },
       _sum: { cantidad: true },
     }),
   ]);

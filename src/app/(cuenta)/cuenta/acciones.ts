@@ -97,3 +97,12 @@ export async function cambiarContrasena(
         : "Contraseña cambiada.",
   };
 }
+
+/** Borra una de tus direcciones guardadas (solo si es TUYA) */
+export async function eliminarDireccion(id: string): Promise<{ ok: boolean }> {
+  const usuario = await obtenerUsuario();
+  if (!usuario || typeof id !== "string" || id.length > 40) return { ok: false };
+  const { count } = await db.direccion.deleteMany({ where: { id, usuarioId: usuario.id } });
+  revalidatePath("/cuenta");
+  return { ok: count === 1 };
+}

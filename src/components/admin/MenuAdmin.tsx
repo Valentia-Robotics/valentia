@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LogOut,
   QrCode,
+  ShoppingBag,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 /** Secciones del panel. Para añadir una nueva, añádela aquí. */
 const secciones: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin", etiqueta: "Inicio", icono: LayoutDashboard },
+  { href: "/admin/pedidos", etiqueta: "Pedidos", icono: ShoppingBag },
   { href: "/admin/componentes", etiqueta: "Componentes", icono: Cpu },
   { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },

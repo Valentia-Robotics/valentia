@@ -1,47 +1,82 @@
-import type { ProveedorPago } from "./tipos";
+/**
+ * STRIPE (servidor)
+ * Crea el "intento de pago" (PaymentIntent) de cada pedido y comprueba la firma de los
+ * avisos que manda Stripe al webhook. El importe SIEMPRE sale del pedido guardado en la
+ * base de datos (calculado en el servidor), nunca de lo que envía el navegador.
+ */
+import "server-only";
+import Stripe from "stripe";
+import { clavesStripe, ErrorConfigPagos } from "./index";
+
+let cliente: Stripe | null = null;
+
+/** Cliente de Stripe (se crea la primera vez que se usa, no al compilar) */
+function stripe(): Stripe {
+  const { secreta } = clavesStripe();
+  if (!secreta) throw new ErrorConfigPagos("Falta STRIPE_SECRET_KEY en .env");
+  cliente ??= new Stripe(secreta, { appInfo: { name: "Valentia" } });
+  return cliente;
+}
+
+/** Datos del pedido que necesita Stripe */
+export interface PedidoParaCobrar {
+  id: string;
+  numero: string;
+  email: string;
+  totalCentimos: number;
+}
 
 /**
- * PAGO CON STRIPE (todavía sin activar)
- * ──────────────────────────────────────────────────────────────
- * Cuando quieras cobrar de verdad:
- *
- * 1. Crea una cuenta en https://stripe.com y copia tu clave secreta de pruebas (empieza por sk_test_).
- * 2. Instala la librería oficial:  npm install stripe
- * 3. En .env añade:
- *        PAGOS_PROVEEDOR="stripe"
- *        STRIPE_SECRET_KEY="sk_test_..."
- *        STRIPE_WEBHOOK_SECRET="whsec_..."
- * 4. Sustituye la función cobrar() de abajo por algo así:
- *
- *        import Stripe from "stripe";
- *        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
- *        const sesion = await stripe.checkout.sessions.create({
- *          mode: "payment",
- *          customer_email: datos.email,
- *          client_reference_id: datos.pedidoId,
- *          line_items: datos.lineas.map((l) => ({
- *            quantity: l.cantidad,
- *            price_data: {
- *              currency: "eur",
- *              unit_amount: l.precioUnitarioCentimos, // Stripe también trabaja en céntimos
- *              product_data: { name: l.nombre },
- *            },
- *          })),
- *          success_url: datos.urlExito,
- *          cancel_url: datos.urlCancelar,
- *        });
- *        return { estado: "redirigir", url: sesion.url!, referencia: sesion.id };
- *
- * 5. Crea un "webhook" en src/app/api/pagos/stripe/route.ts que reciba el aviso
- *    "checkout.session.completed" de Stripe, compruebe la firma con STRIPE_WEBHOOK_SECRET
- *    y llame a marcarPedidoPagado(pedidoId, sesion.id) de src/lib/pedidos.ts.
- *    Esa función ya existe: es la misma que usa hoy el pago simulado y crea los códigos de los kits.
+ * Crea el PaymentIntent del pedido. La clave de idempotencia (el id del pedido) hace que,
+ * si se repite la llamada, Stripe devuelva el mismo intento en lugar de crear otro.
  */
-export const pagoStripe: ProveedorPago = {
-  id: "stripe",
-  async cobrar() {
-    throw new Error(
-      'Stripe todavía no está configurado. Sigue los pasos de src/lib/pagos/stripe.ts o usa PAGOS_PROVEEDOR="simulado".',
-    );
-  },
-};
+export async function crearIntentoPago(pedido: PedidoParaCobrar) {
+  const intento = await stripe().paymentIntents.create(
+    {
+      amount: pedido.totalCentimos, // Stripe también trabaja en céntimos
+      currency: "eur",
+      automatic_payment_methods: { enabled: true },
+      receipt_email: pedido.email,
+      description: `Pedido ${pedido.numero}`,
+      metadata: { pedidoId: pedido.id, numero: pedido.numero },
+    },
+    { idempotencyKey: `pedido-${pedido.id}` },
+  );
+  if (!intento.client_secret) throw new Error("Stripe no ha devuelto client_secret");
+  return { id: intento.id, clientSecret: intento.client_secret };
+}
+
+/** El client_secret de un intento ya creado (para volver a la pantalla de pago) */
+export async function secretoDeIntento(id: string): Promise<string | null> {
+  const intento = await stripe().paymentIntents.retrieve(id);
+  return intento.status === "requires_payment_method" || intento.status === "requires_action"
+    ? intento.client_secret
+    : null;
+}
+
+/**
+ * Cancela un intento de pago que ya no se va a usar (pedido caducado o anulado).
+ * Devuelve false si no se puede porque el cliente YA ha pagado: en ese caso no hay que
+ * cancelar el pedido (el webhook lo marcará como pagado).
+ */
+export async function cancelarIntentoPago(id: string): Promise<boolean> {
+  try {
+    const intento = await stripe().paymentIntents.retrieve(id);
+    if (intento.status === "succeeded" || intento.status === "processing") return false;
+    if (intento.status !== "canceled") await stripe().paymentIntents.cancel(id);
+    return true;
+  } catch (error) {
+    console.error(`No se ha podido cancelar el pago ${id} en Stripe:`, error);
+    return false;
+  }
+}
+
+/**
+ * Comprueba que un aviso del webhook viene de verdad de Stripe (firma con STRIPE_WEBHOOK_SECRET)
+ * y lo devuelve. Lanza un error si la firma no es válida.
+ */
+export function verificarEvento(cuerpo: string, firma: string): Stripe.Event {
+  const { webhook } = clavesStripe();
+  if (!webhook) throw new ErrorConfigPagos("Falta STRIPE_WEBHOOK_SECRET en .env");
+  return stripe().webhooks.constructEvent(cuerpo, firma, webhook);
+}

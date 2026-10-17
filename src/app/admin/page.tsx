@@ -93,7 +93,7 @@ export default async function InicioAdmin() {
               >
                 <div className="min-w-0">
                   <Link
-                    href={`/pedido/${pedido.id}`}
+                    href={`/admin/pedidos/${pedido.id}`}
                     className="font-mono text-[13px] font-medium hover:underline"
                   >
                     {pedido.numero}
