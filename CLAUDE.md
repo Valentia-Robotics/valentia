@@ -27,7 +27,7 @@ Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un
       (estados, seguimiento, correo al enviar); historial en Mi cuenta; `/pedido/[id]` protegido.
 - [x] 6. BD lista para PostgreSQL (adaptador según `DATABASE_URL`, búsquedas sin distinguir mayúsculas) y almacén de
       fotos en la nube S3/R2 cambiando solo la configuración.
-- [ ] 7. Páginas legales (BORRADOR) + banner de cookies (vídeos de terceros solo con consentimiento) + aceptación en checkout.
+- [x] 7. Páginas legales (BORRADOR) + banner de cookies (vídeos de terceros solo con consentimiento) + aceptación en checkout.
 - [ ] 8. Seguridad: revisión completa, límites de intentos en BD (sirve en serverless), cabeceras (CSP…), páginas de
       error, npm audit, SEGURIDAD.md.
 - [ ] 9. Calidad: Vitest (compatibilidad, precios/envíos) + Playwright (recorrido completo), 404/500, estados de carga,

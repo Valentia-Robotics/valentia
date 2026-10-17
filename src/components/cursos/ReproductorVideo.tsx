@@ -1,8 +1,10 @@
 "use client";
 
-import { Clapperboard } from "lucide-react";
+import { Clapperboard, ShieldCheck } from "lucide-react";
+import { Boton } from "@/components/ui/Boton";
 import { useEffect, useRef } from "react";
 import type { FuenteVideo } from "@/lib/video";
+import { useConsentimiento, useConsentimientoHidratado } from "@/store/consentimiento";
 import { escucharFinDelVideo, hayDetector } from "./finDelVideo";
 
 interface Props {
@@ -25,7 +27,11 @@ export function ReproductorVideo({ fuente, titulo, alTerminar, sinDetector }: Pr
     fallo.current = sinDetector;
   });
 
-  const servicio = fuente.tipo === "incrustado" ? fuente.servicio : null;
+  // YouTube y Vimeo ponen cookies de terceros: solo se cargan si se han aceptado (banner de cookies)
+  const hidratado = useConsentimientoHidratado();
+  const videosPermitidos = useConsentimiento((estado) => estado.preferencias.videos);
+  const permitido = hidratado && videosPermitidos;
+  const servicio = fuente.tipo === "incrustado" && permitido ? fuente.servicio : null;
 
   // Escuchamos el final del vídeo con la API oficial del servicio
   useEffect(() => {
@@ -63,7 +69,10 @@ export function ReproductorVideo({ fuente, titulo, alTerminar, sinDetector }: Pr
           </p>
         </div>
       )}
-      {fuente.tipo === "incrustado" && (
+      {fuente.tipo === "incrustado" && !permitido && hidratado && (
+        <AvisoCookiesVideo proveedor={fuente.proveedor} />
+      )}
+      {fuente.tipo === "incrustado" && permitido && (
         <iframe
           ref={iframe}
           src={fuente.src}
@@ -85,6 +94,29 @@ export function ReproductorVideo({ fuente, titulo, alTerminar, sinDetector }: Pr
           Tu navegador no puede reproducir este vídeo.
         </video>
       )}
+    </div>
+  );
+}
+
+/** En lugar del vídeo, si no se han aceptado las cookies de YouTube/Vimeo */
+function AvisoCookiesVideo({ proveedor }: { proveedor: string }) {
+  const { preferencias, guardar, abrirPanel } = useConsentimiento();
+  return (
+    <div className="flex size-full flex-col items-center justify-center gap-3 p-6 text-center text-white">
+      <ShieldCheck aria-hidden="true" className="size-10 text-acento-claro" strokeWidth={1.3} />
+      <p className="font-titulo text-lg sm:text-xl">Este vídeo está en {proveedor}</p>
+      <p className="max-w-md text-sm text-gris-claro">
+        Para verlo aquí, {proveedor} necesita guardar sus propias cookies. Solo lo cargamos si nos
+        das permiso.
+      </p>
+      <div className="mt-1 flex flex-wrap justify-center gap-3">
+        <Boton variante="claro" onClick={() => guardar({ ...preferencias, videos: true })}>
+          Aceptar y ver el vídeo
+        </Boton>
+        <Boton variante="enlace-claro" onClick={abrirPanel}>
+          Más opciones
+        </Boton>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 import { EnlacesPie } from "@/components/layout/EnlacesPie";
 import { Logo } from "@/components/marca/Logo";
 import { Contenedor } from "@/components/ui/Contenedor";
-import { columnasPie, marca } from "@/config/marca";
+import { columnasPie, enlacesLegales, marca } from "@/config/marca";
+import { tienda } from "@/config/tienda";
+import { BotonConfigurarCookies } from "./BotonConfigurarCookies";
 
 /** Pie de página con el logo, columnas de enlaces y © Valentia. */
 export function PieDePagina() {
@@ -10,7 +12,7 @@ export function PieDePagina() {
   return (
     <footer className="border-t border-linea bg-niebla text-sm print:hidden">
       <Contenedor className="py-14">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div className="max-w-xs">
             <Logo alto={18} />
             <p className="mt-5 leading-relaxed text-gris">{marca.descripcion}</p>
@@ -24,13 +26,22 @@ export function PieDePagina() {
               <EnlacesPie enlaces={columna.enlaces} enlacesConSesion={columna.enlacesConSesion} />
             </nav>
           ))}
+          <nav aria-label="Legal">
+            <h2 className="font-sans text-xs font-semibold tracking-wide text-tinta uppercase">
+              Legal
+            </h2>
+            <EnlacesPie enlaces={enlacesLegales} />
+          </nav>
         </div>
 
         <div className="mt-12 flex flex-col gap-2 border-t border-linea pt-6 text-xs text-gris sm:flex-row sm:justify-between">
           <p>
             © {anio} {marca.nombre}. Todos los derechos reservados.
           </p>
-          <p>Precios con IVA incluido. Pagos simulados: versión de pruebas.</p>
+          <p className="flex flex-wrap gap-x-4 gap-y-1">
+            <span>Precios con IVA incluido. Envíos a la {tienda.envio.nombreZona}.</span>
+            <BotonConfigurarCookies className="text-gris hover:text-tinta" />
+          </p>
         </div>
       </Contenedor>
     </footer>

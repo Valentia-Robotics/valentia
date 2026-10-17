@@ -92,3 +92,12 @@ export const columnasPie: {
     ],
   },
 ];
+
+/** Páginas legales (pie de página y checkout). ⚠ Son BORRADORES pendientes de revisión. */
+export const enlacesLegales: EnlaceNavegacion[] = [
+  { href: "/legal/aviso-legal", etiqueta: "Aviso legal" },
+  { href: "/legal/privacidad", etiqueta: "Privacidad" },
+  { href: "/legal/cookies", etiqueta: "Cookies" },
+  { href: "/legal/condiciones", etiqueta: "Condiciones de venta" },
+  { href: "/legal/devoluciones", etiqueta: "Devoluciones" },
+];
