@@ -15,7 +15,15 @@ export const SIN_VIDEO = "PENDIENTE";
 
 export type FuenteVideo =
   | { tipo: "pendiente" }
-  | { tipo: "incrustado"; src: string; proveedor: string }
+  | {
+      tipo: "incrustado";
+      src: string;
+      /** Nombre que se ve: "YouTube" */
+      proveedor: string;
+      /** Identificador del servicio ("youtube", "vimeo") y del vídeo, para usar su API */
+      servicio: string;
+      idVideo: string;
+    }
   | { tipo: "archivo"; src: string };
 
 /** Lee una dirección como URL (las rutas como /videos/x.mp4 también valen). null si no es válida. */
@@ -44,7 +52,15 @@ export function fuenteVideo(url: string): FuenteVideo {
   const u = comoUrl(url);
   for (const p of proveedoresVideo) {
     const id = u && p.idDesdeUrl(u);
-    if (id) return { tipo: "incrustado", proveedor: p.nombre, src: p.urlIncrustada(id) };
+    if (id) {
+      return {
+        tipo: "incrustado",
+        proveedor: p.nombre,
+        servicio: p.id,
+        idVideo: id,
+        src: p.urlIncrustada(id),
+      };
+    }
   }
   return { tipo: "archivo", src: url };
 }

@@ -24,5 +24,7 @@ export const youtube: ProveedorVideo = {
   },
   esIdentificador: (texto) => FORMATO_ID.test(texto),
   urlNormal: (id) => `https://www.youtube.com/watch?v=${id}`,
-  urlIncrustada: (id) => `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
+  // enablejsapi=1 permite usar la API oficial (YouTube IFrame API) para saber cuándo termina
+  urlIncrustada: (id) =>
+    `https://www.youtube-nocookie.com/embed/${id}?rel=0&enablejsapi=1&playsinline=1`,
 };

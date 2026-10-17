@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, ChevronRight, Clock, PartyPopper } from "lucide-react";
 import { BotonCompletar } from "@/components/cursos/BotonCompletar";
 import { EjercicioReto } from "@/components/cursos/EjercicioReto";
-import { EjercicioTest } from "@/components/cursos/EjercicioTest";
-import { ReproductorVideo } from "@/components/cursos/ReproductorVideo";
+import { VideoYTest } from "@/components/cursos/VideoYTest";
 import { TemarioLateral } from "@/components/cursos/TemarioLateral";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
@@ -19,8 +18,8 @@ interface Props {
 }
 
 /**
- * LECCIÓN DE UN CURSO: temario a un lado; vídeo, explicación, "Marcar como completada"
- * y ejercicios (tests y retos) en el centro.
+ * LECCIÓN DE UN CURSO: temario a un lado; vídeo, acceso al test (se desbloquea al terminar
+ * el vídeo), explicación, "Marcar como completada" y retos en el centro.
  */
 export default async function PaginaLeccion({ params, searchParams }: Props) {
   const { slug, leccion: leccionSlug } = await params;
@@ -29,10 +28,7 @@ export default async function PaginaLeccion({ params, searchParams }: Props) {
 
   const datos = await obtenerLeccion(usuario.id, slug, leccionSlug);
   if (!datos) notFound();
-  const { curso, temario, leccion, ejercicios, anterior, siguiente } = datos;
-
-  let numTest = 0;
-  let numReto = 0;
+  const { curso, temario, leccion, ejercicios, test, anterior, siguiente } = datos;
 
   return (
     <Contenedor className="py-8 sm:py-12">
@@ -70,7 +66,15 @@ export default async function PaginaLeccion({ params, searchParams }: Props) {
           </p>
 
           <div className="mt-6">
-            <ReproductorVideo url={leccion.videoUrl} titulo={leccion.titulo} />
+            <VideoYTest
+              leccionId={leccion.id}
+              urlTest={`/cursos/${curso.slug}/${leccion.slug}/test`}
+              videoUrl={leccion.videoUrl}
+              titulo={leccion.titulo}
+              preguntas={test.preguntas}
+              videoVisto={test.videoVisto}
+              resultado={test.resultado}
+            />
           </div>
 
           <p className="mt-6 text-lg leading-relaxed">{leccion.descripcion}</p>
@@ -82,38 +86,19 @@ export default async function PaginaLeccion({ params, searchParams }: Props) {
           {ejercicios.length > 0 && (
             <section aria-labelledby="titulo-ejercicios" className="mt-12">
               <h2 id="titulo-ejercicios" className="text-2xl font-medium">
-                Pon a prueba lo aprendido
+                Manos a la obra
               </h2>
               <div className="mt-5 space-y-5">
-                {ejercicios.map((e) =>
-                  e.tipo === "TEST" ? (
-                    <EjercicioTest
-                      key={e.id}
-                      id={e.id}
-                      numero={++numTest}
-                      enunciado={e.enunciado}
-                      opciones={e.opciones}
-                      previo={
-                        e.respuesta != null && e.correcta != null
-                          ? {
-                              respuesta: e.respuesta,
-                              correcta: e.correcta,
-                              explicacion: e.explicacion,
-                            }
-                          : null
-                      }
-                    />
-                  ) : (
-                    <EjercicioReto
-                      key={e.id}
-                      id={e.id}
-                      numero={++numReto}
-                      enunciado={e.enunciado}
-                      pistas={e.pistas}
-                      solucionInicial={e.solucion}
-                    />
-                  ),
-                )}
+                {ejercicios.map((e, i) => (
+                  <EjercicioReto
+                    key={e.id}
+                    id={e.id}
+                    numero={i + 1}
+                    enunciado={e.enunciado}
+                    pistas={e.pistas}
+                    solucionInicial={e.solucion}
+                  />
+                ))}
               </div>
             </section>
           )}

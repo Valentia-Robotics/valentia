@@ -19,7 +19,7 @@ Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un
 - [x] 2. Portada visual: robot 3D con `three` (carga diferida, se despieza con el scroll), versión estática en
       móvil/equipos lentos/reduced-motion, animaciones de entrada por sección.
 - [x] 3. Navegación: sección activa visible (Inicio, Kits…, subpáginas) en escritorio, menú móvil y panel.
-- [ ] 4. Cursos: «Hacer el test» se desbloquea al terminar el vídeo (YouTube IFrame API, Vimeo Player SDK, <video>);
+- [x] 4. Cursos: «Hacer el test» se desbloquea al terminar el vídeo (YouTube IFrame API, Vimeo Player SDK, <video>);
       pantalla `/cursos/[slug]/[leccion]/test` pregunta a pregunta, puntuación, explicaciones, repetir, guardar resultado.
 - [ ] 5. Checkout y pagos: Stripe Payment Element (claves de prueba) + webhook firmado e idempotente; modo simulado sin
       claves («Confirmar pago de prueba»); envío con teléfono y provincia, CP de la zona; direcciones guardadas e invitado;

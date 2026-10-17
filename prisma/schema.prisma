@@ -110,18 +110,20 @@ model Curso {
 }
 
 model Leccion {
-  id          String            @id @default(cuid())
-  curso       Curso             @relation(fields: [cursoId], references: [id], onDelete: Cascade)
-  cursoId     String
-  slug        String
-  orden       Int
-  titulo      String
-  descripcion String
+  id             String            @id @default(cuid())
+  curso          Curso             @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  cursoId        String
+  slug           String
+  orden          Int
+  titulo         String
+  descripcion    String
   /// URL del vídeo (YouTube, Vimeo o .mp4). "PENDIENTE" = todavía no hay vídeo.
-  videoUrl    String
-  duracionMin Int
-  ejercicios  Ejercicio[]
-  progreso    ProgresoLeccion[]
+  videoUrl       String
+  duracionMin    Int
+  ejercicios     Ejercicio[]
+  progreso       ProgresoLeccion[]
+  videosVistos   VideoVisto[]
+  resultadosTest ResultadoTest[]
 
   @@unique([cursoId, slug])
 }
@@ -265,6 +267,8 @@ model Usuario {
   ejercicios     ProgresoEjercicio[]
   verificaciones Verificacion[]
   dispositivos   DispositivoConfianza[]
+  videosVistos   VideoVisto[]
+  resultadosTest ResultadoTest[]
 }
 
 /// Para qué se ha enviado un código por email
@@ -353,6 +357,34 @@ model ProgresoLeccion {
   leccion      Leccion  @relation(fields: [leccionId], references: [id], onDelete: Cascade)
   leccionId    String
   completadaEn DateTime @default(now())
+
+  @@id([usuarioId, leccionId])
+}
+
+/// El usuario ha visto el vídeo de la lección hasta el final (desbloquea el test)
+model VideoVisto {
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  leccion   Leccion  @relation(fields: [leccionId], references: [id], onDelete: Cascade)
+  leccionId String
+  vistoEn   DateTime @default(now())
+
+  @@id([usuarioId, leccionId])
+}
+
+/// Resultado del test de una lección (todas sus preguntas de tipo TEST)
+model ResultadoTest {
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId     String
+  leccion       Leccion  @relation(fields: [leccionId], references: [id], onDelete: Cascade)
+  leccionId     String
+  /// Aciertos y número de preguntas del último intento
+  aciertos      Int
+  total         Int
+  /// Mejor número de aciertos de todos los intentos
+  mejorAciertos Int
+  intentos      Int      @default(1)
+  actualizadoEn DateTime @updatedAt
 
   @@id([usuarioId, leccionId])
 }

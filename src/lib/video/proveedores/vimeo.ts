@@ -14,5 +14,6 @@ export const vimeo: ProveedorVideo = {
   },
   esIdentificador: (texto) => FORMATO_ID.test(texto),
   urlNormal: (id) => `https://vimeo.com/${id}`,
-  urlIncrustada: (id) => `https://player.vimeo.com/video/${id}`,
+  // dnt=1: Vimeo no guarda datos de seguimiento del espectador
+  urlIncrustada: (id) => `https://player.vimeo.com/video/${id}?dnt=1`,
 };

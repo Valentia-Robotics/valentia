@@ -7,6 +7,7 @@
  */
 import "server-only";
 import { db } from "@/lib/db";
+import { fuenteVideo } from "@/lib/video";
 
 /** Lista de textos guardada como JSON (opciones de un test, pistas de un reto) */
 function textos(valor: unknown): string[] {
@@ -110,9 +111,17 @@ export async function obtenerLeccion(usuarioId: string, cursoSlug: string, lecci
       descripcion: true,
       videoUrl: true,
       duracionMin: true,
+      // En la lección solo se enseñan los retos; el test va en su propia pantalla
       ejercicios: {
+        where: { tipo: "RETO" },
         orderBy: { orden: "asc" },
         include: { progreso: { where: { usuarioId } } },
+      },
+      _count: { select: { ejercicios: { where: { tipo: "TEST" } } } },
+      videosVistos: { where: { usuarioId }, select: { vistoEn: true } },
+      resultadosTest: {
+        where: { usuarioId },
+        select: { aciertos: true, total: true, mejorAciertos: true, intentos: true },
       },
     },
   });
@@ -125,31 +134,13 @@ export async function obtenerLeccion(usuarioId: string, cursoSlug: string, lecci
     completada: l.progreso.length > 0,
   }));
 
-  // Ejercicios "seguros": solo lo que el usuario ya puede ver
-  const ejercicios = leccion.ejercicios.map((e) => {
-    const progreso = e.progreso[0];
-    const respondido = progreso?.respuesta != null;
-    if (e.tipo === "TEST") {
-      return {
-        id: e.id,
-        tipo: "TEST" as const,
-        enunciado: e.enunciado,
-        opciones: textos(e.opciones),
-        // Si ya lo respondió, recordamos su última respuesta y la corrección
-        respuesta: respondido ? progreso.respuesta : null,
-        acertado: progreso?.acertado ?? false,
-        correcta: respondido ? e.correcta : null,
-        explicacion: respondido ? e.explicacion : null,
-      };
-    }
-    return {
-      id: e.id,
-      tipo: "RETO" as const,
-      enunciado: e.enunciado,
-      pistas: textos(e.pistas),
-      solucion: progreso?.solucionVista ? e.solucion : null,
-    };
-  });
+  // Retos "seguros": la solución solo si ya la ha desbloqueado
+  const ejercicios = leccion.ejercicios.map((e) => ({
+    id: e.id,
+    enunciado: e.enunciado,
+    pistas: textos(e.pistas),
+    solucion: e.progreso[0]?.solucionVista ? e.solucion : null,
+  }));
 
   return {
     curso: { slug: curso.slug, titulo: curso.titulo },
@@ -165,6 +156,11 @@ export async function obtenerLeccion(usuarioId: string, cursoSlug: string, lecci
       completada: temario[posicion].completada,
     },
     ejercicios,
+    test: {
+      preguntas: leccion._count.ejercicios,
+      videoVisto: leccion.videosVistos.length > 0,
+      resultado: leccion.resultadosTest[0] ?? null,
+    },
     anterior: temario[posicion - 1] ?? null,
     siguiente: temario[posicion + 1] ?? null,
   };
@@ -172,6 +168,58 @@ export async function obtenerLeccion(usuarioId: string, cursoSlug: string, lecci
 
 export type DatosLeccion = NonNullable<Awaited<ReturnType<typeof obtenerLeccion>>>;
 export type EjercicioSeguro = DatosLeccion["ejercicios"][number];
+
+/** ¿Puede el usuario hacer el test? Sí si ha visto el vídeo o si la lección aún no tiene vídeo */
+export function testDesbloqueado(videoUrl: string, videoVisto: boolean): boolean {
+  return videoVisto || fuenteVideo(videoUrl).tipo === "pendiente";
+}
+
+/**
+ * Pantalla del test de una lección: sus preguntas (SIN la respuesta correcta) y si está
+ * desbloqueado. null si el usuario no tiene el curso o la lección no existe.
+ */
+export async function obtenerTestLeccion(
+  usuarioId: string,
+  cursoSlug: string,
+  leccionSlug: string,
+) {
+  if (!(await cursoDesbloqueado(usuarioId, cursoSlug))) return null;
+  const leccion = await db.leccion.findFirst({
+    where: { slug: leccionSlug, curso: { slug: cursoSlug } },
+    select: {
+      id: true,
+      slug: true,
+      orden: true,
+      titulo: true,
+      videoUrl: true,
+      curso: { select: { slug: true, titulo: true } },
+      ejercicios: {
+        where: { tipo: "TEST" },
+        orderBy: { orden: "asc" },
+        select: { id: true, enunciado: true, opciones: true },
+      },
+      videosVistos: { where: { usuarioId }, select: { vistoEn: true } },
+    },
+  });
+  if (!leccion) return null;
+  return {
+    leccion: {
+      id: leccion.id,
+      slug: leccion.slug,
+      orden: leccion.orden,
+      titulo: leccion.titulo,
+    },
+    curso: leccion.curso,
+    desbloqueado: testDesbloqueado(leccion.videoUrl, leccion.videosVistos.length > 0),
+    preguntas: leccion.ejercicios.map((e) => ({
+      id: e.id,
+      enunciado: e.enunciado,
+      opciones: textos(e.opciones),
+    })),
+  };
+}
+
+export type TestLeccion = NonNullable<Awaited<ReturnType<typeof obtenerTestLeccion>>>;
 
 /** Comprueba que el usuario puede usar un ejercicio (tiene su curso) y lo devuelve completo */
 export async function ejercicioDelUsuario(usuarioId: string, ejercicioId: string) {
