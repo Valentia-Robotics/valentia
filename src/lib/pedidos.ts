@@ -10,6 +10,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { generarCodigoActivacion, generarNumeroPedido } from "@/lib/codigos";
 import { db } from "@/lib/db";
+import { calcularTotales } from "@/lib/precios";
 import type { ArticuloPedido, DatosCliente } from "@/lib/validaciones/pedido";
 
 type Tx = Prisma.TransactionClient;
@@ -161,7 +162,8 @@ export async function crearPedido(
       data: {
         numero: generarNumeroPedido(),
         ...cliente,
-        totalCentimos,
+        // Total con los gastos de envío (calculados en el servidor, ver src/lib/precios.ts)
+        totalCentimos: calcularTotales(totalCentimos).totalCentimos,
         proveedorPago,
         lineas: {
           create: lineas.map((l) => ({

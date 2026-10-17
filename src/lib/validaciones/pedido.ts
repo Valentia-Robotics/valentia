@@ -4,6 +4,8 @@
  * Ojo: el carrito NO trae precios de confianza; el servidor los recalcula.
  */
 import { z } from "zod";
+import { tienda } from "@/config/tienda";
+import { codigoPostalEnZona } from "@/lib/precios";
 
 const slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Producto no válido");
 const cantidad = z.number().int().min(1).max(99);
@@ -39,7 +41,11 @@ export const esquemaDatosCliente = z.object({
   codigoPostal: z
     .string()
     .trim()
-    .regex(/^\d{5}$/, "El código postal tiene 5 cifras"),
+    .regex(/^\d{5}$/, "El código postal tiene 5 cifras")
+    .refine(
+      codigoPostalEnZona,
+      `¡Vaya! De momento solo enviamos a la ${tienda.envio.nombreZona} (códigos postales que empiezan por ${tienda.envio.provincias.map((p) => p.prefijoCP).join(", ")}). Pronto llegaremos a más sitios.`,
+    ),
   ciudad: z.string().trim().min(2, "Escribe tu ciudad").max(100, "El nombre es demasiado largo"),
 });
 

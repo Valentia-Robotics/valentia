@@ -53,7 +53,7 @@ export function VistaCarrito() {
       </ul>
 
       <div className="lg:sticky lg:top-[calc(var(--spacing-nav)+1.5rem)]">
-        <ResumenCompra totalCentimos={totalCentimos} totalArticulos={totalArticulos}>
+        <ResumenCompra subtotalCentimos={totalCentimos} totalArticulos={totalArticulos}>
           <Boton href="/checkout" variante="acento" tamano="xl" className="w-full">
             Tramitar pedido
           </Boton>

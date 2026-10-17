@@ -7,6 +7,7 @@ import { useActionState, useEffect } from "react";
 import { realizarPedido, type EstadoCheckout } from "@/app/(tienda)/checkout/acciones";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
+import { calcularTotales } from "@/lib/precios";
 import { formatearPrecio } from "@/lib/utils";
 import {
   seleccionarTotalArticulos,
@@ -161,7 +162,7 @@ export function FormularioCheckout() {
       </div>
 
       <div className="lg:sticky lg:top-[calc(var(--spacing-nav)+1.5rem)]">
-        <ResumenCompra totalCentimos={totalCentimos} totalArticulos={totalArticulos}>
+        <ResumenCompra subtotalCentimos={totalCentimos} totalArticulos={totalArticulos}>
           <ul className="mb-6 space-y-3 border-b border-linea pb-6 text-sm">
             {articulos.map((a) => (
               <li key={a.id} className="flex items-center gap-3">
@@ -187,7 +188,9 @@ export function FormularioCheckout() {
           </ul>
           <Boton type="submit" variante="acento" tamano="xl" disabled={enviando} className="w-full">
             <Lock aria-hidden="true" className="size-5" />
-            {enviando ? "Procesando…" : `Pagar ${formatearPrecio(totalCentimos)}`}
+            {enviando
+              ? "Procesando…"
+              : `Pagar ${formatearPrecio(calcularTotales(totalCentimos).totalCentimos)}`}
           </Boton>
           <Boton href="/carrito" variante="enlace" className="mt-3 w-full">
             ‹ Volver al carrito

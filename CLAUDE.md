@@ -7,8 +7,32 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Las 6 fases, el panel de administración (7 partes) y la verificación por email (7 partes) están terminados.** Siguiente paso posible (a decidir con el usuario): preparar la
-publicación (lista «Antes de publicar la web» del README). No empezar trabajo nuevo grande sin la aprobación del usuario.
+**Las 6 fases, el panel de administración (7 partes) y la verificación por email (7 partes) están terminados.**
+**En curso: FASE DE LANZAMIENTO** (encargo del 17-10-2026, trabajo autónomo sin preguntas; decisiones en INFORME.md).
+
+### Fase de lanzamiento — plan y registro (marcar [x] y anotar el commit al terminar cada bloque)
+
+Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un commit por bloque.
+
+- [x] 1. Configuración del negocio: `src/config/tienda.ts` (zona CP 03/46/12, envío 4,95 € / gratis ≥ 50 €, IVA 21 %,
+      datos de empresa como `[RAZÓN SOCIAL]`…), cálculo de totales puro en `src/lib/precios.ts`, desglose en carrito/checkout.
+- [ ] 2. Portada visual: robot 3D con `three` (carga diferida, se despieza con el scroll), versión estática en
+      móvil/equipos lentos/reduced-motion, animaciones de entrada por sección.
+- [ ] 3. Navegación: sección activa visible (Inicio, Kits…, subpáginas) en escritorio, menú móvil y panel.
+- [ ] 4. Cursos: «Hacer el test» se desbloquea al terminar el vídeo (YouTube IFrame API, Vimeo Player SDK, <video>);
+      pantalla `/cursos/[slug]/[leccion]/test` pregunta a pregunta, puntuación, explicaciones, repetir, guardar resultado.
+- [ ] 5. Checkout y pagos: Stripe Payment Element (claves de prueba) + webhook firmado e idempotente; modo simulado sin
+      claves («Confirmar pago de prueba»); envío con teléfono y provincia, CP de la zona; direcciones guardadas e invitado;
+      stock reservado al crear y liberado si falla; códigos + correo de confirmación con IVA al pagar; panel de pedidos
+      (estados, seguimiento, correo al enviar); historial en Mi cuenta; `/pedido/[id]` protegido.
+- [ ] 6. BD lista para PostgreSQL (adaptador según `DATABASE_URL`, búsquedas sin distinguir mayúsculas) y almacén de
+      fotos en la nube S3/R2 cambiando solo la configuración.
+- [ ] 7. Páginas legales (BORRADOR) + banner de cookies (vídeos de terceros solo con consentimiento) + aceptación en checkout.
+- [ ] 8. Seguridad: revisión completa, límites de intentos en BD (sirve en serverless), cabeceras (CSP…), páginas de
+      error, npm audit, SEGURIDAD.md.
+- [ ] 9. Calidad: Vitest (compatibilidad, precios/envíos) + Playwright (recorrido completo), 404/500, estados de carga,
+      SEO (sitemap, robots, imagen para redes), móvil y accesibilidad.
+- [ ] 10. README, CLAUDE.md, INFORME.md, graphify, commit final y `npm run dev`.
 
 ### Terminado
 
