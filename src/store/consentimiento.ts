@@ -53,6 +53,12 @@ export const useConsentimiento = create<EstadoConsentimiento>()(
       partialize: ({ decididoEn, preferencias }) => ({ decididoEn, preferencias }),
       // Si cambia la versión, se descarta la elección anterior y se vuelve a preguntar
       migrate: () => ({ decididoEn: null, preferencias: { videos: false } }),
+      // Al leer la elección guardada: si tiene más de 12 meses, se descarta y se vuelve a preguntar
+      merge: (guardado, actual) => {
+        const elegido = guardado as Partial<EstadoConsentimiento> | undefined;
+        if (!elegido || hayQuePreguntar(elegido.decididoEn ?? null)) return actual;
+        return { ...actual, ...elegido };
+      },
     },
   ),
 );

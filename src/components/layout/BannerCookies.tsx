@@ -5,11 +5,7 @@ import { Cookie } from "lucide-react";
 import { useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Dialogo } from "@/components/ui/Dialogo";
-import {
-  hayQuePreguntar,
-  useConsentimiento,
-  useConsentimientoHidratado,
-} from "@/store/consentimiento";
+import { useConsentimiento, useConsentimientoHidratado } from "@/store/consentimiento";
 
 /**
  * BANNER DE COOKIES
@@ -21,11 +17,10 @@ export function BannerCookies() {
   const hidratado = useConsentimientoHidratado();
   const { decididoEn, panelAbierto, aceptarTodo, rechazarTodo, abrirPanel, cerrarPanel } =
     useConsentimiento();
-  // Se calcula una vez al cargar (Date.now() no puede ir directamente en el render)
-  const [caducado] = useState(() => hayQuePreguntar(decididoEn));
 
   if (!hidratado) return null;
-  const mostrarBanner = (decididoEn === null || caducado) && !panelAbierto;
+  // Una elección de hace más de 12 meses ya se descarta al leerla (ver store/consentimiento.ts)
+  const mostrarBanner = decididoEn === null && !panelAbierto;
 
   return (
     <>
