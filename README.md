@@ -2,38 +2,42 @@
 
 Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloquean con el QR de cada caja.
 
-> Estado: **versión local completa** (las 6 fases terminadas) con **panel de administración** en `/admin`.
-> Los pagos son simulados y el código está preparado para Stripe, PostgreSQL y guardar las fotos en la nube.
-> Antes de publicarla, sigue la lista [Antes de publicar la web](#antes-de-publicar-la-web).
+> Estado: **preparada para el lanzamiento** (fase de lanzamiento terminada, ver `INFORME.md`).
+> Funciona entera en tu ordenador con **pagos de prueba**. Para publicarla hay que poner claves de
+> Stripe, una base de datos PostgreSQL, un proveedor de correo y revisar los textos legales: sigue la
+> lista [Antes de publicar la web](#antes-de-publicar-la-web).
 
 ## Qué tiene la web
 
-| Dirección                               | Qué es                                                                        |
-| --------------------------------------- | ----------------------------------------------------------------------------- |
-| `/`                                     | Portada: kit estrella, una sección por kit, configurador y explicación del QR |
-| `/kits`, `/kits/[kit]`                  | Listado de kits y ficha de cada uno (precio, piezas, temario del curso)       |
-| `/componentes`                          | Componentes sueltos por categoría, con sus datos técnicos                     |
-| `/configurador`                         | Monta tu robot pieza a pieza, con avisos de compatibilidad                    |
-| `/carrito`, `/checkout`, `/pedido/[id]` | Carrito, compra simulada y confirmación con las tarjetas QR imprimibles       |
-| `/login`, `/registro`                   | Iniciar sesión y crear cuenta                                                 |
-| `/verificar`                            | Escribir el código de 6 cifras enviado por email                              |
-| `/recuperar`                            | ¿Olvidaste tu contraseña? (código por email y contraseña nueva)               |
-| `/cuenta`                               | Mi cuenta: dispositivos de confianza, cerrar sesión en todos, contraseña      |
-| `/activar?codigo=…`                     | Lo que abre el QR de la caja: desbloquea el curso del kit                     |
-| `/cursos`, `/cursos/[curso]/[lección]`  | Mis cursos: vídeos, tests, retos y progreso (necesita iniciar sesión)         |
-| `/diseno`                               | Página interna con el sistema de diseño (colores, tipografías, botones)       |
-| `/admin`                                | **Panel de administración** (solo administradores, ver más abajo)             |
-| `/dev/correos`                          | Solo con `npm run dev`: los correos que la web «habría enviado»               |
+| Dirección                              | Qué es                                                                                    |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `/`                                    | Portada: robot 3D que se despieza al hacer scroll, cómo funciona, kits, configurador y QR |
+| `/kits`, `/kits/[kit]`                 | Listado de kits y ficha de cada uno (precio, piezas, temario del curso)                   |
+| `/componentes`                         | Componentes sueltos por categoría, con sus datos técnicos                                 |
+| `/configurador`                        | Monta tu robot pieza a pieza, con avisos de compatibilidad                                |
+| `/carrito`, `/checkout`                | Carrito y compra en dos pasos: datos de envío → pago (Stripe o pago de prueba)            |
+| `/pedido/[id]`                         | Estado del pedido, resumen con IVA y tarjetas QR (solo su dueño o con el enlace privado)  |
+| `/login`, `/registro`                  | Iniciar sesión y crear cuenta                                                             |
+| `/verificar`, `/recuperar`             | Código de 6 cifras por email y «¿Olvidaste tu contraseña?»                                |
+| `/cuenta`, `/cuenta/pedidos`           | Mi cuenta: pedidos, direcciones guardadas, dispositivos, contraseña                       |
+| `/activar?codigo=…`                    | Lo que abre el QR de la caja: desbloquea el curso del kit                                 |
+| `/cursos`, `/cursos/[curso]/[lección]` | Mis cursos: vídeo, retos y progreso                                                       |
+| `/cursos/[curso]/[lección]/test`       | Test de la lección, pregunta a pregunta (se desbloquea al terminar el vídeo)              |
+| `/legal/…`                             | Aviso legal, privacidad, cookies, condiciones de venta y devoluciones (**borradores**)    |
+| `/admin`                               | **Panel de administración** (solo administradores, ver más abajo)                         |
+| `/diseno`                              | Página interna con el sistema de diseño (colores, tipografías, botones)                   |
+| `/dev/correos`                         | Solo con `npm run dev`: los correos que la web «habría enviado»                           |
 
 ## Tecnología
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 (SQLite en local, PostgreSQL
-en producción) · Auth.js v5 (email y contraseña cifrada con bcrypt, verificación con código por email) · Zustand (carrito en el navegador) ·
-Zod (validación) · qrcode · lucide-react (iconos) · ESLint + Prettier.
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 (SQLite en local,
+PostgreSQL en producción) · Auth.js v5 (email y contraseña, verificación con código por email) ·
+Stripe (Payment Element) · three.js (robot 3D) · Zustand (carrito y cookies en el navegador) ·
+Zod (validación) · qrcode · lucide-react (iconos) · Vitest y Playwright (pruebas) · ESLint + Prettier.
 
 ## Cómo arrancar el proyecto
 
-Necesitas tener instalado [Node.js](https://nodejs.org) 22 o superior.
+Necesitas tener instalado [Node.js](https://nodejs.org) 22 o superior (y Google Chrome para las pruebas).
 
 ```bash
 npm install        # descarga las librerías (solo la primera vez)
@@ -45,335 +49,286 @@ Abre **http://localhost:3000** en el navegador. Cada vez que guardes un archivo,
 Para pararla, pulsa `Ctrl + C` en la terminal.
 
 Si es la primera vez y no tienes archivo `.env`, copia `.env.example` como `.env` **antes** de `npm run setup`
-y genera la clave secreta de las sesiones con `npx auth secret` (o pon en `AUTH_SECRET` un texto largo y aleatorio).
+y genera la clave secreta con `npx auth secret` (o pon en `AUTH_SECRET` un texto largo y aleatorio).
 
 ### Cuenta y códigos de prueba
 
-El seed crea un **usuario de prueba**, con el email ya verificado (solo para tu ordenador, no lo uses en la web publicada):
+El seed crea un **usuario de prueba**, con el email ya verificado (solo para tu ordenador):
 
 | Email                  | Contraseña   |
 | ---------------------- | ------------ |
 | `prueba@valentia.test` | `robots2026` |
 
-Empieza sin cursos. Para probar todo el recorrido del QR de la caja:
+**Códigos de activación de prueba**: `VAL-PRUE-CAR2`, `VAL-PRUE-CAR3` (coche), `VAL-PRUE-BRZ2`,
+`VAL-PRUE-BRZ3` (brazo), `VAL-PRUE-MET2`, `VAL-PRUE-MET3` (estación). Ábrelos así:
+**http://localhost:3000/activar?codigo=VAL-PRUE-CAR2**. Cada navegador nuevo te pedirá un código por
+email: lo verás en **http://localhost:3000/dev/correos**.
 
-1. Abre **http://localhost:3000/activar?codigo=VAL-PRUE-CAR2** (es lo que abriría el QR).
-2. Pulsa «Ya tengo cuenta: iniciar sesión» y entra con el usuario de prueba. La primera vez en cada navegador
-   te pedirá un código: lo verás en **http://localhost:3000/dev/correos** (ver más abajo). Volverás solo a la activación.
-3. Pulsa «Activar mi curso». El curso del coche aparece en **Mis cursos** (http://localhost:3000/cursos).
+## Configuración del negocio
 
-**Códigos de activación de prueba** (sin usar): `VAL-PRUE-CAR2`, `VAL-PRUE-CAR3` (coche),
-`VAL-PRUE-BRZ2`, `VAL-PRUE-BRZ3` (brazo) y `VAL-PRUE-MET2`, `VAL-PRUE-MET3` (estación meteorológica).
-Con `npm run db:reset` vuelven a quedar sin usar (pero ese comando lo borra todo, ver más abajo).
+Todo lo que puedes querer cambiar sin tocar código está en **`src/config/tienda.ts`**:
+
+- **Zona de envío**: solo Comunidad Valenciana (códigos postales que empiezan por **03**, **46** y **12**).
+  Si alguien escribe otro código postal, el checkout le muestra un mensaje amable.
+- **Gastos de envío**: 4,95 €; **gratis desde 50 €** (valores provisionales).
+- **IVA**: 21 %, incluido en todos los precios. Se desglosa en el carrito, el checkout, el pedido y los correos.
+- **Datos de la empresa**: razón social, NIF, dirección, email… Ahora son marcadores como `[RAZÓN SOCIAL]`
+  y `[NIF]`: **rellénalos antes de publicar** (salen en las páginas legales y en los correos).
+
+Los cálculos (envío, total, base imponible e IVA) están en `src/lib/precios.ts` y los usan igual el
+navegador, el servidor y los correos.
+
+## La compra y los pagos
+
+El recorrido es **carrito** → **checkout** (1. datos de envío, 2. pago) → **página del pedido**.
+
+- Se puede comprar **con cuenta** (se rellenan sus direcciones guardadas y el pedido sale en «Mi cuenta»)
+  o **como invitado** (pidiendo el email).
+- El servidor **recalcula siempre el precio** con la base de datos y **reserva el stock** al crear el
+  pedido (nunca queda en negativo). Si el pago no llega en **60 minutos**, el pedido se cancela y el
+  stock vuelve al almacén (`MINUTOS_RESERVA` en `src/lib/pedidos.ts`).
+- Al **confirmarse el pago**: el pedido pasa a «Pagado», se crea un código de activación por cada kit
+  y se envía el **correo de confirmación** con el resumen y el IVA desglosado.
+- Para comprar hay que aceptar las condiciones de venta (enlazadas en el checkout).
+
+### Pago de prueba (sin Stripe)
+
+Si en `.env` no hay claves de Stripe, el checkout muestra el botón **«Confirmar pago de prueba»**,
+claramente marcado y **sin campos de tarjeta**. Hace lo mismo que un pago real confirmado, sin cobrar.
+En la web publicada (`npm start`) solo funciona si además pones `PERMITIR_PAGO_SIMULADO="si"`.
+
+### Pagos con Stripe (claves de PRUEBA)
+
+Con Stripe, la tarjeta se escribe en el formulario oficial de Stripe (**Payment Element**) dentro de la
+web: sus datos van **directamente a Stripe** y nunca pasan por nuestro servidor. El pedido **solo** se
+marca como pagado cuando lo confirma el **webhook** de Stripe (`/api/pagos/stripe`), que comprueba la
+firma y no procesa dos veces el mismo aviso.
+
+Para probarlo en tu ordenador:
+
+1. Crea una cuenta en [stripe.com](https://stripe.com) y, en **modo de prueba**, copia las claves de
+   _Desarrolladores → Claves de API_ en `.env`:
+   ```bash
+   STRIPE_SECRET_KEY="sk_test_…"
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_…"
+   ```
+2. Instala la [CLI de Stripe](https://docs.stripe.com/stripe-cli), inicia sesión y deja abierta esta
+   orden, que reenvía los avisos de Stripe a tu ordenador:
+   ```bash
+   stripe login
+   stripe listen --forward-to localhost:3000/api/pagos/stripe
+   ```
+   Copia el secreto que te da (`whsec_…`) en `.env` como `STRIPE_WEBHOOK_SECRET` y reinicia `npm run dev`.
+3. Compra algo y paga con una **tarjeta de prueba** (cualquier fecha futura, cualquier CVC y código postal):
+
+| Tarjeta               | Qué pasa                                               |
+| --------------------- | ------------------------------------------------------ |
+| `4242 4242 4242 4242` | Pago correcto                                          |
+| `4000 0025 0000 3155` | Pide autenticación (3D Secure): acéptala en la ventana |
+| `4000 0000 0000 9995` | Rechazada por fondos insuficientes                     |
+| `4000 0000 0000 0002` | Rechazada                                              |
+
+Verás «Estamos confirmando tu pago» unos segundos y, cuando llega el webhook, «¡Gracias!». En la
+terminal de `stripe listen` aparecen los avisos. Por seguridad, la web **rechaza las claves reales**
+(`sk_live_…`) salvo que pongas `STRIPE_PERMITIR_CLAVES_REALES="si"` (solo al publicar).
+
+## Cursos: el test después del vídeo
+
+En cada lección, el botón **«Hacer el test»** está bloqueado hasta que el vídeo llega al final. Se
+detecta con las API oficiales: **YouTube IFrame API**, **Vimeo Player SDK** y el evento `ended` de los
+vídeos `.mp4/.webm`. El test se hace en su propia pantalla, **pregunta a pregunta**; al terminar se ve
+la puntuación, la explicación de cada respuesta y los botones para **repetirlo** o **volver a ver el
+vídeo**. El resultado se guarda (último, mejor e intentos) y **aprobar** (la mitad o más) marca la
+lección como completada. Las lecciones sin vídeo todavía permiten hacer el test directamente.
+
+Los vídeos de YouTube y Vimeo ponen cookies propias, así que **solo se cargan si se aceptan** en el
+banner de cookies (si no, se ve un aviso con «Aceptar y ver el vídeo»).
 
 ## Verificación por email
 
-Para proteger las cuentas, la web envía **códigos de 6 cifras** por email:
+Para proteger las cuentas, la web envía **códigos de 6 cifras** por email: al **registrarse**, al
+entrar desde un **dispositivo nuevo** (que pasa a ser de confianza 30 días, 7 para administradores) y
+en **¿Olvidaste tu contraseña?**. Los códigos caducan a los 10 minutos, sirven una vez y admiten 5
+intentos; como mucho se envían 5 por hora a cada email. Las reglas están en `src/lib/verificacion/reglas.ts`.
 
-- **Al registrarse:** la cuenta no puede entrar ni activar cursos hasta escribir el código. Si cierras la página,
-  al volver a iniciar sesión se te pide otro.
-- **Al entrar desde un dispositivo nuevo:** con el código correcto, ese navegador pasa a ser «de confianza»
-  durante **30 días** (**7** para los administradores) y llega un correo de aviso «Se ha iniciado sesión en tu
-  cuenta desde un nuevo dispositivo».
-- **¿Olvidaste tu contraseña?** (enlace en `/login`): código por email y después la contraseña nueva.
-
-Los códigos caducan a los **10 minutos**, sirven una sola vez y admiten **5 intentos**. «Reenviar código» espera
-**60 segundos** entre envíos y como mucho envía **5 por hora** a cada email. Todo esto se cambia en
-`src/lib/verificacion/reglas.ts`. Los mensajes nunca dicen si un email tiene cuenta o no.
-
-En **Mi cuenta** (`/cuenta`) ves tus dispositivos de confianza y puedes eliminarlos (su sesión se cierra al
-momento) o «Cerrar sesión en todos». Al cambiar la contraseña se cierra la sesión en todos los demás.
-
-### Cómo probarlo en tu ordenador
-
-Con `npm run dev` **no se envía ningún correo de verdad**: cada correo aparece en la terminal y en
-**http://localhost:3000/dev/correos** (con su diseño). Esa página no existe en la web publicada.
-
-1. Abre http://localhost:3000/registro y crea una cuenta con cualquier email (por ejemplo `ana@prueba.test`).
-2. Abre http://localhost:3000/dev/correos en otra pestaña, copia el código y pégalo en la primera casilla
-   (o escríbelo). Se envía solo al completar las 6 cifras y entras en **Mis cursos**.
-3. Para ver el código de «dispositivo nuevo», abre una **ventana de incógnito** (es como otro navegador) e
-   inicia sesión con `prueba@valentia.test` / `robots2026`.
-4. Para probar los errores: escribe un código equivocado (te dice cuántos intentos quedan) o equivócate 5 veces.
-5. En http://localhost:3000/cuenta verás las dos ventanas como dispositivos. Elimina la de incógnito y recarga
-   esa ventana: su sesión se habrá cerrado.
+Con `npm run dev` **no se envía ningún correo de verdad**: aparecen en la terminal y en
+**http://localhost:3000/dev/correos** (esa página no existe en la web publicada).
 
 ### Enviar correos de verdad (al publicar)
 
-El envío está en `src/lib/correo`: el resto de la web solo usa `enviarCorreo()`, así que cambiar de servicio
-no obliga a tocar nada más. Está preparado [Resend](https://resend.com):
-
-1. Crea una cuenta en Resend, verifica tu dominio y crea una clave (API Key).
-2. En el `.env` del servidor: `CORREO_PROVEEDOR="resend"`, `RESEND_API_KEY="re_…"` y
-   `CORREO_REMITENTE="Valentia <hola@tudominio.es>"` (explicado en `.env.example`).
-
-Las plantillas (código, aviso de nuevo dispositivo, contraseña cambiada…) están en
-`src/lib/correo/plantillas.ts`. El logo de los correos se carga desde `NEXT_PUBLIC_SITE_URL`, así que solo se ve
-cuando la web está publicada.
+El envío está en `src/lib/correo` (el resto de la web solo usa `enviarCorreo()`). Está preparado
+[Resend](https://resend.com): crea una cuenta, verifica tu dominio, crea una clave y pon en el `.env`
+del servidor `CORREO_PROVEEDOR="resend"`, `RESEND_API_KEY="re_…"` y `CORREO_REMITENTE="Valentia <hola@tudominio.es>"`.
+Las plantillas (código, nuevo dispositivo, pedido confirmado, pedido enviado…) están en `src/lib/correo/plantillas.ts`.
 
 ## Panel de administración
 
 El panel (**http://localhost:3000/admin**) sirve para gestionar la tienda y los cursos sin tocar código.
-Tiene un diseño propio, más sencillo que el de la tienda, porque es una herramienta de trabajo.
 
 ### Quién puede entrar
 
-Cada cuenta tiene un **rol**: `CLIENTE` (todas las que se crean en `/registro`) o `ADMIN`. Solo los ADMIN
-pueden ver el panel; un cliente que escriba `/admin` ve la página de «no encontrado», y si no has iniciado
-sesión te lleva al login. Todo se comprueba en el servidor, en cada página y en cada botón.
-
-Para convertir una cuenta en administradora (tiene que existir antes: créala en `/registro`):
+Solo las cuentas con rol `ADMIN` (las demás ven «no encontrado»). Todo se comprueba en el servidor.
 
 ```bash
-npm run admin -- tu@email.com            # le da el rol ADMIN
+npm run admin -- tu@email.com            # le da el rol ADMIN (la cuenta tiene que existir)
 npm run admin -- tu@email.com --quitar   # se lo quita
 npm run admin                            # dice quién es ADMIN ahora
 ```
 
-El cambio vale al momento. El enlace «Panel de administración» del menú de tu cuenta aparece la próxima vez
-que inicies sesión (mientras tanto, escribe `/admin` en la barra de direcciones).
-
 ### Qué se puede hacer
 
-| Sección         | Qué hace                                                                                                              |
-| --------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **Inicio**      | Usuarios, nuevos este mes, pedidos, kits vendidos, códigos activados, cursos más activos, últimos pedidos y registros |
-| **Componentes** | Crear, editar, ocultar y borrar. Foto, precio, stock, categoría y datos técnicos para la compatibilidad               |
-| **Kits**        | Crear y editar: piezas elegidas con un buscador, foto, descripción, precio, curso incluido, destacado                 |
-| **Cursos**      | Cursos, lecciones (con ↑ ↓ para ordenarlas), vídeo, tests y retos, y progreso medio de los alumnos                    |
-| **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR, ver quién usó cada uno y cuándo, desactivarlos                     |
-| **Usuarios**    | Lista con buscador: email, fecha de registro, cursos activados y pedidos                                              |
+| Sección         | Qué hace                                                                                                                                                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Inicio**      | Usuarios, pedidos, kits vendidos, códigos activados, cursos más activos, últimos pedidos                                                                                                                             |
+| **Pedidos**     | Filtrar por estado, buscar, ver cada pedido y cambiar su estado: Pagado → **Preparando** → **Enviado** (con número de seguimiento; el cliente recibe un correo) → **Entregado**, o **Cancelado** (devuelve el stock) |
+| **Componentes** | Crear, editar, ocultar y borrar. Foto, precio, stock, categoría y datos técnicos                                                                                                                                     |
+| **Kits**        | Piezas con buscador, foto, descripción, precio, curso incluido, destacado                                                                                                                                            |
+| **Cursos**      | Lecciones (ordenables), vídeo, tests y retos, y progreso de los alumnos                                                                                                                                              |
+| **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR, desactivarlos                                                                                                                                                     |
+| **Usuarios**    | Lista con buscador: email, registro, cursos activados y pedidos                                                                                                                                                      |
 
-Algunas reglas que conviene saber:
-
-- **Los cambios se ven al momento** en la tienda y en el configurador.
-- **Ocultar** un componente: deja de venderse suelto y desaparece del configurador, pero sigue dentro de sus kits.
-  **Ocultar** un kit: deja de venderse, pero sus códigos QR siguen funcionando.
-- **Borrar** pide siempre confirmación. No se puede borrar un componente que está dentro de un kit, ni un kit
-  que ya tiene códigos o pedidos, ni un curso que va con un kit o que tiene alumnos: el panel te explica por qué
-  y te propone ocultarlo. Los pedidos antiguos nunca cambian (guardan su propia copia de nombres y precios).
-- La **dirección** (slug) de un componente, kit, curso o lección se elige al crearlo y ya no cambia.
-- Cada kit va con **un curso** y cada curso con un solo kit. Para un kit nuevo, crea antes su curso.
-- **Vídeos:** elige YouTube o Vimeo y pega el enlace o solo el identificador (`dQw4w9WgXcQ`, `76979871`).
-  Para añadir otro servicio, crea un archivo en `src/lib/video/proveedores/` (ver `tipos.ts`) y añádelo a la lista.
-- **Códigos:** en «Códigos», elige el kit y la cantidad (por ejemplo 50) y pulsa «Generar códigos». Se abre la
-  página de las tarjetas: pulsa «Imprimir» (4 tarjetas por hoja A4) y mete una en cada caja. Los pedidos de la
-  web siguen creando además su propio código. **Desactivar** un código hace que ya no sirva; si alguien ya lo
-  había activado, conserva su curso. Se puede reactivar.
-- **Fotos:** JPG, PNG o WebP de hasta 5 MB. Se reducen y se convierten a WebP solas, y se guardan en la carpeta
-  `subidas/` del proyecto (no se sube a git: haz copia de seguridad de ella junto con la base de datos).
+Algunas reglas: un pedido solo pasa a «Pagado» con el pago confirmado (nunca desde el panel). Si
+cancelas un pedido ya cobrado con Stripe, **devuelve el dinero desde el panel de Stripe** (la ficha del
+pedido tiene un enlace). Ocultar un componente o un kit lo quita de la tienda sin borrarlo. Borrar algo
+con dependencias se bloquea y se propone ocultarlo. Las fotos se reducen y se convierten a WebP solas.
 
 ### La base de datos manda
 
-La base de datos es la **fuente de verdad**: el catálogo y los cursos se cambian desde el panel. Los JSON de
-`data/` son solo los **datos iniciales**: `npm run db:seed` los carga únicamente si la base de datos está vacía,
-y si ya hay catálogo no toca nada. `npm run db:reset` lo **borra todo** (catálogo, pedidos, cuentas, también
-la tuya de administrador) y vuelve a cargar los datos iniciales: después tendrás que registrarte otra vez y
-ejecutar `npm run admin -- tu@email.com`.
+La base de datos es la **fuente de verdad**. Los JSON de `data/` solo se cargan con `npm run db:seed`
+si la base de datos está vacía. `npm run db:reset` **lo borra todo** (también tu cuenta de administrador).
 
-### Otros comandos
+## Cookies y páginas legales
 
-| Comando              | Para qué sirve                                                             |
-| -------------------- | -------------------------------------------------------------------------- |
-| `npm run build`      | Prepara la versión final y optimizada de la web                            |
-| `npm run start`      | Arranca la versión final (después de `build`)                              |
-| `npm run lint`       | Revisa el código en busca de errores                                       |
-| `npm run format`     | Ordena y da formato a todo el código                                       |
-| `npm run marca`      | Regenera el favicon, los iconos y las versiones PNG del logo               |
-| `npm run admin`      | Da o quita el rol de administrador (ver «Panel de administración»)         |
-| `npm run db:seed`    | Carga `data/*.json`, solo si la base de datos está vacía                   |
-| `npm run db:reset`   | **Lo borra todo** y crea la base de datos de nuevo con los datos iniciales |
-| `npm run db:migrate` | Aplica cambios de `prisma/schema.prisma` a la base de datos                |
-| `npm run db:studio`  | Abre un panel en el navegador para ver y editar la base de datos           |
+- **Banner de cookies**: «Rechazar» y «Aceptar» con el mismo peso; «Configurar» por categorías. Solo hay
+  cookies necesarias (sesión, carrito, pago) y, con permiso, las de los vídeos de YouTube/Vimeo. No hay
+  analítica ni publicidad. Se puede cambiar en «Configurar cookies» (pie de página).
+- **Páginas legales** en `src/app/(tienda)/legal/`: aviso legal, privacidad (RGPD), cookies, condiciones
+  de venta y devoluciones (desistimiento de 14 días, con formulario). Todas llevan el aviso
+  **«BORRADOR — pendiente de revisión por un profesional»** y marcadores `[REVISAR…]`. Cuando un abogado
+  las apruebe, quita el aviso con `borrador={false}` en `PaginaLegal`.
+
+## Seguridad
+
+Resumen en **`SEGURIDAD.md`**: autorización en el servidor en cada página y acción, validación con Zod,
+límite de intentos guardado en la base de datos (sirve con varios servidores), cabeceras de seguridad
+(CSP compatible con Stripe y los vídeos, HSTS…), cookies seguras, subida de fotos controlada, sin
+secretos en git ni en el navegador, y lo que queda pendiente para producción.
+
+## Pruebas automáticas
+
+```bash
+npm test             # pruebas unitarias (Vitest): precios, envíos, IVA, compatibilidad, validaciones
+npm run test:e2e     # pruebas con navegador (Playwright): el recorrido completo de una persona
+```
+
+`npm run test:e2e` usa el **Chrome** instalado, **su propia base de datos** (`prisma/e2e.db`, que crea de
+cero cada vez) y **su propia copia** de la web compilada en http://localhost:3100, así que no toca tus
+datos ni tu `npm run dev`. Recorre: registro → código por correo → configurador → carrito → pago de
+prueba → activación del código → vídeo → test; y comprueba la seguridad básica, el SEO y la zona de envío.
+Tarda un par de minutos (compila la web).
+
+## Otros comandos
+
+| Comando                         | Para qué sirve                                                             |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `npm run build`                 | Prepara la versión final y optimizada de la web                            |
+| `npm run start`                 | Arranca la versión final (después de `build`)                              |
+| `npm run lint`                  | Revisa el código en busca de errores                                       |
+| `npm run format`                | Ordena y da formato a todo el código                                       |
+| `npm run marca`                 | Regenera el favicon, los iconos y las versiones PNG del logo               |
+| `npm run admin`                 | Da o quita el rol de administrador                                         |
+| `npm run db:seed`               | Carga `data/*.json`, solo si la base de datos está vacía                   |
+| `npm run db:reset`              | **Lo borra todo** y crea la base de datos de nuevo con los datos iniciales |
+| `npm run db:migrate`            | Aplica cambios de `prisma/schema.prisma` a la base de datos                |
+| `npm run db:studio`             | Abre un panel en el navegador para ver y editar la base de datos           |
+| `npm run db:postgres`           | Actualiza la copia del esquema para PostgreSQL (también lo hace `build`)   |
+| `npm run fotos:nube`            | Sube a la nube las fotos de `subidas/` y actualiza sus direcciones         |
+| `npm test` / `npm run test:e2e` | Pruebas automáticas (ver arriba)                                           |
 
 ## Qué hay en cada carpeta
 
-| Carpeta                                             | Contenido                                                           |
-| --------------------------------------------------- | ------------------------------------------------------------------- |
-| `imagenes/`                                         | Tus originales (logo.png). No se modifican nunca.                   |
-| `public/images/brand/`                              | Logo para la web (SVG y PNG) e iconos                               |
-| `public/images/componentes/`, `public/images/kits/` | Imágenes de productos (ilustraciones de muestra en SVG)             |
-| `data/`                                             | **Datos iniciales**: componentes, kits y cursos (archivos JSON)     |
-| `subidas/`                                          | Fotos subidas desde el panel (no se sube a git)                     |
-| `prisma/`                                           | Base de datos: esquema, migraciones, seed y el archivo `dev.db`     |
-| `scripts/`                                          | Programas de ayuda (iconos a partir del logo, hacer administrador)  |
-| `src/app/admin/`, `src/components/admin/`           | **Panel de administración**: páginas, acciones y sus piezas         |
-| `src/lib/admin/`                                    | Consultas del panel (estadísticas, códigos, progreso…)              |
-| `src/lib/almacenamiento/`                           | Dónde se guardan las fotos (local ahora; preparado para la nube)    |
-| `src/lib/video/`                                    | Servicios de vídeo de las lecciones (YouTube, Vimeo…)               |
-| `src/app/`                                          | Las páginas de la web. Cada carpeta es una dirección (`/kits`, …)   |
-| `src/app/globals.css`                               | **Sistema de diseño**: colores, tipografías, radios y sombras       |
-| `src/components/`                                   | Piezas reutilizables: botones, barra de navegación, pie, logo…      |
-| `src/config/marca.ts`                               | Nombre, lema y enlaces del menú y del pie                           |
-| `src/store/`                                        | El carrito y el robot del configurador (se guardan en el navegador) |
-| `src/lib/compatibilidad/`                           | **Reglas del configurador** (avisos de compatibilidad)              |
-| `src/lib/pagos/`, `src/lib/pedidos.ts`              | Pago (simulado; preparado para Stripe) y creación de pedidos        |
-| `src/auth.ts`, `src/auth.config.ts`, `src/proxy.ts` | Inicio de sesión (Auth.js) y protección de las páginas de cuenta    |
-| `src/lib/cursos.ts`, `src/lib/activacion.ts`        | Cursos del usuario, progreso y activación de códigos                |
-| `src/lib/limite.ts`                                 | Límite de intentos (login, registro y activación)                   |
-| `src/lib/verificacion/`                             | Códigos por email y dispositivos de confianza (y sus reglas)        |
-| `src/lib/correo/`                                   | Envío de correos (terminal en desarrollo, Resend) y plantillas      |
-| `.correos-dev/`                                     | Correos de prueba de `/dev/correos` (no se sube a git)              |
-| `src/lib/`, `src/types/`                            | Conexión a la base de datos, consultas, validaciones y utilidades   |
-| `src/generated/`                                    | Código que crea Prisma automáticamente. No se edita a mano.         |
+| Carpeta               | Contenido                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| `imagenes/`           | Tus originales (logo.png). No se modifican nunca.                                    |
+| `public/images/`      | Logo, iconos e ilustraciones de muestra                                              |
+| `data/`               | **Datos iniciales**: componentes, kits y cursos (JSON)                               |
+| `prisma/`             | Esquema, migraciones (SQLite), seed y `dev.db`; `prisma/postgresql/` para producción |
+| `scripts/`            | Programas de ayuda (marca, admin, esquema PostgreSQL, fotos a la nube, pruebas)      |
+| `e2e/`                | Pruebas con navegador (Playwright)                                                   |
+| `subidas/`            | Fotos subidas desde el panel (no se sube a git)                                      |
+| `src/app/`            | Las páginas. Cada carpeta es una dirección (`/kits`, `/checkout`…)                   |
+| `src/app/globals.css` | **Sistema de diseño**: colores, tipografías, radios y sombras                        |
+| `src/components/`     | Piezas reutilizables (portada 3D, compra, cursos, panel, legal…)                     |
+| `src/config/`         | `tienda.ts` (negocio), `marca.ts` (menús), `estadosPedido.ts`, `categorias.ts`       |
+| `src/lib/`            | Base de datos, pedidos, precios, pagos (Stripe), correo, límites, almacenamiento…    |
+| `src/store/`          | Carrito, robot del configurador y consentimiento de cookies (en el navegador)        |
 
 ## Cómo cambiar…
 
-### Los colores
-
-Abre `src/app/globals.css` y cambia los valores dentro de `@theme`. Por ejemplo, para otro azul de acento,
-cambia `--color-acento`. Puedes ver todos los colores en **http://localhost:3000/diseno**.
-
-### El logo
-
-1. Sustituye `imagenes/logo.png` por tu nuevo logo.
-2. Ejecuta `npm run marca` (regenera las copias PNG, el favicon y los iconos).
-3. La web usa `public/images/brand/logo.svg` y `logo-blanco.svg` (versión vectorial). Si tu nuevo logo es
-   distinto, sustitúyelos también, o cambia en `src/config/marca.ts` las rutas a `logo-negro.png` y `logo-blanco.png`.
-
-### El icono de la pestaña (favicon)
-
-Edita `public/images/brand/monograma.svg` y ejecuta `npm run marca`.
-
-### Los textos del menú y del pie
-
-En `src/config/marca.ts`.
-
-### Los productos (kits y componentes)
-
-Desde el panel: **http://localhost:3000/admin/componentes** y **/admin/kits**. El kit marcado como
-«destacado» es el que sale en la portada. Los JSON de `data/` ya solo sirven como datos iniciales
-(ver «La base de datos manda»).
-
-### Las reglas del configurador
-
-El configurador (**http://localhost:3000/configurador**) avisa cuando las piezas no encajan.
-Las reglas están en `src/lib/compatibilidad/reglas.ts` y son una lista de datos; no hace falta saber programar
-para cambiarlas. Hay cuatro tipos:
-
-- `necesita`: unas piezas necesitan otras (un motor necesita un driver, que mueve 2 motores).
-- `maximo`: no más de X piezas de un tipo (una sola placa).
-- `voltaje`: compara los voltios de una pieza con los de la placa o la batería.
-- `capacidad`: pines de la placa o corriente de la batería, lo usado frente a lo que hay.
-
-Cada regla tiene un `nivel` (`error`, `aviso` o `info`), un `titulo` y un `mensaje`. Las palabras entre llaves,
-como `{piezas}` o `{usados}`, se rellenan solas. Con `sugerencia` (el slug de un componente) aparece un botón
-para añadir esa pieza. Las reglas usan el campo `tipo` de cada componente de `data/componentes.json`
-(`placa`, `motor-dc`, `servo`, `bateria`…). Si creas un tipo nuevo, añádelo también en las reglas que le afecten.
-
-Los textos y los iconos de las categorías (Placas, Motores…) están en `src/config/categorias.ts`.
-
-Para abrir el configurador con un kit ya cargado: `/configurador?kit=` seguido del slug del kit
-(por ejemplo, `/configurador?kit=brazo-robotico`).
-
-### La compra (pagos simulados y Stripe)
-
-El recorrido es: **carrito** (`/carrito`) → **finalizar compra** (`/checkout`) → **confirmación** (`/pedido/…`).
-Ahora mismo el pago es **simulado**: no hace falta tarjeta y no se cobra nada. Al pulsar «Pagar»:
-
-1. El servidor vuelve a calcular los precios con la base de datos (nunca se fía de los del navegador).
-   Si han cambiado, actualiza el carrito y te pide que lo revises.
-2. Comprueba que hay stock, lo descuenta y guarda el pedido.
-3. Por **cada kit** comprado crea un **código de activación único** (por ejemplo `VAL-7KQ2-M9XD`).
-   Los componentes sueltos y los robots del configurador no llevan curso ni código.
-4. La página de confirmación enseña la **tarjeta con el QR** tal y como iría impresa en la caja.
-   El botón «Imprimir tarjetas» imprime solo las tarjetas.
-
-El envío es gratis. Para **cobrar de verdad con Stripe**, sigue los pasos que hay escritos en
-`src/lib/pagos/stripe.ts` y cambia en `.env` la línea `PAGOS_PROVEEDOR="simulado"` por `"stripe"`.
-El resto de la web no hay que tocarlo.
-
-Los QR apuntan a la dirección de `NEXT_PUBLIC_SITE_URL` (en `.env`). Cuando la web esté publicada, pon ahí
-su dirección real para que los QR impresos funcionen.
-
-### Las imágenes, los vídeos y los ejercicios
-
-Todo desde el panel: la foto en la ficha de cada componente o kit, y el vídeo, los tests y los retos en
-cada lección de **/admin/cursos**. Mientras una lección no tenga vídeo, muestra el aviso «Estamos grabando
-este vídeo». La respuesta correcta de los tests y la solución de los retos nunca se envían al navegador
-antes de tiempo: las comprueba el servidor.
-
-### Quién puede ver qué
-
-- Las páginas de **Mis cursos** (`/cursos/…`), **Mi cuenta** (`/cuenta`) y del **panel** (`/admin/…`) necesitan haber iniciado sesión. Si no, llevan a `/login`
-  y después vuelven a donde ibas. La lista de rutas protegidas está en `src/auth.config.ts`.
-- Cada usuario solo ve los cursos que ha activado con un código.
-- El panel, además, solo lo pueden usar las cuentas con rol ADMIN (`src/lib/sesion.ts`: `exigirAdmin` y `exigirAdminEnAccion`).
-
-### Los límites de intentos
-
-Para que nadie pueda probar miles de contraseñas o códigos seguidos, hay un máximo de intentos en
-`src/lib/limite.ts` (por ejemplo, 10 intentos de inicio de sesión cada 15 minutos). Cambia los números en `LIMITES`.
-Se guardan en la memoria del servidor, así que se reinician al reiniciarlo. Los límites de los códigos por email
-(intentos, espera y envíos por hora) se guardan en la base de datos y están en `src/lib/verificacion/reglas.ts`.
-
-## Calidad
-
-Antes de cada versión se ejecuta `npm run lint` (revisa el código) y `npm run build` (compila la web); los dos
-deben terminar sin errores. En la fase 6 se revisaron además todas las páginas, en móvil (390 px) y en ordenador:
-
-- **Accesibilidad:** sin problemas en la auditoría automática (axe-core). Se puede navegar con teclado, hay
-  enlace «Saltar al contenido», los formularios tienen etiquetas y mensajes de error que leen los lectores de
-  pantalla, y las animaciones se desactivan si el sistema tiene activado «reducir movimiento».
-- **Móvil:** ninguna página se sale por los lados.
-- **Rendimiento:** cada página descarga unos 160 KB de JavaScript y menos de 310 KB en total. Las páginas de la
-  tienda se generan por adelantado (cargan al instante).
-- **Seguridad:** contraseñas cifradas, códigos por email y dispositivos de confianza guardados solo como huella
-  (hash), sesión en cookie cifrada unida a su dispositivo, precios recalculados en el servidor, respuestas
-  de los tests y soluciones que no llegan al navegador antes de tiempo, límite de intentos y redirecciones
-  solo dentro de la web.
-
-## Antes de publicar la web
-
-Esta versión está pensada para tu ordenador. Para ponerla en internet:
-
-1. **Base de datos:** pasa a PostgreSQL (ver [Pasar a PostgreSQL](#pasar-a-postgresql-producción)).
-2. **Variables de `.env`** en el servidor:
-   - `AUTH_SECRET`: una clave nueva y secreta (`npx auth secret`). No reutilices la de tu ordenador.
-   - `NEXT_PUBLIC_SITE_URL`: la dirección real de la web (los QR impresos apuntan aquí).
-   - `DATABASE_URL`: la de PostgreSQL.
-3. **Pagos reales:** activa Stripe (ver `src/lib/pagos/stripe.ts`) y quita los textos de «pago simulado»
-   (están en `src/components/compra/FormularioCheckout.tsx` y en el pie de página).
-4. **Datos de prueba:** no ejecutes `npm run db:seed` en producción. Crea los productos y cursos reales desde
-   el panel, y **no** el usuario de prueba ni los códigos `VAL-PRUE-…`.
-5. **Administrador:** regístrate en la web publicada y ejecuta allí `npm run admin -- tu@email.com`.
-6. **Fotos en la nube:** el disco de muchos servidores se borra en cada despliegue. Sigue los pasos de
-   `src/lib/almacenamiento/nube.ts` (S3, R2 o similar) y pon `ALMACEN_PROVEEDOR="nube"` en `.env`.
-   Copia a la nube las fotos que tengas en `subidas/`.
-7. **Correos reales:** activa Resend (ver [Enviar correos de verdad](#enviar-correos-de-verdad-al-publicar)). Sin
-   esto, nadie podría registrarse ni entrar desde un dispositivo nuevo.
-8. **Pendiente para más adelante:** enviar la confirmación del pedido por email (el módulo de correo ya está
-   listo). También se podría unir cada pedido a la cuenta de quien lo hace
-   (hoy la página `/pedido/…` la ve quien tenga su dirección, que es muy difícil de adivinar).
-9. Si la web llega a funcionar en **varios servidores** a la vez, el límite de intentos tendrá que guardarse en un
-   sitio compartido (por ejemplo Redis) en lugar de en memoria (ver `src/lib/limite.ts`).
-
-## Actualizar las librerías
-
-`npm outdated` muestra qué librerías tienen versiones nuevas. Las actualizaciones pequeñas (por ejemplo,
-de 16.4.0 a 16.4.1) suelen ser seguras: después ejecuta `npm run lint` y `npm run build`. **No** actualices todavía
-a Prisma 8, ESLint 10 ni TypeScript 7: son versiones nuevas que aún no son compatibles con el resto del proyecto.
-
-`npm audit` avisa de algunas vulnerabilidades en herramientas de desarrollo (ESLint y la línea de comandos de
-Prisma). No afectan a la web que ven los visitantes, y su «arreglo automático» bajaría a versiones antiguas que
-romperían el proyecto: lo correcto es esperar a que publiquen la corrección.
+- **Los colores**: `src/app/globals.css` (`@theme`). Se ven en **http://localhost:3000/diseno**.
+- **El logo**: sustituye `imagenes/logo.png`, ejecuta `npm run marca` y, si cambia el dibujo, también
+  `public/images/brand/logo.svg` y `logo-blanco.svg`.
+- **Los textos del menú y del pie**: `src/config/marca.ts`.
+- **Envíos, IVA y datos de la empresa**: `src/config/tienda.ts`.
+- **Los productos y los cursos**: desde el panel.
+- **Las reglas del configurador**: `src/lib/compatibilidad/reglas.ts` (son datos: `necesita`, `maximo`,
+  `voltaje` y `capacidad`, con su nivel, título y mensaje).
+- **El robot de la portada**: piezas y textos en `src/components/portada/piezasRobot.ts`; la escena 3D en
+  `escenaRobot.ts`. El 3D solo se carga en ordenadores capaces; en móviles, equipos lentos o con
+  «reducir movimiento» se ve un dibujo SVG ligero.
+- **Los límites de intentos**: `LIMITES` en `src/lib/limite.ts`.
 
 ## Base de datos
 
-En local se usa **SQLite**: toda la base de datos es un único archivo, `prisma/dev.db`, que no se sube a git.
-La dirección está en `DATABASE_URL` del archivo `.env`.
-
-Tablas principales: catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`), compras
-(`Pedido`, `LineaPedido`, `CodigoActivacion`, `LoteCodigos`) y cuentas (`Usuario` con su `rol`, `CursoUsuario` = cursos desbloqueados,
-`ProgresoLeccion` y `ProgresoEjercicio`). Puedes verlas con `npm run db:studio`.
-Las contraseñas se guardan **cifradas** con bcrypt: nadie puede leerlas, ni siquiera viendo la base de datos.
+En local se usa **SQLite**: un único archivo, `prisma/dev.db` (no se sube a git). Tablas principales:
+catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`), compras (`Pedido`, `LineaPedido`,
+`Direccion`, `CodigoActivacion`, `LoteCodigos`, `EventoStripe`), cuentas (`Usuario`, `CursoUsuario`,
+`ProgresoLeccion`, `ProgresoEjercicio`, `VideoVisto`, `ResultadoTest`) y seguridad (`Verificacion`,
+`EnvioCodigo`, `DispositivoConfianza`, `LimiteIntento`). Las contraseñas se guardan cifradas con bcrypt.
 
 ### Pasar a PostgreSQL (producción)
 
-1. En `prisma/schema.prisma`, cambia `provider = "sqlite"` por `provider = "postgresql"`.
-2. Instala el adaptador de PostgreSQL: `npm install @prisma/adapter-pg`.
-3. En `src/lib/db.ts`, `prisma/seed.ts` y `scripts/hacer-admin.ts`, cambia el adaptador de SQLite por el de PostgreSQL
-   (las instrucciones exactas están en el comentario de `src/lib/db.ts`).
-4. Pon la URL de PostgreSQL en `DATABASE_URL`.
-5. Borra la carpeta `prisma/migrations` y crea una migración nueva con `npm run db:migrate`
-   (las migraciones de SQLite y PostgreSQL no son intercambiables). Después, `npm run db:seed`.
+El código está listo: **basta con cambiar la configuración**.
+
+1. Crea una base de datos PostgreSQL (por ejemplo en Neon, Supabase, Railway o tu hosting).
+2. Pon su dirección en `DATABASE_URL` del servidor: `postgresql://usuario:contraseña@host:5432/valentia`.
+3. Ejecuta `npx prisma migrate deploy`: con una URL de PostgreSQL, Prisma usa automáticamente
+   `prisma/postgresql/schema.prisma` y sus migraciones (la inicial ya está creada).
+4. `npm run build` y `npm start` (o el despliegue de tu hosting). El adaptador de PostgreSQL se elige
+   solo (`src/lib/adaptadorBD.ts`). No ejecutes `npm run db:seed` en producción.
+
+Cuando cambies el esquema en el futuro: edita **solo** `prisma/schema.prisma`, crea la migración de
+SQLite con `npm run db:migrate` y, con una base de datos PostgreSQL de pruebas en `DATABASE_URL`,
+ejecuta `npm run db:postgres && npx prisma migrate dev` para crear la de PostgreSQL. Sube las dos a git.
+
+### Fotos en la nube (producción)
+
+El disco de muchos servidores se borra en cada despliegue, así que en producción las fotos del panel
+deben ir a un almacén compatible con S3 (**Cloudflare R2**, Amazon S3, Backblaze B2…):
+
+1. Crea un _bucket_ con acceso público de lectura y una clave con permiso solo para él.
+2. En `.env` del servidor: `ALMACEN_PROVEEDOR="nube"` y las variables `ALMACEN_ENDPOINT`,
+   `ALMACEN_REGION`, `ALMACEN_BUCKET`, `ALMACEN_CLAVE_ID`, `ALMACEN_CLAVE_SECRETA` y
+   `ALMACEN_URL_PUBLICA` (explicadas en `.env.example`).
+3. Si ya tienes fotos en `subidas/`: `npm run fotos:nube` (prueba) y `npm run fotos:nube -- --hacer`.
+
+## Antes de publicar la web
+
+La lista completa, explicada paso a paso, está en **`INFORME.md`**. En resumen:
+
+1. **Datos de la empresa** en `src/config/tienda.ts` y **revisión legal** de las páginas `/legal/…`.
+2. **Base de datos PostgreSQL** (ver arriba) y copias de seguridad.
+3. **Variables del servidor**: `AUTH_SECRET` nueva, `NEXT_PUBLIC_SITE_URL` con `https://`, `DATABASE_URL`.
+4. **Stripe**: claves reales, `STRIPE_PERMITIR_CLAVES_REALES="si"` y webhook en el panel de Stripe.
+5. **Correo**: Resend con tu dominio verificado (sin esto nadie puede registrarse).
+6. **Fotos en la nube** (ver arriba).
+7. **Administrador**: regístrate en la web publicada y ejecuta allí `npm run admin -- tu@email.com`.
+8. **Datos de prueba**: no cargues el seed; crea los productos reales desde el panel.
+9. **Vídeos** de los cursos (ahora «PENDIENTE») desde `/admin/cursos`.
+
+## Actualizar las librerías
+
+`npm outdated` muestra qué librerías tienen versiones nuevas. Las actualizaciones pequeñas suelen ser
+seguras: después ejecuta `npm run lint`, `npm test`, `npm run build` y `npm run test:e2e`. **No** actualices
+todavía a Prisma 8, ESLint 10 ni TypeScript 7. `npm audit` avisa de problemas en ESLint (herramienta de
+desarrollo, no afecta a la web): su «arreglo» bajaría a Next 14, así que hay que esperar a la corrección.

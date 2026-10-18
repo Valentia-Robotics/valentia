@@ -7,12 +7,13 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 
 > Actualizar esta sección al terminar cada fase.
 
-**Las 6 fases, el panel de administración (7 partes) y la verificación por email (7 partes) están terminados.**
-**En curso: FASE DE LANZAMIENTO** (encargo del 17-10-2026, trabajo autónomo sin preguntas; decisiones en INFORME.md).
+**Las 6 fases, el panel de administración, la verificación por email y la FASE DE LANZAMIENTO (10 bloques) están
+terminados.** Lo que falta para publicar lo tiene que hacer el usuario: lista en `INFORME.md` §3. No empezar trabajo
+nuevo grande sin su aprobación.
 
-### Fase de lanzamiento — plan y registro (marcar [x] y anotar el commit al terminar cada bloque)
+### Fase de lanzamiento (17-10-2026, `551a1f4` … `Lanzamiento (10/10)`; decisiones en INFORME.md)
 
-Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un commit por bloque.
+Un commit por bloque («Lanzamiento (n/10)»).
 
 - [x] 1. Configuración del negocio: `src/config/tienda.ts` (zona CP 03/46/12, envío 4,95 € / gratis ≥ 50 €, IVA 21 %,
       datos de empresa como `[RAZÓN SOCIAL]`…), cálculo de totales puro en `src/lib/precios.ts`, desglose en carrito/checkout.
@@ -32,7 +33,26 @@ Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un
       error, npm audit, SEGURIDAD.md.
 - [x] 9. Calidad: Vitest (compatibilidad, precios/envíos) + Playwright (recorrido completo), 404/500, estados de carga,
       SEO (sitemap, robots, imagen para redes), móvil y accesibilidad.
-- [ ] 10. README, CLAUDE.md, INFORME.md, graphify, commit final y `npm run dev`.
+- [x] 10. README, CLAUDE.md, INFORME.md, graphify, commit final y `npm run dev`.
+
+Notas técnicas de la fase de lanzamiento:
+- Pedidos (`src/lib/pedidos.ts`): stock RESERVADO al crear (PENDIENTE), `marcarPedidoPagado` idempotente con
+  `updateMany` condicionado, `liberarPedidosCaducados` (60 min, se llama al preparar cada pedido),
+  `PEDIDO_COBRADO` (filtro de pagados no cancelados). Enlace privado `tokenAccesoPedido` = HMAC(AUTH_SECRET).
+  Estados y transiciones del panel en `src/config/estadosPedido.ts`. Correos en `src/lib/avisosPedido.ts`.
+- Pagos: `src/lib/pagos/index.ts` (`modoPago()`: stripe | simulado | desactivado), `stripe.ts`, webhook
+  `src/app/api/pagos/stripe/route.ts` (tabla `EventoStripe`). Checkout: `prepararPedido` → `PagoStripe` o
+  `confirmarPagoSimulado`. El formulario del checkout usa onSubmit + startTransition (no `action`, que reinicia el form).
+- Cursos: `VideoVisto`, `ResultadoTest`, `finDelVideo.ts` (APIs de YouTube/Vimeo), `TestLeccion`, `corregirTest`.
+- Portada: `src/components/portada/` (three solo vía import() en escenaRobot.ts).
+- Consentimiento: `src/store/consentimiento.ts` + `BannerCookies` (en Proveedores) + `ReproductorVideo`.
+- Límite de intentos en BD (`LimiteIntento`, `registrarIntento` es ASYNC). Cabeceras/CSP en `next.config.ts`.
+- PostgreSQL: `prisma.config.ts` elige `prisma/` o `prisma/postgresql/` por `DATABASE_URL`; `scripts/esquema-postgres.mjs`
+  genera la copia (en `npm run build`); `src/lib/adaptadorBD.ts`; `src/lib/busqueda.ts` (`textoContiene`).
+- Pruebas: `npm test` (Vitest, `*.test.ts` en src) y `npm run test:e2e` (Playwright, `e2e/`, BD `prisma/e2e.db`,
+  puerto 3100, Chrome del sistema). Tras muchas pruebas de login con `prueba@valentia.test` en dev salta el límite
+  de 5 códigos/hora: borrar sus filas de `EnvioCodigo` (y `LimiteIntento` si hace falta).
+- Panel: `Caja` lleva `min-w-0` y `Tabla` es `relative` + enfocable (evitan desbordes en el móvil).
 
 ### Terminado
 
@@ -137,36 +157,31 @@ Para retomar: buscar el primer bloque sin marcar, leer sus notas y `git log`. Un
   - `npm run admin` acorta a 7 días los dispositivos del nuevo ADMIN. Probado en Chrome headless (escritorio y móvil,
     también con `npm start`) y axe-core: 0 problemas en las pantallas nuevas (salvo `/dev/correos`, solo desarrollo).
 
-### Pendiente (para cuando se publique la web; ver README «Antes de publicar»)
+### Pendiente (para cuando se publique la web: lista completa en INFORME.md §3, tareas del usuario)
 
-- PostgreSQL, Stripe real, `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción, quitar textos de «pago simulado».
-- Activar Resend (u otro proveedor) en producción: sin correos reales nadie puede registrarse ni entrar desde un
-  dispositivo nuevo. Pendiente: confirmación del pedido por email (el módulo de correo ya existe).
-- Valorar enlazar los pedidos al usuario (hoy `/pedido/[id]` es accesible con el id, difícil de adivinar).
-- Con varios servidores, el límite de intentos debería ir a Redis u otro almacén compartido.
+- Datos de empresa en `src/config/tienda.ts` y revisión legal de `/legal/*` (BORRADORES).
+- PostgreSQL, Stripe (claves reales + webhook), Resend, fotos en la nube, `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción.
+- Sin probar contra servicios reales: Stripe (solo pago de prueba), almacén S3/R2, PostgreSQL y Resend.
+- Posibles mejoras (preguntar antes): facturas en PDF, envío a más zonas, analítica con consentimiento.
 
 ### Avisos abiertos
 
-- `/configurador`, `/pedido/[id]`, `/activar`, `/login`, `/registro` y `/cursos/*` son dinámicas: `npm start` necesita la BD.
+- `/configurador`, `/checkout`, `/pedido/[id]`, `/activar`, `/login`, `/registro`, `/cuenta/*` y `/cursos/*` son dinámicas: `npm start` necesita la BD.
 - La BD es la fuente de verdad: `npm run db:seed` solo carga `data/*.json` si no hay catálogo. `npm run db:reset` lo
   borra TODO (también la cuenta del administrador: luego registrarse y `npm run admin -- email`).
 - `subidas/` (fotos del panel) no está en git: hay que copiarla junto con la BD. En producción, almacén en la nube.
 - Las pruebas con Chrome headless no conservan la sesión entre ejecuciones (se cierra de golpe): iniciar sesión en la misma ejecución.
-- En desarrollo los correos no salen: se ven en la terminal y en `/dev/correos`. El email del pedido solo se guarda
-  como contacto (aún no se envía confirmación).
+- En desarrollo los correos no salen: se ven en la terminal y en `/dev/correos` (también confirmación y envío de pedidos).
 - Para probar el login en Chrome headless: cada navegador nuevo pide código; leerlo del último JSON de
-  `.correos-dev/`. Los límites (login 10/15 min por IP+email en memoria; 5 códigos/hora por email en la tabla
-  `EnvioCodigo`) se agotan rápido en pruebas: reiniciar `npm run dev` o vaciar `EnvioCodigo`.
+  `.correos-dev/`. Los límites (login 10/15 min por IP+email en la tabla `LimiteIntento`; 5 códigos/hora por email en
+  `EnvioCodigo`) se agotan rápido en pruebas: vaciar esas filas (solo las del usuario de prueba).
 - Tras `prisma generate` con tablas nuevas hay que reiniciar `npm run dev` (el cliente de la BD queda en memoria).
-- `npm audit`: 9 vulnerabilidades "altas", todas en herramientas de desarrollo/compilación: ESLint (braces/micromatch, vía
-  eslint-config-next; el "arreglo" bajaría a Next 14) y la CLI de Prisma (deepmerge-ts, mysql2; el "arreglo" bajaría a
-  Prisma 6). Revisado en la fase 6: no afectan a la web en ejecución (mysql2 ni se usa). Esperar a versiones corregidas.
+- `npm audit`: 5 avisos "altos" en braces/micromatch vía eslint-config-next (solo desarrollo); el arreglo bajaría a Next 14. Esperar.
 - `graphify-out/` (salida de la herramienta graphify del usuario) no está en git ni en .gitignore: no tocarla sin preguntar.
 - npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines, better-sqlite3,
   esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
 - Vídeos de los cursos: `PENDIENTE` en la BD, a la espera de las URL reales (se ponen desde `/admin/cursos`).
-- Decisión opcional del usuario: la portada muestra el kit estrella en el hero y una sección para cada uno
-  de los otros dos kits; se puede cambiar a una sección por cada uno de los tres.
+- Portada: robot 3D (hero), «De la caja a tu primer robot», kit estrella y una sección para cada uno de los otros kits.
 - Identidad de git configurada solo en este repositorio: `Diego <diegonotsa@gmail.com>`.
 
 ### Decisiones aprobadas por el usuario
@@ -236,10 +251,11 @@ Requisitos completos: `PROMPT.md`.
 
 ## Tecnología y versiones
 
+- Stripe (`stripe` + `@stripe/stripe-js/pure`), three.js (portada), aws4fetch (fotos S3), Vitest + Playwright (pruebas).
 - Next.js 16.4.1 (App Router, Turbopack) · React 19.3.1 · TypeScript 6.0 (typescript-eslint aún no admite la 7)
 - Tailwind CSS 4.3 · Zustand 5 (carrito en localStorage) · lucide-react (iconos)
 - ESLint 9 (eslint-config-next aún no admite ESLint 10) + Prettier 3 (con plugin de Tailwind)
-- Prisma 7.10 estable (el tag "latest" de npm apunta a una 8.0 rc: no actualizar sin preguntar).
+- Prisma 7.10.1 estable (el tag "latest" de npm apunta a una 8.0 rc: no actualizar sin preguntar).
   - Config en `prisma.config.ts` (carga .env con dotenv; Prisma 7 no lo hace solo). Generador `prisma-client` → `src/generated/prisma` (ignorado en git; se crea en postinstall/build).
   - SQLite local en `prisma/dev.db` (`DATABASE_URL="file:./prisma/dev.db"`) con `@prisma/adapter-better-sqlite3`. Cliente único en `src/lib/db.ts` (import "server-only").
   - `migrate dev` NO genera el cliente ni ejecuta el seed en Prisma 7: usar `npm run db:generate` / `npm run db:seed`.
@@ -261,11 +277,14 @@ scripts/               generar-marca.mjs, hacer-admin.ts (npm run admin)
 subidas/               fotos subidas desde el panel (fuera de git)
 src/app/               (tienda)/, (auth)/ (login, registro, verificar, recuperar), (cuenta)/ (cursos, cuenta), activar/, api/, diseno/, admin/, subidas/ (sirve las fotos), dev/correos (solo desarrollo)
 src/components/        ui/, layout/, marca/, tienda/, configurador/, compra/, cuenta/, cursos/, admin/
-src/config/            marca.ts, categorias.ts
+src/config/            marca.ts, categorias.ts, tienda.ts (negocio), estadosPedido.ts
 src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video/, limite.ts, admin/, almacenamiento/, correo/, verificacion/ (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
 src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
 data/                  componentes.json, kits.json, cursos.json (solo datos iniciales; la BD manda)
 prisma/                schema.prisma, migrations/, seed.ts, dev.db
-src/store/             carrito.ts, configurador.ts
+src/store/             carrito.ts, configurador.ts, consentimiento.ts
+e2e/                   pruebas Playwright (npm run test:e2e) · *.test.ts en src = Vitest (npm test)
+prisma/postgresql/     esquema y migraciones para PostgreSQL (generado: no editar el esquema a mano)
+SEGURIDAD.md, INFORME.md  revisión de seguridad e informe de la fase de lanzamiento
 src/types/
 ```
