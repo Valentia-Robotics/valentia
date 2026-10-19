@@ -109,6 +109,8 @@ Notas técnicas de la fase de lanzamiento:
   (`src/lib/tarjetaLaser/`: negro = grabar, rojo = cortar, cartulina negra; QR con los módulos claros grabados).
   Texto como formas desde `glifos.json` (regenerar con `scripts/generar-glifos-tarjeta.mjs`); ZIP propio con zlib.
   Si el QR sale en versión 7+ (dominio largo), se omite la "V" central para no tapar el patrón de alineación.
+  Trasera: pasos + dibujo del kit según su slug (`dibujosKit.ts`; aprobados por Jesse el coche, el brazo y la
+  estación). Un kit sin dibujo propio lleva pistas de circuito: al crear un kit nuevo, añadirle su dibujo.
 - Panel: `Caja` lleva `min-w-0` y `Tabla` es `relative` + enfocable (evitan desbordes en el móvil).
 
 ### Terminado

@@ -4,7 +4,8 @@
  * en cartulina negra (probada la idea con una Bambu Lab H2C):
  *   - relleno NEGRO = grabar (el láser aclara la cartulina)
  *   - línea ROJA de 0,1 mm = cortar
- * Delante: QR + logo + nombre del kit + código. Detrás: los tres pasos para activar el curso.
+ * Delante: QR + logo + nombre del kit + código. Detrás: los tres pasos para activar el curso y un
+ * dibujo del kit.
  * Todo son formas (también el texto): no depende de las tipografías del ordenador del láser.
  */
 import QRCode from "qrcode";
@@ -18,6 +19,7 @@ import {
   trazado,
   type Punto,
 } from "./geometria";
+import { dibujoKit } from "./dibujosKit";
 import { medirTexto, textoComoTrazado, type NombreFuente } from "./texto";
 
 /** Tamaño de tarjeta de crédito (ISO 7810 ID-1), en mm, con esquinas de 3 mm */
@@ -30,6 +32,8 @@ const HUECO = 6;
 interface DatosTarjeta {
   codigo: string;
   nombreKit: string;
+  /** Slug del kit: elige el dibujo de la cara trasera */
+  slugKit?: string;
   /** Dirección completa que abre el QR (…/activar?codigo=…) */
   url: string;
   /** Dominio que se ve escrito en la tarjeta (sin https://) */
@@ -214,18 +218,6 @@ function lineasNombre(nombre: string, anchoMax: number) {
   return mejor;
 }
 
-// Pista de circuito con un pad (anillo) al final, como adorno de la cara trasera
-function pista(pts: Punto[]) {
-  const rPad = 0.85;
-  const [a, b] = pts.slice(-2);
-  const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-  const fin: Punto = [b[0] - ((b[0] - a[0]) / l) * rPad, b[1] - ((b[1] - a[1]) / l) * rPad];
-  return [
-    trazado(contorno([...pts.slice(0, -1), fin], 0.35)),
-    trazado(circulo(b[0], b[1], rPad, true)) + trazado(circulo(b[0], b[1], rPad * 0.45, false)),
-  ];
-}
-
 // ── Caras ───────────────────────────────────────────────────────────────────
 
 function caraDelantera({ codigo, nombreKit, url, dominio }: DatosTarjeta): string[] {
@@ -264,7 +256,7 @@ function caraDelantera({ codigo, nombreKit, url, dominio }: DatosTarjeta): strin
   return g;
 }
 
-function caraTrasera({ dominio }: DatosTarjeta): string[] {
+function caraTrasera({ dominio, slugKit }: DatosTarjeta): string[] {
   const g = [...logo(6, 7, 40, 0.3)];
   g.push(textoComoTrazado("titulo", "Tu robot empieza aquí", 6, 19, 4.2));
   const pasos = [
@@ -290,41 +282,8 @@ function caraTrasera({ dominio }: DatosTarjeta): string[] {
   g.push(
     textoComoTrazado("texto", lema, 6, 48.6, tamanoQueCabe("texto", lema, 1.75, anchoLema, 1.1)),
   );
-  // Pistas de circuito que salen del borde derecho (1 mm de sangrado: se cortan con la tarjeta)
-  const xb = W + 1;
-  g.push(
-    ...pista([
-      [xb, 4.8],
-      [70, 4.8],
-      [67.5, 7.3],
-      [58, 7.3],
-    ]),
-  );
-  g.push(
-    ...pista([
-      [xb, 8.5],
-      [76, 8.5],
-      [72, 12.5],
-      [64, 12.5],
-    ]),
-  );
-  g.push(
-    ...pista([
-      [xb, 14],
-      [79, 14],
-      [75, 18],
-      [75, 26],
-    ]),
-  );
-  g.push(
-    ...pista([
-      [xb, 20],
-      [81.5, 20],
-      [81.5, 30.5],
-      [78, 34],
-      [68, 34],
-    ]),
-  );
+  // Dibujo del kit a la derecha (pistas de circuito si el kit no tiene dibujo propio)
+  g.push(...dibujoKit(slugKit));
   return g;
 }
 
