@@ -69,129 +69,241 @@ function capsula(a: Punto, b: Punto, r: number): Punto[] {
   ];
 }
 
-// ── Coche seguidor de líneas: visto desde arriba, encima de la línea negra que sigue ─────────
+/** Arco de elipse (para dibujar círculos vistos en perspectiva) */
+function arcoElipse(
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  a0: number,
+  a1: number,
+  pasos = 24,
+): Punto[] {
+  return arco(0, 0, 1, a0, a1, pasos).map(([x, y]): Punto => [cx + rx * x, cy + ry * y]);
+}
+
+/** Punta de flecha (triángulo) en `p`, apuntando en la dirección de `desde` → `p` */
+function flecha(desde: Punto, p: Punto, largo = 1.5, ancho = 1.3): string {
+  const l = Math.hypot(p[0] - desde[0], p[1] - desde[1]);
+  const [ux, uy] = [(p[0] - desde[0]) / l, (p[1] - desde[1]) / l];
+  return trazado(
+    sentido(
+      [
+        [p[0] + ux * largo, p[1] + uy * largo],
+        [p[0] - (uy * ancho) / 2, p[1] + (ux * ancho) / 2],
+        [p[0] + (uy * ancho) / 2, p[1] - (ux * ancho) / 2],
+      ],
+      true,
+    ),
+  );
+}
+
+// ── Coche seguidor de líneas: visto desde arriba, recorriendo la curva del circuito ─────────
 
 function coche(): string[] {
   const g: string[] = [];
-  const cx = 70;
-  // La línea del circuito: entra por la derecha, gira, pasa por debajo del coche y sale por arriba
-  const ancho = 1.6;
-  g.push(linea([[BORDE + 1, 39.5], ...arco(76, 33.5, 6, 90, 180, 12), [cx, 31.2]], ancho));
-  g.push(linea([[cx, 7.2], ...arco(64, 5, 6, 0, -90, 12)], ancho));
+  // Circuito: baja recto desde arriba, gira y sale por el borde derecho
+  const xl = 66.5;
+  const circuito: Punto[] = [
+    [xl, -2],
+    [xl, 30.5],
+    ...arco(xl + 7.5, 30.5, 7.5, 180, 90, 14).slice(1),
+    [BORDE + 2, 38],
+  ];
+  // El coche va sobre la recta, hacia arriba
+  const S = 0.8; // escala del coche
+  const centro: Punto = [xl, 21];
+  const F: Punto = [0, -1]; // hacia delante
+  const R: Punto = [-F[1], F[0]]; // hacia su derecha
+  // Coordenadas del coche: x a su derecha, y negativa hacia delante
+  const T = ([x, y]: Punto): Punto => [
+    centro[0] + S * (x * R[0] - y * F[0]),
+    centro[1] + S * (x * R[1] - y * F[1]),
+  ];
+  const local = ([px, py]: Punto): Punto => {
+    const [dx, dy] = [px - centro[0], py - centro[1]];
+    return [(dx * R[0] + dy * R[1]) / S, -(dx * F[0] + dy * F[1]) / S];
+  };
 
-  // Chasis (más estrecho por delante)
-  g.push(
-    silueta([
-      [63.6, 12],
-      [76.4, 12],
-      [79, 14.6],
-      [79, 31],
-      [61, 31],
-      [61, 14.6],
-    ]),
-  );
-  // Ruedas (motores con reductora) a los lados, con su dibujo de goma
-  for (const x of [57.4, 79.4]) {
-    g.push(silueta(caja(x, 20, 3.2, 10, 0.9), 0.35));
-    for (let i = 0; i < 5; i++) g.push(trazado(rect(x + 0.7, 21.1 + i * 1.8, 1.8, 0.6)));
+  // La línea del circuito (más puntos para poder quitar lo que queda debajo del coche)
+  const puntos: Punto[] = [];
+  circuito.forEach((p, i) => {
+    const q = circuito[i + 1];
+    const n = q ? Math.max(1, Math.ceil(Math.hypot(q[0] - p[0], q[1] - p[1]) / 0.5)) : 1;
+    for (let k = 0; k < n; k++)
+      puntos.push(q ? [p[0] + ((q[0] - p[0]) * k) / n, p[1] + ((q[1] - p[1]) * k) / n] : p);
+  });
+  // Meta a cuadros sobre la línea, arriba
+  const yMeta = 2.6;
+  const tramos: Punto[][] = [[]];
+  for (const p of puntos) {
+    const [x, y] = local(p);
+    const tapado =
+      (Math.abs(x) < 10 && y > -18.2 && y < 11.6) || (p[1] > yMeta - 0.3 && p[1] < yMeta + 2.3);
+    if (tapado) {
+      if (tramos[tramos.length - 1].length) tramos.push([]);
+    } else tramos[tramos.length - 1].push(p);
   }
-  // La línea sigue por debajo del coche (a trazos)
-  for (const y of [13.2, 15.4, 26.2, 28.4]) g.push(trazado(rect(cx - 0.8, y, 1.6, 1.2)));
-  // Placa (Arduino) con su fila de pines
-  g.push(silueta(caja(64.5, 17.5, 11, 7.5, 0.8), 0.32));
-  for (let i = 0; i < 7; i++) g.push(trazado(rect(65.6 + i * 1.3, 18.4, 0.6, 0.6)));
-  g.push(trazado(rect(65.6, 22.6, 3.2, 1.6)));
-  // Sensores infrarrojos de línea, uno a cada lado de la línea
-  g.push(silueta(caja(66, 13.4, 2, 2, 0.3), 0.3), silueta(caja(72, 13.4, 2, 2, 0.3), 0.3));
-  // Sensor de ultrasonidos delante ("los ojos")
-  g.push(silueta(caja(62.5, 7.4, 15, 4.2, 0.6), 0.32));
-  g.push(aro(66.2, 9.5, 1.45), aro(73.8, 9.5, 1.45));
-  g.push(disco(66.2, 9.5, 0.45), disco(73.8, 9.5, 0.45));
+  for (const t of tramos) if (t.length > 1) g.push(linea(t, 1.7));
+  for (let i = 0; i < 6; i++)
+    for (let j = 0; j < 2; j++)
+      if ((i + j) % 2 === 0) g.push(trazado(rect(xl - 3 + i, yMeta + j, 1, 1)));
+  g.push(silueta(rect(xl - 3, yMeta, 6, 2), 0.2));
+
+  const sil = (pol: Punto[], w = L) => silueta(pol.map(T), w);
+  const relleno = (pol: Punto[]) => trazado(sentido(pol.map(T), true));
+
+  // Chasis
+  g.push(sil(caja(-8.5, -11, 17, 22, 3.5)));
+  // Sensor de ultrasonidos delante: placa y los dos "ojos" con su rejilla
+  g.push(sil(caja(-7.2, -14.6, 14.4, 3.2, 0.5), 0.32));
+  for (const x of [-3.7, 3.7]) {
+    g.push(sil(caja(x - 1.6, -17.6, 3.2, 3, 0.4), 0.32));
+    for (let i = 0; i < 3; i++) g.push(relleno(rect(x - 1, -17 + i * 0.85, 2, 0.32)));
+  }
+  // Placa Arduino con sus pines, el chip y el conector USB
+  g.push(sil(caja(-5.6, -9.6, 11.2, 8, 0.7), 0.32));
+  for (let i = 0; i < 8; i++) g.push(relleno(rect(-4.6 + i * 1.2, -8.8, 0.55, 0.55)));
+  g.push(relleno(rect(-1.2, -5.6, 4.8, 1.6)));
+  g.push(relleno(rect(-7, -6.6, 2.2, 2.4)));
+  g.push(relleno(rect(-4.2, -3.6, 1.6, 1.3)));
+  // Portapilas con las 4 pilas
+  g.push(sil(caja(-4.6, 0.4, 9.2, 9, 0.6), 0.32));
+  for (const x of [-3.3, -1.1, 1.1, 3.3]) g.push(sil(capsula([x, 2.2], [x, 7.6], 0.75), 0.25));
+  // Motores con reductora y ruedas con el dibujo de la goma
+  for (const lado of [-1, 1]) {
+    const xm = lado < 0 ? -8 : 5.2;
+    g.push(sil(caja(xm, 2, 2.8, 6.5, 0.4), 0.3));
+    const xr = lado < 0 ? -12.6 : 9.2;
+    g.push(sil(caja(xr, 0.2, 3.4, 10, 1), 0.35));
+    for (let i = 0; i < 6; i++) g.push(relleno(rect(xr + 0.75, 1.1 + i * 1.55, 1.9, 0.6)));
+  }
+  // Líneas de velocidad detrás
+  for (const [x, y0, y1] of [
+    [-10.9, 12.2, 16.4],
+    [-6.6, 12.2, 14.4],
+    [6.6, 12.2, 14.4],
+    [10.9, 12.2, 16.4],
+  ])
+    g.push(
+      linea(
+        [
+          [x, y0],
+          [x, y1],
+        ].map((p) => T(p as Punto)),
+        0.35,
+      ),
+    );
   return g;
 }
 
-// ── Brazo robótico: de perfil, a punto de coger un cubo ─────────────────────────────────
+// ── Brazo robótico: de perfil, levantando un cubo ──────────────────────────────────────
 
 function brazo(): string[] {
   const g: string[] = [];
-  const suelo = 40.5;
+  const suelo = 40.6;
   g.push(
     linea(
       [
-        [54, suelo],
+        [53.5, suelo],
         [BORDE + 1, suelo],
       ],
       0.35,
     ),
   );
-  // Base giratoria
+  // Base con tornillos y plataforma giratoria
   g.push(
     silueta([
-      [58.5, suelo - 0.4],
-      [60.5, 35],
-      [70.5, 35],
-      [72.5, suelo - 0.4],
+      [58.6, suelo - 0.5],
+      [60.8, 36.4],
+      [71.2, 36.4],
+      [73.4, suelo - 0.5],
     ]),
   );
-  g.push(silueta(caja(61, 32.4, 9, 2.6, 0.8), 0.35));
-  // Giro de la base (flecha discontinua alrededor)
-  const hombro: Punto = [65.5, 30.5];
-  const codo: Punto = [69, 15];
-  const muneca: Punto = [79.5, 19.5];
-  g.push(silueta(capsula(hombro, codo, 1.9)));
-  g.push(silueta(capsula(codo, muneca, 1.6)));
-  // Articulaciones (servos)
-  g.push(pad(...hombro, 2.4, 0.8), pad(...codo, 2.1, 0.7), pad(...muneca, 1.8, 0.6));
-  // Pinza abierta, apuntando al cubo
+  g.push(disco(62.2, 38.3, 0.45), disco(69.8, 38.3, 0.45));
+  g.push(silueta(caja(60.4, 33.4, 11.2, 2.6, 0.7), 0.35));
+  // Flecha de giro alrededor de la base
+  const giro = arcoElipse(66, 34.7, 9.4, 2.3, 25, 155, 24);
+  g.push(linea(giro.slice(0, -1), 0.32));
+  g.push(flecha(giro[giro.length - 3], giro[giro.length - 2], 1.4, 1.2));
+
+  const hombro: Punto = [66, 29.6];
+  const codo: Punto = [69.6, 13.6];
+  const muneca: Punto = [79.4, 18.6];
+  // Brazo y antebrazo: piezas con un hueco alargado para aligerar
+  const pieza = (a: Punto, b: Punto, r: number) => {
+    const at = (t: number): Punto => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    return [silueta(capsula(a, b, r)), silueta(capsula(at(0.3), at(0.7), r * 0.32), 0.3)];
+  };
+  // Servo del hombro (caja) debajo del brazo
+  g.push(silueta(caja(62.3, 26.6, 7.4, 6.6, 0.8), 0.35));
+  g.push(...pieza(hombro, codo, 2.1), ...pieza(codo, muneca, 1.8));
+  // Articulaciones: disco del servo con tornillo central y 4 tornillos alrededor
+  const articulacion = ([x, y]: Punto, r: number) => {
+    g.push(pad(x, y, r, r * 0.62), disco(x, y, r * 0.28));
+    for (let i = 0; i < 4; i++) {
+      const a = (Math.PI / 2) * i + Math.PI / 4;
+      g.push(disco(x + r * 0.45 * Math.cos(a), y + r * 0.45 * Math.sin(a), 0.2));
+    }
+  };
+  articulacion(hombro, 2.7);
+  articulacion(codo, 2.4);
+  articulacion(muneca, 2.1);
+  // Muñeca y pinza cerrada sujetando el cubo
+  g.push(silueta(caja(78.2, 20.9, 2.4, 2.2, 0.3), 0.35));
   g.push(
     linea(
       [
-        [muneca[0], muneca[1] + 1.8],
-        [muneca[0], 23.2],
+        [76.2, 23.6],
+        [82.6, 23.6],
       ],
-      0.5,
+      0.55,
     ),
   );
   g.push(
-    linea([
-      [77.2, 23.2],
-      [81.8, 23.2],
-    ]),
+    linea(
+      [
+        [76.6, 23.6],
+        [76.6, 30.2],
+        [77.5, 30.9],
+      ],
+      0.55,
+    ),
   );
-  g.push(
-    linea([
-      [77.4, 23.2],
-      [76.6, 27.6],
-      [77.6, 28.6],
-    ]),
-  );
-  g.push(
-    linea([
-      [81.6, 23.2],
-      [82.4, 27.6],
-      [81.4, 28.6],
-    ]),
-  );
-  // Cubo en el suelo y marcas de movimiento
-  g.push(silueta(caja(77, 35.4, 5, 5, 0.4)));
   g.push(
     linea(
       [
-        [79.5, 30.4],
-        [79.5, 31.8],
+        [82.2, 23.6],
+        [82.2, 30.2],
+        [81.3, 30.9],
+      ],
+      0.55,
+    ),
+  );
+  g.push(silueta(caja(77.5, 25.2, 3.8, 3.8, 0.3)));
+  g.push(silueta(caja(78.4, 26.1, 2, 2, 0.2), 0.25));
+  // Sombra del cubo en el suelo y marcas de "subiendo"
+  g.push(trazado(sentido(arcoElipse(79.4, 39.4, 3, 0.45, 0, 360, 28).slice(0, -1), true)));
+  g.push(
+    linea(
+      [
+        [74.4, 33],
+        [74.4, 29.2],
       ],
       0.3,
     ),
+    flecha([74.4, 30], [74.4, 29.2], 1, 1),
+  );
+  g.push(
     linea(
       [
-        [79.5, 32.6],
-        [79.5, 33.6],
+        [84.4, 33],
+        [84.4, 29.2],
       ],
       0.3,
     ),
+    flecha([84.4, 30], [84.4, 29.2], 1, 1),
   );
-  g.push(linea(arco(...codo, 6.2, 215, 265, 10), 0.3));
-  g.push(linea(arco(...codo, 7.6, 220, 258, 10), 0.3));
   return g;
 }
 
