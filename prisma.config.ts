@@ -22,7 +22,9 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    // La dirección de la base de datos sale de DATABASE_URL en el archivo .env
-    url: env("DATABASE_URL"),
+    // La dirección de la base de datos sale de DATABASE_URL en el archivo .env.
+    // Las migraciones van mejor sin el "pooler" de Neon: si existe DATABASE_URL_DIRECTA
+    // (conexión directa), los comandos de Prisma usan esa; la web sigue usando DATABASE_URL.
+    url: process.env.DATABASE_URL_DIRECTA || env("DATABASE_URL"),
   },
 });

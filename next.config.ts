@@ -61,9 +61,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   experimental: {
     serverActions: {
-      // Las acciones del panel reciben fotos (máximo 5 MB, ver src/lib/almacenamiento).
-      // Dejamos un poco más de margen para el resto de los datos del formulario.
-      bodySizeLimit: "6mb",
+      // Las acciones del panel reciben fotos (máximo 4 MB, ver src/lib/almacenamiento).
+      // Vercel no deja pasar envíos de más de 4,5 MB: más margen aquí no serviría de nada.
+      bodySizeLimit: "4.5mb",
     },
   },
   async headers() {
