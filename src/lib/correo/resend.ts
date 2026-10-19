@@ -3,7 +3,7 @@
  * Para activarlo, en el archivo .env:
  *   CORREO_PROVEEDOR="resend"
  *   RESEND_API_KEY="re_…"                      (la clave se crea en resend.com → API Keys)
- *   CORREO_REMITENTE="Valentia <hola@tudominio.es>"  (un dominio verificado en Resend)
+ *   CORREO_REMITENTE="Valentia <hola@valentiarobotics.com>"  (un dominio verificado en Resend)
  *
  * Usamos su API directamente con fetch, así que no hace falta instalar ningún paquete.
  * Para cambiar a otro servicio, crea un archivo como este y elígelo en index.ts.

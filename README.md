@@ -160,7 +160,7 @@ Con `npm run dev` **no se envía ningún correo de verdad**: aparecen en la term
 
 El envío está en `src/lib/correo` (el resto de la web solo usa `enviarCorreo()`). Está preparado
 [Resend](https://resend.com): crea una cuenta, verifica tu dominio, crea una clave y pon en el `.env`
-del servidor `CORREO_PROVEEDOR="resend"`, `RESEND_API_KEY="re_…"` y `CORREO_REMITENTE="Valentia <hola@tudominio.es>"`.
+del servidor `CORREO_PROVEEDOR="resend"`, `RESEND_API_KEY="re_…"` y `CORREO_REMITENTE="Valentia <hola@valentiarobotics.com>"`.
 Las plantillas (código, nuevo dispositivo, pedido confirmado, pedido enviado…) están en `src/lib/correo/plantillas.ts`.
 
 ## Panel de administración

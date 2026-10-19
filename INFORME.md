@@ -117,10 +117,10 @@ Ordenado por prioridad. Ninguno requiere programar; si algo no está claro, píd
 4. **Base de datos**: proyecto de MongoDB Atlas `valentia-prod` (M0 en Frankfurt), Network Access solo con
    las IP de Render y **copias de seguridad a mano** (`npm run db:copia`; el M0 no las hace solo).
 5. **Variables del servidor**: `AUTH_SECRET` nueva (`npx auth secret`) y `NEXT_PUBLIC_SITE_URL` con
-   `https://tudominio` (los QR impresos y los correos apuntan ahí).
+   `https://valentiarobotics.com` (los QR impresos y los correos apuntan ahí).
 6. **Stripe**: activa tu cuenta (datos fiscales y bancarios), prueba antes todo con claves de prueba
    (README, «Pagos con Stripe»), y al publicar pon las claves reales, `STRIPE_PERMITIR_CLAVES_REALES="si"`
-   y crea el **webhook** en el panel de Stripe → `https://tudominio/api/pagos/stripe` con los eventos
+   y crea el **webhook** en el panel de Stripe → `https://valentiarobotics.com/api/pagos/stripe` con los eventos
    `payment_intent.succeeded` y `payment_intent.canceled`; copia su `whsec_…` en `STRIPE_WEBHOOK_SECRET`.
 7. **Proveedor de correo**: Resend (u otro) con tu dominio verificado. **Sin esto nadie puede registrarse**.
 8. **Fotos en la nube** (Cloudflare R2 o similar) y `npm run fotos:nube -- --hacer` si ya subiste fotos.

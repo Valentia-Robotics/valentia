@@ -87,7 +87,7 @@ Son iguales que en cualquier hosting; están explicados en el README y en `INFOR
 - **Correo (Resend)**: verifica tu dominio y crea una clave (`re_…`). **Sin esto nadie puede registrarse
   ni iniciar sesión**, porque la web envía un código por correo.
 - **Stripe**: activa la cuenta, copia las claves reales (`pk_live_…`, `sk_live_…`) y crea el webhook hacia
-  `https://tudominio.es/api/pagos/stripe` con los eventos **`payment_intent.succeeded`** y
+  `https://valentiarobotics.com/api/pagos/stripe` con los eventos **`payment_intent.succeeded`** y
   **`payment_intent.canceled`**; copia su secreto (`whsec_…`).
 
 ## 3. Render
@@ -121,14 +121,14 @@ Son iguales que en cualquier hosting; están explicados en el README y en `INFOR
    | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
    | `DATABASE_URL`                                                                                                             | La de producción del paso 1                      |
    | `AUTH_SECRET`                                                                                                              | Una **nueva**: `npx auth secret` en tu ordenador |
-   | `NEXT_PUBLIC_SITE_URL`                                                                                                     | `https://tudominio.es`                           |
+   | `NEXT_PUBLIC_SITE_URL`                                                                                                     | `https://valentiarobotics.com`                   |
    | `STRIPE_SECRET_KEY`                                                                                                        | `sk_live_…`                                      |
    | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                                                                                       | `pk_live_…`                                      |
    | `STRIPE_WEBHOOK_SECRET`                                                                                                    | `whsec_…`                                        |
    | `STRIPE_PERMITIR_CLAVES_REALES`                                                                                            | `si`                                             |
    | `CORREO_PROVEEDOR`                                                                                                         | `resend`                                         |
    | `RESEND_API_KEY`                                                                                                           | `re_…`                                           |
-   | `CORREO_REMITENTE`                                                                                                         | `Valentia <hola@tudominio.es>`                   |
+   | `CORREO_REMITENTE`                                                                                                         | `Valentia <hola@valentiarobotics.com>`           |
    | `ALMACEN_PROVEEDOR`                                                                                                        | `local` (Disk de Render) o `nube` (R2), ver §2   |
    | `ALMACEN_LOCAL_CARPETA`                                                                                                    | Con Disk: `/var/data/subidas` (su Mount Path)    |
    | `ALMACEN_ENDPOINT`, `ALMACEN_REGION`, `ALMACEN_BUCKET`, `ALMACEN_CLAVE_ID`, `ALMACEN_CLAVE_SECRETA`, `ALMACEN_URL_PUBLICA` | Solo con R2 (ver `.env.example`)                 |
@@ -183,8 +183,8 @@ Address_, marca **«This entry is temporary»** (por ejemplo, 6 horas). Así no 
 
 ## 5. Tu dominio
 
-1. En Render: servicio → **Settings → Custom Domains → Add Custom Domain** → `tudominio.es` (y
-   `www.tudominio.es`).
+1. En Render: servicio → **Settings → Custom Domains → Add Custom Domain** → `valentiarobotics.com` (y
+   `www.valentiarobotics.com`).
 2. Render te dice qué **registros DNS** crear. Añádelos donde gestiones el DNS del dominio.
 3. Cuando salga **Verified**, Render activa el **https** solo. Comprueba que `NEXT_PUBLIC_SITE_URL` es
    exactamente esa dirección (si la cambias, vuelve a desplegar: se graba al compilar).
@@ -209,7 +209,7 @@ verificado.
 
 Después:
 
-1. Entra en `https://tudominio.es/login` con ese email y contraseña. La primera vez en cada navegador te
+1. Entra en `https://valentiarobotics.com/login` con ese email y contraseña. La primera vez en cada navegador te
    llega un código por correo (así compruebas que Resend funciona).
 2. Entra en `/admin`: revisa los productos, pon las fotos y los vídeos reales de los cursos.
 3. Haz una **compra real pequeña** con tu tarjeta y comprueba: correo de confirmación, pedido en el panel
@@ -222,7 +222,7 @@ Render pase la IP del visitante en una cabecera distinta de las que lee `src/lib
 ## 6 bis. El catálogo de producción: se gestiona desde el panel
 
 **A partir del primer despliegue, el catálogo de producción se gestiona desde el panel de administración
-de producción** (`https://tudominio.es/admin`): precios, textos, fotos, stock, kits nuevos, ocultar o
+de producción** (`https://valentiarobotics.com/admin`): precios, textos, fotos, stock, kits nuevos, ocultar o
 borrar productos, cursos y lecciones… Lo que cambies allí es lo que manda, y ningún despliegue lo pisa.
 
 `data/catalogo/` (un archivo por colección: `Componente`, `Kit`, `KitComponente`, `Curso`, `Leccion`,
