@@ -36,6 +36,7 @@ Un commit por bloque («Lanzamiento (n/10)»).
 - [x] 10. README, CLAUDE.md, INFORME.md, graphify, commit final y `npm run dev`.
 
 Notas técnicas de la fase de lanzamiento:
+
 - Pedidos (`src/lib/pedidos.ts`): stock RESERVADO al crear (PENDIENTE), `marcarPedidoPagado` idempotente con
   `updateMany` condicionado, `liberarPedidosCaducados` (60 min, se llama al preparar cada pedido),
   `PEDIDO_COBRADO` (filtro de pagados no cancelados). Enlace privado `tokenAccesoPedido` = HMAC(AUTH_SECRET).
@@ -177,12 +178,14 @@ Notas técnicas de la fase de lanzamiento:
   `EnvioCodigo`) se agotan rápido en pruebas: vaciar esas filas (solo las del usuario de prueba).
 - Tras `prisma generate` con tablas nuevas hay que reiniciar `npm run dev` (el cliente de la BD queda en memoria).
 - `npm audit`: 5 avisos "altos" en braces/micromatch vía eslint-config-next (solo desarrollo); el arreglo bajaría a Next 14. Esperar.
-- `graphify-out/` (salida de la herramienta graphify del usuario) no está en git ni en .gitignore: no tocarla sin preguntar.
+- `graphify-out/` (salida de la herramienta graphify del usuario) está en .gitignore (no se sube): no tocarla sin preguntar.
 - npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines, better-sqlite3,
   esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
 - Vídeos de los cursos: `PENDIENTE` en la BD, a la espera de las URL reales (se ponen desde `/admin/cursos`).
 - Portada: robot 3D (hero), «De la caja a tu primer robot», kit estrella y una sección para cada uno de los otros kits.
-- Identidad de git configurada solo en este repositorio: `Diego <diegonotsa@gmail.com>`.
+- Identidad de git configurada solo en este repositorio: `Diego <diegonotsa@gmail.com>`. gh está conectado con la
+  cuenta `Valentiarobotics`.
+- `prepare` ejecuta `.husky/install.mjs` (no hace nada si `CI` o `NODE_ENV=production`, ni falla sin husky).
 
 ### Decisiones aprobadas por el usuario
 
@@ -233,6 +236,28 @@ Requisitos completos: `PROMPT.md`.
 7. Secretos solo en `.env` (nunca en git). `.env.example` sin secretos.
 8. **No borrar ni modificar `imagenes/`** (originales del usuario). Sí se guarda en git.
 9. Sin logos, nombres, textos, imágenes ni tipografías de Apple o McDonald's: solo la inspiración de estilo.
+
+## Git y GitHub
+
+Repositorio privado: **https://github.com/Valentia-Robotics/valentia** (organización «Valentia Robotics», plan
+gratuito). `main` es la rama estable (lo que se publica). Estas reglas se siguen SIEMPRE:
+
+1. **Al empezar una tarea**: `git fetch`, `git switch main`, `git pull` y crear una rama nueva
+   `usuario/descripcion-corta` desde `main` actualizado (`usuario` = `gh api user --jq .login`; descripción en
+   minúsculas y con guiones, p. ej. `ana/filtros-configurador`). Si ya estoy en una rama de esa tarea, seguir en
+   ella y traer los últimos cambios de main (`git fetch` + `git merge origin/main`).
+2. **Nunca hacer commit ni push en `main`** (los hooks de husky en `.husky/` lo bloquean; no saltarlos con
+   `--no-verify`).
+3. **Al terminar cada bloque de trabajo**: revisar `git status` (y el diff) para no subir secretos (`.env`, `*.db`,
+   claves…), commit con un mensaje claro en español y `git push` inmediatamente a la rama de la tarea.
+4. **Al terminar la tarea**: actualizar la rama con los últimos cambios de main y resolver los conflictos con
+   cuidado; ejecutar `npm run lint`, `npm run build` y `npm test` (y `npm run test:e2e` si toca flujos de compra,
+   login o cursos); abrir un pull request hacia main con `gh pr create --base main`, con título claro y descripción
+   en español siguiendo `.github/pull_request_template.md`: qué cambia, cómo probarlo y si modifica la base de datos
+   (migraciones de Prisma).
+5. **Nunca unir un pull request yo mismo** ni usar `git push --force` sobre ramas de otros. En mi propia rama, solo
+   `--force-with-lease` y solo si es imprescindible.
+6. **Si un push o un pull request falla, no forzarlo**: explicar el motivo al usuario.
 
 ## Marca y sistema de diseño
 

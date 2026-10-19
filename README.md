@@ -64,6 +64,129 @@ El seed crea un **usuario de prueba**, con el email ya verificado (solo para tu 
 **http://localhost:3000/activar?codigo=VAL-PRUE-CAR2**. Cada navegador nuevo te pedirá un código por
 email: lo verás en **http://localhost:3000/dev/correos**.
 
+## Cómo trabajamos
+
+El código vive en GitHub, en el repositorio privado **Valentia-Robotics/valentia**. La regla de oro:
+
+> **`main` es la rama estable** (lo que se publica). **Nadie trabaja directamente en ella.**
+> Cada tarea se hace en su propia rama y llega a `main` mediante un **pull request** que revisa otra persona.
+
+Una **rama** es una copia del proyecto donde puedes hacer cambios sin molestar a nadie. Un **pull request**
+(PR) es la petición de «por favor, une mis cambios a `main`»: ahí el equipo los ve, comenta y aprueba.
+
+### Antes de empezar (solo la primera vez)
+
+1. Instala [Git](https://git-scm.com), [Node.js](https://nodejs.org) 22 o superior y
+   [GitHub CLI](https://cli.github.com). Inicia sesión con `gh auth login`.
+2. Acepta la invitación al repositorio (te llega por email o en github.com).
+3. Descarga el proyecto, crea tu `.env`, instala y prepara la base de datos:
+
+```bash
+gh repo clone Valentia-Robotics/valentia
+cd valentia
+cp .env.example .env     # en Windows (PowerShell): copy .env.example .env
+npm install              # instala las librerías y activa las protecciones de git
+npm run setup            # crea la base de datos con datos de prueba
+npm run dev              # abre http://localhost:3000
+```
+
+En `.env` genera tu propia clave con `npx auth secret`. **Los secretos (claves de Stripe, Resend…) se piden
+por privado a quien los tenga, nunca se escriben en el repositorio, en un issue ni en un pull request.**
+El archivo `.env` está en `.gitignore`, así que git nunca lo sube.
+
+### El ciclo de una tarea, con un ejemplo
+
+Ana quiere añadir filtros al configurador. Su usuario de GitHub es `ana` (puedes ver el tuyo con
+`gh api user --jq .login`). Los nombres de rama son `usuario/descripcion-corta`, en minúsculas y con guiones.
+
+```bash
+# 1. Traer lo último de main y crear la rama de la tarea
+git switch main
+git pull
+git switch -c ana/filtros-configurador
+
+# 2. Trabajar… y guardar cada avance con un commit (mensaje claro en español)
+git add .
+git commit -m "Configurador: filtro por categoría"
+
+# 3. Subir la rama a GitHub (la primera vez con -u; después basta con "git push")
+git push -u origin ana/filtros-configurador
+
+# 4. Antes de terminar: traer los cambios que otros hayan unido a main y comprobar que todo va bien
+git fetch
+git merge origin/main
+npm run lint && npm run build && npm test
+
+# 5. Abrir el pull request (rellena la plantilla: qué cambia, cómo probarlo, base de datos, capturas)
+gh pr create --base main
+```
+
+6. **Revisión**: otra persona del equipo revisa el PR y lo aprueba (o pide cambios: haces más commits en la
+   misma rama y `git push`; el PR se actualiza solo).
+7. **Unir (merge)**: con la aprobación, se pulsa **«Merge pull request»** en GitHub.
+8. **Borrar la rama**: pulsa **«Delete branch»** en el PR y, en tu ordenador:
+   `git switch main`, `git pull` y `git branch -d ana/filtros-configurador`.
+
+Si usas **VS Code**, al hacer un commit desde el panel de control de código fuente los cambios se suben solos
+a tu rama (`git.postCommitCommand: "sync"` en `.vscode/settings.json`). La primera vez en una rama nueva te
+preguntará si quieres publicarla: di que sí.
+
+### Cómo revisar y aprobar un pull request en la web de GitHub
+
+1. Abre el repositorio en github.com → pestaña **Pull requests** → elige el PR.
+2. Lee la descripción y sigue los pasos de «Cómo probarlo». Para probarlo en tu ordenador:
+   `gh pr checkout <número>` y `npm run dev` (si dice que hay migraciones: `npx prisma migrate dev`).
+3. En la pestaña **Files changed** verás cada cambio. Para comentar una línea, pasa el ratón por encima y pulsa
+   el **+** azul.
+4. Pulsa **Review changes** (arriba a la derecha) y elige:
+   **Comment** (solo comentar), **Approve** (aprobar) o **Request changes** (pedir cambios). Luego **Submit review**.
+5. Con la aprobación, cualquiera del equipo puede pulsar **Merge pull request** → **Confirm merge** y después
+   **Delete branch**. Nadie une su propio PR sin que otra persona lo haya aprobado.
+
+### Qué hacer si aparecen conflictos
+
+Un **conflicto** ocurre cuando tú y otra persona habéis cambiado las mismas líneas. No pasa nada, se arregla así:
+
+1. En tu rama: `git fetch` y `git merge origin/main`. Git te dirá qué archivos tienen conflicto.
+2. Abre cada archivo (VS Code los marca en rojo). Verás bloques así:
+
+   ```
+   <<<<<<< HEAD
+   tu versión
+   =======
+   la versión que ya está en main
+   >>>>>>> origin/main
+   ```
+
+   Deja el código correcto (a veces una parte, a veces las dos combinadas) y borra las marcas
+   `<<<<<<<`, `=======` y `>>>>>>>`. VS Code ofrece los botones «Accept Current / Incoming / Both».
+
+3. Comprueba que todo funciona (`npm run lint`, `npm run build`, `npm test`), y termina con
+   `git add .`, `git commit` y `git push`.
+4. Si no sabes qué versión es la buena, **pregunta a quien hizo el otro cambio** antes de decidir.
+   Si te lías, `git merge --abort` deja la rama como estaba antes del merge.
+
+GitHub también avisa en el PR («This branch has conflicts») y, para conflictos sencillos, deja resolverlos en la
+web con **Resolve conflicts**.
+
+### Protección de main (hooks de git)
+
+GitHub no deja proteger ramas en repositorios privados con el plan gratuito, así que lo hacemos en cada ordenador
+con [husky](https://typicode.github.io/husky/): al hacer `npm install` se activan dos comprobaciones
+(carpeta `.husky/`). **pre-commit** impide hacer commits estando en `main` y **pre-push** impide subir a `main`.
+`git pull` en `main` y los merges que se hacen desde GitHub siguen funcionando con normalidad.
+
+Si alguna vez haces cambios en `main` sin querer, no los pierdas: `git switch -c tu-usuario/descripcion` crea una
+rama nueva y se lleva tus cambios con ella.
+
+**Solo en una emergencia** (y avisando al equipo) se pueden saltar con `--no-verify`
+(`git commit --no-verify`, `git push --no-verify`).
+
+### Si trabajas con Claude Code
+
+No tienes que hacer nada especial: `CLAUDE.md` («Git y GitHub») ya le dice que cree la rama, haga commits y
+push, compruebe lint, build y tests, y abra el pull request sin unirlo él mismo.
+
 ## Configuración del negocio
 
 Todo lo que puedes querer cambiar sin tocar código está en **`src/config/tienda.ts`**:
@@ -256,6 +379,8 @@ Tarda un par de minutos (compila la web).
 | `scripts/`            | Programas de ayuda (marca, admin, esquema PostgreSQL, fotos a la nube, pruebas)      |
 | `e2e/`                | Pruebas con navegador (Playwright)                                                   |
 | `subidas/`            | Fotos subidas desde el panel (no se sube a git)                                      |
+| `.husky/`             | Hooks de git que protegen `main` (ver «Cómo trabajamos»)                             |
+| `.github/`            | Plantilla de los pull requests                                                       |
 | `src/app/`            | Las páginas. Cada carpeta es una dirección (`/kits`, `/checkout`…)                   |
 | `src/app/globals.css` | **Sistema de diseño**: colores, tipografías, radios y sombras                        |
 | `src/components/`     | Piezas reutilizables (portada 3D, compra, cursos, panel, legal…)                     |

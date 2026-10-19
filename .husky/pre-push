@@ -1,0 +1,16 @@
+# Bloquea las subidas directas a main en GitHub (ver README «Cómo trabajamos»).
+# Git pasa por la entrada una línea por cada rama que se sube:
+#   <ref local> <sha local> <ref remota> <sha remota>
+while read -r ref_local sha_local ref_remota sha_remota; do
+  if [ "$ref_remota" = "refs/heads/main" ]; then
+    echo ""
+    echo "✋ No se puede subir directamente a main."
+    echo "   Los cambios llegan a main solo a través de un pull request revisado por otra persona."
+    echo ""
+    echo "   Sube tu rama y abre un pull request:"
+    echo "     git push -u origin tu-usuario/descripcion-corta"
+    echo "     gh pr create"
+    echo ""
+    exit 1
+  fi
+done
