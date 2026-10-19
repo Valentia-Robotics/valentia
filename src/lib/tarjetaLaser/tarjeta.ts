@@ -1,6 +1,6 @@
 /**
  * TARJETA DE ACTIVACIÓN PARA LÁSER
- * Dibuja en un SVG las dos caras de la tarjeta que va dentro de cada kit, lista para grabar y cortar
+ * Dibuja en SVG las dos caras (un archivo por cara) de la tarjeta que va dentro de cada kit, lista para grabar y cortar
  * en cartulina negra (probada la idea con una Bambu Lab H2C):
  *   - relleno NEGRO = grabar (el láser aclara la cartulina)
  *   - línea ROJA de 0,1 mm = cortar
@@ -27,7 +27,6 @@ const W = 85.6;
 const H = 54;
 const RADIO = 3;
 const MARGEN = 3;
-const HUECO = 6;
 
 interface DatosTarjeta {
   codigo: string;
@@ -287,30 +286,26 @@ function caraTrasera({ dominio, slugKit }: DatosTarjeta): string[] {
   return g;
 }
 
-/** SVG con las dos caras, una al lado de la otra, en milímetros reales */
-export function tarjetaLaserSvg(datos: DatosTarjeta): string {
-  const ancho = +(MARGEN * 2 + W * 2 + HUECO).toFixed(2);
+export type CaraTarjeta = "delantera" | "trasera";
+
+/** SVG de una cara de la tarjeta (con su contorno de corte), en milímetros reales */
+export function tarjetaLaserSvg(datos: DatosTarjeta, cara: CaraTarjeta): string {
+  const ancho = +(MARGEN * 2 + W).toFixed(2);
   const alto = +(MARGEN * 2 + H).toFixed(2);
-  const contornoTarjeta = trazado(rectRedondeado(0, 0, W, H, RADIO));
-  const cara = (
-    id: string,
-    x: number,
-    formas: string[],
-  ) => `  <g id="${id}" transform="translate(${x} ${MARGEN})">
-    <g id="${id}-grabar" fill="#000000" stroke="none">
-${formas.map((d) => `      ${d.startsWith("<") ? d : `<path d="${d}"/>`}`).join("\n")}
-    </g>
-    <g id="${id}-cortar" fill="none" stroke="#FF0000" stroke-width="0.1">
-      <path d="${contornoTarjeta}"/>
-    </g>
-  </g>`;
+  const formas = cara === "delantera" ? caraDelantera(datos) : caraTrasera(datos);
   return `<?xml version="1.0" encoding="UTF-8"?>
-<!-- Valentia · tarjeta de activación ${datos.codigo} (${escaparComentario(datos.nombreKit)})
-     Medidas reales en mm: ${W} × ${H} por cara. Material: cartulina negra.
+<!-- Valentia · tarjeta de activación ${datos.codigo} (${escaparComentario(datos.nombreKit)}) · cara ${cara}
+     Medidas reales en mm: ${W} × ${H}. Material: cartulina negra.
      NEGRO relleno = GRABAR · ROJO 0,1 mm = CORTAR. El texto ya está convertido a formas. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="${ancho}mm" height="${alto}mm" viewBox="0 0 ${ancho} ${alto}">
-${cara("delantera", MARGEN, caraDelantera(datos))}
-${cara("trasera", MARGEN + W + HUECO, caraTrasera(datos))}
+  <g id="${cara}" transform="translate(${MARGEN} ${MARGEN})">
+    <g id="${cara}-grabar" fill="#000000" stroke="none">
+${formas.map((d) => `      ${d.startsWith("<") ? d : `<path d="${d}"/>`}`).join("\n")}
+    </g>
+    <g id="${cara}-cortar" fill="none" stroke="#FF0000" stroke-width="0.1">
+      <path d="${trazado(rectRedondeado(0, 0, W, H, RADIO))}"/>
+    </g>
+  </g>
 </svg>
 `;
 }

@@ -1,7 +1,7 @@
 /**
  * DESCARGA DE TARJETAS PARA LÁSER: /admin/codigos/lotes/[id]/laser
- * Devuelve un .zip con un SVG por cada código del lote (los desactivados no se incluyen),
- * cada uno con su QR, su código y el nombre del kit, listo para grabar y cortar.
+ * Devuelve un .zip con dos SVG por cada código del lote (los desactivados no se incluyen):
+ * CODIGO_delantero.svg (QR, código y nombre del kit) y CODIGO_trasero.svg (pasos y dibujo del kit).
  */
 import { obtenerLote } from "@/lib/admin/codigos";
 import { esId } from "@/lib/ids";
@@ -13,17 +13,20 @@ import { crearZip } from "@/lib/tarjetaLaser/zip";
 const LEEME = `TARJETAS DE ACTIVACIÓN DE VALENTIA PARA LÁSER
 =============================================
 
-Cada archivo .svg es una tarjeta (cara delantera a la izquierda, trasera a la derecha),
-con su propio QR y código. Medidas reales: 85,6 × 54 mm por cara.
+Cada tarjeta tiene dos archivos, con su propio QR y código:
+  - VAL-XXXX-XXXX_delantero.svg  →  cara delantera (QR, código y nombre del kit)
+  - VAL-XXXX-XXXX_trasero.svg    →  cara trasera (pasos y dibujo del kit)
+Medidas reales: 85,6 × 54 mm por cara.
 
   - Relleno NEGRO  = GRABAR (el láser aclara la cartulina negra)
   - Línea ROJA     = CORTAR el contorno
 
 Cómo hacerla:
-  1. Graba la cara delantera y corta el contorno.
-  2. Sin mover la plancha, da la vuelta a la tarjeta, vuelve a meterla en su hueco
-     y graba solo la cara trasera (desactiva la delantera y el corte).
-  3. Antes de hacer muchas, prueba una y comprueba que el QR se lee con el móvil.
+  1. Abre el archivo _delantero, graba y corta el contorno.
+  2. Sin mover la plancha, da la vuelta a la tarjeta y vuelve a meterla en su hueco.
+  3. Abre el archivo _trasero del MISMO código, colócalo en el mismo sitio y graba
+     solo la cara trasera (desactiva el corte: la tarjeta ya está cortada).
+  4. Antes de hacer muchas, prueba una y comprueba que el QR se lee con el móvil.
 `;
 
 export async function GET(_peticion: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -40,16 +43,19 @@ export async function GET(_peticion: Request, { params }: { params: Promise<{ id
   const dominio = new URL(urlActivacion("X")).host;
   const archivos = lote.codigos
     .filter((c) => !c.desactivadoEn)
-    .map((c) => ({
-      nombre: `${c.codigo}.svg`,
-      contenido: tarjetaLaserSvg({
+    .flatMap((c) => {
+      const datos = {
         codigo: c.codigo,
         nombreKit: lote.kit.nombre,
         slugKit: lote.kit.slug,
         url: urlActivacion(c.codigo),
         dominio,
-      }),
-    }));
+      };
+      return [
+        { nombre: `${c.codigo}_delantero.svg`, contenido: tarjetaLaserSvg(datos, "delantera") },
+        { nombre: `${c.codigo}_trasero.svg`, contenido: tarjetaLaserSvg(datos, "trasera") },
+      ];
+    });
   const zip = crearZip([{ nombre: "LEEME.txt", contenido: LEEME }, ...archivos]);
 
   const fecha = lote.creadoEn.toISOString().slice(0, 10);

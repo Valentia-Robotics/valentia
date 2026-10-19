@@ -11,17 +11,22 @@ const datos = (codigo: string, nombreKit = "Coche seguidor de líneas") => ({
 });
 
 describe("tarjeta para láser", () => {
-  it("dibuja las dos caras en mm reales, solo con formas (sin texto ni imágenes)", () => {
-    const svg = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"));
-    expect(svg).toContain('width="183.2mm"');
-    expect(svg).toContain('id="delantera-grabar"');
-    expect(svg).toContain('id="trasera-cortar"');
-    expect(svg).not.toMatch(/<text|<image|NaN|undefined/);
+  it("cada cara va en su propio SVG en mm reales, solo con formas (sin texto ni imágenes)", () => {
+    const delantera = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"), "delantera");
+    const trasera = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"), "trasera");
+    for (const svg of [delantera, trasera]) {
+      expect(svg).toContain('width="91.6mm"');
+      expect(svg).not.toMatch(/<text|<image|NaN|undefined/);
+    }
+    expect(delantera).toContain('id="delantera-grabar"');
+    expect(delantera).not.toContain('id="trasera');
+    expect(trasera).toContain('id="trasera-cortar"');
+    expect(trasera).not.toContain('id="delantera');
   });
 
   it("cada código tiene su propio QR", () => {
-    const a = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"));
-    const b = tarjetaLaserSvg(datos("VAL-CCCC-DDDD"));
+    const a = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"), "delantera");
+    const b = tarjetaLaserSvg(datos("VAL-CCCC-DDDD"), "delantera");
     const qr = (svg: string) => svg.split('id="delantera-grabar"')[1].split("<path")[1];
     expect(qr(a)).not.toBe(qr(b));
   });
@@ -29,6 +34,7 @@ describe("tarjeta para láser", () => {
   it("los nombres de kit largos no rompen la tarjeta", () => {
     const svg = tarjetaLaserSvg(
       datos("VAL-AAAA-BBBB", "Estación meteorológica con pantalla y sensores"),
+      "delantera",
     );
     expect(svg).not.toMatch(/NaN|undefined/);
   });
