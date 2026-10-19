@@ -12,6 +12,7 @@ import { borrarImagen, ErrorImagen, hayArchivo, subirImagen } from "@/lib/almace
 import { db } from "@/lib/db";
 import { exigirAdminEnAccion } from "@/lib/sesion";
 import { crearSlug, esquemaComponenteAdmin, slug as esquemaSlug } from "@/lib/validaciones/admin";
+import { idsValidos } from "@/lib/ids";
 
 /** Crear (sin id) o editar (con id) un componente */
 export async function guardarComponente(
@@ -20,6 +21,7 @@ export async function guardarComponente(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
 
   // Los datos técnicos llegan como dos listas (nombres y valores); quitamos las filas vacías
   const nombres = textos(formulario, "espNombre");
@@ -127,6 +129,7 @@ export async function cambiarVisibilidadComponente(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const componente = await db.componente.findUnique({ where: { id }, select: { visible: true } });
   if (!componente) return { ok: false, mensaje: "Este componente ya no existe." };
   await db.componente.update({ where: { id }, data: { visible: !componente.visible } });
@@ -145,6 +148,7 @@ export async function borrarComponente(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const componente = await db.componente.findUnique({
     where: { id },
     select: { imagen: true, enKits: { select: { kit: { select: { nombre: true } } } } },

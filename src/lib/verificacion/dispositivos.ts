@@ -109,7 +109,8 @@ export async function crearPase(dispositivoId: string): Promise<string> {
 /** Canjea un pase: devuelve el usuario y su dispositivo, o null si no vale. Solo sirve una vez. */
 export async function canjearPase(pase: string) {
   const paseHash = hashToken(pase);
-  const dispositivo = await db.dispositivoConfianza.findUnique({
+  // findFirst: paseHash tiene índice pero no es único (MongoDB no admite varios null en un único)
+  const dispositivo = await db.dispositivoConfianza.findFirst({
     where: { paseHash },
     select: {
       id: true,

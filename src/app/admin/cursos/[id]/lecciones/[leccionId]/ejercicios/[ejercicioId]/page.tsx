@@ -5,6 +5,7 @@ import { FormularioEjercicio } from "@/components/admin/FormularioEjercicio";
 import { obtenerEjercicioAdmin } from "@/lib/admin/cursos";
 import { listaDeTextos } from "@/lib/catalogo";
 import { exigirAdmin } from "@/lib/sesion";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Editar ejercicio" };
 
@@ -15,6 +16,8 @@ interface Props {
 /** EDITAR UN EJERCICIO (test o reto) */
 export default async function EditarEjercicio({ params }: Props) {
   const { id, leccionId, ejercicioId } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (![id, leccionId, ejercicioId].every(esId)) notFound();
   await exigirAdmin(`/admin/cursos/${id}/lecciones/${leccionId}/ejercicios/${ejercicioId}`);
   const ejercicio = await obtenerEjercicioAdmin(leccionId, ejercicioId);
   if (!ejercicio || ejercicio.leccion.curso.id !== id) notFound();

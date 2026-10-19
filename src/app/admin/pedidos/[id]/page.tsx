@@ -14,6 +14,7 @@ import { piezasDeLinea } from "@/lib/pedidos";
 import { exigirAdmin } from "@/lib/sesion";
 import { formatearPrecio } from "@/lib/utils";
 import { formatearTelefono } from "@/lib/validaciones/pedido";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Pedido" };
 
@@ -24,6 +25,8 @@ interface Props {
 /** FICHA DE UN PEDIDO: lo que se ha pedido, a quién se envía, el pago y su estado */
 export default async function PedidoAdmin({ params }: Props) {
   const { id } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (!esId(id)) notFound();
   await exigirAdmin(`/admin/pedidos/${id}`);
   const pedido = await obtenerPedidoAdmin(id);
   if (!pedido) notFound();

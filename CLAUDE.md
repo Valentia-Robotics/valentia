@@ -52,8 +52,9 @@ Análisis (lo que se ve afectado):
 
 Pasos:
 
-- [ ] 1. Prisma 6.19.3, esquema MongoDB, `db push` y cliente generado.
-- [ ] 2. Código: imports, ids válidos, búsquedas, únicos, transacciones con reintento.
+- [x] 1. Prisma 6.19.3, esquema MongoDB, `db push` y cliente generado.
+- [x] 2. Código: ids válidos (`src/lib/ids.ts`), búsquedas, únicos, `transaccion()` con reintento (`db.ts`) y
+      campos opcionales guardados como null al crear (`src/lib/nulos.ts`: sin esto `usadoEn: null` no encuentra nada).
 - [ ] 3. Seed de desarrollo y de catálogo, `npm run admin`, scripts y copia de seguridad/restauración.
 - [ ] 4. Pruebas: lint, build, Vitest, Playwright y recorrido a mano contra el clúster de desarrollo.
 - [ ] 5. DESPLIEGUE.md (Render + Atlas), `.env.example`, README, INFORME.md, graphify y pull request.

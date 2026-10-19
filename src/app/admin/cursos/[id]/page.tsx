@@ -17,6 +17,7 @@ import { obtenerCursoAdmin, progresoDeCurso } from "@/lib/admin/cursos";
 import { exigirAdmin } from "@/lib/sesion";
 import { plural } from "@/lib/utils";
 import { fuenteVideo } from "@/lib/video";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Editar curso" };
 
@@ -28,6 +29,8 @@ interface Props {
 /** UN CURSO: sus datos, el progreso de los alumnos y el temario (lecciones en orden) */
 export default async function EditarCurso({ params, searchParams }: Props) {
   const { id } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (!esId(id)) notFound();
   await exigirAdmin(`/admin/cursos/${id}`);
   const [curso, avisos] = await Promise.all([obtenerCursoAdmin(id), searchParams]);
   if (!curso) notFound();

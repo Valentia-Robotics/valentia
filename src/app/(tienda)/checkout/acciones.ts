@@ -26,6 +26,7 @@ import {
   urlPedido,
 } from "@/lib/pedidos";
 import { obtenerUsuario } from "@/lib/sesion";
+import { esquemaId } from "@/lib/ids";
 import {
   esquemaCarritoPedido,
   esquemaCheckout,
@@ -225,7 +226,7 @@ async function guardarDireccion(usuarioId: string, d: DatosCliente) {
 }
 
 const esquemaPedidoToken = z.object({
-  pedidoId: z.string().min(1).max(40),
+  pedidoId: esquemaId,
   token: z.string().length(32),
 });
 

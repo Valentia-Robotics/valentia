@@ -4,7 +4,7 @@
  * para el usuario que lo activa. Cada código solo se puede usar una vez.
  */
 import "server-only";
-import { db } from "@/lib/db";
+import { db, transaccion } from "@/lib/db";
 
 /** Datos de un código para enseñarlo en /activar (o null si no existe) */
 export function buscarCodigo(codigo: string) {
@@ -40,7 +40,7 @@ export async function activarCodigo(
   usuarioId: string,
   codigo: string,
 ): Promise<ResultadoActivacion> {
-  return db.$transaction(async (tx) => {
+  return transaccion(async (tx) => {
     const encontrado = await tx.codigoActivacion.findUnique({
       where: { codigo },
       select: {

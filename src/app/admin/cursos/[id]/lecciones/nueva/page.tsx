@@ -5,6 +5,7 @@ import { FormularioLeccion } from "@/components/admin/FormularioLeccion";
 import { db } from "@/lib/db";
 import { exigirAdmin } from "@/lib/sesion";
 import { proveedoresVideo } from "@/lib/video";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Nueva lección" };
 
@@ -15,6 +16,8 @@ interface Props {
 /** CREAR UNA LECCIÓN (se añade al final del temario) */
 export default async function NuevaLeccion({ params }: Props) {
   const { id } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (!esId(id)) notFound();
   await exigirAdmin(`/admin/cursos/${id}/lecciones/nueva`);
   const curso = await db.curso.findUnique({ where: { id }, select: { id: true, titulo: true } });
   if (!curso) notFound();

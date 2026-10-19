@@ -9,9 +9,10 @@ import { Prisma } from "@/generated/prisma/client";
 import { casilla, conErrores, texto, textos, type EstadoFormulario } from "@/lib/admin/formularios";
 import { refrescarTienda } from "@/lib/admin/refrescar";
 import { borrarImagen, ErrorImagen, hayArchivo, subirImagen } from "@/lib/almacenamiento";
-import { db } from "@/lib/db";
+import { db, transaccion } from "@/lib/db";
 import { exigirAdminEnAccion } from "@/lib/sesion";
 import { crearSlug, esquemaKitAdmin, slug as esquemaSlug } from "@/lib/validaciones/admin";
+import { idsValidos } from "@/lib/ids";
 
 /** Crear (sin id) o editar (con id) un kit */
 export async function guardarKit(
@@ -20,6 +21,7 @@ export async function guardarKit(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
 
   // Las piezas llegan como dos listas: ids y cantidades
   const ids = textos(formulario, "piezaId");
@@ -124,7 +126,7 @@ export async function guardarKit(
 
   let idGuardado = id;
   try {
-    idGuardado = await db.$transaction(async (tx) => {
+    idGuardado = await transaccion(async (tx) => {
       // Solo puede haber un kit destacado (el de la portada)
       if (d.destacado)
         await tx.kit.updateMany({ where: { destacado: true }, data: { destacado: false } });
@@ -177,6 +179,7 @@ export async function cambiarVisibilidadKit(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const kit = await db.kit.findUnique({ where: { id }, select: { visible: true } });
   if (!kit) return { ok: false, mensaje: "Este kit ya no existe." };
   await db.kit.update({ where: { id }, data: { visible: !kit.visible } });
@@ -195,6 +198,7 @@ export async function borrarKit(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const kit = await db.kit.findUnique({
     where: { id },
     select: { slug: true, imagen: true, _count: { select: { codigos: true } } },

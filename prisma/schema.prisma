@@ -1,6 +1,6 @@
 // ============================================================
-//  ESQUEMA DE LA BASE DE DATOS DE VALENTIA
-//  Cada "model" es una tabla. Los datos de prueba están en data/*.json
+//  ESQUEMA DE LA BASE DE DATOS DE VALENTIA (MongoDB)
+//  Cada "model" es una colección. Los datos iniciales están en data/*.json
 //  y se cargan con "npm run db:seed".
 // ============================================================
 
@@ -9,10 +9,11 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
-// En local usamos SQLite (un único archivo, sin instalar nada).
-// Para pasar a PostgreSQL: cambia "sqlite" por "postgresql" (y lee el README).
+// MongoDB Atlas (en local, el clúster de desarrollo; en producción, el de "valentia-prod").
+// MongoDB no usa migraciones: "npm run db:push" crea las colecciones y los índices (ver README).
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 enum Categoria {
@@ -31,7 +32,7 @@ enum TipoEjercicio {
 
 /// Un componente que se vende suelto o dentro de un kit
 model Componente {
-  id               String    @id @default(cuid())
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
   slug             String    @unique
   nombre           String
   categoria        Categoria
@@ -61,7 +62,7 @@ model Componente {
 
 /// Un kit cerrado de Valentia (por ejemplo, el coche seguidor de líneas)
 model Kit {
-  id             String  @id @default(cuid())
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
   slug           String  @unique
   nombre         String
   eslogan        String
@@ -81,25 +82,26 @@ model Kit {
 
   componentes KitComponente[]
   curso       Curso              @relation(fields: [cursoId], references: [id])
-  cursoId     String             @unique
+  cursoId     String             @unique @db.ObjectId
   codigos     CodigoActivacion[]
   lotes       LoteCodigos[]
 }
 
 /// Qué componentes (y cuántos) lleva cada kit
 model KitComponente {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
   kit          Kit        @relation(fields: [kitId], references: [id], onDelete: Cascade)
-  kitId        String
+  kitId        String     @db.ObjectId
   componente   Componente @relation(fields: [componenteId], references: [id], onDelete: Cascade)
-  componenteId String
+  componenteId String     @db.ObjectId
   cantidad     Int        @default(1)
 
-  @@id([kitId, componenteId])
+  @@unique([kitId, componenteId])
 }
 
 /// El curso que acompaña a un kit
 model Curso {
-  id          String         @id @default(cuid())
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
   slug        String         @unique
   titulo      String
   descripcion String
@@ -110,9 +112,9 @@ model Curso {
 }
 
 model Leccion {
-  id             String            @id @default(cuid())
+  id             String            @id @default(auto()) @map("_id") @db.ObjectId
   curso          Curso             @relation(fields: [cursoId], references: [id], onDelete: Cascade)
-  cursoId        String
+  cursoId        String            @db.ObjectId
   slug           String
   orden          Int
   titulo         String
@@ -130,9 +132,9 @@ model Leccion {
 
 /// Ejercicio de una lección: un test de opción múltiple o un reto práctico
 model Ejercicio {
-  id          String              @id @default(cuid())
+  id          String              @id @default(auto()) @map("_id") @db.ObjectId
   leccion     Leccion             @relation(fields: [leccionId], references: [id], onDelete: Cascade)
-  leccionId   String
+  leccionId   String              @db.ObjectId
   orden       Int
   tipo        TipoEjercicio
   enunciado   String
@@ -172,12 +174,12 @@ enum TipoLinea {
 /// Un pedido de la tienda. Se guarda una copia de los datos (nombres y precios)
 /// para que el pedido no cambie aunque luego cambie el catálogo.
 model Pedido {
-  id                   String       @id @default(cuid())
+  id                   String       @id @default(auto()) @map("_id") @db.ObjectId
   /// Número que ve el cliente, por ejemplo VAL-2026-4F7K9Q
   numero               String       @unique
   /// Cuenta que hizo el pedido (vacío si compró como invitado)
   usuario              Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
-  usuarioId            String?
+  usuarioId            String?      @db.ObjectId
   nombre               String
   email                String
   telefono             String       @default("")
@@ -195,7 +197,7 @@ model Pedido {
   /// Quién cobra el pedido: "simulado" (sin claves de Stripe) o "stripe"
   proveedorPago        String
   /// Referencia del pago que da el proveedor (en Stripe, el id del PaymentIntent)
-  referenciaPago       String?      @unique
+  referenciaPago       String?
   /// Número de seguimiento del transportista (lo pone el panel al enviarlo)
   numeroSeguimiento    String?
   /// Cuándo aceptó las condiciones de venta
@@ -215,13 +217,14 @@ model Pedido {
   @@index([usuarioId])
   @@index([email])
   @@index([estado, creadoEn])
+  @@index([referenciaPago])
 }
 
 /// Dirección de envío guardada en una cuenta (se elige en el checkout)
 model Direccion {
-  id             String   @id @default(cuid())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   usuario        Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId      String
+  usuarioId      String   @db.ObjectId
   nombre         String
   telefono       String
   direccion      String
@@ -237,16 +240,16 @@ model Direccion {
 /// Avisos (webhooks) de Stripe ya procesados: si Stripe repite uno, no se procesa dos veces
 model EventoStripe {
   /// id del evento de Stripe (evt_…)
-  id         String   @id
+  id         String   @id @map("_id")
   tipo       String
   recibidoEn DateTime @default(now())
 }
 
 /// Una línea del pedido: un kit, un componente suelto o un robot personalizado
 model LineaPedido {
-  id                     String    @id @default(cuid())
+  id                     String    @id @default(auto()) @map("_id") @db.ObjectId
   pedido                 Pedido    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  pedidoId               String
+  pedidoId               String    @db.ObjectId
   tipo                   TipoLinea
   nombre                 String
   /// slug del kit o del componente (vacío en un robot personalizado)
@@ -260,32 +263,32 @@ model LineaPedido {
 /// Código único que va impreso (con su QR) en la caja de cada kit.
 /// Al activarlo, el curso del kit queda en "Mis cursos" del usuario (fase 5).
 model CodigoActivacion {
-  id            String       @id @default(cuid())
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
   /// El código en sí, por ejemplo VAL-7KQ2-M9XD
   codigo        String       @unique
   kit           Kit          @relation(fields: [kitId], references: [id], onDelete: Cascade)
-  kitId         String
+  kitId         String       @db.ObjectId
   /// Pedido en el que se vendió (vacío en los códigos de prueba del seed)
   pedido        Pedido?      @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
-  pedidoId      String?
+  pedidoId      String?      @db.ObjectId
   creadoEn      DateTime     @default(now())
   /// Cuándo se activó. Vacío = todavía sin usar
   usadoEn       DateTime?
   /// Quién lo activó
   usuario       Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
-  usuarioId     String?
+  usuarioId     String?      @db.ObjectId
   /// Desactivado desde el panel: ya no sirve para activar (quien lo activó antes conserva el curso)
   desactivadoEn DateTime?
   /// Lote de impresión en el que se generó (vacío en los códigos creados al pagar un pedido)
   lote          LoteCodigos? @relation(fields: [loteId], references: [id], onDelete: SetNull)
-  loteId        String?
+  loteId        String?      @db.ObjectId
 }
 
 /// Grupo de códigos generados de una vez desde el panel para imprimirlos y meterlos en las cajas
 model LoteCodigos {
-  id       String             @id @default(cuid())
+  id       String             @id @default(auto()) @map("_id") @db.ObjectId
   kit      Kit                @relation(fields: [kitId], references: [id], onDelete: Cascade)
-  kitId    String
+  kitId    String             @db.ObjectId
   cantidad Int
   creadoEn DateTime           @default(now())
   codigos  CodigoActivacion[]
@@ -304,7 +307,7 @@ enum Rol {
 
 /// Una persona con cuenta en Valentia
 model Usuario {
-  id                String    @id @default(cuid())
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
   nombre            String
   /// Siempre en minúsculas
   email             String    @unique
@@ -340,13 +343,13 @@ enum MotivoVerificacion {
 /// Una verificación por código en curso (ver src/lib/verificacion).
 /// El navegador la reconoce por una cookie con un token al azar; aquí solo se guarda su hash.
 model Verificacion {
-  id           String             @id @default(cuid())
+  id           String             @id @default(auto()) @map("_id") @db.ObjectId
   /// SHA-256 del token de la cookie (nunca el token tal cual)
   tokenHash    String             @unique
   /// null en las verificaciones "señuelo" (email sin cuenta o ya registrado): parecen
   /// iguales por fuera para no desvelar qué emails tienen cuenta, pero ningún código vale
   usuario      Usuario?           @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId    String?
+  usuarioId    String?            @db.ObjectId
   /// El email al que se ha enviado (en minúsculas)
   email        String
   motivo       MotivoVerificacion
@@ -367,7 +370,7 @@ model Verificacion {
 
 /// Cada envío de un código, para el límite de envíos por hora de cada email
 model EnvioCodigo {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String
   enviadoEn DateTime @default(now())
 
@@ -377,9 +380,9 @@ model EnvioCodigo {
 /// Un navegador en el que el usuario ha confirmado con un código que es él.
 /// Cada sesión va unida a uno: si se borra, esa sesión se cierra.
 model DispositivoConfianza {
-  id           String    @id @default(cuid())
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
   usuario      Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId    String
+  usuarioId    String    @db.ObjectId
   /// SHA-256 del token guardado en la cookie del navegador (nunca el token tal cual)
   tokenHash    String    @unique
   /// Nombre legible, por ejemplo "Chrome en Windows"
@@ -389,51 +392,56 @@ model DispositivoConfianza {
   /// 30 días para clientes, 7 para administradores
   caducaEn     DateTime
   /// "Pase" de un solo uso (hash) que convierte esta confianza en una sesión de Auth.js
-  paseHash     String?   @unique
+  paseHash     String?
   paseCaducaEn DateTime?
 
   @@index([usuarioId])
+  @@index([paseHash])
 }
 
 /// Un curso desbloqueado por un usuario (al activar el código de su kit)
 model CursoUsuario {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   usuario        Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId      String
+  usuarioId      String   @db.ObjectId
   curso          Curso    @relation(fields: [cursoId], references: [id], onDelete: Cascade)
-  cursoId        String
+  cursoId        String   @db.ObjectId
   desbloqueadoEn DateTime @default(now())
 
-  @@id([usuarioId, cursoId])
+  @@unique([usuarioId, cursoId])
 }
 
 /// Lección marcada como completada por un usuario
 model ProgresoLeccion {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId    String
+  usuarioId    String   @db.ObjectId
   leccion      Leccion  @relation(fields: [leccionId], references: [id], onDelete: Cascade)
-  leccionId    String
+  leccionId    String   @db.ObjectId
   completadaEn DateTime @default(now())
 
-  @@id([usuarioId, leccionId])
+  @@unique([usuarioId, leccionId])
 }
 
 /// El usuario ha visto el vídeo de la lección hasta el final (desbloquea el test)
 model VideoVisto {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId String
+  usuarioId String   @db.ObjectId
   leccion   Leccion  @relation(fields: [leccionId], references: [id], onDelete: Cascade)
-  leccionId String
+  leccionId String   @db.ObjectId
   vistoEn   DateTime @default(now())
 
-  @@id([usuarioId, leccionId])
+  @@unique([usuarioId, leccionId])
 }
 
 /// Resultado del test de una lección (todas sus preguntas de tipo TEST)
 model ResultadoTest {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId     String
+  usuarioId     String   @db.ObjectId
   leccion       Leccion  @relation(fields: [leccionId], references: [id], onDelete: Cascade)
-  leccionId     String
+  leccionId     String   @db.ObjectId
   /// Aciertos y número de preguntas del último intento
   aciertos      Int
   total         Int
@@ -442,15 +450,16 @@ model ResultadoTest {
   intentos      Int      @default(1)
   actualizadoEn DateTime @updatedAt
 
-  @@id([usuarioId, leccionId])
+  @@unique([usuarioId, leccionId])
 }
 
 /// Lo que ha hecho un usuario en un ejercicio
 model ProgresoEjercicio {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId     String
+  usuarioId     String    @db.ObjectId
   ejercicio     Ejercicio @relation(fields: [ejercicioId], references: [id], onDelete: Cascade)
-  ejercicioId   String
+  ejercicioId   String    @db.ObjectId
   /// TEST: última opción elegida y si era la correcta
   respuesta     Int?
   acertado      Boolean   @default(false)
@@ -459,14 +468,14 @@ model ProgresoEjercicio {
   solucionVista Boolean   @default(false)
   actualizadoEn DateTime  @updatedAt
 
-  @@id([usuarioId, ejercicioId])
+  @@unique([usuarioId, ejercicioId])
 }
 
 /// Contador del límite de intentos (ver src/lib/limite.ts). Se guarda en la base de datos para que
 /// funcione igual con uno o con muchos servidores (hosting "serverless").
 model LimiteIntento {
   /// acción:huella-de-la-clave:ventana (la IP o el email nunca se guardan tal cual)
-  id       String   @id
+  id       String   @id @map("_id")
   contador Int      @default(1)
   caducaEn DateTime
 
