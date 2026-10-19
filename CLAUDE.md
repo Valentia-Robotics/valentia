@@ -11,6 +11,53 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados.** Lo que falta para publicar lo tiene que hacer el usuario: lista en `INFORME.md` §3. No empezar trabajo
 nuevo grande sin su aprobación.
 
+### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; EN CURSO)
+
+Decisión del usuario: MongoDB Atlas (M0) en lugar de PostgreSQL, y Render en lugar de Vercel (el PR #2 de Vercel
+queda obsoleto). Prisma 7 no admite MongoDB → Prisma **6.19.3**.
+
+Análisis (lo que se ve afectado):
+
+- **Prisma 7 → 6.19.3**: sin adaptadores de conexión (MongoDB usa el motor de Prisma): fuera
+  `@prisma/adapter-better-sqlite3`, `@prisma/adapter-pg`, `better-sqlite3`, `src/lib/adaptadorBD.ts`. `url` vuelve al
+  `datasource` del esquema. Revisar `prisma.config.ts`, el generador y los imports (`@/generated/prisma/client|enums`,
+  30 archivos, 2 componentes de cliente importan enums).
+- **Ids**: `cuid()` → `ObjectId` (`@id @default(auto()) @map("_id") @db.ObjectId`) y todas las FK con `@db.ObjectId`.
+  `EventoStripe.id` (evt_…) y `LimiteIntento.id` siguen siendo texto propio (`@map("_id")`). Un id mal formado hace
+  que Prisma lance error → las 10 páginas con `[id]` y las acciones con ids deben validarlo (404, no 500).
+- **Claves compuestas** (`@@id`, no existen en MongoDB): `KitComponente`, `CursoUsuario`, `ProgresoLeccion`,
+  `VideoVisto`, `ResultadoTest`, `ProgresoEjercicio` → id propio + `@@unique([…])` (mismo nombre de clave compuesta:
+  `usuarioId_cursoId`… las consultas no cambian).
+- **Únicos opcionales** (MongoDB no admite varios null en un índice único): `Pedido.referenciaPago` y
+  `DispositivoConfianza.paseHash` → índice normal (`paseHash` se busca con findFirst; es un hash aleatorio).
+- **Únicos que se mantienen**: email, código de activación, número de pedido, slugs (componente, kit, curso,
+  lección por curso), tokenHash (verificación y dispositivo), `Kit.cursoId`.
+- **Tipos**: dinero ya en céntimos (`Int`), enums y fechas existen en MongoDB, `Json` y `Float` también.
+- **Transacciones** (11): MongoDB Atlas es un replica set → `$transaction` funciona; los conflictos de escritura
+  (P2034) se reintentan. Críticas: confirmar pago, reservar/devolver stock (`updateMany` con `stock gte`), generar
+  códigos, canjear código (`updateMany ... usadoEn: null`), verificar códigos de correo. Latencia de Atlas: subir el
+  `timeout` de las transacciones largas (seed).
+- **Búsquedas**: `textoContiene` pasa a `mode: "insensitive"` siempre (MongoDB lo admite).
+- **Agregaciones** (`groupBy`, `aggregate`, `_count`): funcionan igual en MongoDB.
+- **Borrados en cascada / SetNull**: Prisma los emula en MongoDB (solo vía Prisma).
+- **Auth.js**: NO usa adaptador de base de datos (sesión JWT + Credentials; usuarios y dispositivos son tablas
+  propias): no hay adaptador que cambiar; se prueba el flujo completo.
+- **Migraciones**: MongoDB no tiene → se borran `prisma/migrations`, `prisma/postgresql`,
+  `scripts/esquema-postgres.mjs`; `prisma db push` crea colecciones e índices.
+- **Seed**: hoy el seed SÍ puede ejecutarse en producción → separar catálogo (producción) y datos de prueba
+  (desarrollo, bloqueado con `NODE_ENV=production` o en Render).
+- **Scripts**: `hacer-admin.ts`, `fotos-a-la-nube.ts`, `e2e-preparar.mjs` (usaba better-sqlite3 → BD `_e2e` en Atlas).
+- **Copias de seguridad**: M0 no tiene → scripts de copia y restauración (EJSON, conserva tipos).
+- **Datos locales**: `prisma/dev.db` no se borra (queda sin usar); el clúster de desarrollo empieza vacío.
+
+Pasos:
+
+- [ ] 1. Prisma 6.19.3, esquema MongoDB, `db push` y cliente generado.
+- [ ] 2. Código: imports, ids válidos, búsquedas, únicos, transacciones con reintento.
+- [ ] 3. Seed de desarrollo y de catálogo, `npm run admin`, scripts y copia de seguridad/restauración.
+- [ ] 4. Pruebas: lint, build, Vitest, Playwright y recorrido a mano contra el clúster de desarrollo.
+- [ ] 5. DESPLIEGUE.md (Render + Atlas), `.env.example`, README, INFORME.md, graphify y pull request.
+
 ### Fase de lanzamiento (17-10-2026, `551a1f4` … `Lanzamiento (10/10)`; decisiones en INFORME.md)
 
 Un commit por bloque («Lanzamiento (n/10)»).
