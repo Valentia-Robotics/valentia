@@ -55,7 +55,9 @@ Pasos:
 - [x] 1. Prisma 6.19.3, esquema MongoDB, `db push` y cliente generado.
 - [x] 2. Código: ids válidos (`src/lib/ids.ts`), búsquedas, únicos, `transaccion()` con reintento (`db.ts`) y
       campos opcionales guardados como null al crear (`src/lib/nulos.ts`: sin esto `usadoEn: null` no encuentra nada).
-- [ ] 3. Seed de desarrollo y de catálogo, `npm run admin`, scripts y copia de seguridad/restauración.
+- [x] 3. Seed: `prisma/catalogo.ts` (compartido), `npm run db:catalogo` (producción) y `db:seed` (desarrollo,
+      bloqueado en producción); `npm run admin`; `db:copia` / `db:restaurar` (paquete `mongodb`, EJSON, carpeta
+      `copias/` fuera de git); e2e en la base de datos `valentia_e2e`.
 - [ ] 4. Pruebas: lint, build, Vitest, Playwright y recorrido a mano contra el clúster de desarrollo.
 - [ ] 5. DESPLIEGUE.md (Render + Atlas), `.env.example`, README, INFORME.md, graphify y pull request.
 

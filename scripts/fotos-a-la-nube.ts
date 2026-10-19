@@ -12,8 +12,7 @@ import "dotenv/config";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { AwsClient } from "aws4fetch";
-import { crearAdaptador } from "../src/lib/adaptadorBD";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { crearClienteScripts } from "../prisma/catalogo";
 
 const hacer = process.argv.includes("--hacer");
 const CARPETA = path.resolve(process.env.ALMACEN_LOCAL_CARPETA ?? "subidas");
@@ -65,7 +64,7 @@ async function main() {
   }
 
   // Direcciones guardadas en la base de datos
-  const db = new PrismaClient({ adapter: crearAdaptador() });
+  const db = crearClienteScripts();
   try {
     const cambiar = (imagen: string) => imagen.replace(/^\/subidas\//, `${urlPublica}/`);
     const [componentes, kits] = await Promise.all([

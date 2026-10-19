@@ -38,3 +38,6 @@ npm-debug.log*
 # Resultados de las pruebas con navegador (npm run test:e2e)
 /test-results/
 /playwright-report/
+
+# Copias de seguridad de la base de datos (npm run db:copia): tienen datos personales
+/copias/

@@ -13,14 +13,11 @@
  * Los administradores tienen que confirmar con un código cada 7 días (los clientes, cada 30):
  * al dar el rol ADMIN, sus dispositivos de confianza caducan como mucho a los 7 días de crearse.
  */
-import "dotenv/config";
-import { crearAdaptador } from "../src/lib/adaptadorBD"; // SQLite o PostgreSQL según DATABASE_URL
-import { PrismaClient } from "../src/generated/prisma/client";
+import { crearClienteScripts } from "../prisma/catalogo";
 import { DIAS_CONFIANZA } from "../src/lib/verificacion/reglas";
 
-const db = new PrismaClient({
-  adapter: crearAdaptador(),
-});
+// Usa DATABASE_URL (en tu ordenador, la de .env; en Render, la del servicio: ver DESPLIEGUE.md)
+const db = crearClienteScripts();
 
 async function main() {
   const argumentos = process.argv.slice(2);

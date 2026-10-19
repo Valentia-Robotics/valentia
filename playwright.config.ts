@@ -3,12 +3,19 @@
  * como lo haría una persona. Usa el Chrome instalado en el ordenador.
  *
  * Arranca su PROPIA copia de la web en http://localhost:3100 (compilada, como en producción)
- * con su PROPIA base de datos (prisma/e2e.db), así que no toca tus datos ni tu "npm run dev".
+ * con su PROPIA base de datos (valentia_e2e, en el mismo clúster de MongoDB que DATABASE_URL),
+ * así que no toca tus datos ni tu "npm run dev".
  * Los pagos van en modo de prueba y los correos se leen de la carpeta .correos-dev/.
  */
+import "dotenv/config";
 import { defineConfig } from "@playwright/test";
 
 const PUERTO = 3100;
+/** La misma dirección que DATABASE_URL, con la base de datos de las pruebas (igual que en scripts/e2e-preparar.mjs) */
+const BD_PRUEBAS = (process.env.DATABASE_URL ?? "").replace(
+  /^(mongodb(?:\+srv)?:\/\/[^/]+)(\/[^?]*)?/,
+  "$1/valentia_e2e",
+);
 
 export default defineConfig({
   testDir: "e2e",
@@ -34,7 +41,7 @@ export default defineConfig({
     stdout: "ignore",
     stderr: "pipe",
     env: {
-      DATABASE_URL: "file:./prisma/e2e.db",
+      DATABASE_URL: BD_PRUEBAS,
       NEXT_PUBLIC_SITE_URL: `http://localhost:${PUERTO}`,
       CORREO_PROVEEDOR: "consola",
       // Sin Stripe: el checkout usa el pago de prueba (permitido también con "next start")
