@@ -133,34 +133,29 @@ function coche(): string[] {
     for (let k = 0; k < n; k++)
       puntos.push(q ? [p[0] + ((q[0] - p[0]) * k) / n, p[1] + ((q[1] - p[1]) * k) / n] : p);
   });
-  // Meta a cuadros sobre la línea, arriba
-  const yMeta = 2.6;
   const tramos: Punto[][] = [[]];
   for (const p of puntos) {
     const [x, y] = local(p);
-    const tapado =
-      (Math.abs(x) < 10 && y > -18.2 && y < 11.6) || (p[1] > yMeta - 0.3 && p[1] < yMeta + 2.3);
+    const tapado = Math.abs(x) < 10 && y > -17.2 && y < 11.6;
     if (tapado) {
       if (tramos[tramos.length - 1].length) tramos.push([]);
     } else tramos[tramos.length - 1].push(p);
   }
   for (const t of tramos) if (t.length > 1) g.push(linea(t, 1.7));
-  for (let i = 0; i < 6; i++)
-    for (let j = 0; j < 2; j++)
-      if ((i + j) % 2 === 0) g.push(trazado(rect(xl - 3 + i, yMeta + j, 1, 1)));
-  g.push(silueta(rect(xl - 3, yMeta, 6, 2), 0.2));
 
   const sil = (pol: Punto[], w = L) => silueta(pol.map(T), w);
   const relleno = (pol: Punto[]) => trazado(sentido(pol.map(T), true));
 
   // Chasis
   g.push(sil(caja(-8.5, -11, 17, 22, 3.5)));
-  // Sensor de ultrasonidos delante: placa y los dos "ojos" con su rejilla
-  g.push(sil(caja(-7.2, -14.6, 14.4, 3.2, 0.5), 0.32));
-  for (const x of [-3.7, 3.7]) {
-    g.push(sil(caja(x - 1.6, -17.6, 3.2, 3, 0.4), 0.32));
-    for (let i = 0; i < 3; i++) g.push(relleno(rect(x - 1, -17 + i * 0.85, 2, 0.32)));
+  // Sensor de ultrasonidos delante: placa con los dos "ojos" redondos
+  g.push(sil(caja(-7.8, -16.6, 15.6, 4.8, 0.6), 0.32));
+  for (const x of [-3.9, 3.9]) {
+    g.push(aro(...T([x, -14.2]), 1.95 * S, 0.36));
+    g.push(aro(...T([x, -14.2]), 1.15 * S, 0.22));
+    g.push(disco(...T([x, -14.2]), 0.35));
   }
+  g.push(relleno(rect(-0.9, -14.9, 1.8, 0.9)));
   // Placa Arduino con sus pines, el chip y el conector USB
   g.push(sil(caja(-5.6, -9.6, 11.2, 8, 0.7), 0.32));
   for (let i = 0; i < 8; i++) g.push(relleno(rect(-4.6 + i * 1.2, -8.8, 0.55, 0.55)));
