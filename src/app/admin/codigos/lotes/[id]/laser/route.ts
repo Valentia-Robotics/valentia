@@ -4,6 +4,7 @@
  * cada uno con su QR, su código y el nombre del kit, listo para grabar y cortar.
  */
 import { obtenerLote } from "@/lib/admin/codigos";
+import { esId } from "@/lib/ids";
 import { urlActivacion } from "@/lib/qr";
 import { obtenerUsuario } from "@/lib/sesion";
 import { tarjetaLaserSvg } from "@/lib/tarjetaLaser/tarjeta";
@@ -31,6 +32,8 @@ export async function GET(_peticion: Request, { params }: { params: Promise<{ id
   if (usuario?.rol !== "ADMIN") return new Response("No encontrado", { status: 404 });
 
   const { id } = await params;
+  // Con MongoDB, un id mal formado haría fallar la consulta: se trata como "no existe"
+  if (!esId(id)) return new Response("No encontrado", { status: 404 });
   const lote = await obtenerLote(id);
   if (!lote) return new Response("No encontrado", { status: 404 });
 
