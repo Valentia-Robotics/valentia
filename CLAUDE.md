@@ -8,10 +8,10 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 > Actualizar esta sección al terminar cada fase.
 
 **Las 6 fases, el panel de administración, la verificación por email y la FASE DE LANZAMIENTO (10 bloques) están
-terminados.** Lo que falta para publicar lo tiene que hacer el usuario: lista en `INFORME.md` §3. No empezar trabajo
-nuevo grande sin su aprobación.
+terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
+que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
-### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; EN CURSO)
+### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; TERMINADA, PR abierto)
 
 Decisión del usuario: MongoDB Atlas (M0) en lugar de PostgreSQL, y Render en lugar de Vercel (el PR #2 de Vercel
 queda obsoleto). Prisma 7 no admite MongoDB → Prisma **6.19.3**.
@@ -61,7 +61,7 @@ Pasos:
 - [x] 4. Pruebas contra Atlas: lint, build, Vitest (54), Playwright (8) + revisión temporal (QR, código usado,
       panel completo, búsquedas, lotes, pedidos, lecciones, recuperar contraseña, ids raros: 12 en verde) y
       concurrencia (8 compras de 1 unidad → 1; 6 canjes del mismo código → 1).
-- [ ] 5. DESPLIEGUE.md (Render + Atlas), `.env.example`, README, INFORME.md, graphify y pull request.
+- [x] 5. DESPLIEGUE.md (Render + Atlas), `.env.example`, README, INFORME.md, SEGURIDAD.md, graphify y pull request.
 
 ### Fase de lanzamiento (17-10-2026, `551a1f4` … `Lanzamiento (10/10)`; decisiones en INFORME.md)
 
@@ -78,7 +78,7 @@ Un commit por bloque («Lanzamiento (n/10)»).
       claves («Confirmar pago de prueba»); envío con teléfono y provincia, CP de la zona; direcciones guardadas e invitado;
       stock reservado al crear y liberado si falla; códigos + correo de confirmación con IVA al pagar; panel de pedidos
       (estados, seguimiento, correo al enviar); historial en Mi cuenta; `/pedido/[id]` protegido.
-- [x] 6. BD lista para PostgreSQL (adaptador según `DATABASE_URL`, búsquedas sin distinguir mayúsculas) y almacén de
+- [x] 6. BD lista para PostgreSQL (SUSTITUIDO por MongoDB el 19-10-2026) y almacén de
       fotos en la nube S3/R2 cambiando solo la configuración.
 - [x] 7. Páginas legales (BORRADOR) + banner de cookies (vídeos de terceros solo con consentimiento) + aceptación en checkout.
 - [x] 8. Seguridad: revisión completa, límites de intentos en BD (sirve en serverless), cabeceras (CSP…), páginas de
@@ -88,6 +88,7 @@ Un commit por bloque («Lanzamiento (n/10)»).
 - [x] 10. README, CLAUDE.md, INFORME.md, graphify, commit final y `npm run dev`.
 
 Notas técnicas de la fase de lanzamiento:
+
 - Pedidos (`src/lib/pedidos.ts`): stock RESERVADO al crear (PENDIENTE), `marcarPedidoPagado` idempotente con
   `updateMany` condicionado, `liberarPedidosCaducados` (60 min, se llama al preparar cada pedido),
   `PEDIDO_COBRADO` (filtro de pagados no cancelados). Enlace privado `tokenAccesoPedido` = HMAC(AUTH_SECRET).
@@ -99,9 +100,9 @@ Notas técnicas de la fase de lanzamiento:
 - Portada: `src/components/portada/` (three solo vía import() en escenaRobot.ts).
 - Consentimiento: `src/store/consentimiento.ts` + `BannerCookies` (en Proveedores) + `ReproductorVideo`.
 - Límite de intentos en BD (`LimiteIntento`, `registrarIntento` es ASYNC). Cabeceras/CSP en `next.config.ts`.
-- PostgreSQL: `prisma.config.ts` elige `prisma/` o `prisma/postgresql/` por `DATABASE_URL`; `scripts/esquema-postgres.mjs`
-  genera la copia (en `npm run build`); `src/lib/adaptadorBD.ts`; `src/lib/busqueda.ts` (`textoContiene`).
-- Pruebas: `npm test` (Vitest, `*.test.ts` en src) y `npm run test:e2e` (Playwright, `e2e/`, BD `prisma/e2e.db`,
+- Base de datos: ver «Tecnología y versiones» (MongoDB). `src/lib/busqueda.ts` (`textoContiene`, mode insensitive).
+- Pruebas: `npm test` (Vitest, `*.test.ts` en src) y `npm run test:e2e` (Playwright, `e2e/`, BD = la de `DATABASE_URL` + `_e2e`
+  (`valentia_e2e`), que `scripts/e2e-preparar.mjs` borra y recrea;
   puerto 3100, Chrome del sistema). Tras muchas pruebas de login con `prueba@valentia.test` en dev salta el límite
   de 5 códigos/hora: borrar sus filas de `EnvioCodigo` (y `LimiteIntento` si hace falta).
 - Panel: `Caja` lleva `min-w-0` y `Tabla` es `relative` + enfocable (evitan desbordes en el móvil).
@@ -212,8 +213,9 @@ Notas técnicas de la fase de lanzamiento:
 ### Pendiente (para cuando se publique la web: lista completa en INFORME.md §3, tareas del usuario)
 
 - Datos de empresa en `src/config/tienda.ts` y revisión legal de `/legal/*` (BORRADORES).
-- PostgreSQL, Stripe (claves reales + webhook), Resend, fotos en la nube, `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción.
-- Sin probar contra servicios reales: Stripe (solo pago de prueba), almacén S3/R2, PostgreSQL y Resend.
+- Render + Atlas `valentia-prod` (`DESPLIEGUE.md`), Stripe (claves reales + webhook), Resend, fotos en la nube (R2),
+  `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción. Copias de seguridad a mano (`npm run db:copia`).
+- Sin probar contra servicios reales: Stripe (solo pago de prueba), almacén S3/R2, Render y Resend (MongoDB Atlas sí).
 - Posibles mejoras (preguntar antes): facturas en PDF, envío a más zonas, analítica con consentimiento.
 
 ### Avisos abiertos
@@ -221,6 +223,13 @@ Notas técnicas de la fase de lanzamiento:
 - `/configurador`, `/checkout`, `/pedido/[id]`, `/activar`, `/login`, `/registro`, `/cuenta/*` y `/cursos/*` son dinámicas: `npm start` necesita la BD.
 - La BD es la fuente de verdad: `npm run db:seed` solo carga `data/*.json` si no hay catálogo. `npm run db:reset` lo
   borra TODO (también la cuenta del administrador: luego registrarse y `npm run admin -- email`).
+  `db:seed` (usuario y códigos de prueba) se niega con NODE_ENV=production, `RENDER` o BD «prod»; en producción `db:catalogo`.
+- `.env` del usuario apunta a un clúster de DESARROLLO en Atlas (BD `valentia`). No mostrar nunca `DATABASE_URL`: al
+  ejecutar Prisma filtrar las líneas con `mongodb.net`. `prisma/dev.db` (SQLite antiguo) sigue en disco, sin usar.
+- Tras cambiar `prisma/schema.prisma`: `npm run db:push` (y reiniciar `npm run dev`). Campo opcional nuevo →
+  añadirlo a `OPCIONALES` (`src/lib/nulos.ts`; el test lo exige). Ids de URL/formularios → `esId()`.
+- Playwright con los formularios del panel que llevan `<input name="id">`: `form.id` deja de ser texto y los
+  locators fallan con «text.replace is not a function»; en pruebas, usar `page.evaluate` + teclado.
 - `subidas/` (fotos del panel) no está en git: hay que copiarla junto con la BD. En producción, almacén en la nube.
 - Las pruebas con Chrome headless no conservan la sesión entre ejecuciones (se cierra de golpe): iniciar sesión en la misma ejecución.
 - En desarrollo los correos no salen: se ven en la terminal y en `/dev/correos` (también confirmación y envío de pedidos).
@@ -228,9 +237,10 @@ Notas técnicas de la fase de lanzamiento:
   `.correos-dev/`. Los límites (login 10/15 min por IP+email en la tabla `LimiteIntento`; 5 códigos/hora por email en
   `EnvioCodigo`) se agotan rápido en pruebas: vaciar esas filas (solo las del usuario de prueba).
 - Tras `prisma generate` con tablas nuevas hay que reiniciar `npm run dev` (el cliente de la BD queda en memoria).
-- `npm audit`: 5 avisos "altos" en braces/micromatch vía eslint-config-next (solo desarrollo); el arreglo bajaría a Next 14. Esperar.
+- `npm audit`: 8 avisos "altos": braces/micromatch vía eslint-config-next y deepmerge-ts vía la CLI de Prisma 6 (solo
+  desarrollo); el arreglo bajaría a Next 14 o cambiaría Prisma. Esperar.
 - `graphify-out/` (salida de la herramienta graphify del usuario) no está en git ni en .gitignore: no tocarla sin preguntar.
-- npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines, better-sqlite3,
+- npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines,
   esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
 - Vídeos de los cursos: `PENDIENTE` en la BD, a la espera de las URL reales (se ponen desde `/admin/cursos`).
 - Portada: robot 3D (hero), «De la caja a tu primer robot», kit estrella y una sección para cada uno de los otros kits.
@@ -307,14 +317,18 @@ Requisitos completos: `PROMPT.md`.
 - Next.js 16.4.1 (App Router, Turbopack) · React 19.3.1 · TypeScript 6.0 (typescript-eslint aún no admite la 7)
 - Tailwind CSS 4.3 · Zustand 5 (carrito en localStorage) · lucide-react (iconos)
 - ESLint 9 (eslint-config-next aún no admite ESLint 10) + Prettier 3 (con plugin de Tailwind)
-- Prisma 7.10.1 estable (el tag "latest" de npm apunta a una 8.0 rc: no actualizar sin preguntar).
-  - Config en `prisma.config.ts` (carga .env con dotenv; Prisma 7 no lo hace solo). Generador `prisma-client` → `src/generated/prisma` (ignorado en git; se crea en postinstall/build).
-  - SQLite local en `prisma/dev.db` (`DATABASE_URL="file:./prisma/dev.db"`) con `@prisma/adapter-better-sqlite3`. Cliente único en `src/lib/db.ts` (import "server-only").
-  - `migrate dev` NO genera el cliente ni ejecuta el seed en Prisma 7: usar `npm run db:generate` / `npm run db:seed`.
-  - Para PostgreSQL: provider + adaptador (`@prisma/adapter-pg`) en db.ts y seed.ts + migraciones nuevas (ver README).
-  - Seed (`prisma/seed.ts`, con tsx) valida `data/*.json` con Zod (`src/lib/validaciones/catalogo.ts`, mensajes en español). En los JSON los precios van en euros; en la BD, en céntimos.
+- **MongoDB Atlas** con **Prisma 6.19.3** (Prisma 7/8 NO admiten MongoDB: no actualizar sin preguntar).
+  - `prisma.config.ts` (carga .env con dotenv; con este archivo Prisma no lo hace solo); `url = env("DATABASE_URL")` en el
+    esquema. Generador `prisma-client` → `src/generated/prisma` (imports `@/generated/prisma/client|enums`; ignorado en git).
+  - Sin migraciones: `npm run db:push` (también en el Build Command de Render). Ids `ObjectId`; claves compuestas como
+    id + `@@unique`; sin únicos opcionales (MongoDB no admite varios null).
+  - Cliente único en `src/lib/db.ts` (server-only) con `extensionNulos` (`src/lib/nulos.ts`): rellena con null los opcionales
+    al crear (create/createMany/upsert, NO anidados). `transaccion()` reintenta conflictos (P2034). Scripts:
+    `crearClienteScripts()` de `prisma/catalogo.ts`.
+  - Copias: `npm run db:copia` / `db:restaurar` (paquete `mongodb`, EJSON) → `copias/` (fuera de git).
+  - Catálogo (`prisma/catalogo.ts`, con tsx) valida `data/*.json` con Zod (`src/lib/validaciones/catalogo.ts`, mensajes en español). En los JSON los precios van en euros; en la BD, en céntimos.
 - Zod 4 · qrcode (QR en SVG con corrección "H" y monograma en el centro) · Auth.js v5 beta (next-auth@5.0.0-beta.32) con email y contraseña cifrada (bcryptjs).
-- Las páginas de kits se generan estáticas en el build leyendo la BD: `npm run build` necesita la BD creada (`npm run setup`).
+- Las páginas de kits se generan estáticas en el build leyendo la BD: `npm run build` necesita la BD (Atlas accesible desde esa IP).
 - Animación al hacer scroll: clase CSS `aparecer` (scroll-driven animations, sin JS; respeta prefers-reduced-motion).
 - En Windows, al parar `next dev` lanzado en segundo plano, comprobar que el puerto 3000 queda libre (el proceso hijo puede sobrevivir).
 - Next 16: el antiguo `middleware.ts` se llama `proxy.ts`.
@@ -333,10 +347,11 @@ src/config/            marca.ts, categorias.ts, tienda.ts (negocio), estadosPedi
 src/lib/               db.ts, catalogo.ts, pedidos.ts, codigos.ts, qr.ts, fichaTecnica.ts, utils.ts, validaciones/, compatibilidad/, pagos/, sesion.ts, cursos.ts, activacion.ts, video/, limite.ts, admin/, almacenamiento/, correo/, verificacion/ (+ src/auth.ts, src/auth.config.ts, src/proxy.ts)
 src/generated/prisma/  cliente de Prisma generado (no editar, no se sube a git)
 data/                  componentes.json, kits.json, cursos.json (solo datos iniciales; la BD manda)
-prisma/                schema.prisma, migrations/, seed.ts, dev.db
+prisma/                schema.prisma (MongoDB), catalogo.ts, seed.ts (solo desarrollo)
 src/store/             carrito.ts, configurador.ts, consentimiento.ts
 e2e/                   pruebas Playwright (npm run test:e2e) · *.test.ts en src = Vitest (npm test)
-prisma/postgresql/     esquema y migraciones para PostgreSQL (generado: no editar el esquema a mano)
+copias/                copias de seguridad de la BD (npm run db:copia; fuera de git)
 SEGURIDAD.md, INFORME.md  revisión de seguridad e informe de la fase de lanzamiento
+DESPLIEGUE.md          publicar en Render + MongoDB Atlas
 src/types/
 ```

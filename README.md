@@ -4,8 +4,8 @@ Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloqu
 
 > Estado: **preparada para el lanzamiento** (fase de lanzamiento terminada, ver `INFORME.md`).
 > Funciona entera en tu ordenador con **pagos de prueba**. Para publicarla hay que poner claves de
-> Stripe, una base de datos PostgreSQL, un proveedor de correo y revisar los textos legales: sigue la
-> lista [Antes de publicar la web](#antes-de-publicar-la-web).
+> Stripe, una base de datos de producción en MongoDB Atlas, un proveedor de correo y revisar los textos
+> legales: sigue la lista [Antes de publicar la web](#antes-de-publicar-la-web) y la guía `DESPLIEGUE.md`.
 
 ## Qué tiene la web
 
@@ -30,18 +30,20 @@ Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloqu
 
 ## Tecnología
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 7 (SQLite en local,
-PostgreSQL en producción) · Auth.js v5 (email y contraseña, verificación con código por email) ·
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 6 con **MongoDB Atlas**
+(Prisma 7 todavía no admite MongoDB) · Auth.js v5 (email y contraseña, verificación con código por email) ·
 Stripe (Payment Element) · three.js (robot 3D) · Zustand (carrito y cookies en el navegador) ·
 Zod (validación) · qrcode · lucide-react (iconos) · Vitest y Playwright (pruebas) · ESLint + Prettier.
 
 ## Cómo arrancar el proyecto
 
-Necesitas tener instalado [Node.js](https://nodejs.org) 22 o superior (y Google Chrome para las pruebas).
+Necesitas tener instalado [Node.js](https://nodejs.org) 22 o superior (y Google Chrome para las pruebas),
+y una base de datos de desarrollo en **MongoDB Atlas** (ver «Base de datos»): su dirección va en
+`DATABASE_URL` del archivo `.env`.
 
 ```bash
 npm install        # descarga las librerías (solo la primera vez)
-npm run setup      # crea la base de datos y carga los datos de prueba (solo la primera vez)
+npm run setup      # crea las colecciones y carga los datos de prueba (solo la primera vez)
 npm run dev        # arranca la web en modo desarrollo
 ```
 
@@ -221,11 +223,11 @@ npm test             # pruebas unitarias (Vitest): precios, envíos, IVA, compat
 npm run test:e2e     # pruebas con navegador (Playwright): el recorrido completo de una persona
 ```
 
-`npm run test:e2e` usa el **Chrome** instalado, **su propia base de datos** (`prisma/e2e.db`, que crea de
-cero cada vez) y **su propia copia** de la web compilada en http://localhost:3100, así que no toca tus
+`npm run test:e2e` usa el **Chrome** instalado, **su propia base de datos** (la tuya acabada en `_e2e`, por
+ejemplo `valentia_e2e`, en el mismo clúster de Atlas; la crea de cero cada vez) y **su propia copia** de la web compilada en http://localhost:3100, así que no toca tus
 datos ni tu `npm run dev`. Recorre: registro → código por correo → configurador → carrito → pago de
 prueba → activación del código → vídeo → test; y comprueba la seguridad básica, el SEO y la zona de envío.
-Tarda un par de minutos (compila la web).
+Tarda unos minutos (compila la web y Atlas está en Internet).
 
 ## Otros comandos
 
@@ -237,31 +239,34 @@ Tarda un par de minutos (compila la web).
 | `npm run format`                | Ordena y da formato a todo el código                                       |
 | `npm run marca`                 | Regenera el favicon, los iconos y las versiones PNG del logo               |
 | `npm run admin`                 | Da o quita el rol de administrador                                         |
-| `npm run db:seed`               | Carga `data/*.json`, solo si la base de datos está vacía                   |
+| `npm run db:push`               | Aplica `prisma/schema.prisma` a la base de datos (colecciones e índices)   |
+| `npm run db:seed`               | Catálogo (si no hay) + usuario y códigos de prueba. **Solo desarrollo**    |
+| `npm run db:catalogo`           | Solo el catálogo de `data/*.json`, si no hay ninguno (sirve en producción) |
 | `npm run db:reset`              | **Lo borra todo** y crea la base de datos de nuevo con los datos iniciales |
-| `npm run db:migrate`            | Aplica cambios de `prisma/schema.prisma` a la base de datos                |
+| `npm run db:copia`              | Copia de seguridad de toda la base de datos en `copias/`                   |
+| `npm run db:restaurar`          | Restaura una copia (ver «Copias de seguridad»)                             |
 | `npm run db:studio`             | Abre un panel en el navegador para ver y editar la base de datos           |
-| `npm run db:postgres`           | Actualiza la copia del esquema para PostgreSQL (también lo hace `build`)   |
 | `npm run fotos:nube`            | Sube a la nube las fotos de `subidas/` y actualiza sus direcciones         |
 | `npm test` / `npm run test:e2e` | Pruebas automáticas (ver arriba)                                           |
 
 ## Qué hay en cada carpeta
 
-| Carpeta               | Contenido                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------ |
-| `imagenes/`           | Tus originales (logo.png). No se modifican nunca.                                    |
-| `public/images/`      | Logo, iconos e ilustraciones de muestra                                              |
-| `data/`               | **Datos iniciales**: componentes, kits y cursos (JSON)                               |
-| `prisma/`             | Esquema, migraciones (SQLite), seed y `dev.db`; `prisma/postgresql/` para producción |
-| `scripts/`            | Programas de ayuda (marca, admin, esquema PostgreSQL, fotos a la nube, pruebas)      |
-| `e2e/`                | Pruebas con navegador (Playwright)                                                   |
-| `subidas/`            | Fotos subidas desde el panel (no se sube a git)                                      |
-| `src/app/`            | Las páginas. Cada carpeta es una dirección (`/kits`, `/checkout`…)                   |
-| `src/app/globals.css` | **Sistema de diseño**: colores, tipografías, radios y sombras                        |
-| `src/components/`     | Piezas reutilizables (portada 3D, compra, cursos, panel, legal…)                     |
-| `src/config/`         | `tienda.ts` (negocio), `marca.ts` (menús), `estadosPedido.ts`, `categorias.ts`       |
-| `src/lib/`            | Base de datos, pedidos, precios, pagos (Stripe), correo, límites, almacenamiento…    |
-| `src/store/`          | Carrito, robot del configurador y consentimiento de cookies (en el navegador)        |
+| Carpeta               | Contenido                                                                         |
+| --------------------- | --------------------------------------------------------------------------------- |
+| `imagenes/`           | Tus originales (logo.png). No se modifican nunca.                                 |
+| `public/images/`      | Logo, iconos e ilustraciones de muestra                                           |
+| `data/`               | **Datos iniciales**: componentes, kits y cursos (JSON)                            |
+| `prisma/`             | Esquema (MongoDB), catálogo inicial (`catalogo.ts`) y seed de desarrollo          |
+| `scripts/`            | Programas de ayuda (marca, admin, catálogo, copias, fotos a la nube, pruebas)     |
+| `copias/`             | Copias de seguridad de la base de datos (no se sube a git: datos personales)      |
+| `e2e/`                | Pruebas con navegador (Playwright)                                                |
+| `subidas/`            | Fotos subidas desde el panel (no se sube a git)                                   |
+| `src/app/`            | Las páginas. Cada carpeta es una dirección (`/kits`, `/checkout`…)                |
+| `src/app/globals.css` | **Sistema de diseño**: colores, tipografías, radios y sombras                     |
+| `src/components/`     | Piezas reutilizables (portada 3D, compra, cursos, panel, legal…)                  |
+| `src/config/`         | `tienda.ts` (negocio), `marca.ts` (menús), `estadosPedido.ts`, `categorias.ts`    |
+| `src/lib/`            | Base de datos, pedidos, precios, pagos (Stripe), correo, límites, almacenamiento… |
+| `src/store/`          | Carrito, robot del configurador y consentimiento de cookies (en el navegador)     |
 
 ## Cómo cambiar…
 
@@ -280,30 +285,77 @@ Tarda un par de minutos (compila la web).
 
 ## Base de datos
 
-En local se usa **SQLite**: un único archivo, `prisma/dev.db` (no se sube a git). Tablas principales:
-catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`), compras (`Pedido`, `LineaPedido`,
-`Direccion`, `CodigoActivacion`, `LoteCodigos`, `EventoStripe`), cuentas (`Usuario`, `CursoUsuario`,
-`ProgresoLeccion`, `ProgresoEjercicio`, `VideoVisto`, `ResultadoTest`) y seguridad (`Verificacion`,
-`EnvioCodigo`, `DispositivoConfianza`, `LimiteIntento`). Las contraseñas se guardan cifradas con bcrypt.
+Se usa **MongoDB Atlas** (en la nube) con Prisma 6. Colecciones principales: catálogo (`Componente`, `Kit`,
+`Curso`, `Leccion`, `Ejercicio`), compras (`Pedido`, `LineaPedido`, `Direccion`, `CodigoActivacion`,
+`LoteCodigos`, `EventoStripe`), cuentas (`Usuario`, `CursoUsuario`, `ProgresoLeccion`, `ProgresoEjercicio`,
+`VideoVisto`, `ResultadoTest`) y seguridad (`Verificacion`, `EnvioCodigo`, `DispositivoConfianza`,
+`LimiteIntento`). Las contraseñas se guardan cifradas con bcrypt y el dinero en céntimos (números enteros).
 
-### Pasar a PostgreSQL (producción)
+### Tu base de datos de desarrollo
 
-El código está listo: **basta con cambiar la configuración**.
+1. En [cloud.mongodb.com](https://cloud.mongodb.com), dentro del proyecto de desarrollo, entra en
+   **Database Access** y crea un usuario para ti; en **Network Access** añade tu IP (**Add Current IP Address**).
+2. **Connect → Drivers** te da la dirección: `mongodb+srv://usuario:contraseña@cluster….mongodb.net/?…`.
+   Escribe el nombre de la base de datos justo antes del `?`. Si el equipo comparte clúster, que cada persona
+   use la suya: `/valentia_ana?…`, `/valentia_luis?…` (las pruebas usarán `valentia_ana_e2e`…).
+3. Pégala en `DATABASE_URL` de tu `.env` y ejecuta `npm run setup`.
 
-1. Crea una base de datos PostgreSQL (por ejemplo en Neon, Supabase, Railway o tu hosting).
-2. Pon su dirección en `DATABASE_URL` del servidor: `postgresql://usuario:contraseña@host:5432/valentia`.
-3. Ejecuta `npx prisma migrate deploy`: con una URL de PostgreSQL, Prisma usa automáticamente
-   `prisma/postgresql/schema.prisma` y sus migraciones (la inicial ya está creada).
-4. `npm run build` y `npm start` (o el despliegue de tu hosting). El adaptador de PostgreSQL se elige
-   solo (`src/lib/adaptadorBD.ts`). No ejecutes `npm run db:seed` en producción.
+La base de datos es la fuente de verdad: `npm run db:seed` solo carga `data/*.json` si no hay catálogo.
 
-Cuando cambies el esquema en el futuro: edita **solo** `prisma/schema.prisma`, crea la migración de
-SQLite con `npm run db:migrate` y, con una base de datos PostgreSQL de pruebas en `DATABASE_URL`,
-ejecuta `npm run db:postgres && npx prisma migrate dev` para crear la de PostgreSQL. Sube las dos a git.
+### Cuándo ejecutar `npm run db:push`
+
+MongoDB **no usa migraciones**: `prisma db push` crea las colecciones y los índices (por ejemplo, que no
+haya dos cuentas con el mismo email) a partir de `prisma/schema.prisma`. Hay que ejecutarlo:
+
+- **la primera vez** en cada base de datos (`npm run setup` ya lo hace);
+- **cada vez que cambie `prisma/schema.prisma`** (por ejemplo, al traer una rama que lo modifica). Si el
+  cambio puede borrar datos, Prisma avisa y no hace nada: no añadas `--accept-data-loss` sin preguntar;
+- **en producción** se ejecuta solo en cada despliegue (ver `DESPLIEGUE.md`).
+
+Después de `db:push`, si `npm run dev` estaba en marcha, reinícialo. Los pull requests que cambian el
+esquema lo indican en «Cambios en la base de datos».
+
+### Detalles de MongoDB que hay que conocer al programar
+
+- **Ids**: cada documento tiene un `ObjectId` (24 caracteres hexadecimales). Un id que llega de la dirección
+  o de un formulario se comprueba con `esId()` (`src/lib/ids.ts`) antes de consultar: si no, Prisma da error.
+- **Campos opcionales**: al crear un documento se guardan como `null` los que no se rellenan
+  (`src/lib/nulos.ts`); sin esto, filtros como `usadoEn: null` no encontrarían nada. Si añades un campo
+  opcional al esquema, añádelo a `OPCIONALES` (`npm test` avisa si se te olvida). Las creaciones anidadas
+  (`kit.create({ codigos: { create } })`) no pasan por ahí: crea esos documentos por separado.
+- **Transacciones**: usa `transaccion()` de `src/lib/db.ts` (reintenta sola si choca con otra a la vez).
+- **Búsquedas de texto**: `textoContiene()` (`src/lib/busqueda.ts`) no distingue mayúsculas.
+
+### Copias de seguridad
+
+El plan gratuito **M0** de Atlas **no hace copias automáticas**, así que hay que hacerlas a mano:
+
+```bash
+npm run db:copia                                              # guarda copias/valentia_AAAA-MM-DD_HH-MM.json
+npm run db:restaurar -- copias/archivo.json                   # solo enseña qué haría
+npm run db:restaurar -- copias/archivo.json --si              # restaura en una base de datos vacía
+npm run db:restaurar -- copias/archivo.json --si --reemplazar # SUSTITUYE lo que haya
+```
+
+Copian la base de datos de `DATABASE_URL`. Para la de **producción**, desde tu ordenador (PowerShell), con la
+dirección de producción y tu IP añadida temporalmente en Atlas (ver `DESPLIEGUE.md` §7):
+
+```powershell
+$env:DATABASE_URL="<dirección de producción>"
+npm run db:copia
+Remove-Item Env:DATABASE_URL
+```
+
+**Cada cuánto**: mientras haya pocos pedidos, **una vez por semana** y **siempre antes** de un cambio del
+esquema, de una importación o de cambios grandes en el panel. En cuanto haya ventas de verdad, **a diario**
+(o pasa a un plan de Atlas con copias automáticas). Guarda las copias **fuera del ordenador** (en un sitio
+privado: tienen datos personales de los clientes) y conserva al menos las 4 últimas semanales y una por mes.
+Prueba de vez en cuando a restaurar una en una base de datos de pruebas: una copia que no se puede
+restaurar no sirve.
 
 ### Fotos en la nube (producción)
 
-El disco de muchos servidores se borra en cada despliegue, así que en producción las fotos del panel
+El disco del servidor (también en Render) se borra en cada despliegue, así que en producción las fotos del panel
 deben ir a un almacén compatible con S3 (**Cloudflare R2**, Amazon S3, Backblaze B2…):
 
 1. Crea un _bucket_ con acceso público de lectura y una clave con permiso solo para él.
@@ -314,15 +366,17 @@ deben ir a un almacén compatible con S3 (**Cloudflare R2**, Amazon S3, Backblaz
 
 ## Antes de publicar la web
 
-La lista completa, explicada paso a paso, está en **`INFORME.md`**. En resumen:
+La lista completa está en **`INFORME.md`** y cómo publicar en Render paso a paso, en **`DESPLIEGUE.md`**.
+En resumen:
 
 1. **Datos de la empresa** en `src/config/tienda.ts` y **revisión legal** de las páginas `/legal/…`.
-2. **Base de datos PostgreSQL** (ver arriba) y copias de seguridad.
+2. **Base de datos**: proyecto de Atlas `valentia-prod` (ver `DESPLIEGUE.md`) y copias de seguridad.
 3. **Variables del servidor**: `AUTH_SECRET` nueva, `NEXT_PUBLIC_SITE_URL` con `https://`, `DATABASE_URL`.
 4. **Stripe**: claves reales, `STRIPE_PERMITIR_CLAVES_REALES="si"` y webhook en el panel de Stripe.
 5. **Correo**: Resend con tu dominio verificado (sin esto nadie puede registrarse).
 6. **Fotos en la nube** (ver arriba).
-7. **Administrador**: regístrate en la web publicada y ejecuta allí `npm run admin -- tu@email.com`.
+7. **Catálogo y administrador**: `npm run db:catalogo` y, tras registrarte, `npm run admin -- tu@email.com`
+   desde la Shell de Render.
 8. **Datos de prueba**: no cargues el seed; crea los productos reales desde el panel.
 9. **Vídeos** de los cursos (ahora «PENDIENTE») desde `/admin/cursos`.
 
@@ -330,5 +384,6 @@ La lista completa, explicada paso a paso, está en **`INFORME.md`**. En resumen:
 
 `npm outdated` muestra qué librerías tienen versiones nuevas. Las actualizaciones pequeñas suelen ser
 seguras: después ejecuta `npm run lint`, `npm test`, `npm run build` y `npm run test:e2e`. **No** actualices
-todavía a Prisma 8, ESLint 10 ni TypeScript 7. `npm audit` avisa de problemas en ESLint (herramienta de
-desarrollo, no afecta a la web): su «arreglo» bajaría a Next 14, así que hay que esperar a la corrección.
+a Prisma 7 u 8 (no admiten MongoDB todavía), ESLint 10 ni TypeScript 7. `npm audit` avisa de problemas en ESLint y en la herramienta de
+línea de órdenes de Prisma (`deepmerge-ts`); son de desarrollo y no afectan a la web: su «arreglo» bajaría a
+Next 14 o cambiaría de versión de Prisma, así que hay que esperar a la corrección.
