@@ -95,8 +95,8 @@ export default async function TarjetasLote({ params, searchParams }: Props) {
         <p className="text-xs text-gris">
           Consejo: en la ventana de impresión, elige «Tamaño real» (100 %) y activa «Gráficos de
           fondo» si tu navegador lo pide. Salen 4 tarjetas por hoja. Para el láser, el .zip trae dos
-          SVG por tarjeta, _delantero y _trasero (negro = grabar, rojo = cortar), y un archivo LEEME
-          con los pasos.
+          SVG por tarjeta, _delantero y _trasero, solo para grabar (la tarjeta ya viene cortada), y
+          un archivo LEEME con los pasos.
         </p>
       </div>
 

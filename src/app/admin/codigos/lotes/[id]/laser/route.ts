@@ -1,7 +1,8 @@
 /**
  * DESCARGA DE TARJETAS PARA LÁSER: /admin/codigos/lotes/[id]/laser
  * Devuelve un .zip con dos SVG por cada código del lote (los desactivados no se incluyen):
- * CODIGO_delantero.svg (QR, código y nombre del kit) y CODIGO_trasero.svg (pasos y dibujo del kit).
+ * CODIGO_delantero.svg (QR, código y nombre del kit) y CODIGO_trasero.svg (pasos y dibujo del kit),
+ * solo para grabar (la tarjeta ya viene cortada).
  */
 import { obtenerLote } from "@/lib/admin/codigos";
 import { esId } from "@/lib/ids";
@@ -16,16 +17,20 @@ const LEEME = `TARJETAS DE ACTIVACIÓN DE VALENTIA PARA LÁSER
 Cada tarjeta tiene dos archivos, con su propio QR y código:
   - VAL-XXXX-XXXX_delantero.svg  →  cara delantera (QR, código y nombre del kit)
   - VAL-XXXX-XXXX_trasero.svg    →  cara trasera (pasos y dibujo del kit)
-Medidas reales: 85,6 × 54 mm por cara.
+Solo GRABADO, sin cortes: la tarjeta ya viene cortada (85,6 × 54 mm).
 
-  - Relleno NEGRO  = GRABAR (el láser aclara la cartulina negra)
-  - Línea ROJA     = CORTAR el contorno
+  - Relleno NEGRO = GRABAR (el láser aclara la cartulina negra)
+  - Cada SVG mide exactamente 85,6 × 54 mm, como la tarjeta.
+  - El dibujo lleva 4 escuadras finas en las esquinas, a 2 mm del borde: en el
+    programa del láser el diseño mide 81,9 × 50,3 mm. Centra ese diseño sobre la
+    tarjeta y quedará a la misma distancia de los cuatro bordes.
+  - Todas las formas están ya unidas, sin solapes ni líneas cruzadas.
 
 Cómo hacerla:
-  1. Abre el archivo _delantero, graba y corta el contorno.
-  2. Sin mover la plancha, da la vuelta a la tarjeta y vuelve a meterla en su hueco.
-  3. Abre el archivo _trasero del MISMO código, colócalo en el mismo sitio y graba
-     solo la cara trasera (desactiva el corte: la tarjeta ya está cortada).
+  1. Coloca la tarjeta, abre el archivo _delantero, céntralo sobre ella y graba.
+  2. Dale la vuelta a la tarjeta (girándola de lado, como una página) y vuelve a
+     ponerla en el mismo sitio.
+  3. Abre el archivo _trasero del MISMO código, céntralo igual y graba.
   4. Antes de hacer muchas, prueba una y comprueba que el QR se lee con el móvil.
 `;
 

@@ -1,9 +1,11 @@
 /**
  * TARJETA DE ACTIVACIÓN PARA LÁSER
- * Dibuja en SVG las dos caras (un archivo por cara) de la tarjeta que va dentro de cada kit, lista para grabar y cortar
- * en cartulina negra (probada la idea con una Bambu Lab H2C):
- *   - relleno NEGRO = grabar (el láser aclara la cartulina)
- *   - línea ROJA de 0,1 mm = cortar
+ * Dibuja en SVG las dos caras (un archivo por cara) de la tarjeta que va dentro de cada kit, listas para
+ * grabar con láser sobre cartulina negra YA CORTADA a tamaño tarjeta (Bambu Lab H2C):
+ *   - relleno NEGRO = grabar (el láser aclara la cartulina); no hay líneas de corte
+ *   - el SVG mide exactamente lo que la tarjeta, y el dibujo va centrado: 4 pequeñas escuadras en las
+ *     esquinas hacen que el conjunto ocupe lo mismo en todas las caras (fácil de centrar en el láser)
+ *   - todo se funde en una sola superficie sin solapes (fusion.ts)
  * Delante: QR + logo + nombre del kit + código. Detrás: los tres pasos para activar el curso y un
  * dibujo del kit.
  * Todo son formas (también el texto): no depende de las tipografías del ordenador del láser.
@@ -20,13 +22,15 @@ import {
   type Punto,
 } from "./geometria";
 import { dibujoKit } from "./dibujosKit";
+import { fusionarFormas, type Forma } from "./fusion";
 import { medirTexto, textoComoTrazado, type NombreFuente } from "./texto";
 
 /** Tamaño de tarjeta de crédito (ISO 7810 ID-1), en mm, con esquinas de 3 mm */
 const W = 85.6;
 const H = 54;
-const RADIO = 3;
-const MARGEN = 3;
+/** Las escuadras de las esquinas van a esta distancia del borde; el dibujo, a partir de ZONA */
+const ESCUADRA = 2;
+const ZONA = 3;
 
 interface DatosTarjeta {
   codigo: string;
@@ -219,12 +223,32 @@ function lineasNombre(nombre: string, anchoMax: number) {
 
 // ── Caras ───────────────────────────────────────────────────────────────────
 
-function caraDelantera({ codigo, nombreKit, url, dominio }: DatosTarjeta): string[] {
-  const lado = 40;
-  const qy = (H - lado) / 2;
-  const cx = 50.5; // columna de texto
-  const anchoMax = W - cx - 4.5;
-  const g = [qr(5, qy, lado, url), ...logo(cx, qy + 0.6, 29, 0.24)];
+// Medidas de la cara delantera
+const LADO_QR = 40;
+const QY = (H - LADO_QR) / 2;
+const CX = 50.5; // columna de texto
+const ANCHO_TEXTO = W - CX - 4.5;
+
+/** Lo que cambia con cada código en la cara delantera: el QR y el código */
+function delanteraPropia({ codigo, url }: DatosTarjeta): Forma[] {
+  return [
+    qr(5, QY, LADO_QR, url),
+    textoComoTrazado(
+      "mono",
+      codigo,
+      CX,
+      QY + 33.2,
+      tamanoQueCabe("mono", codigo, 2.85, ANCHO_TEXTO, 2),
+    ),
+  ];
+}
+
+/** Lo que es igual en todas las tarjetas del kit: logo, textos, nombre del kit y dirección */
+function delanteraComun({ nombreKit, dominio }: DatosTarjeta): Forma[] {
+  const qy = QY;
+  const cx = CX;
+  const anchoMax = ANCHO_TEXTO;
+  const g: Forma[] = [...logo(cx, qy + 0.6, 29, 0.24)];
   g.push(
     textoComoTrazado("textoMedio", "TU CURSO TE ESPERA", cx, qy + 10, 1.55, { espaciado: 0.18 }),
   );
@@ -233,15 +257,6 @@ function caraDelantera({ codigo, nombreKit, url, dominio }: DatosTarjeta): strin
     g.push(textoComoTrazado("titulo", l, cx, qy + 12 + tam + i * tam * 1.2, tam)),
   );
   g.push(textoComoTrazado("textoMedio", "TU CÓDIGO", cx, qy + 29, 1.4, { espaciado: 0.18 }));
-  g.push(
-    textoComoTrazado(
-      "mono",
-      codigo,
-      cx,
-      qy + 33.2,
-      tamanoQueCabe("mono", codigo, 2.85, anchoMax, 2),
-    ),
-  );
   const direccion = `${dominio}/activar`;
   g.push(
     textoComoTrazado(
@@ -255,8 +270,8 @@ function caraDelantera({ codigo, nombreKit, url, dominio }: DatosTarjeta): strin
   return g;
 }
 
-function caraTrasera({ dominio, slugKit }: DatosTarjeta): string[] {
-  const g = [...logo(6, 7, 40, 0.3)];
+function caraTrasera({ dominio, slugKit }: DatosTarjeta): Forma[] {
+  const g: Forma[] = [...logo(6, 7, 40, 0.3)];
   g.push(textoComoTrazado("titulo", "Tu robot empieza aquí", 6, 19, 4.2));
   const pasos = [
     "Escanea el QR de la otra cara",
@@ -265,11 +280,11 @@ function caraTrasera({ dominio, slugKit }: DatosTarjeta): string[] {
   ];
   pasos.forEach((paso, i) => {
     const y = 25.5 + i * 6.2;
-    // Círculo grabado con el número sin grabar dentro (por eso va con "evenodd")
+    // Círculo grabado con el número sin grabar dentro
     const numero = textoComoTrazado("textoMedio", String(i + 1), 8.2, y + 0.82, 2.3, {
       alinear: "centro",
     });
-    g.push(`<path fill-rule="evenodd" d="${trazado(circulo(8.2, y, 2.1, true))}${numero}"/>`);
+    g.push({ d: trazado(circulo(8.2, y, 2.1, true)), menos: numero });
     g.push(textoComoTrazado("texto", paso, 12.3, y + 0.8, 2.2));
   });
   g.push(trazado(rect(6, 44.2, W - 12, 0.16)));
@@ -288,24 +303,64 @@ function caraTrasera({ dominio, slugKit }: DatosTarjeta): string[] {
 
 export type CaraTarjeta = "delantera" | "trasera";
 
-/** SVG de una cara de la tarjeta (con su contorno de corte), en milímetros reales */
+/** Escuadras finas en las 4 esquinas: marcan el centro y hacen que todas las caras midan lo mismo */
+function escuadras(): string[] {
+  const l = 3;
+  const e = ESCUADRA;
+  return [
+    [
+      [e, e + l],
+      [e, e],
+      [e + l, e],
+    ],
+    [
+      [W - e - l, e],
+      [W - e, e],
+      [W - e, e + l],
+    ],
+    [
+      [W - e, H - e - l],
+      [W - e, H - e],
+      [W - e - l, H - e],
+    ],
+    [
+      [e + l, H - e],
+      [e, H - e],
+      [e, H - e - l],
+    ],
+  ].map((pts) => trazado(contorno(pts as Punto[], 0.3)));
+}
+
+// Lo que se repite en todas las tarjetas de un lote se fusiona una sola vez
+const fusionadas = new Map<string, string>();
+function fusionarComun(clave: string, formas: () => Forma[], conEscuadras: boolean) {
+  let d = fusionadas.get(clave);
+  if (d === undefined) {
+    d = fusionarFormas(formas(), ZONA_DIBUJO, conEscuadras ? escuadras() : []);
+    if (fusionadas.size > 100) fusionadas.clear();
+    fusionadas.set(clave, d);
+  }
+  return d;
+}
+
+/** Lo que pase de la zona de dibujo (por ejemplo, la línea del circuito) se recorta */
+const ZONA_DIBUJO = rect(ZONA, ZONA, W - 2 * ZONA, H - 2 * ZONA);
+
+/** SVG de una cara de la tarjeta, del tamaño exacto de la tarjeta (en mm) y sin líneas de corte */
 export function tarjetaLaserSvg(datos: DatosTarjeta, cara: CaraTarjeta): string {
-  const ancho = +(MARGEN * 2 + W).toFixed(2);
-  const alto = +(MARGEN * 2 + H).toFixed(2);
-  const formas = cara === "delantera" ? caraDelantera(datos) : caraTrasera(datos);
+  const clave = JSON.stringify([cara, datos.nombreKit, datos.slugKit, datos.dominio]);
+  // La parte común y la propia de cada código no se tocan entre sí: basta con juntarlas
+  const d =
+    cara === "delantera"
+      ? fusionarComun(clave, () => delanteraComun(datos), true) +
+        fusionarFormas(delanteraPropia(datos), ZONA_DIBUJO)
+      : fusionarComun(clave, () => caraTrasera(datos), true);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Valentia · tarjeta de activación ${datos.codigo} (${escaparComentario(datos.nombreKit)}) · cara ${cara}
-     Medidas reales en mm: ${W} × ${H}. Material: cartulina negra.
-     NEGRO relleno = GRABAR · ROJO 0,1 mm = CORTAR. El texto ya está convertido a formas. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="${ancho}mm" height="${alto}mm" viewBox="0 0 ${ancho} ${alto}">
-  <g id="${cara}" transform="translate(${MARGEN} ${MARGEN})">
-    <g id="${cara}-grabar" fill="#000000" stroke="none">
-${formas.map((d) => `      ${d.startsWith("<") ? d : `<path d="${d}"/>`}`).join("\n")}
-    </g>
-    <g id="${cara}-cortar" fill="none" stroke="#FF0000" stroke-width="0.1">
-      <path d="${trazado(rectRedondeado(0, 0, W, H, RADIO))}"/>
-    </g>
-  </g>
+     Tamaño real: ${W} × ${H} mm (la tarjeta ya viene cortada). Material: cartulina negra.
+     NEGRO = GRABAR (queda claro). Sin líneas de corte. El texto ya está convertido a formas. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
+  <path id="${cara}-grabar" fill="#000000" stroke="none" d="${d}"/>
 </svg>
 `;
 }
