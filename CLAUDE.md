@@ -11,6 +11,24 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Puesta a punto final (19-10-2026, rama `valentiarobotics/puesta-a-punto`; instrucciones en `PUESTA_A_PUNTO.md`)
+
+Rama desde `main` + PR #9 unido dentro (health, db:check, aviso de Turbopack). El PR #10 (`catalogo:copiar`,
+conectaba a prod desde el ordenador) queda sustituido por `seed:prod`. NUNCA conectar a valentia-prod desde aquí
+ni tocar `.env`. Pruebas con BD temporales en valentia-dev (borrarlas al terminar).
+
+- [x] 1. Depuración: lint, tipos, build, Vitest, Playwright; recorrido de todas las páginas (escritorio y móvil),
+      estados vacíos, npm audit. Hecho: `e2e/todas-las-paginas.spec.ts` + `e2e/recorrer.ts` (sigue enlaces: 23
+      públicas, 11 de cuenta, 120 del panel; consola, HTTP ≥ 400, imágenes rotas, desbordes en móvil; usar
+      `waitForLoadState("load")`, NO "networkidle": las precargas de Next lo cuelgan). Sin errores encontrados.
+      BD vacía: nada se rompe; añadido `ui/EstadoVacio` en /kits y /componentes. Portada, /kits, /kits/[slug],
+      /componentes y sitemap con `revalidate = 300` (el catálogo cargado tras el build aparece solo; probado).
+      Next 16.4.2, postcss, lucide-react. npm audit: 8 altos sin arreglo seguro (eslint-config-next y CLI de Prisma).
+- [ ] 2. Catálogo: `catalogo:exportar` → `data/catalogo/*.json` (EJSON, ids), `seed:prod` idempotente (nunca borra),
+      `predeploy:prod` (db push sin pérdida + seed), `prod:admin`. Probado en `valentia_prueba_seed`.
+- [ ] 3. Documentación: DESPLIEGUE.md, README, INFORME.md, CLAUDE.md.
+- [ ] 4. Final: todo en verde, graphify, commit, push y PR.
+
 ### Arreglo del despliegue en Render (19-10-2026, rama `valentiarobotics/arreglar-despliegue-render`)
 
 - Causa del «Timed Out»: no existía `/api/health` (Health Check Path de Render → 404). Ahora
