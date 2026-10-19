@@ -11,7 +11,22 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
-### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; TERMINADA, PR abierto)
+### Arreglo del despliegue en Render (19-10-2026, rama `valentiarobotics/arreglar-despliegue-render`)
+
+- Causa del «Timed Out»: no existía `/api/health` (Health Check Path de Render → 404). Ahora
+  `src/app/api/health/route.ts`: sin parámetros responde al instante SIN tocar la BD; `?db=1` hace ping con
+  límite de 4 s → 503 + motivo en los logs (`[health]`), sin contraseñas. El proxy no pasa por `/api`.
+- `src/lib/diagnosticoBD.ts` (+ test): `revisarDireccion`, `explicarErrorBD`, `ocultarSecretos`, `conTiempoLimite`.
+  `npm run db:check` (`scripts/comprobar-bd.ts`): formato → driver de MongoDB → Prisma, con explicación en español.
+- «tlsv1 alert internal error» / «fatal alert: InternalError» = Atlas corta la conexión cifrada porque la IP no
+  está en Network Access del proyecto del clúster (o clúster en pausa). Pasó en local con `valentia-dev` (la entrada
+  de la IP del usuario no se aplicaba; con `0.0.0.0/0` temporal conectó). La 1.ª conexión de Prisma desde España
+  tarda ~5 s (el primer `?db=1` puede dar `tiempo-agotado`).
+- `engines.node` = `24.x`; `binaryTargets = ["native", "debian-openssl-3.0.x"]`; `npm start` sin `-H` (Next ya
+  escucha en todas las interfaces; con `-H 0.0.0.0` el callbackUrl del login salía con `0.0.0.0`).
+- `local.ts`: `path.resolve(/* turbopackIgnore: true */ process.cwd(), …)` quita el aviso de Turbopack.
+
+### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; TERMINADA, unida a main)
 
 Decisión del usuario: MongoDB Atlas (M0) en lugar de PostgreSQL, y Render en lugar de Vercel (el PR #2 de Vercel
 queda obsoleto). Prisma 7 no admite MongoDB → Prisma **6.19.3**.

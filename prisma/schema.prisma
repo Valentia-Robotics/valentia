@@ -5,8 +5,11 @@
 // ============================================================
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  // "native" = el sistema donde se ejecuta "prisma generate" (Windows en local, Linux en Render).
+  // debian-openssl-3.0.x = el Linux de Render (OpenSSL 3), por si se genera en otro sitio.
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 // MongoDB Atlas (en local, el clúster de desarrollo; en producción, el de "valentia-prod").

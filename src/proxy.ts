@@ -13,7 +13,8 @@ import { authConfig } from "@/auth.config";
 export default NextAuth(authConfig).auth;
 
 export const config = {
-  // No hace falta pasar por aquí para archivos estáticos ni imágenes
+  // No hace falta pasar por aquí para archivos estáticos ni imágenes. Tampoco por /api: así
+  // /api/health (Render) y el webhook de Stripe nunca piden sesión ni redirigen.
   matcher: [
     "/((?!api|_next/static|_next/image|images|subidas|favicon.ico|.*\\.(?:png|svg|ico|webmanifest)$).*)",
   ],

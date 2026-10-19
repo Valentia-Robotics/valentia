@@ -8,8 +8,15 @@ import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Almacen } from "./tipos";
 
-/** Carpeta donde se guardan (se puede cambiar con ALMACEN_LOCAL_CARPETA en .env) */
-const CARPETA_SUBIDAS = path.resolve(process.env.ALMACEN_LOCAL_CARPETA ?? "subidas");
+/**
+ * Carpeta donde se guardan (se puede cambiar con ALMACEN_LOCAL_CARPETA en .env).
+ * Es la misma ruta que path.resolve(carpeta). El comentario turbopackIgnore evita que el build
+ * intente incluir todo el proyecto al no saber qué archivos se leerán (son subidas, no código).
+ */
+const CARPETA_SUBIDAS = path.resolve(
+  /* turbopackIgnore: true */ process.cwd(),
+  process.env.ALMACEN_LOCAL_CARPETA ?? "subidas",
+);
 /** Dirección pública de la carpeta */
 const PREFIJO_URL = "/subidas/";
 

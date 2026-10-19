@@ -14,6 +14,7 @@
     "setup": "prisma db push && prisma db seed",
     "db:generate": "prisma generate",
     "db:catalogo": "tsx scripts/cargar-catalogo.ts",
+    "db:check": "tsx scripts/comprobar-bd.ts",
     "db:copia": "tsx scripts/copia-seguridad.ts",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
@@ -27,7 +28,7 @@
     "test:e2e": "playwright test"
   },
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
