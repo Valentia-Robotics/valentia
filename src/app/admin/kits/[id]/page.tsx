@@ -16,6 +16,7 @@ import {
 import { listaDeTextos } from "@/lib/catalogo";
 import { exigirAdmin } from "@/lib/sesion";
 import { plural } from "@/lib/utils";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Editar kit" };
 
@@ -27,6 +28,8 @@ interface Props {
 /** EDITAR UN KIT */
 export default async function EditarKit({ params, searchParams }: Props) {
   const { id } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (!esId(id)) notFound();
   await exigirAdmin(`/admin/kits/${id}`);
   const [kit, piezas, cursos, { creado }] = await Promise.all([
     obtenerKitAdmin(id),

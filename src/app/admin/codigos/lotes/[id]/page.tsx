@@ -9,6 +9,7 @@ import { obtenerLote } from "@/lib/admin/codigos";
 import { fechaHora } from "@/lib/admin/formato";
 import { exigirAdmin } from "@/lib/sesion";
 import { plural } from "@/lib/utils";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Tarjetas para imprimir" };
 
@@ -24,6 +25,8 @@ interface Props {
  */
 export default async function TarjetasLote({ params, searchParams }: Props) {
   const { id } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (!esId(id)) notFound();
   await exigirAdmin(`/admin/codigos/lotes/${id}`);
   const [lote, { nuevo }] = await Promise.all([obtenerLote(id), searchParams]);
   if (!lote) notFound();

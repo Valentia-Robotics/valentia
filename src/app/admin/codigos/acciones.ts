@@ -12,9 +12,10 @@ import { crearLote, MAXIMO_LOTE } from "@/lib/admin/codigos";
 import { db } from "@/lib/db";
 import { exigirAdminEnAccion } from "@/lib/sesion";
 import { entero } from "@/lib/validaciones/admin";
+import { esquemaId, idsValidos } from "@/lib/ids";
 
 const esquemaLote = z.object({
-  kitId: z.string().min(1, "Elige un kit"),
+  kitId: z.string().min(1, "Elige un kit").pipe(esquemaId),
   cantidad: entero(1, MAXIMO_LOTE),
 });
 
@@ -50,6 +51,7 @@ export async function cambiarDesactivacion(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const codigo = await db.codigoActivacion.findUnique({
     where: { id },
     select: { desactivadoEn: true },

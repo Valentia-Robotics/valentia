@@ -5,6 +5,7 @@
  */
 import { z } from "zod";
 import { CATEGORIAS } from "./catalogo";
+import { esquemaId } from "@/lib/ids";
 
 // Mensajes de error de validación en español
 z.config(z.locales.es());
@@ -136,9 +137,9 @@ export const esquemaKitAdmin = z.object({
     .array(textoObligatorio(120))
     .min(1, "Añade al menos un punto fuerte")
     .max(8, "Máximo 8 puntos fuertes"),
-  cursoId: z.string().min(1, "Elige el curso que incluye el kit"),
+  cursoId: z.string().min(1, "Elige el curso que incluye el kit").pipe(esquemaId),
   componentes: z
-    .array(z.object({ id: z.string().min(1), cantidad: entero(1, 50) }))
+    .array(z.object({ id: esquemaId, cantidad: entero(1, 50) }))
     .min(1, "Un kit necesita al menos un componente")
     .refine(
       (piezas) => new Set(piezas.map((p) => p.id)).size === piezas.length,

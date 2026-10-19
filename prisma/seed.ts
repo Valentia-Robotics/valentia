@@ -1,28 +1,21 @@
 /**
- * DATOS INICIALES
- * Lee data/componentes.json, data/kits.json y data/cursos.json, comprueba
- * que son correctos y los guarda en la base de datos.
+ * DATOS DE PRUEBA (SOLO DESARROLLO)
+ * Carga el catálogo inicial si no hay ninguno (prisma/catalogo.ts) y añade los datos de prueba:
+ * un usuario con el email ya verificado y unos códigos de activación fijos.
  *
- * La base de datos es la fuente de verdad: el catálogo se cambia desde el panel /admin.
- * Por eso este script SOLO carga los datos si la base de datos está vacía; si ya hay
- * catálogo, no toca nada (así nunca se pierden los cambios hechos en el panel).
+ * NUNCA en producción: se niega a ejecutarse con NODE_ENV=production, en Render o si la base de
+ * datos se llama "...prod...". En producción el catálogo se carga con "npm run db:catalogo".
  *
- * Uso:  npm run db:seed      → carga los datos iniciales (solo si no hay catálogo)
- *       npm run db:reset     → BORRA TODO (catálogo, pedidos, cuentas) y vuelve a cargarlos
+ * Uso:  npm run db:seed      → catálogo (si no hay) + usuario y códigos de prueba
+ *       npm run db:reset     → BORRA TODO (catálogo, pedidos, cuentas) y vuelve a cargarlo
  */
-import "dotenv/config";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { crearAdaptador } from "../src/lib/adaptadorBD"; // SQLite o PostgreSQL según DATABASE_URL
 import bcrypt from "bcryptjs";
-import { z } from "zod";
-import { PrismaClient } from "../src/generated/prisma/client";
 import { FORMATO_CODIGO } from "../src/lib/codigos";
-import { esquemaComponente, esquemaCurso, esquemaKit } from "../src/lib/validaciones/catalogo";
+import { cargarCatalogo, crearClienteScripts } from "./catalogo";
 
 /**
- * Códigos de activación de prueba (sin usar) para probar /activar en la fase 5.
- * Son fijos para poder ponerlos en el README. Cada vez que ejecutas el seed vuelven a quedar sin usar.
+ * Códigos de activación de prueba para probar /activar. Son fijos para poder ponerlos en el README.
+ * Cada vez que ejecutas el seed vuelven a quedar sin usar.
  */
 const CODIGOS_DE_PRUEBA: Record<string, string[]> = {
   "coche-seguidor-de-lineas": ["VAL-PRUE-CAR2", "VAL-PRUE-CAR3"],
@@ -40,175 +33,70 @@ const USUARIO_DE_PRUEBA = {
   contrasena: "robots2026",
 };
 
-// Mensajes de error de validación en español
-z.config(z.locales.es());
-
-const db = new PrismaClient({
-  adapter: crearAdaptador(),
-});
-
-/** Lee un JSON de la carpeta data/ y lo valida. Si hay errores, explica cuáles. */
-async function leerDatos<T extends z.ZodType>(archivo: string, esquema: T): Promise<z.infer<T>> {
-  const ruta = path.join(process.cwd(), "data", archivo);
-  const contenido: unknown = JSON.parse(await readFile(ruta, "utf8"));
-  const resultado = esquema.safeParse(contenido);
-  if (!resultado.success) {
-    throw new Error(`Hay errores en data/${archivo}:\n${z.prettifyError(resultado.error)}`);
-  }
-  return resultado.data;
+/** Motivo por el que este entorno parece producción (o null si es desarrollo) */
+function pareceProduccion(): string | null {
+  if (process.env.NODE_ENV === "production") return 'NODE_ENV es "production"';
+  if (process.env.RENDER) return "se está ejecutando en Render";
+  const baseDeDatos = (process.env.DATABASE_URL ?? "").match(/^mongodb(?:\+srv)?:\/\/[^/]+\/([^?]*)/)?.[1];
+  if (baseDeDatos && /prod/i.test(baseDeDatos)) return `la base de datos se llama "${baseDeDatos}"`;
+  return null;
 }
 
-/** Convierte euros (24.9) en céntimos (2490) */
-const aCentimos = (euros: number) => Math.round(euros * 100);
-
 async function main() {
-  const componentes = await leerDatos("componentes.json", z.array(esquemaComponente));
-  const cursos = await leerDatos("cursos.json", z.array(esquemaCurso));
-  const kits = await leerDatos("kits.json", z.array(esquemaKit));
-
-  // Comprobaciones entre archivos: que los kits apunten a cosas que existen
-  const slugsComponentes = new Set(componentes.map((c) => c.slug));
-  const slugsCursos = new Set(cursos.map((c) => c.slug));
-  for (const kit of kits) {
-    if (!slugsCursos.has(kit.curso)) {
-      throw new Error(
-        `El kit "${kit.slug}" usa el curso "${kit.curso}", que no existe en cursos.json`,
-      );
-    }
-    for (const { slug } of kit.componentes) {
-      if (!slugsComponentes.has(slug)) {
-        throw new Error(
-          `El kit "${kit.slug}" usa el componente "${slug}", que no existe en componentes.json`,
-        );
-      }
-    }
-  }
-  for (const curso of cursos) {
-    for (const leccion of curso.lecciones) {
-      for (const ejercicio of leccion.ejercicios) {
-        if (ejercicio.tipo === "TEST" && ejercicio.correcta >= ejercicio.opciones.length) {
-          throw new Error(`En "${curso.slug} › ${leccion.slug}" la respuesta correcta no existe`);
-        }
-      }
-    }
-  }
-
-  // Si ya hay catálogo, no tocamos nada: puede tener cambios hechos desde el panel
-  const [hayComponentes, hayKits, hayCursos] = await Promise.all([
-    db.componente.count(),
-    db.kit.count(),
-    db.curso.count(),
-  ]);
-  if (hayComponentes + hayKits + hayCursos > 0) {
-    console.log("✔ La base de datos ya tiene catálogo: no se ha cambiado nada.");
-    console.log("  Los productos y cursos se gestionan desde el panel /admin.");
-    console.log("  Para empezar de cero (lo borra TODO, también las cuentas): npm run db:reset");
+  const motivo = pareceProduccion();
+  if (motivo) {
+    console.error(`✖ El seed de desarrollo no se ejecuta en producción (${motivo}).`);
+    console.error("  Para cargar solo el catálogo: npm run db:catalogo");
+    process.exitCode = 1;
     return;
   }
 
-  // Base de datos vacía: creamos el catálogo inicial (todo o nada, en una transacción)
-  await db.$transaction(async (tx) => {
-    for (const { precio, ...componente } of componentes) {
-      await tx.componente.create({
-        data: { ...componente, precioCentimos: aCentimos(precio) },
-      });
-    }
+  const db = crearClienteScripts();
+  try {
+    await cargarCatalogo(db);
 
-    for (const curso of cursos) {
-      await tx.curso.create({
-        data: {
-          slug: curso.slug,
-          titulo: curso.titulo,
-          descripcion: curso.descripcion,
-          nivel: curso.nivel,
-          lecciones: {
-            create: curso.lecciones.map((leccion, i) => ({
-              slug: leccion.slug,
-              orden: i + 1,
-              titulo: leccion.titulo,
-              descripcion: leccion.descripcion,
-              videoUrl: leccion.videoUrl,
-              duracionMin: leccion.duracionMin,
-              ejercicios: {
-                create: leccion.ejercicios.map((ejercicio, j) =>
-                  ejercicio.tipo === "TEST"
-                    ? {
-                        orden: j + 1,
-                        tipo: "TEST" as const,
-                        enunciado: ejercicio.enunciado,
-                        opciones: ejercicio.opciones,
-                        correcta: ejercicio.correcta,
-                        explicacion: ejercicio.explicacion,
-                      }
-                    : {
-                        orden: j + 1,
-                        tipo: "RETO" as const,
-                        enunciado: ejercicio.enunciado,
-                        pistas: ejercicio.pistas,
-                        solucion: ejercicio.solucion,
-                      },
-                ),
-              },
-            })),
-          },
-        },
-      });
-    }
-
-    for (const { precio, curso, componentes: piezas, ...kit } of kits) {
-      const codigos = CODIGOS_DE_PRUEBA[kit.slug] ?? [];
+    // Códigos de prueba: se crean si faltan y, si ya existen, vuelven a quedar sin usar
+    for (const [slug, codigos] of Object.entries(CODIGOS_DE_PRUEBA)) {
+      const kit = await db.kit.findUnique({ where: { slug }, select: { id: true } });
+      if (!kit) continue; // el kit se ha borrado desde el panel
       for (const codigo of codigos) {
         if (!FORMATO_CODIGO.test(codigo)) {
           throw new Error(`El código de prueba "${codigo}" no tiene un formato válido`);
         }
+        await db.codigoActivacion.upsert({
+          where: { codigo },
+          create: { codigo, kitId: kit.id },
+          update: { usadoEn: null, usuarioId: null, desactivadoEn: null },
+        });
       }
-      await tx.kit.create({
-        data: {
-          ...kit,
-          precioCentimos: aCentimos(precio),
-          curso: { connect: { slug: curso } },
-          componentes: {
-            create: piezas.map(({ slug, cantidad }) => ({
-              cantidad,
-              componente: { connect: { slug } },
-            })),
-          },
-          codigos: { create: codigos.map((codigo) => ({ codigo })) },
-        },
-      });
     }
-  });
 
-  // Usuario de prueba: si ya existe, solo se le vuelve a poner la contraseña de prueba.
-  // Su email ya está verificado (no hace falta código para confirmarlo).
-  const contrasenaHash = await bcrypt.hash(USUARIO_DE_PRUEBA.contrasena, 10);
-  const emailVerificadoEn = new Date();
-  await db.usuario.upsert({
-    where: { email: USUARIO_DE_PRUEBA.email },
-    create: {
-      nombre: USUARIO_DE_PRUEBA.nombre,
-      email: USUARIO_DE_PRUEBA.email,
-      contrasenaHash,
-      emailVerificadoEn,
-    },
-    update: { contrasenaHash, emailVerificadoEn },
-  });
+    // Usuario de prueba: si ya existe, solo se le vuelve a poner la contraseña de prueba.
+    // Su email ya está verificado (no hace falta código para confirmarlo).
+    const contrasenaHash = await bcrypt.hash(USUARIO_DE_PRUEBA.contrasena, 10);
+    const emailVerificadoEn = new Date();
+    await db.usuario.upsert({
+      where: { email: USUARIO_DE_PRUEBA.email },
+      create: {
+        nombre: USUARIO_DE_PRUEBA.nombre,
+        email: USUARIO_DE_PRUEBA.email,
+        contrasenaHash,
+        emailVerificadoEn,
+      },
+      update: { contrasenaHash, emailVerificadoEn },
+    });
 
-  const lecciones = cursos.reduce((total, c) => total + c.lecciones.length, 0);
-  console.log(`✔ Usuario de prueba: ${USUARIO_DE_PRUEBA.email} / ${USUARIO_DE_PRUEBA.contrasena}`);
-  console.log(
-    `✔ Datos cargados: ${componentes.length} componentes, ${kits.length} kits, ` +
-      `${cursos.length} cursos y ${lecciones} lecciones.`,
-  );
-  console.log(
-    `✔ Códigos de activación de prueba (sin usar): ${Object.values(CODIGOS_DE_PRUEBA).flat().join(", ")}`,
-  );
+    console.log(`✔ Usuario de prueba: ${USUARIO_DE_PRUEBA.email} / ${USUARIO_DE_PRUEBA.contrasena}`);
+    console.log(
+      `✔ Códigos de activación de prueba (sin usar): ${Object.values(CODIGOS_DE_PRUEBA).flat().join(", ")}`,
+    );
+  } finally {
+    await db.$disconnect();
+  }
 }
 
-main()
-  .catch((error: unknown) => {
-    console.error("✖ No se pudieron cargar los datos de prueba.");
-    console.error(error instanceof Error ? error.message : error);
-    process.exitCode = 1;
-  })
-  .finally(() => db.$disconnect());
+main().catch((error: unknown) => {
+  console.error("✖ No se pudieron cargar los datos de prueba.");
+  console.error(error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+});

@@ -11,6 +11,7 @@ import { Insignia } from "@/components/admin/Insignia";
 import { obtenerComponenteAdmin, tiposDePieza } from "@/lib/admin/componentes";
 import { listaDeEspecificaciones } from "@/lib/catalogo";
 import { exigirAdmin } from "@/lib/sesion";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Editar componente" };
 
@@ -22,6 +23,8 @@ interface Props {
 /** EDITAR UN COMPONENTE */
 export default async function EditarComponente({ params, searchParams }: Props) {
   const { id } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (!esId(id)) notFound();
   await exigirAdmin(`/admin/componentes/${id}`);
   const [componente, tipos, { creado }] = await Promise.all([
     obtenerComponenteAdmin(id),

@@ -9,7 +9,6 @@
  */
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { erroresDeZod, type EstadoFormulario } from "@/lib/admin/formularios";
 import { enviarCorreo } from "@/lib/correo";
 import { plantillaContrasenaCambiada } from "@/lib/correo/plantillas";
@@ -18,9 +17,9 @@ import { registrarIntento } from "@/lib/limite";
 import { obtenerUsuario } from "@/lib/sesion";
 import { esquemaCambioContrasena } from "@/lib/validaciones/cuenta";
 import { dispositivoDeConfianza, olvidarDispositivos } from "@/lib/verificacion/dispositivos";
+import { esquemaId } from "@/lib/ids";
 
 /** Identificador de un dispositivo o una dirección (cuid) */
-const esquemaId = z.string().min(1).max(40);
 
 const SIN_SESION = "Tu sesión ha caducado. Vuelve a iniciar sesión.";
 

@@ -7,10 +7,12 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ejercicioDelUsuario, leccionDelUsuario, testDesbloqueado } from "@/lib/cursos";
-import { db } from "@/lib/db";
+import { db, transaccion } from "@/lib/db";
 import { obtenerUsuario } from "@/lib/sesion";
+import { esquemaId } from "@/lib/ids";
 
-const id = z.string().min(1).max(40);
+/** Id de una lección o de un ejercicio (ObjectId de MongoDB) */
+const id = esquemaId;
 
 /** Marca (o desmarca) una lección como completada */
 export async function marcarLeccion(leccionId: string, completada: boolean) {
@@ -114,7 +116,7 @@ export async function corregirTest(
   const total = preguntas.length;
   const aprobado = aciertos >= Math.ceil(total * APROBADO);
 
-  const mejorAciertos = await db.$transaction(async (tx) => {
+  const mejorAciertos = await transaccion(async (tx) => {
     for (const [i, pregunta] of preguntas.entries()) {
       const respuesta = datos.data.respuestas[i];
       const acertado = pregunta.correcta === respuesta;

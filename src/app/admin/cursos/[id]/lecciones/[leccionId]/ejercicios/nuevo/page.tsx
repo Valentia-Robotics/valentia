@@ -4,6 +4,7 @@ import { Cabecera } from "@/components/admin/Cabecera";
 import { FormularioEjercicio } from "@/components/admin/FormularioEjercicio";
 import { db } from "@/lib/db";
 import { exigirAdmin } from "@/lib/sesion";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Nuevo ejercicio" };
 
@@ -15,6 +16,8 @@ interface Props {
 /** CREAR UN EJERCICIO: ?tipo=TEST (opción múltiple) o ?tipo=RETO (con pistas y solución) */
 export default async function NuevoEjercicio({ params, searchParams }: Props) {
   const { id, leccionId } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (![id, leccionId].every(esId)) notFound();
   await exigirAdmin(`/admin/cursos/${id}/lecciones/${leccionId}`);
   const tipo = (await searchParams).tipo === "RETO" ? "RETO" : "TEST";
   const leccion = await db.leccion.findFirst({

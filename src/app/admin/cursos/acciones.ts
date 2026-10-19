@@ -5,10 +5,9 @@
  * Cada acción comprueba primero que quien la llama es ADMIN.
  */
 import { redirect } from "next/navigation";
-import type { Prisma } from "@/generated/prisma/client";
 import { conErrores, texto, textos, type EstadoFormulario } from "@/lib/admin/formularios";
 import { refrescarTienda } from "@/lib/admin/refrescar";
-import { db } from "@/lib/db";
+import { db, transaccion, type Tx } from "@/lib/db";
 import { exigirAdminEnAccion } from "@/lib/sesion";
 import {
   crearSlug,
@@ -19,8 +18,7 @@ import {
   slug as esquemaSlug,
 } from "@/lib/validaciones/admin";
 import { normalizarVideo } from "@/lib/video";
-
-type Tx = Prisma.TransactionClient;
+import { idsValidos } from "@/lib/ids";
 
 /** Comprueba el slug que se escribe al crear (o lo crea a partir del título) */
 function leerSlug(formulario: FormData, titulo: string) {
@@ -38,6 +36,7 @@ export async function guardarCurso(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const datos = esquemaCursoAdmin.safeParse({
     titulo: texto(formulario, "titulo"),
     descripcion: texto(formulario, "descripcion"),
@@ -82,6 +81,7 @@ export async function borrarCurso(
 ): Promise<EstadoFormulario> {
   await exigirAdminEnAccion();
   const id = texto(formulario, "id");
+  if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const curso = await db.curso.findUnique({
     where: { id },
     select: { kit: { select: { nombre: true } }, _count: { select: { alumnos: true } } },
@@ -116,6 +116,8 @@ export async function guardarLeccion(
   await exigirAdminEnAccion();
   const cursoId = texto(formulario, "cursoId");
   const leccionId = texto(formulario, "leccionId");
+  if (!idsValidos(cursoId, leccionId))
+    return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
 
   const video = normalizarVideo(texto(formulario, "proveedorVideo"), texto(formulario, "video"));
   const errorVideo: Record<string, string> = video.ok ? {} : { video: video.error };
@@ -180,9 +182,11 @@ export async function moverLeccion(
   await exigirAdminEnAccion();
   const cursoId = texto(formulario, "cursoId");
   const id = texto(formulario, "id");
+  if (!idsValidos(cursoId, id))
+    return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const paso = texto(formulario, "direccion") === "arriba" ? -1 : 1;
 
-  await db.$transaction(async (tx) => {
+  await transaccion(async (tx) => {
     const lecciones = await tx.leccion.findMany({
       where: { cursoId },
       orderBy: { orden: "asc" },
@@ -207,8 +211,10 @@ export async function borrarLeccion(
   await exigirAdminEnAccion();
   const cursoId = texto(formulario, "cursoId");
   const id = texto(formulario, "id");
+  if (!idsValidos(cursoId, id))
+    return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
 
-  const borrada = await db.$transaction(async (tx) => {
+  const borrada = await transaccion(async (tx) => {
     const resultado = await tx.leccion.deleteMany({ where: { id, cursoId } });
     if (resultado.count === 0) return false;
     const resto = await tx.leccion.findMany({
@@ -240,6 +246,8 @@ export async function guardarEjercicio(
   const cursoId = texto(formulario, "cursoId");
   const leccionId = texto(formulario, "leccionId");
   const ejercicioId = texto(formulario, "ejercicioId");
+  if (!idsValidos(cursoId, leccionId, ejercicioId))
+    return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const tipo = texto(formulario, "tipo") === "RETO" ? "RETO" : "TEST";
 
   // Un test guarda opciones, respuesta correcta y explicación; un reto, pistas y solución
@@ -298,9 +306,11 @@ export async function moverEjercicio(
   await exigirAdminEnAccion();
   const leccionId = texto(formulario, "leccionId");
   const id = texto(formulario, "id");
+  if (!idsValidos(leccionId, id))
+    return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const paso = texto(formulario, "direccion") === "arriba" ? -1 : 1;
 
-  await db.$transaction(async (tx) => {
+  await transaccion(async (tx) => {
     const ejercicios = await tx.ejercicio.findMany({
       where: { leccionId },
       orderBy: { orden: "asc" },
@@ -328,6 +338,8 @@ export async function borrarEjercicio(
   const cursoId = texto(formulario, "cursoId");
   const leccionId = texto(formulario, "leccionId");
   const id = texto(formulario, "id");
+  if (!idsValidos(cursoId, leccionId, id))
+    return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const resultado = await db.ejercicio.deleteMany({ where: { id, leccionId } });
   if (resultado.count === 0) return { ok: false, mensaje: "Este ejercicio ya no existe." };
   refrescarTienda();

@@ -15,9 +15,10 @@ import { db } from "@/lib/db";
 import { cancelarIntentoPago } from "@/lib/pagos/stripe";
 import { cancelarPedido } from "@/lib/pedidos";
 import { exigirAdminEnAccion } from "@/lib/sesion";
+import { esquemaId } from "@/lib/ids";
 
 const esquema = z.object({
-  pedidoId: z.string().min(1).max(40),
+  pedidoId: esquemaId,
   estado: z.enum(EstadoPedido),
   numeroSeguimiento: z
     .string()

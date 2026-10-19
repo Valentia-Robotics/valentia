@@ -16,6 +16,7 @@ import { listaDeTextos } from "@/lib/catalogo";
 import { exigirAdmin } from "@/lib/sesion";
 import { plural } from "@/lib/utils";
 import { analizarVideo, proveedoresVideo } from "@/lib/video";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Editar lección" };
 
@@ -27,6 +28,8 @@ interface Props {
 /** UNA LECCIÓN: sus datos, su vídeo y sus ejercicios */
 export default async function EditarLeccion({ params, searchParams }: Props) {
   const { id, leccionId } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (![id, leccionId].every(esId)) notFound();
   const ruta = `/admin/cursos/${id}/lecciones/${leccionId}`;
   await exigirAdmin(ruta);
   const [leccion, avisos] = await Promise.all([obtenerLeccionAdmin(id, leccionId), searchParams]);

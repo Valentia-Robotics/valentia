@@ -16,11 +16,10 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import type { EstadoPedido } from "@/generated/prisma/enums";
 import { generarCodigoActivacion, generarNumeroPedido } from "@/lib/codigos";
-import { db } from "@/lib/db";
+import { db, transaccion, type Tx } from "@/lib/db";
 import { calcularTotales } from "@/lib/precios";
 import type { ArticuloPedido, DatosCliente } from "@/lib/validaciones/pedido";
 
-type Tx = Prisma.TransactionClient;
 
 /** Filtro de Prisma: pedidos cobrados y no cancelados (Pagado, Preparando, Enviado, Entregado) */
 export const PEDIDO_COBRADO = {
@@ -142,7 +141,7 @@ async function calcularLineas(tx: Tx, articulos: ArticuloPedido[]) {
  * "precios" va en el mismo orden que los artículos: precio de una unidad de cada uno.
  */
 export function calcularPrecios(articulos: ArticuloPedido[]) {
-  return db.$transaction(async (tx) => {
+  return transaccion(async (tx) => {
     const { lineas, subtotalCentimos } = await calcularLineas(tx, articulos);
     return { subtotalCentimos, precios: lineas.map((l) => l.precioUnitarioCentimos) };
   });
@@ -233,7 +232,7 @@ export async function crearPedido(
   articulos: ArticuloPedido[],
   opciones: OpcionesPedido,
 ) {
-  return db.$transaction(async (tx) => {
+  return transaccion(async (tx) => {
     const { lineas, subtotalCentimos, salidas, componentePorSlug } = await calcularLineas(
       tx,
       articulos,
@@ -294,7 +293,7 @@ export async function marcarPedidoPagado(
   pedidoId: string,
   referenciaPago: string,
 ): Promise<ResultadoPago> {
-  return db.$transaction(async (tx) => {
+  return transaccion(async (tx) => {
     const pedido = await tx.pedido.findUnique({
       where: { id: pedidoId },
       include: { lineas: true },
@@ -353,7 +352,7 @@ export async function cancelarPedido(
   pedidoId: string,
   desde: EstadoPedido[] = ["PENDIENTE"],
 ): Promise<boolean> {
-  return db.$transaction(async (tx) => {
+  return transaccion(async (tx) => {
     const pedido = await tx.pedido.findUnique({
       where: { id: pedidoId },
       include: { lineas: true },

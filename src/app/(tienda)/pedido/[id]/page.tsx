@@ -13,6 +13,7 @@ import { obtenerPedido, piezasDeLinea, tokenValido } from "@/lib/pedidos";
 import { obtenerUsuario } from "@/lib/sesion";
 import { cn, formatearPrecio } from "@/lib/utils";
 import { formatearTelefono } from "@/lib/validaciones/pedido";
+import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = {
   title: "Tu pedido",
@@ -40,8 +41,9 @@ const formatoFecha = new Intl.DateTimeFormat("es-ES", {
  */
 export default async function PaginaPedido({ params, searchParams }: Props) {
   const { id } = await params;
+  // Un id con otra forma no existe (y Prisma daría error con MongoDB)
+  if (!esId(id)) notFound();
   const { t, nuevo, redirect_status: estadoStripe } = await searchParams;
-  if (id.length > 40) notFound();
 
   const [pedido, usuario] = await Promise.all([obtenerPedido(id), obtenerUsuario()]);
   if (!pedido) notFound();

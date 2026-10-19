@@ -12,6 +12,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 
 /** Límites de cada acción. Cámbialos aquí. */
 export const LIMITES = {
@@ -54,10 +55,18 @@ export async function registrarIntento(accion: AccionLimitada, clave: string): P
   const id = `${accion}:${huella(clave)}:${ventana}`;
 
   try {
-    const fila = await db.limiteIntento.upsert({
-      where: { id },
-      create: { id, contador: 1, caducaEn: new Date((ventana + 1) * duracion) },
-      update: { contador: { increment: 1 } },
+    const sumar = () =>
+      db.limiteIntento.upsert({
+        where: { id },
+        create: { id, contador: 1, caducaEn: new Date((ventana + 1) * duracion) },
+        update: { contador: { increment: 1 } },
+      });
+    // Si dos peticiones crean el contador a la vez, MongoDB rechaza una (clave duplicada):
+    // al repetirla, el contador ya existe y simplemente se suma
+    const fila = await sumar().catch((error) => {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")
+        return sumar();
+      throw error;
     });
 
     // Limpieza de vez en cuando (1 de cada 50 llamadas) para que la tabla no crezca sin fin

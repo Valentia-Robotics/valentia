@@ -7,6 +7,13 @@ lanzamiento». Cada bloque tiene su commit en git (`Lanzamiento (1/10)` … `(10
 > `npm run build`, las **51 pruebas unitarias** y las **8 pruebas con navegador** (incluido el recorrido
 > completo) pasan sin errores. Para publicarla faltan las tareas de la última sección, que son tuyas.
 
+> **Actualización 19-10-2026 — base de datos y hosting:** por decisión del usuario, la web usa ahora
+> **MongoDB Atlas** (Prisma 6.19, porque Prisma 7 no admite MongoDB) y se publicará en **Render**. Lo que
+> este informe dice de PostgreSQL (bloque 6, decisión 12) quedó sustituido: ya no hay migraciones ni
+> esquema de PostgreSQL. La guía de publicación es `DESPLIEGUE.md`; los detalles, en el README («Base de
+> datos», «Copias de seguridad») y en CLAUDE.md. Pruebas tras el cambio: 54 unitarias y 8 con navegador
+> en verde contra Atlas, más una revisión del panel, la activación por QR y la concurrencia de stock y códigos.
+
 ## 1. Lo que se ha hecho
 
 | Bloque           | Resumen                                                                                                                                                                                                                                                                                                                                                 |
@@ -16,14 +23,14 @@ lanzamiento». Cada bloque tiene su commit en git (`Lanzamiento (1/10)` … `(10
 | 3. Navegación    | Sección activa marcada (raya azul, «Estás aquí» en el móvil) incluidas subpáginas, carrito/checkout y Mi cuenta; enlace «Inicio». El panel ya lo hacía.                                                                                                                                                                                                 |
 | 4. Cursos        | «Hacer el test» se desbloquea al terminar el vídeo (YouTube IFrame API, Vimeo Player SDK y vídeo nativo). Pantalla propia, pregunta a pregunta, puntuación, explicaciones, repetir, volver al vídeo; resultado guardado.                                                                                                                                |
 | 5. Pagos         | Stripe Payment Element + webhook firmado e idempotente; pago de prueba sin claves; envío con teléfono y provincia; compra como invitado o con cuenta y direcciones guardadas; stock reservado; códigos y correo al pagar; panel de pedidos con estados, seguimiento y correo de envío; «Mis pedidos».                                                   |
-| 6. Base de datos | Lista para PostgreSQL cambiando solo `DATABASE_URL` (esquema y migración inicial generados); fotos en la nube compatibles con S3 cambiando solo `.env`.                                                                                                                                                                                                 |
+| 6. Base de datos | ~~Lista para PostgreSQL~~ (sustituido por MongoDB Atlas el 19-10-2026, ver arriba); fotos en la nube compatibles con S3 cambiando solo `.env`.                                                                                                                                                                                                          |
 | 7. Legal         | Aviso legal, privacidad, cookies, condiciones de venta y devoluciones (**BORRADORES**); banner de cookies con consentimiento real (los vídeos de YouTube/Vimeo no se cargan sin él).                                                                                                                                                                    |
 | 8. Seguridad     | Revisión completa (ver `SEGURIDAD.md`): límites de intentos en la base de datos, cabeceras (CSP, HSTS…), páginas de error, Zod, `npm audit` (de 9 a 5 avisos, solo en ESLint).                                                                                                                                                                          |
 | 9. Calidad       | Vitest + Playwright, SEO (sitemap, robots, imagen para redes), estados de carga, auditoría de accesibilidad y móvil (0 problemas en 28 páginas).                                                                                                                                                                                                        |
 | 10. Cierre       | README, CLAUDE.md, este informe, graphify y servidor arrancado.                                                                                                                                                                                                                                                                                         |
 
 **Paquetes nuevos** (cada uno explicado en su commit): `three` (gráficos 3D), `stripe` y
-`@stripe/stripe-js` (pagos), `@prisma/adapter-pg` (conexión con PostgreSQL), `aws4fetch` (subir fotos a
+`@stripe/stripe-js` (pagos), `@prisma/adapter-pg` (conexión con PostgreSQL; retirado al pasar a MongoDB, que añadió `mongodb` para las copias de seguridad), `aws4fetch` (subir fotos a
 almacenes tipo S3), y para desarrollo `@playwright/test`, `vitest` y `@types/three`.
 
 ## 2. Decisiones que he tomado por mi cuenta
@@ -52,8 +59,7 @@ almacenes tipo S3), y para desarrollo `@playwright/test`, `vitest` y `@types/thr
     terceros opcionales (necesitan consentimiento). Stripe se considera necesaria (prevención del fraude).
 11. **Garantía y desistimiento** redactados con el TRLGDCU vigente (3 años de garantía, 14 días). El caso del
     curso ya activado al devolver un kit queda marcado `[REVISAR CON UN ABOGADO]`.
-12. **Migración inicial de PostgreSQL** generada desde el esquema; las migraciones de SQLite se mantienen
-    para tu ordenador.
+12. ~~**Migración inicial de PostgreSQL**~~ (ya no aplica: MongoDB no usa migraciones, se usa `prisma db push`).
 13. Pedidos antiguos: una migración rellena su subtotal e IVA (antes el envío era gratis). No había pedidos.
 14. Se **eliminó** la corrección pregunta a pregunta antigua (`responderTest`), sustituida por el test completo.
 
@@ -69,9 +75,9 @@ Ordenado por prioridad. Ninguno requiere programar; si algo no está claro, píd
    «BORRADOR — pendiente de revisión por un profesional» y marcas `[REVISAR…]`: duración del acceso a los
    cursos, coste de las devoluciones, contenido digital ya activado, arbitraje, lista de proveedores).
    Después, quita el aviso (`borrador={false}`).
-3. **Hosting** con HTTPS y tu dominio (por ejemplo Vercel, Railway o un servidor propio).
-4. **Base de datos PostgreSQL** (Neon, Supabase…): pon su `DATABASE_URL` y ejecuta
-   `npx prisma migrate deploy` (README, «Pasar a PostgreSQL»). Activa copias de seguridad.
+3. **Hosting en Render** con HTTPS y tu dominio: sigue `DESPLIEGUE.md`.
+4. **Base de datos**: proyecto de MongoDB Atlas `valentia-prod` (M0 en Frankfurt), Network Access solo con
+   las IP de Render y **copias de seguridad a mano** (`npm run db:copia`; el M0 no las hace solo).
 5. **Variables del servidor**: `AUTH_SECRET` nueva (`npx auth secret`) y `NEXT_PUBLIC_SITE_URL` con
    `https://tudominio` (los QR impresos y los correos apuntan ahí).
 6. **Stripe**: activa tu cuenta (datos fiscales y bancarios), prueba antes todo con claves de prueba
@@ -80,7 +86,8 @@ Ordenado por prioridad. Ninguno requiere programar; si algo no está claro, píd
    `payment_intent.succeeded` y `payment_intent.canceled`; copia su `whsec_…` en `STRIPE_WEBHOOK_SECRET`.
 7. **Proveedor de correo**: Resend (u otro) con tu dominio verificado. **Sin esto nadie puede registrarse**.
 8. **Fotos en la nube** (Cloudflare R2 o similar) y `npm run fotos:nube -- --hacer` si ya subiste fotos.
-9. **Administrador**: regístrate en la web publicada y ejecuta `npm run admin -- tu@email.com`.
+9. **Catálogo y administrador**: desde la Shell de Render, `npm run db:catalogo`; regístrate en la web y
+   ejecuta `npm run admin -- tu@email.com` (`DESPLIEGUE.md` §6).
 
 ### Importante
 
@@ -104,8 +111,8 @@ Ordenado por prioridad. Ninguno requiere programar; si algo no está claro, píd
 - **Stripe real**: sin claves no se puede abrir el formulario de Stripe ni recibir webhooks reales. El
   código sigue la documentación oficial y el resto del flujo está probado con el pago de prueba; la
   primera prueba con claves `sk_test_` y `stripe listen` es lo primero que conviene hacer.
-- **Almacén en la nube y PostgreSQL**: sin cuentas en esos servicios, no se han probado contra un
-  servidor real (el código compila contra PostgreSQL y la migración se ha generado).
+- **Almacén en la nube y Render**: sin cuentas en esos servicios, no se han probado contra un servidor real.
+  La base de datos sí: todo se ha probado contra un clúster de MongoDB Atlas de desarrollo.
 - **Envío real de correos** (Resend): igual que antes, solo probado en modo consola.
 
 ## 5. Cómo verlo

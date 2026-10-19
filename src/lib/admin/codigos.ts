@@ -5,7 +5,8 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { generarCodigoActivacion } from "@/lib/codigos";
 import { textoContiene } from "@/lib/busqueda";
-import { db } from "@/lib/db";
+import { db, transaccion } from "@/lib/db";
+import { esId } from "@/lib/ids";
 
 export const CODIGOS_POR_PAGINA = 50;
 /** Máximo de códigos que se pueden generar de una vez */
@@ -30,8 +31,9 @@ export async function listarCodigos(filtros: {
 }) {
   const q = filtros.q.trim();
   const where: Prisma.CodigoActivacionWhereInput = {
-    ...(filtros.kitId && { kitId: filtros.kitId }),
-    ...(filtros.loteId && { loteId: filtros.loteId }),
+    // Un id con otra forma (dirección manipulada) se ignora en vez de dar error
+    ...(esId(filtros.kitId) && { kitId: filtros.kitId }),
+    ...(esId(filtros.loteId) && { loteId: filtros.loteId }),
     ...(filtros.estado && condicionEstado[filtros.estado]),
     // Se busca por el código o por el email de quien lo activó
     ...(q && {
@@ -114,7 +116,7 @@ export function obtenerLote(id: string) {
  * Los códigos se generan al azar; si alguno coincide con uno que ya existe, se cambia por otro.
  */
 export async function crearLote(kitId: string, cantidad: number) {
-  return db.$transaction(async (tx) => {
+  return transaccion(async (tx) => {
     const codigos = new Set<string>();
     // Repetimos hasta tener "cantidad" códigos que no existan todavía
     for (let intento = 0; codigos.size < cantidad && intento < 10; intento++) {
