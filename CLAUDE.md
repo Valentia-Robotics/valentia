@@ -52,6 +52,10 @@ Notas técnicas de la fase de lanzamiento:
 - Pruebas: `npm test` (Vitest, `*.test.ts` en src) y `npm run test:e2e` (Playwright, `e2e/`, BD `prisma/e2e.db`,
   puerto 3100, Chrome del sistema). Tras muchas pruebas de login con `prueba@valentia.test` en dev salta el límite
   de 5 códigos/hora: borrar sus filas de `EnvioCodigo` (y `LimiteIntento` si hace falta).
+- Tarjetas para láser: `/admin/codigos/lotes/[id]/laser` (route handler) da un .zip con un SVG por código
+  (`src/lib/tarjetaLaser/`: negro = grabar, rojo = cortar, cartulina negra; QR con los módulos claros grabados).
+  Texto como formas desde `glifos.json` (regenerar con `scripts/generar-glifos-tarjeta.mjs`); ZIP propio con zlib.
+  Si el QR sale en versión 7+ (dominio largo), se omite la "V" central para no tapar el patrón de alineación.
 - Panel: `Caja` lleva `min-w-0` y `Tabla` es `relative` + enfocable (evitan desbordes en el móvil).
 
 ### Terminado

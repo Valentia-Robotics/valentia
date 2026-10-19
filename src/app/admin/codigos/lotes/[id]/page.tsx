@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Download } from "lucide-react";
 import { TarjetaActivacion } from "@/components/compra/TarjetaActivacion";
 import { Aviso } from "@/components/admin/Aviso";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
@@ -7,6 +8,7 @@ import { BotonImprimirAdmin } from "@/components/admin/BotonImprimirAdmin";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { obtenerLote } from "@/lib/admin/codigos";
 import { fechaHora } from "@/lib/admin/formato";
+import { urlActivacion } from "@/lib/qr";
 import { exigirAdmin } from "@/lib/sesion";
 import { plural } from "@/lib/utils";
 
@@ -21,6 +23,7 @@ interface Props {
  * TARJETAS DE UN LOTE, listas para imprimir y meter en las cajas.
  * Al imprimir solo salen las tarjetas (4 por hoja A4); el menú y los botones se ocultan.
  * Los códigos desactivados no se imprimen.
+ * También se pueden descargar como un .zip de SVG para grabarlas y cortarlas con láser.
  */
 export default async function TarjetasLote({ params, searchParams }: Props) {
   const { id } = await params;
@@ -29,6 +32,9 @@ export default async function TarjetasLote({ params, searchParams }: Props) {
   if (!lote) notFound();
   const imprimibles = lote.codigos.filter((c) => !c.desactivadoEn);
   const usados = lote.codigos.filter((c) => c.usadoEn).length;
+  // Si la web aún apunta a este ordenador, los QR no funcionarán en el móvil de los clientes
+  const dominio = new URL(urlActivacion("X")).hostname;
+  const qrSoloLocal = dominio === "localhost" || dominio === "127.0.0.1";
 
   return (
     <>
@@ -44,6 +50,16 @@ export default async function TarjetasLote({ params, searchParams }: Props) {
             <BotonAdmin href={`/admin/codigos?lote=${lote.id}`} variante="secundario">
               Ver en la lista
             </BotonAdmin>
+            {/* "download" hace que el navegador descargue el .zip en vez de abrir una página */}
+            <BotonAdmin
+              href={`/admin/codigos/lotes/${lote.id}/laser`}
+              download
+              prefetch={false}
+              variante="secundario"
+            >
+              <Download aria-hidden="true" className="size-4" />
+              Tarjetas para láser (.zip)
+            </BotonAdmin>
             <BotonImprimirAdmin
               texto={`Imprimir ${plural(imprimibles.length, "tarjeta", "tarjetas")}`}
             />
@@ -54,6 +70,13 @@ export default async function TarjetasLote({ params, searchParams }: Props) {
         {nuevo && (
           <Aviso tipo="exito">
             Códigos generados. Imprime las tarjetas y mete una en cada caja del kit.
+          </Aviso>
+        )}
+        {qrSoloLocal && (
+          <Aviso tipo="info">
+            Los QR apuntan a {dominio}, es decir, a este ordenador: en el móvil de un cliente no
+            funcionarán. Antes de grabar o imprimir tarjetas de verdad, pon la dirección real de la
+            web en NEXT_PUBLIC_SITE_URL.
           </Aviso>
         )}
         {imprimibles.length < lote.codigos.length && (
@@ -68,7 +91,8 @@ export default async function TarjetasLote({ params, searchParams }: Props) {
         )}
         <p className="text-xs text-gris">
           Consejo: en la ventana de impresión, elige «Tamaño real» (100 %) y activa «Gráficos de
-          fondo» si tu navegador lo pide. Salen 4 tarjetas por hoja.
+          fondo» si tu navegador lo pide. Salen 4 tarjetas por hoja. Para el láser, el .zip trae un
+          SVG por tarjeta (negro = grabar, rojo = cortar) y un archivo LEEME con los pasos.
         </p>
       </div>
 

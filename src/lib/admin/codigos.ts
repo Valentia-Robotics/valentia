@@ -100,7 +100,7 @@ export function obtenerLote(id: string) {
   return db.loteCodigos.findUnique({
     where: { id },
     include: {
-      kit: { select: { id: true, nombre: true } },
+      kit: { select: { id: true, nombre: true, slug: true } },
       codigos: {
         orderBy: { codigo: "asc" },
         select: { id: true, codigo: true, usadoEn: true, desactivadoEn: true },
