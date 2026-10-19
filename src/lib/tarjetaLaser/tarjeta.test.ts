@@ -1,5 +1,7 @@
 import { inflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
+import ClipperLib from "clipper-lib";
+import { poligonosDe } from "./fusion";
 import { tarjetaLaserSvg } from "./tarjeta";
 import { crearZip } from "./zip";
 
@@ -10,25 +12,47 @@ const datos = (codigo: string, nombreKit = "Coche seguidor de líneas") => ({
   dominio: "valentia.test",
 });
 
+const KITS = ["coche-seguidor-de-lineas", "brazo-robotico", "estacion-meteorologica", "otro"];
+const W = 85.6;
+const H = 54;
+
+/** Área que se grabaría con una regla de relleno dada (en mm²) */
+function area(d: string, regla: ClipperLib.PolyFillType) {
+  const caminos = poligonosDe(d).map((p) => p.map(([X, Y]) => ({ X: X * 1000, Y: Y * 1000 })));
+  const c = new ClipperLib.Clipper();
+  c.AddPaths(caminos, ClipperLib.PolyType.ptSubject, true);
+  const salida: ClipperLib.IntPoint[][] = [];
+  c.Execute(ClipperLib.ClipType.ctUnion, salida, regla, regla);
+  return salida.reduce((s, p) => s + ClipperLib.Clipper.Area(p), 0) / 1e6;
+}
+
 describe("tarjeta para láser", () => {
-  it("cada cara va en su propio SVG en mm reales, solo con formas (sin texto ni imágenes)", () => {
-    const delantera = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"), "delantera");
-    const trasera = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"), "trasera");
-    for (const svg of [delantera, trasera]) {
-      expect(svg).toContain('width="91.6mm"');
-      expect(svg).not.toMatch(/<text|<image|NaN|undefined/);
-    }
-    expect(delantera).toContain('id="delantera-grabar"');
-    expect(delantera).not.toContain('id="trasera');
-    expect(trasera).toContain('id="trasera-cortar"');
-    expect(trasera).not.toContain('id="delantera');
-  });
+  for (const slugKit of KITS)
+    for (const cara of ["delantera", "trasera"] as const)
+      it(`${slugKit} · ${cara}: solo grabado, tamaño de la tarjeta, centrado y sin solapes`, () => {
+        const svg = tarjetaLaserSvg({ ...datos("VAL-AAAA-BBBB"), slugKit }, cara);
+        expect(svg).toContain(`width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}"`);
+        expect(svg).not.toMatch(/<text|<image|NaN|undefined|stroke="#|FF0000/);
+        expect(svg.match(/<path/g)).toHaveLength(1);
+        const d = svg.match(/ d="([^"]*)"/)![1];
+        // Todo dentro de la tarjeta y con el mismo margen en los cuatro lados (escuadras a 2 mm)
+        const pts = poligonosDe(d).flat();
+        const xs = pts.map((p) => p[0]);
+        const ys = pts.map((p) => p[1]);
+        expect(Math.min(...xs)).toBeCloseTo(1.85, 2);
+        expect(Math.max(...xs)).toBeCloseTo(W - 1.85, 2);
+        expect(Math.min(...ys)).toBeCloseTo(1.85, 2);
+        expect(Math.max(...ys)).toBeCloseTo(H - 1.85, 2);
+        // Sin solapes: da igual que el láser use "nonzero" o "evenodd"
+        const nz = area(d, ClipperLib.PolyFillType.pftNonZero);
+        const eo = area(d, ClipperLib.PolyFillType.pftEvenOdd);
+        expect(Math.abs(nz - eo)).toBeLessThan(0.01);
+      });
 
   it("cada código tiene su propio QR", () => {
     const a = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"), "delantera");
     const b = tarjetaLaserSvg(datos("VAL-CCCC-DDDD"), "delantera");
-    const qr = (svg: string) => svg.split('id="delantera-grabar"')[1].split("<path")[1];
-    expect(qr(a)).not.toBe(qr(b));
+    expect(a).not.toBe(b);
   });
 
   it("los nombres de kit largos no rompen la tarjeta", () => {

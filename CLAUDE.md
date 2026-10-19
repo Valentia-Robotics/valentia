@@ -105,8 +105,8 @@ Notas técnicas de la fase de lanzamiento:
   (`valentia_e2e`), que `scripts/e2e-preparar.mjs` borra y recrea;
   puerto 3100, Chrome del sistema). Tras muchas pruebas de login con `prueba@valentia.test` en dev salta el límite
   de 5 códigos/hora: borrar sus filas de `EnvioCodigo` (y `LimiteIntento` si hace falta).
-- Tarjetas para láser: `/admin/codigos/lotes/[id]/laser` (route handler) da un .zip con dos SVG por código (`_delantero` y `_trasero`)
-  (`src/lib/tarjetaLaser/`: negro = grabar, rojo = cortar, cartulina negra; QR con los módulos claros grabados).
+- Tarjetas para láser: `/admin/codigos/lotes/[id]/laser` (route handler) da un .zip con dos SVG por código (`_delantero` y `_trasero`), solo grabado (tarjeta ya cortada, sin línea roja), del tamaño exacto de la tarjeta, con escuadras en las esquinas para centrar; todo fundido sin solapes con clipper-lib (`fusion.ts`)
+  (`src/lib/tarjetaLaser/`: negro = grabar, cartulina negra; QR con los módulos claros grabados).
   Texto como formas desde `glifos.json` (regenerar con `scripts/generar-glifos-tarjeta.mjs`); ZIP propio con zlib.
   Si el QR sale en versión 7+ (dominio largo), se omite la "V" central para no tapar el patrón de alineación.
   Trasera: pasos + dibujo del kit según su slug (`dibujosKit.ts`; aprobados por Jesse el coche, el brazo y la
