@@ -237,6 +237,7 @@ Tarda un par de minutos (compila la web).
 | `npm run format`                | Ordena y da formato a todo el código                                       |
 | `npm run marca`                 | Regenera el favicon, los iconos y las versiones PNG del logo               |
 | `npm run admin`                 | Da o quita el rol de administrador                                         |
+| `npm run admin:web`             | Lo mismo, en la web publicada (ver `PUBLICAR.md` §7)                       |
 | `npm run db:seed`               | Carga `data/*.json`, solo si la base de datos está vacía                   |
 | `npm run db:reset`              | **Lo borra todo** y crea la base de datos de nuevo con los datos iniciales |
 | `npm run db:migrate`            | Aplica cambios de `prisma/schema.prisma` a la base de datos                |
@@ -291,11 +292,19 @@ catálogo (`Componente`, `Kit`, `Curso`, `Leccion`, `Ejercicio`), compras (`Pedi
 El código está listo: **basta con cambiar la configuración**.
 
 1. Crea una base de datos PostgreSQL (por ejemplo en Neon, Supabase, Railway o tu hosting).
-2. Pon su dirección en `DATABASE_URL` del servidor: `postgresql://usuario:contraseña@host:5432/valentia`.
-3. Ejecuta `npx prisma migrate deploy`: con una URL de PostgreSQL, Prisma usa automáticamente
-   `prisma/postgresql/schema.prisma` y sus migraciones (la inicial ya está creada).
-4. `npm run build` y `npm start` (o el despliegue de tu hosting). El adaptador de PostgreSQL se elige
-   solo (`src/lib/adaptadorBD.ts`). No ejecutes `npm run db:seed` en producción.
+2. Pon su dirección en `DATABASE_URL` del servidor: `postgresql://usuario:contraseña@host:5432/valentia`
+   (con Neon, además, la conexión directa en `DATABASE_URL_DIRECTA`).
+3. `npm run build` aplica solo las migraciones pendientes (`scripts/migrar-al-publicar.mjs`): con una URL
+   de PostgreSQL, Prisma usa `prisma/postgresql/schema.prisma` y sus migraciones.
+4. `npm start` (o el despliegue de tu hosting). El adaptador de PostgreSQL se elige solo
+   (`src/lib/adaptadorBD.ts`). No ejecutes `npm run db:seed` en producción.
+
+Para publicar en **Vercel** sigue **`PUBLICAR.md`**, la guía paso a paso (Neon, R2, Resend, Stripe y el
+dominio). Probado con PostgreSQL 17: migraciones, compilación con la base de datos vacía y las pruebas con
+navegador.
+
+El cliente de Prisma generado depende de la base de datos: si lo generas con una URL de PostgreSQL (por
+ejemplo para trabajar con la base de datos publicada), vuelve a SQLite con `npm run db:generate`.
 
 Cuando cambies el esquema en el futuro: edita **solo** `prisma/schema.prisma`, crea la migración de
 SQLite con `npm run db:migrate` y, con una base de datos PostgreSQL de pruebas en `DATABASE_URL`,
@@ -314,7 +323,8 @@ deben ir a un almacén compatible con S3 (**Cloudflare R2**, Amazon S3, Backblaz
 
 ## Antes de publicar la web
 
-La lista completa, explicada paso a paso, está en **`INFORME.md`**. En resumen:
+La lista completa está en **`INFORME.md`** y cómo publicar en Vercel, paso a paso, en
+**`PUBLICAR.md`**. En resumen:
 
 1. **Datos de la empresa** en `src/config/tienda.ts` y **revisión legal** de las páginas `/legal/…`.
 2. **Base de datos PostgreSQL** (ver arriba) y copias de seguridad.
@@ -322,7 +332,8 @@ La lista completa, explicada paso a paso, está en **`INFORME.md`**. En resumen:
 4. **Stripe**: claves reales, `STRIPE_PERMITIR_CLAVES_REALES="si"` y webhook en el panel de Stripe.
 5. **Correo**: Resend con tu dominio verificado (sin esto nadie puede registrarse).
 6. **Fotos en la nube** (ver arriba).
-7. **Administrador**: regístrate en la web publicada y ejecuta allí `npm run admin -- tu@email.com`.
+7. **Administrador**: regístrate en la web publicada y, desde tu ordenador, `npm run admin:web -- tu@email.com`
+   con `DATABASE_URL_PUBLICADA` (ver `PUBLICAR.md` §7).
 8. **Datos de prueba**: no cargues el seed; crea los productos reales desde el panel.
 9. **Vídeos** de los cursos (ahora «PENDIENTE») desde `/admin/cursos`.
 

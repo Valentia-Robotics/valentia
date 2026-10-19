@@ -36,6 +36,7 @@ Un commit por bloque («Lanzamiento (n/10)»).
 - [x] 10. README, CLAUDE.md, INFORME.md, graphify, commit final y `npm run dev`.
 
 Notas técnicas de la fase de lanzamiento:
+
 - Pedidos (`src/lib/pedidos.ts`): stock RESERVADO al crear (PENDIENTE), `marcarPedidoPagado` idempotente con
   `updateMany` condicionado, `liberarPedidosCaducados` (60 min, se llama al preparar cada pedido),
   `PEDIDO_COBRADO` (filtro de pagados no cancelados). Enlace privado `tokenAccesoPedido` = HMAC(AUTH_SECRET).
@@ -161,7 +162,21 @@ Notas técnicas de la fase de lanzamiento:
 
 - Datos de empresa en `src/config/tienda.ts` y revisión legal de `/legal/*` (BORRADORES).
 - PostgreSQL, Stripe (claves reales + webhook), Resend, fotos en la nube, `AUTH_SECRET` y `NEXT_PUBLIC_SITE_URL` de producción.
-- Sin probar contra servicios reales: Stripe (solo pago de prueba), almacén S3/R2, PostgreSQL y Resend.
+- Sin probar contra servicios reales: Stripe (solo pago de prueba), almacén S3/R2, Neon y Resend. PostgreSQL sí
+  se probó (17, local con embedded-postgres en el scratchpad): migraciones, build con BD vacía y Playwright.
+
+### Publicación en Vercel (decisión del usuario: Vercel + Neon PostgreSQL; MongoDB descartado)
+
+- Guía para el usuario: `PUBLICAR.md` (Neon con rama `preview`, R2, Resend, Stripe, variables por entorno, dominio).
+- `npm run build` ejecuta `scripts/migrar-al-publicar.mjs`: `prisma migrate deploy` solo con PostgreSQL; en
+  `VERCEL_ENV=preview` solo si `BD_DE_PRUEBAS="si"`. `prisma.config.ts` usa `DATABASE_URL_DIRECTA` (sin pooler)
+  para la CLI si existe; la web usa siempre `DATABASE_URL`.
+- El cliente de Prisma generado depende del proveedor: tras generarlo con una URL de PostgreSQL hay que volver con
+  `npm run db:generate`. `npm run admin:web` (scripts/admin-web.mjs, lee `DATABASE_URL_PUBLICADA`) lo hace solo.
+- Límite de 4,5 MB por envío en Vercel: fotos de máx. 4 MB (`MAXIMO_MB`, `bodySizeLimit` 4.5mb) y `CampoImagen`
+  reduce en el navegador las de más de 3,5 MB (`src/lib/reducirFoto.ts`).
+- Con `VERCEL` definido: subir fotos exige `ALMACEN_PROVEEDOR="nube"` (mensaje claro) y el cartero de consola no
+  escribe en disco (los códigos de las vistas previas se leen en los Logs de Vercel).
 - Posibles mejoras (preguntar antes): facturas en PDF, envío a más zonas, analítica con consentimiento.
 
 ### Avisos abiertos
@@ -286,5 +301,6 @@ src/store/             carrito.ts, configurador.ts, consentimiento.ts
 e2e/                   pruebas Playwright (npm run test:e2e) · *.test.ts en src = Vitest (npm test)
 prisma/postgresql/     esquema y migraciones para PostgreSQL (generado: no editar el esquema a mano)
 SEGURIDAD.md, INFORME.md  revisión de seguridad e informe de la fase de lanzamiento
+PUBLICAR.md            guía para publicar en Vercel
 src/types/
 ```

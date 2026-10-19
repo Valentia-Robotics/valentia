@@ -3,11 +3,13 @@
 import Image from "next/image";
 import { ImageUp } from "lucide-react";
 import { useEffect, useId, useState } from "react";
+import { reducirFoto } from "@/lib/reducirFoto";
 import { cn } from "@/lib/utils";
 
 /**
  * Campo para subir una foto, con vista previa.
  * Si ya hay una foto ("actual"), se ve hasta que eliges otra.
+ * Las fotos muy pesadas se reducen en el navegador (límite de 4,5 MB por envío en Vercel).
  * La comprobación de verdad (formato y tamaño) se hace en el servidor.
  */
 export function CampoImagen({
@@ -23,6 +25,7 @@ export function CampoImagen({
 }) {
   const id = useId();
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null);
+  const [reduciendo, setReduciendo] = useState(false);
 
   // Libera la vista previa anterior al cambiar de foto (para no gastar memoria)
   useEffect(() => {
@@ -71,13 +74,32 @@ export function CampoImagen({
             className="sr-only"
             aria-invalid={error ? true : undefined}
             aria-describedby={`${id}-d`}
-            onChange={(e) => {
-              const archivo = e.target.files?.[0];
-              setVistaPrevia(archivo ? URL.createObjectURL(archivo) : null);
+            onChange={async (e) => {
+              const campo = e.currentTarget;
+              const original = campo.files?.[0];
+              if (!original) return setVistaPrevia(null);
+
+              // Las fotos muy pesadas se reducen aquí y sustituyen a la elegida en el formulario
+              setReduciendo(true);
+              const archivo = await reducirFoto(original);
+              setReduciendo(false);
+              if (archivo !== original) {
+                const lista = new DataTransfer();
+                lista.items.add(archivo);
+                campo.files = lista.files;
+              }
+              setVistaPrevia(URL.createObjectURL(archivo));
             }}
           />
-          <p id={`${id}-d`} className={cn("mt-1.5 text-xs", error ? "text-error" : "text-gris")}>
-            {error ?? "JPG, PNG o WebP, hasta 5 MB. Se reduce y se convierte a WebP sola."}
+          <p
+            id={`${id}-d`}
+            aria-live="polite"
+            className={cn("mt-1.5 text-xs", error ? "text-error" : "text-gris")}
+          >
+            {error ??
+              (reduciendo
+                ? "Reduciendo la foto…"
+                : "JPG, PNG o WebP. Si pesa mucho, se reduce sola antes de subirla.")}
           </p>
         </div>
       </div>

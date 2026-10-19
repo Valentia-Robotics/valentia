@@ -29,6 +29,10 @@ export const correoConsola: ProveedorCorreo = {
         `   Míralo con su diseño en http://localhost:3000/dev/correos\n`,
     );
 
+    // En Vercel (vistas previas sin Resend) no se puede escribir en disco: el correo queda solo
+    // en los registros (Logs) del proyecto, que únicamente ve el equipo
+    if (process.env.VERCEL) return;
+
     // El nombre empieza por la fecha: así ordenarlos es ordenar los nombres
     const enviadoEn = new Date().toISOString();
     const id = `${Date.now()}-${randomBytes(3).toString("hex")}`;

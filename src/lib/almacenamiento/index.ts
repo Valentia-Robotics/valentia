@@ -20,8 +20,11 @@ function almacen(): Almacen {
 
 /** Formatos de foto que se aceptan (SVG no: puede llevar código escondido) */
 const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp"];
-/** Tamaño máximo de cada foto (también hay un límite en next.config.ts) */
-export const MAXIMO_MB = 5;
+/**
+ * Tamaño máximo de cada foto (también hay un límite en next.config.ts). Vercel corta los envíos de
+ * más de 4,5 MB; las fotos más pesadas ya llegan reducidas desde el navegador (src/lib/reducirFoto.ts).
+ */
+export const MAXIMO_MB = 4;
 /** Lado más largo de la foto ya reducida, en píxeles */
 const LADO_MAXIMO = 1600;
 
@@ -39,6 +42,12 @@ export function hayArchivo(valor: FormDataEntryValue | null): valor is File {
  * "carpeta" agrupa las fotos: "componentes", "kits"…
  */
 export async function subirImagen(archivo: File, carpeta: string): Promise<string> {
+  // En Vercel no se puede escribir en el disco del servidor: las fotos tienen que ir a la nube
+  if (process.env.VERCEL && process.env.ALMACEN_PROVEEDOR !== "nube") {
+    throw new ErrorImagen(
+      'En Vercel las fotos se guardan en la nube: configura ALMACEN_PROVEEDOR="nube" (ver PUBLICAR.md).',
+    );
+  }
   if (!TIPOS_IMAGEN.includes(archivo.type)) {
     throw new ErrorImagen("La foto tiene que ser JPG, PNG o WebP.");
   }
