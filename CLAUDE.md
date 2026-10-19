@@ -11,7 +11,21 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
-### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; TERMINADA, PR abierto)
+### Copiar el catálogo a producción (19-10-2026, rama `valentiarobotics/copiar-catalogo-produccion`)
+
+- `npm run catalogo:copiar [-- --dry-run]` (`scripts/copiar-catalogo.ts`, driver `mongodb`): origen = `.env`
+  (host con `valentia-dev`), destino pedido con entrada oculta (host con `valentia-prod` + escribir el nombre).
+  Copia `Componente`, `Curso`, `Kit`, `KitComponente`, `Leccion`, `Ejercicio` con los mismos `_id` (crear,
+  actualizar, borrar); NUNCA escribe las 16 colecciones de clientes. Copia de seguridad en `copias/` y una transacción.
+- Lógica pura y tests en `src/lib/copiaCatalogo.ts`: lo que usan códigos/lotes (kitId), alumnos (cursoId),
+  progreso (leccionId/ejercicioId) o pedidos (slug que deja de existir) se CONSERVA y arrastra a su curso,
+  lecciones, ejercicios y piezas; si lo conservado choca en un único con lo nuevo → conflicto, no escribe.
+- Fotos: `/subidas/…` → `public/images/catalogo/…` (en git) y la ruta se reescribe en producción; el script
+  se para si alguna foto no existe o no está en git. Tras copiar: Manual Deploy (páginas estáticas).
+- Probado contra BD temporales en `valentia-dev` (vacía, otros ids, código de activación → conflicto, pedido →
+  conservar, foto subida, repetir = sin cambios); BD de prueba borradas.
+
+### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; TERMINADA, unida a main)
 
 Decisión del usuario: MongoDB Atlas (M0) en lugar de PostgreSQL, y Render en lugar de Vercel (el PR #2 de Vercel
 queda obsoleto). Prisma 7 no admite MongoDB → Prisma **6.19.3**.

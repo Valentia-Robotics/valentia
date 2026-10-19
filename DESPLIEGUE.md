@@ -175,6 +175,71 @@ Después:
 contraseña incorrecta. A la undécima debe salir «Demasiados intentos». Si no sale nunca, avisa: puede que
 Render pase la IP del visitante en una cabecera distinta de las que lee `src/lib/limite.ts`.
 
+## 6 bis. Copiar el catálogo de local a producción (`npm run catalogo:copiar`)
+
+Si preparas el catálogo en local (en `valentia-dev`, desde tu `/admin`), este script deja **exactamente
+el mismo** en producción: crea, actualiza y borra lo que haga falta, con los **mismos ids**.
+
+**Qué copia** (6 colecciones): `Componente`, `Kit`, `KitComponente` (piezas de cada kit), `Curso`,
+`Leccion` y `Ejercicio`. Las categorías, las reglas de compatibilidad y los ajustes de la tienda no están
+en la base de datos: están en el código y llegan con cada despliegue.
+
+**Qué NO toca nunca**: usuarios, direcciones, dispositivos, códigos de verificación, límites, pedidos,
+pagos de Stripe, códigos de activación, lotes y el progreso de los cursos.
+
+**Protección de los datos de clientes**: si algo que sobra en producción lo usa un pedido, un código de
+activación, un lote, un alumno o su progreso, **no se borra** (sale con «!» y un aviso). Si eso chocara
+con el catálogo nuevo (mismo nombre con otro id), el script se para sin escribir nada y te explica qué
+revisar. Ten en cuenta que el catálogo cargado con `npm run db:catalogo` tiene **otros ids** que el de
+local: la primera vez, el script borra esos documentos y crea los de local (es normal ver «borrar» y
+«crear» en todo); solo da problemas si ya hay códigos de activación o alumnos en producción.
+
+**Fotos**: las de `public/images/` ya van en git. Las que subiste desde el panel en local (`/subidas/…`)
+el script las copia a `public/images/catalogo/` y en producción escribe esa ruta. Esas fotos tienen que
+estar **en git y publicadas antes** de copiar: si no, el script se para y te dice cuáles faltan.
+(Las fotos que subas desde el panel de producción van al Disk de Render, no a git.)
+
+### Pasos
+
+1. **Tu IP en `valentia-prod`**: Atlas → proyecto `valentia-prod` → **Network Access → Add IP Address →
+   Add Current IP Address**, marca **«This entry is temporary»** (6 horas) → _Confirm_. Espera a que
+   salga **Active**.
+2. En tu ordenador, en la carpeta del proyecto (con tu `.env` apuntando a `valentia-dev`):
+
+   ```powershell
+   npm run catalogo:copiar -- --dry-run
+   ```
+
+   Te pide la **dirección de `valentia-prod`** (Atlas → `valentia-prod` → _Connect → Drivers_, con la
+   contraseña y `/valentia` antes del `?`; ver §1). **Pégala con clic derecho o Ctrl+V: no se verá nada
+   mientras la pegas** (es a propósito) y pulsa Intro. Después escribe `valentia-prod` para confirmar.
+   La dirección solo se usa en memoria: no se guarda en ningún archivo.
+
+3. Lee la **simulación**: una tabla con lo que se va a crear, actualizar, borrar y conservar en cada
+   colección, y la lista detallada. Con `--dry-run` no se escribe nada.
+4. Si fotos nuevas: el script las ha copiado a `public/images/catalogo/`. Haz commit, pull request, únelo a
+   `main`, espera a que Render lo publique y vuelve al paso 2.
+5. Para aplicar los cambios, ejecútalo **sin** `--dry-run`:
+
+   ```powershell
+   npm run catalogo:copiar
+   ```
+
+   Vuelve a enseñar la simulación y pregunta; escribe `si` para continuar. Antes de escribir guarda una
+   **copia de seguridad** del catálogo de producción en `copias/catalogo-valentia-prod_<fecha>.json`
+   (fuera de git) y luego escribe todo en **una sola transacción**: si algo falla, producción se queda
+   como estaba. Al final enseña los totales de local y producción, comprueba que son iguales y muestra
+   que los usuarios, pedidos y códigos no han cambiado.
+
+6. **Vuelve a desplegar**: la portada, `/kits` y las fichas se generan al compilar, así que hasta el
+   siguiente despliegue la web enseña el catálogo anterior. En Render: **Manual Deploy → Deploy latest
+   commit**.
+7. **Quita tu IP** de Network Access de `valentia-prod` (icono de papelera junto a ella), aunque sea
+   temporal.
+
+Si quieres deshacerlo, la copia de `copias/` tiene el catálogo de producción tal como estaba (formato EJSON,
+como las de `npm run db:copia`).
+
 ## 7. Copias de seguridad
 
 El plan **M0 no hace copias automáticas**. Desde tu ordenador, con tu IP añadida temporalmente (§4):
