@@ -1,0 +1,890 @@
+[
+  {
+    "_id": {
+      "$oid": "6ad5f9b106cf870884abede7"
+    },
+    "slug": "arduino-uno-r3",
+    "nombre": "Placa Arduino Uno R3",
+    "categoria": "PLACAS",
+    "tipo": "placa",
+    "resumen": "El cerebro clásico para empezar en robótica.",
+    "descripcion": "La placa más popular del mundo para aprender. Se programa desde el ordenador con un cable USB y tiene pines de sobra para motores, sensores y luces. Funciona a 5 V, así que es compatible con casi todos los módulos de iniciación.",
+    "precioCentimos": {
+      "$numberLong": "2490"
+    },
+    "stock": {
+      "$numberLong": "40"
+    },
+    "imagen": "/images/componentes/arduino-uno-r3.svg",
+    "voltaje": {
+      "$numberDouble": "5.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "5.0"
+    },
+    "consumoMa": {
+      "$numberLong": "50"
+    },
+    "conector": "USB-B y conector de alimentación de 5,5 mm",
+    "pines": {
+      "$numberLong": "20"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Microcontrolador",
+        "valor": "ATmega328P a 16 MHz"
+      },
+      {
+        "nombre": "Pines digitales",
+        "valor": "14 (6 con PWM)"
+      },
+      {
+        "nombre": "Entradas analógicas",
+        "valor": "6"
+      },
+      {
+        "nombre": "Alimentación externa",
+        "valor": "7 – 12 V"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b206cf870884abede8"
+    },
+    "slug": "esp32-devkit",
+    "nombre": "Placa ESP32 DevKit con wifi",
+    "categoria": "PLACAS",
+    "tipo": "placa",
+    "resumen": "Potente, con wifi y Bluetooth integrados.",
+    "descripcion": "Una placa muy rápida con wifi y Bluetooth. Ideal para proyectos conectados, como enviar al móvil los datos de una estación meteorológica. Ojo: sus pines trabajan a 3,3 V.",
+    "precioCentimos": {
+      "$numberLong": "1290"
+    },
+    "stock": {
+      "$numberLong": "35"
+    },
+    "imagen": "/images/componentes/esp32-devkit.svg",
+    "voltaje": {
+      "$numberDouble": "5.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "3.3"
+    },
+    "consumoMa": {
+      "$numberLong": "240"
+    },
+    "conector": "USB-C",
+    "pines": {
+      "$numberLong": "25"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Procesador",
+        "valor": "Doble núcleo a 240 MHz"
+      },
+      {
+        "nombre": "Conectividad",
+        "valor": "Wifi 2,4 GHz y Bluetooth 4.2"
+      },
+      {
+        "nombre": "Pines utilizables",
+        "valor": "25 GPIO"
+      },
+      {
+        "nombre": "Lógica",
+        "valor": "3,3 V (no tolera 5 V en los pines)"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b206cf870884abede9"
+    },
+    "slug": "motor-dc-reductora",
+    "nombre": "Motor DC con reductora",
+    "categoria": "MOTORES",
+    "tipo": "motor-dc",
+    "resumen": "El motor amarillo de las ruedas de tu robot.",
+    "descripcion": "Motor de corriente continua con caja reductora: gira más despacio pero con más fuerza, perfecto para mover las ruedas de un coche robot. Necesita un driver de motores para conectarse a la placa.",
+    "precioCentimos": {
+      "$numberLong": "350"
+    },
+    "stock": {
+      "$numberLong": "120"
+    },
+    "imagen": "/images/componentes/motor-dc-reductora.svg",
+    "voltaje": {
+      "$numberDouble": "6.0"
+    },
+    "voltajeLogico": null,
+    "consumoMa": {
+      "$numberLong": "200"
+    },
+    "conector": "2 cables soldados",
+    "pines": {
+      "$numberLong": "0"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Tensión",
+        "valor": "3 – 6 V"
+      },
+      {
+        "nombre": "Velocidad",
+        "valor": "200 rpm a 6 V"
+      },
+      {
+        "nombre": "Reducción",
+        "valor": "1:48"
+      },
+      {
+        "nombre": "Eje",
+        "valor": "Doble eje en D"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b206cf870884abedea"
+    },
+    "slug": "servo-sg90",
+    "nombre": "Microservo SG90",
+    "categoria": "MOTORES",
+    "tipo": "servo",
+    "resumen": "Pequeño motor que gira a la posición exacta que le pidas.",
+    "descripcion": "Un servo gira a un ángulo concreto (de 0 a 180 grados) y se queda ahí. Es ligero y fácil de usar: se conecta con un solo pin de señal. Perfecto para pinzas y articulaciones pequeñas.",
+    "precioCentimos": {
+      "$numberLong": "290"
+    },
+    "stock": {
+      "$numberLong": "150"
+    },
+    "imagen": "/images/componentes/servo-sg90.svg",
+    "voltaje": {
+      "$numberDouble": "5.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "5.0"
+    },
+    "consumoMa": {
+      "$numberLong": "250"
+    },
+    "conector": "Conector de 3 pines (señal, +, −)",
+    "pines": {
+      "$numberLong": "1"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Giro",
+        "valor": "0 – 180°"
+      },
+      {
+        "nombre": "Fuerza",
+        "valor": "1,8 kg·cm"
+      },
+      {
+        "nombre": "Engranajes",
+        "valor": "Plástico"
+      },
+      {
+        "nombre": "Peso",
+        "valor": "9 g"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b206cf870884abedeb"
+    },
+    "slug": "servo-mg996r",
+    "nombre": "Servo MG996R de alto par",
+    "categoria": "MOTORES",
+    "tipo": "servo",
+    "resumen": "Servo grande y fuerte, con engranajes metálicos.",
+    "descripcion": "Cuando un SG90 se queda corto, el MG996R tiene mucha más fuerza. Ideal para la base o el hombro de un brazo robótico. Consume bastante corriente, así que necesita una buena alimentación.",
+    "precioCentimos": {
+      "$numberLong": "890"
+    },
+    "stock": {
+      "$numberLong": "60"
+    },
+    "imagen": "/images/componentes/servo-mg996r.svg",
+    "voltaje": {
+      "$numberDouble": "6.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "5.0"
+    },
+    "consumoMa": {
+      "$numberLong": "900"
+    },
+    "conector": "Conector de 3 pines (señal, +, −)",
+    "pines": {
+      "$numberLong": "1"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Giro",
+        "valor": "0 – 180°"
+      },
+      {
+        "nombre": "Fuerza",
+        "valor": "11 kg·cm a 6 V"
+      },
+      {
+        "nombre": "Engranajes",
+        "valor": "Metálicos"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "4,8 – 7,2 V"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b206cf870884abedec"
+    },
+    "slug": "driver-motores-l298n",
+    "nombre": "Driver de motores L298N",
+    "categoria": "MOTORES",
+    "tipo": "driver-motores",
+    "resumen": "Controla dos motores DC: velocidad y sentido.",
+    "descripcion": "La placa no puede dar la fuerza que necesitan los motores. El driver hace de intermediario: recibe las órdenes de la placa y entrega la energía de las pilas a dos motores, hacia delante o hacia atrás.",
+    "precioCentimos": {
+      "$numberLong": "590"
+    },
+    "stock": {
+      "$numberLong": "70"
+    },
+    "imagen": "/images/componentes/driver-motores-l298n.svg",
+    "voltaje": {
+      "$numberDouble": "12.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "5.0"
+    },
+    "consumoMa": {
+      "$numberLong": "40"
+    },
+    "conector": "Bornes de tornillo y pines macho",
+    "pines": {
+      "$numberLong": "6"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Motores",
+        "valor": "2 motores DC o 1 paso a paso"
+      },
+      {
+        "nombre": "Tensión de motores",
+        "valor": "5 – 35 V"
+      },
+      {
+        "nombre": "Corriente máxima",
+        "valor": "2 A por canal"
+      },
+      {
+        "nombre": "Salida de 5 V",
+        "valor": "Sí, para alimentar la placa"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b306cf870884abeded"
+    },
+    "slug": "sensor-ultrasonidos-hc-sr04",
+    "nombre": "Sensor de ultrasonidos HC-SR04",
+    "categoria": "SENSORES",
+    "tipo": "sensor-distancia",
+    "resumen": "Los «ojos» de tu robot: mide distancias.",
+    "descripcion": "Emite un sonido que no podemos oír y mide cuánto tarda en volver, igual que un murciélago. Así sabe a qué distancia está un obstáculo, de 2 cm a 4 metros.",
+    "precioCentimos": {
+      "$numberLong": "290"
+    },
+    "stock": {
+      "$numberLong": "90"
+    },
+    "imagen": "/images/componentes/sensor-ultrasonidos-hc-sr04.svg",
+    "voltaje": {
+      "$numberDouble": "5.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "5.0"
+    },
+    "consumoMa": {
+      "$numberLong": "15"
+    },
+    "conector": "4 pines macho (VCC, Trig, Echo, GND)",
+    "pines": {
+      "$numberLong": "2"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Alcance",
+        "valor": "2 cm – 4 m"
+      },
+      {
+        "nombre": "Precisión",
+        "valor": "± 3 mm"
+      },
+      {
+        "nombre": "Ángulo",
+        "valor": "15°"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "5 V"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b306cf870884abedee"
+    },
+    "slug": "sensor-linea-tcrt5000",
+    "nombre": "Sensor de línea infrarrojo TCRT5000",
+    "categoria": "SENSORES",
+    "tipo": "sensor-linea",
+    "resumen": "Distingue el negro del blanco para seguir líneas.",
+    "descripcion": "Lanza luz infrarroja hacia el suelo y mide cuánta rebota: una superficie blanca refleja mucho y una línea negra casi nada. Con dos de estos sensores tu coche puede seguir un circuito.",
+    "precioCentimos": {
+      "$numberLong": "190"
+    },
+    "stock": {
+      "$numberLong": "140"
+    },
+    "imagen": "/images/componentes/sensor-linea-tcrt5000.svg",
+    "voltaje": {
+      "$numberDouble": "5.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "5.0"
+    },
+    "consumoMa": {
+      "$numberLong": "20"
+    },
+    "conector": "3 pines macho (VCC, GND, D0)",
+    "pines": {
+      "$numberLong": "1"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Distancia de lectura",
+        "valor": "1 – 25 mm"
+      },
+      {
+        "nombre": "Salida",
+        "valor": "Digital, con ajuste de sensibilidad"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "3,3 – 5 V"
+      },
+      {
+        "nombre": "Indicador",
+        "valor": "LED de detección"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b306cf870884abedef"
+    },
+    "slug": "sensor-dht22",
+    "nombre": "Sensor de temperatura y humedad DHT22",
+    "categoria": "SENSORES",
+    "tipo": "sensor-ambiente",
+    "resumen": "Mide la temperatura y la humedad del aire.",
+    "descripcion": "Un sensor preciso para saber qué tiempo hace: temperatura de −40 a 80 °C y humedad del 0 al 100 %. Se conecta con un único pin de datos.",
+    "precioCentimos": {
+      "$numberLong": "650"
+    },
+    "stock": {
+      "$numberLong": "55"
+    },
+    "imagen": "/images/componentes/sensor-dht22.svg",
+    "voltaje": {
+      "$numberDouble": "3.3"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "3.3"
+    },
+    "consumoMa": {
+      "$numberLong": "2"
+    },
+    "conector": "3 pines (VCC, datos, GND)",
+    "pines": {
+      "$numberLong": "1"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Temperatura",
+        "valor": "−40 – 80 °C (± 0,5 °C)"
+      },
+      {
+        "nombre": "Humedad",
+        "valor": "0 – 100 % (± 2 %)"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "3,3 – 6 V"
+      },
+      {
+        "nombre": "Lecturas",
+        "valor": "1 cada 2 segundos"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b306cf870884abedf0"
+    },
+    "slug": "sensor-presion-bmp280",
+    "nombre": "Sensor de presión BMP280",
+    "categoria": "SENSORES",
+    "tipo": "sensor-ambiente",
+    "resumen": "Presión atmosférica y altitud.",
+    "descripcion": "Mide la presión del aire, lo que permite saber si va a cambiar el tiempo o a qué altitud estás. Usa el bus I2C, así que solo necesita dos cables de datos.",
+    "precioCentimos": {
+      "$numberLong": "450"
+    },
+    "stock": {
+      "$numberLong": "50"
+    },
+    "imagen": "/images/componentes/sensor-presion-bmp280.svg",
+    "voltaje": {
+      "$numberDouble": "3.3"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "3.3"
+    },
+    "consumoMa": {
+      "$numberLong": "1"
+    },
+    "conector": "I2C (SDA, SCL)",
+    "pines": {
+      "$numberLong": "2"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Presión",
+        "valor": "300 – 1100 hPa"
+      },
+      {
+        "nombre": "Precisión de altitud",
+        "valor": "± 1 m"
+      },
+      {
+        "nombre": "Comunicación",
+        "valor": "I2C o SPI"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "3,3 V"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b406cf870884abedf1"
+    },
+    "slug": "sensor-luz-ldr",
+    "nombre": "Sensor de luz LDR",
+    "categoria": "SENSORES",
+    "tipo": "sensor-luz",
+    "resumen": "Detecta si es de día o de noche.",
+    "descripcion": "Una fotorresistencia montada en un módulo: cuanta más luz recibe, menor es su resistencia. Con ella tu robot puede encender luces al anochecer o medir las horas de sol.",
+    "precioCentimos": {
+      "$numberLong": "150"
+    },
+    "stock": {
+      "$numberLong": "110"
+    },
+    "imagen": "/images/componentes/sensor-luz-ldr.svg",
+    "voltaje": {
+      "$numberDouble": "3.3"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "3.3"
+    },
+    "consumoMa": {
+      "$numberLong": "1"
+    },
+    "conector": "3 pines (VCC, GND, A0)",
+    "pines": {
+      "$numberLong": "1"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Salida",
+        "valor": "Analógica y digital"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "3,3 – 5 V"
+      },
+      {
+        "nombre": "Respuesta",
+        "valor": "20 – 30 ms"
+      },
+      {
+        "nombre": "Ajuste",
+        "valor": "Potenciómetro de sensibilidad"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b406cf870884abedf2"
+    },
+    "slug": "portapilas-4xaa",
+    "nombre": "Portapilas 4 × AA con interruptor",
+    "categoria": "ALIMENTACION",
+    "tipo": "bateria",
+    "resumen": "Energía para tu robot con pilas normales.",
+    "descripcion": "Cuatro pilas AA dan 6 V, suficiente para motores pequeños y servos. Incluye interruptor de encendido para no gastar pilas cuando no juegas. Pilas no incluidas.",
+    "precioCentimos": {
+      "$numberLong": "390"
+    },
+    "stock": {
+      "$numberLong": "100"
+    },
+    "imagen": "/images/componentes/portapilas-4xaa.svg",
+    "voltaje": {
+      "$numberDouble": "6.0"
+    },
+    "voltajeLogico": null,
+    "consumoMa": {
+      "$numberLong": "1500"
+    },
+    "conector": "Cables rojo y negro",
+    "pines": {
+      "$numberLong": "0"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Tensión",
+        "valor": "6 V (4 pilas de 1,5 V)"
+      },
+      {
+        "nombre": "Corriente máxima",
+        "valor": "1,5 A aprox."
+      },
+      {
+        "nombre": "Interruptor",
+        "valor": "Sí"
+      },
+      {
+        "nombre": "Pilas",
+        "valor": "No incluidas"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b406cf870884abedf3"
+    },
+    "slug": "bateria-18650-2s",
+    "nombre": "Portabaterías 2 × 18650 (7,4 V)",
+    "categoria": "ALIMENTACION",
+    "tipo": "bateria",
+    "resumen": "Más potencia y recargable, para robots exigentes.",
+    "descripcion": "Dos baterías recargables de litio 18650 dan 7,4 V y mucha corriente: ideal para servos grandes o motores que trabajan mucho rato. Baterías no incluidas; úsalas siempre con supervisión de un adulto.",
+    "precioCentimos": {
+      "$numberLong": "690"
+    },
+    "stock": {
+      "$numberLong": "45"
+    },
+    "imagen": "/images/componentes/bateria-18650-2s.svg",
+    "voltaje": {
+      "$numberDouble": "7.4"
+    },
+    "voltajeLogico": null,
+    "consumoMa": {
+      "$numberLong": "3000"
+    },
+    "conector": "Conector de 5,5 mm y cables",
+    "pines": {
+      "$numberLong": "0"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Tensión",
+        "valor": "7,4 V (2 celdas de 3,7 V)"
+      },
+      {
+        "nombre": "Corriente máxima",
+        "valor": "3 A"
+      },
+      {
+        "nombre": "Recargable",
+        "valor": "Sí (cargador aparte)"
+      },
+      {
+        "nombre": "Baterías",
+        "valor": "No incluidas"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b406cf870884abedf4"
+    },
+    "slug": "chasis-coche-2wd",
+    "nombre": "Chasis de coche 2WD con ruedas",
+    "categoria": "CHASIS",
+    "tipo": "chasis-coche",
+    "resumen": "La base de tu coche robot, con dos ruedas y rueda loca.",
+    "descripcion": "Plataforma de acrílico con agujeros para atornillar la placa, el driver y los sensores. Incluye dos ruedas de goma, una rueda loca y toda la tornillería.",
+    "precioCentimos": {
+      "$numberLong": "990"
+    },
+    "stock": {
+      "$numberLong": "60"
+    },
+    "imagen": "/images/componentes/chasis-coche-2wd.svg",
+    "voltaje": {
+      "$numberDouble": "0.0"
+    },
+    "voltajeLogico": null,
+    "consumoMa": {
+      "$numberLong": "0"
+    },
+    "conector": "Tornillería M3",
+    "pines": {
+      "$numberLong": "0"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Material",
+        "valor": "Acrílico de 3 mm"
+      },
+      {
+        "nombre": "Medidas",
+        "valor": "21 × 15 cm"
+      },
+      {
+        "nombre": "Ruedas",
+        "valor": "2 de 65 mm + rueda loca"
+      },
+      {
+        "nombre": "Motores compatibles",
+        "valor": "Motor DC con reductora"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b506cf870884abedf5"
+    },
+    "slug": "estructura-brazo-4dof",
+    "nombre": "Estructura de brazo robótico 4 ejes",
+    "categoria": "CHASIS",
+    "tipo": "chasis-brazo",
+    "resumen": "Base, articulaciones y pinza para cuatro servos.",
+    "descripcion": "Piezas de acrílico cortadas con láser para montar un brazo de cuatro articulaciones: base giratoria, hombro, codo y pinza. Pensado para microservos SG90.",
+    "precioCentimos": {
+      "$numberLong": "1490"
+    },
+    "stock": {
+      "$numberLong": "30"
+    },
+    "imagen": "/images/componentes/estructura-brazo-4dof.svg",
+    "voltaje": {
+      "$numberDouble": "0.0"
+    },
+    "voltajeLogico": null,
+    "consumoMa": {
+      "$numberLong": "0"
+    },
+    "conector": "Tornillería M2 y M3",
+    "pines": {
+      "$numberLong": "0"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Ejes",
+        "valor": "4 (base, hombro, codo y pinza)"
+      },
+      {
+        "nombre": "Material",
+        "valor": "Acrílico de 3 mm"
+      },
+      {
+        "nombre": "Alcance",
+        "valor": "18 cm"
+      },
+      {
+        "nombre": "Servos compatibles",
+        "valor": "SG90 / MG90S"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b506cf870884abedf6"
+    },
+    "slug": "protoboard-cables",
+    "nombre": "Protoboard de 400 puntos y 40 cables",
+    "categoria": "EXTRAS",
+    "tipo": "protoboard",
+    "resumen": "Conecta todo sin soldar.",
+    "descripcion": "Una placa de pruebas para pinchar componentes y unirlos con cables, sin soldador. Incluye 40 cables de colores macho-macho y macho-hembra.",
+    "precioCentimos": {
+      "$numberLong": "490"
+    },
+    "stock": {
+      "$numberLong": "200"
+    },
+    "imagen": "/images/componentes/protoboard-cables.svg",
+    "voltaje": {
+      "$numberDouble": "0.0"
+    },
+    "voltajeLogico": null,
+    "consumoMa": {
+      "$numberLong": "0"
+    },
+    "conector": "Pines de 2,54 mm",
+    "pines": {
+      "$numberLong": "0"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Puntos",
+        "valor": "400"
+      },
+      {
+        "nombre": "Cables",
+        "valor": "40 (20 cm)"
+      },
+      {
+        "nombre": "Base",
+        "valor": "Adhesiva"
+      },
+      {
+        "nombre": "Soldadura",
+        "valor": "No necesaria"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b506cf870884abedf7"
+    },
+    "slug": "pantalla-oled-096",
+    "nombre": "Pantalla OLED de 0,96 pulgadas",
+    "categoria": "EXTRAS",
+    "tipo": "pantalla",
+    "resumen": "Muestra textos y dibujos en una mini pantalla.",
+    "descripcion": "Pequeña pantalla de 128 × 64 píxeles con muy buen contraste. Perfecta para mostrar la temperatura, la distancia a un obstáculo o una cara simpática en tu robot.",
+    "precioCentimos": {
+      "$numberLong": "550"
+    },
+    "stock": {
+      "$numberLong": "65"
+    },
+    "imagen": "/images/componentes/pantalla-oled-096.svg",
+    "voltaje": {
+      "$numberDouble": "3.3"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "3.3"
+    },
+    "consumoMa": {
+      "$numberLong": "20"
+    },
+    "conector": "I2C (SDA, SCL)",
+    "pines": {
+      "$numberLong": "2"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Resolución",
+        "valor": "128 × 64 píxeles"
+      },
+      {
+        "nombre": "Color",
+        "valor": "Blanco sobre negro"
+      },
+      {
+        "nombre": "Comunicación",
+        "valor": "I2C"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "3,3 – 5 V"
+      }
+    ],
+    "visible": true
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b506cf870884abedf8"
+    },
+    "slug": "zumbador-activo",
+    "nombre": "Zumbador activo",
+    "categoria": "EXTRAS",
+    "tipo": "sonido",
+    "resumen": "Pitidos y alarmas para tu robot.",
+    "descripcion": "Un pequeño altavoz que pita cuando le das corriente. Úsalo para avisar de un obstáculo, celebrar que has llegado a la meta o hacer una alarma.",
+    "precioCentimos": {
+      "$numberLong": "120"
+    },
+    "stock": {
+      "$numberLong": "180"
+    },
+    "imagen": "/images/componentes/zumbador-activo.svg",
+    "voltaje": {
+      "$numberDouble": "5.0"
+    },
+    "voltajeLogico": {
+      "$numberDouble": "5.0"
+    },
+    "consumoMa": {
+      "$numberLong": "30"
+    },
+    "conector": "2 pines (+, −)",
+    "pines": {
+      "$numberLong": "1"
+    },
+    "especificaciones": [
+      {
+        "nombre": "Tipo",
+        "valor": "Activo (oscilador integrado)"
+      },
+      {
+        "nombre": "Frecuencia",
+        "valor": "2,3 kHz"
+      },
+      {
+        "nombre": "Volumen",
+        "valor": "85 dB a 10 cm"
+      },
+      {
+        "nombre": "Tensión",
+        "valor": "3,3 – 5 V"
+      }
+    ],
+    "visible": true
+  }
+]

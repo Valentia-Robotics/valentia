@@ -24,8 +24,14 @@ ni tocar `.env`. Pruebas con BD temporales en valentia-dev (borrarlas al termina
       BD vacía: nada se rompe; añadido `ui/EstadoVacio` en /kits y /componentes. Portada, /kits, /kits/[slug],
       /componentes y sitemap con `revalidate = 300` (el catálogo cargado tras el build aparece solo; probado).
       Next 16.4.2, postcss, lucide-react. npm audit: 8 altos sin arreglo seguro (eslint-config-next y CLI de Prisma).
-- [ ] 2. Catálogo: `catalogo:exportar` → `data/catalogo/*.json` (EJSON, ids), `seed:prod` idempotente (nunca borra),
-      `predeploy:prod` (db push sin pérdida + seed), `prod:admin`. Probado en `valentia_prueba_seed`.
+- [x] 2. Catálogo: `catalogo:exportar` → `data/catalogo/*.json` (EJSON canónico, ids y tipos exactos;
+      `promoteValues: false`), `seed:prod` idempotente (nunca borra), `predeploy:prod` (db push SIN
+      --accept-data-loss + seed), `prod:admin` (`scripts/consola.ts`: entrada oculta; por tubería en pruebas).
+      Lógica en `src/lib/catalogoProduccion.ts` (+11 tests): memoria `CatalogoAplicado` (huella por ficha) → no
+      pisa lo editado en el panel si el JSON no cambió, no recrea lo borrado en el panel, nunca toca `stock` de
+      lo que existe, reconoce por slug (Ejercicio: lección + orden) lo cargado con otros ids. Probado en BD
+      temporales (flujo Render: build vacío → predeploy ×2 → la web muestra el catálogo a los 5 min; otros ids,
+      panel, borrado, cambio en JSON, URL mala) y login real del admin creado. BD de prueba borradas.
 - [ ] 3. Documentación: DESPLIEGUE.md, README, INFORME.md, CLAUDE.md.
 - [ ] 4. Final: todo en verde, graphify, commit, push y PR.
 

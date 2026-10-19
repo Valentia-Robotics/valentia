@@ -11,3 +11,6 @@ src/generated
 prisma/migrations
 # Generado por scripts/generar-glifos-tarjeta.mjs
 src/lib/tarjetaLaser/glifos.json
+
+# Catálogo exportado (EJSON con su propio formato: npm run catalogo:exportar)
+data/catalogo

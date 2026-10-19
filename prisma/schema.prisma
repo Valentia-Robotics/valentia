@@ -484,3 +484,20 @@ model LimiteIntento {
 
   @@index([caducaEn])
 }
+
+// ============================================================
+//  CATÁLOGO DE PRODUCCIÓN (npm run seed:prod)
+// ============================================================
+
+/// Memoria de seed:prod: qué ficha de data/catalogo/ aplicó, en qué ficha de producción y con qué contenido
+/// (huella). Sirve para no pisar lo editado en el panel y no volver a crear lo borrado (ver src/lib/catalogoProduccion.ts).
+model CatalogoAplicado {
+  /// "Coleccion:idDelJSON", por ejemplo "Kit:6ad5f9ba06cf870884abee1c"
+  id         String   @id @map("_id")
+  coleccion  String
+  /// Id de la ficha en producción (casi siempre el mismo del JSON)
+  prodId     String   @db.ObjectId
+  /// sha256 del contenido del JSON la última vez que se aplicó
+  hash       String
+  aplicadoEn DateTime
+}

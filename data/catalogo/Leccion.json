@@ -1,0 +1,254 @@
+[
+  {
+    "_id": {
+      "$oid": "6ad5f9b506cf870884abedfa"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b506cf870884abedf9"
+    },
+    "slug": "conoce-tu-kit",
+    "orden": {
+      "$numberLong": "1"
+    },
+    "titulo": "Conoce tu kit y monta el chasis",
+    "descripcion": "Abrimos la caja, repasamos cada pieza y montamos el chasis con los motores y las ruedas.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "12"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abedfc"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b506cf870884abedf9"
+    },
+    "slug": "tu-primer-programa",
+    "orden": {
+      "$numberLong": "2"
+    },
+    "titulo": "Tu primer programa: enciende un LED",
+    "descripcion": "Instalamos el programa de Arduino, conectamos la placa y hacemos parpadear su luz. ¡Tu primera línea de código!",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "15"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abedff"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b506cf870884abedf9"
+    },
+    "slug": "mueve-los-motores",
+    "orden": {
+      "$numberLong": "3"
+    },
+    "titulo": "Mueve los motores con el driver",
+    "descripcion": "Conectamos el driver L298N y hacemos que el coche avance, retroceda y gire.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "18"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abee02"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b506cf870884abedf9"
+    },
+    "slug": "sigue-la-linea",
+    "orden": {
+      "$numberLong": "4"
+    },
+    "titulo": "Sigue la línea con los sensores infrarrojos",
+    "descripcion": "Leemos los sensores de línea y escribimos las reglas para que el coche corrija su rumbo solo.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "20"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abee04"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b506cf870884abedf9"
+    },
+    "slug": "esquiva-obstaculos",
+    "orden": {
+      "$numberLong": "5"
+    },
+    "titulo": "Esquiva obstáculos con ultrasonidos",
+    "descripcion": "Añadimos el sensor HC-SR04 para que el coche frene y busque otro camino cuando algo se cruce.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "18"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b706cf870884abee08"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b706cf870884abee07"
+    },
+    "slug": "monta-el-brazo",
+    "orden": {
+      "$numberLong": "1"
+    },
+    "titulo": "Monta el brazo paso a paso",
+    "descripcion": "Montamos la base, el hombro, el codo y la pinza, y colocamos los servos en su posición inicial.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "25"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b706cf870884abee0a"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b706cf870884abee07"
+    },
+    "slug": "como-funciona-un-servo",
+    "orden": {
+      "$numberLong": "2"
+    },
+    "titulo": "Cómo funciona un servo",
+    "descripcion": "Descubrimos qué hay dentro de un servo y lo movemos a distintos ángulos desde el código.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "14"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b806cf870884abee0c"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b706cf870884abee07"
+    },
+    "slug": "mueve-cada-articulacion",
+    "orden": {
+      "$numberLong": "3"
+    },
+    "titulo": "Mueve cada articulación",
+    "descripcion": "Controlamos los cuatro servos a la vez y aprendemos a moverlos con suavidad, sin golpes.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "18"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b806cf870884abee0e"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b706cf870884abee07"
+    },
+    "slug": "coge-y-suelta",
+    "orden": {
+      "$numberLong": "4"
+    },
+    "titulo": "Secuencias: coge y suelta",
+    "descripcion": "Encadenamos movimientos para que el brazo coja un objeto, lo traslade y lo deje en otro sitio.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "20"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee10"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b706cf870884abee07"
+    },
+    "slug": "graba-y-repite",
+    "orden": {
+      "$numberLong": "5"
+    },
+    "titulo": "Graba y repite movimientos",
+    "descripcion": "Guardamos posiciones en una lista y hacemos que el brazo repita la secuencia una y otra vez.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "16"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee13"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b906cf870884abee12"
+    },
+    "slug": "conoce-el-esp32",
+    "orden": {
+      "$numberLong": "1"
+    },
+    "titulo": "Conoce el ESP32",
+    "descripcion": "Preparamos el ordenador para programar el ESP32 y cargamos nuestro primer programa.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "15"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee15"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b906cf870884abee12"
+    },
+    "slug": "temperatura-y-humedad",
+    "orden": {
+      "$numberLong": "2"
+    },
+    "titulo": "Mide la temperatura y la humedad",
+    "descripcion": "Conectamos el DHT22 y leemos sus datos cada pocos segundos.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "16"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee18"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b906cf870884abee12"
+    },
+    "slug": "presion-y-altitud",
+    "orden": {
+      "$numberLong": "3"
+    },
+    "titulo": "Presión del aire y altitud",
+    "descripcion": "Usamos el BMP280 para medir la presión y calcular a qué altura estamos.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "14"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9ba06cf870884abee1a"
+    },
+    "cursoId": {
+      "$oid": "6ad5f9b906cf870884abee12"
+    },
+    "slug": "datos-en-pantalla",
+    "orden": {
+      "$numberLong": "4"
+    },
+    "titulo": "Muestra los datos en la pantalla OLED",
+    "descripcion": "Dibujamos en la pantalla la temperatura, la humedad, la presión y la luz, con un diseño claro.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "18"
+    }
+  }
+]

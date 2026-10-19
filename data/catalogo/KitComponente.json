@@ -1,0 +1,268 @@
+[
+  {
+    "_id": {
+      "$oid": "6ad5f9ba06cf870884abee1d"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b506cf870884abedf6"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9ba06cf870884abee1e"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b406cf870884abedf4"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9ba06cf870884abee1f"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b406cf870884abedf2"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9ba06cf870884abee20"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b306cf870884abeded"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bb06cf870884abee21"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b306cf870884abedee"
+    },
+    "cantidad": {
+      "$numberLong": "2"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bb06cf870884abee22"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b206cf870884abede9"
+    },
+    "cantidad": {
+      "$numberLong": "2"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bb06cf870884abee23"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b206cf870884abedec"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bb06cf870884abee24"
+    },
+    "kitId": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b106cf870884abede7"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bb06cf870884abee26"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bb06cf870884abee25"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b506cf870884abedf6"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bc06cf870884abee27"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bb06cf870884abee25"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b406cf870884abedf2"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bc06cf870884abee28"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bb06cf870884abee25"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b506cf870884abedf5"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bc06cf870884abee29"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bb06cf870884abee25"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b206cf870884abedea"
+    },
+    "cantidad": {
+      "$numberLong": "4"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bc06cf870884abee2a"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bb06cf870884abee25"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b106cf870884abede7"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bd06cf870884abee2c"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bc06cf870884abee2b"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b506cf870884abedf6"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bd06cf870884abee2d"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bc06cf870884abee2b"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b506cf870884abedf7"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bd06cf870884abee2e"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bc06cf870884abee2b"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b406cf870884abedf1"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bd06cf870884abee2f"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bc06cf870884abee2b"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b306cf870884abedf0"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9be06cf870884abee30"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bc06cf870884abee2b"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b306cf870884abedef"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9be06cf870884abee31"
+    },
+    "kitId": {
+      "$oid": "6ad5f9bc06cf870884abee2b"
+    },
+    "componenteId": {
+      "$oid": "6ad5f9b206cf870884abede8"
+    },
+    "cantidad": {
+      "$numberLong": "1"
+    }
+  }
+]
