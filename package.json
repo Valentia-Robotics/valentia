@@ -22,7 +22,8 @@
     "db:postgres": "node scripts/esquema-postgres.mjs",
     "fotos:nube": "tsx scripts/fotos-a-la-nube.ts",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "prepare": "node .husky/install.mjs"
   },
   "engines": {
     "node": ">=22"
@@ -59,6 +60,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.1",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "postcss": "^8.5.30",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",

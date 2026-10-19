@@ -1,0 +1,14 @@
+# Bloquea los commits hechos directamente en main (ver README «Cómo trabajamos»).
+# Durante un rebase no hay rama activa: symbolic-ref falla y se deja pasar.
+rama=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if [ "$rama" = "main" ]; then
+  echo ""
+  echo "✋ No se puede hacer commit directamente en main."
+  echo "   main es la rama estable: solo recibe cambios a través de pull requests."
+  echo ""
+  echo "   Crea una rama para tu tarea y haz el commit allí (tus cambios vienen contigo):"
+  echo "     git switch -c tu-usuario/descripcion-corta"
+  echo ""
+  exit 1
+fi

@@ -38,3 +38,6 @@ npm-debug.log*
 # Resultados de las pruebas con navegador (npm run test:e2e)
 /test-results/
 /playwright-report/
+
+# Salida de la herramienta graphify (mapa del código que se genera en cada ordenador)
+/graphify-out/
