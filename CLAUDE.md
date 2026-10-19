@@ -58,7 +58,9 @@ Pasos:
 - [x] 3. Seed: `prisma/catalogo.ts` (compartido), `npm run db:catalogo` (producción) y `db:seed` (desarrollo,
       bloqueado en producción); `npm run admin`; `db:copia` / `db:restaurar` (paquete `mongodb`, EJSON, carpeta
       `copias/` fuera de git); e2e en la base de datos `valentia_e2e`.
-- [ ] 4. Pruebas: lint, build, Vitest, Playwright y recorrido a mano contra el clúster de desarrollo.
+- [x] 4. Pruebas contra Atlas: lint, build, Vitest (54), Playwright (8) + revisión temporal (QR, código usado,
+      panel completo, búsquedas, lotes, pedidos, lecciones, recuperar contraseña, ids raros: 12 en verde) y
+      concurrencia (8 compras de 1 unidad → 1; 6 canjes del mismo código → 1).
 - [ ] 5. DESPLIEGUE.md (Render + Atlas), `.env.example`, README, INFORME.md, graphify y pull request.
 
 ### Fase de lanzamiento (17-10-2026, `551a1f4` … `Lanzamiento (10/10)`; decisiones en INFORME.md)
