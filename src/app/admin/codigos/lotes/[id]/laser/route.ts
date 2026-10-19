@@ -45,6 +45,7 @@ export async function GET(_peticion: Request, { params }: { params: Promise<{ id
       contenido: tarjetaLaserSvg({
         codigo: c.codigo,
         nombreKit: lote.kit.nombre,
+        slugKit: lote.kit.slug,
         url: urlActivacion(c.codigo),
         dominio,
       }),
