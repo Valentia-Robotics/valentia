@@ -9,3 +9,5 @@ public
 PROMPT.md
 src/generated
 prisma/migrations
+# Generado por scripts/generar-glifos-tarjeta.mjs
+src/lib/tarjetaLaser/glifos.json

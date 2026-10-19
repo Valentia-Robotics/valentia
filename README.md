@@ -186,7 +186,7 @@ npm run admin                            # dice quién es ADMIN ahora
 | **Componentes** | Crear, editar, ocultar y borrar. Foto, precio, stock, categoría y datos técnicos                                                                                                                                     |
 | **Kits**        | Piezas con buscador, foto, descripción, precio, curso incluido, destacado                                                                                                                                            |
 | **Cursos**      | Lecciones (ordenables), vídeo, tests y retos, y progreso de los alumnos                                                                                                                                              |
-| **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR, desactivarlos                                                                                                                                                     |
+| **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR o descargarlas para láser (.zip de SVG), desactivarlos                                                                                                             |
 | **Usuarios**    | Lista con buscador: email, registro, cursos activados y pedidos                                                                                                                                                      |
 
 Algunas reglas: un pedido solo pasa a «Pagado» con el pago confirmado (nunca desde el panel). Si
