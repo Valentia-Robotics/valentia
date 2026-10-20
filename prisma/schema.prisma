@@ -383,20 +383,22 @@ model EnvioCodigo {
 /// Un navegador en el que el usuario ha confirmado con un código que es él.
 /// Cada sesión va unida a uno: si se borra, esa sesión se cierra.
 model DispositivoConfianza {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  usuario      Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId    String    @db.ObjectId
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  usuario         Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId       String    @db.ObjectId
   /// SHA-256 del token guardado en la cookie del navegador (nunca el token tal cual)
-  tokenHash    String    @unique
+  tokenHash       String    @unique
   /// Nombre legible, por ejemplo "Chrome en Windows"
-  nombre       String
-  creadoEn     DateTime  @default(now())
-  ultimoUsoEn  DateTime  @default(now())
+  nombre          String
+  creadoEn        DateTime  @default(now())
+  ultimoUsoEn     DateTime  @default(now())
   /// 30 días para clientes, 7 para administradores
-  caducaEn     DateTime
+  caducaEn        DateTime
   /// "Pase" de un solo uso (hash) que convierte esta confianza en una sesión de Auth.js
-  paseHash     String?
-  paseCaducaEn DateTime?
+  paseHash        String?
+  paseCaducaEn    DateTime?
+  /// Último "Cerrar sesión" en este navegador: las sesiones abiertas antes ya no valen
+  sesionCerradaEn DateTime?
 
   @@index([usuarioId])
   @@index([paseHash])
@@ -489,8 +491,8 @@ model LimiteIntento {
 //  CATÁLOGO DE PRODUCCIÓN (npm run seed:prod)
 // ============================================================
 
-/// Memoria de seed:prod: qué ficha de data/catalogo/ aplicó, en qué ficha de producción y con qué contenido
-/// (huella). Sirve para no pisar lo editado en el panel y no volver a crear lo borrado (ver src/lib/catalogoProduccion.ts).
+/// Memoria de seed:prod: qué ficha de data/catalogo/ creó o encontró ya hecha, en qué ficha de producción y con qué contenido
+/// (huella). Sirve para no volver a crear lo borrado desde el panel (ver src/lib/catalogoProduccion.ts).
 model CatalogoAplicado {
   /// "Coleccion:idDelJSON", por ejemplo "Kit:6ad5f9ba06cf870884abee1c"
   id         String   @id @map("_id")

@@ -18,6 +18,12 @@ crea lo que no existe; nunca modifica lo existente (ni stock) ni añade piezas/l
 curso o lección que ya existía (`DUENA` en `src/lib/catalogoProduccion.ts`). Sigue sin borrar y sin recrear lo
 borrado en el panel (`CatalogoAplicado`; tipos de operación `crear` | `registrar`). DESPLIEGUE.md §6 bis.
 
+En el mismo PR, arreglo de «Cerrar sesión»: `signOut` de next-auth/react consulta `/api/auth/session` justo
+después (BroadcastChannel) con la cookie vieja y el servidor la volvía a crear (seguías dentro). Ahora el evento
+`signOut` de `src/auth.ts` apunta `DispositivoConfianza.sesionCerradaEn` y `comprobarSesion` rechaza los JWT con
+`abiertaEn` (se pone al iniciar sesión) anterior. El navegador sigue siendo de confianza: al volver a entrar no
+pide código. (El «código pedido otra vez» que contó el usuario no se reprodujo en local: pendiente de saber dónde.)
+
 ### Puesta a punto final (19-10-2026, rama `valentiarobotics/puesta-a-punto`; instrucciones en `PUESTA_A_PUNTO.md`)
 
 Rama desde `main` + PR #9 unido dentro (health, db:check, aviso de Turbopack). El PR #10 (`catalogo:copiar`,
