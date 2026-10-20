@@ -7,6 +7,7 @@ import { EstadoPedido } from "@/generated/prisma/enums";
 import { fechaHora } from "@/lib/admin/formato";
 import { db } from "@/lib/db";
 import { textoContiene } from "@/lib/busqueda";
+import { marcarEntregados } from "@/lib/pedidos";
 
 export const PEDIDOS_POR_PAGINA = 25;
 
@@ -17,6 +18,7 @@ export function leerEstado(valor: unknown): EstadoPedido | "" {
 
 /** Pedidos por estado y búsqueda (número, email, nombre o apellidos), del más nuevo al más antiguo */
 export async function buscarPedidos(busqueda: string, estado: EstadoPedido | "", pagina: number) {
+  await marcarEntregados();
   const q = busqueda.trim().slice(0, 100);
   const where: Prisma.PedidoWhereInput = {
     ...(estado ? { estado } : {}),
@@ -73,7 +75,8 @@ export async function buscarPedidos(busqueda: string, estado: EstadoPedido | "",
 }
 
 /** Un pedido con todo lo necesario para su ficha en el panel */
-export function obtenerPedidoAdmin(id: string) {
+export async function obtenerPedidoAdmin(id: string) {
+  await marcarEntregados();
   return db.pedido.findUnique({
     where: { id },
     include: {

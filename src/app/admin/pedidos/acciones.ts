@@ -52,7 +52,7 @@ export async function actualizarPedido(
   if (cambiaEstado && !transicionesPanel[pedido.estado].includes(estado)) {
     return { ok: false, mensaje: "Ese cambio de estado no está permitido." };
   }
-  if (estado === "ENVIADO" && !numeroSeguimiento) {
+  if (estado === "ENVIADO" && !numeroSeguimiento && pedido.estado !== "ENTREGADO") {
     return {
       ok: false,
       mensaje: "Escribe el número de seguimiento para avisar al cliente.",
@@ -94,7 +94,7 @@ export async function actualizarPedido(
   return {
     ok: true,
     mensaje:
-      cambiaEstado && estado === "ENVIADO"
+      cambiaEstado && estado === "ENVIADO" && pedido.estado !== "ENTREGADO"
         ? "Pedido marcado como enviado. Hemos avisado al cliente por email."
         : "Cambios guardados.",
   };
@@ -119,12 +119,15 @@ async function aplicarCambio(
     data: {
       estado,
       numeroSeguimiento: numeroSeguimiento || null,
-      ...(cambiaEstado && estado === "ENVIADO" ? { enviadoEn: ahora } : {}),
+      ...(cambiaEstado && estado === "ENVIADO" ? { enviadoEn: ahora, entregadoEn: null } : {}),
       ...(cambiaEstado && estado === "ENTREGADO" ? { entregadoEn: ahora } : {}),
     },
   });
   if (cambio.count === 0) return false;
-  if (cambiaEstado && estado === "ENVIADO") await enviarAvisoEnvio(pedidoId);
+  // El correo solo la primera vez (no al devolver a «Enviado» uno que se dio por entregado)
+  if (cambiaEstado && estado === "ENVIADO" && anterior !== "ENTREGADO") {
+    await enviarAvisoEnvio(pedidoId);
+  }
   return true;
 }
 

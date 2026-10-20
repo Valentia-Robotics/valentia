@@ -7,19 +7,20 @@
  *                            PAGADO + un código de activación por cada kit. Idempotente.
  *   4. cancelarPedido      → si el pago no se completa (o se cancela desde el panel): devuelve el stock
  *   5. liberarPedidosCaducados → cancela los pedidos abandonados sin pagar y libera su stock
+ *   6. marcarEntregados   → los ENVIADOS hace DIAS_HASTA_ENTREGADO días pasan solos a ENTREGADO
  *
  * Decisión: el stock se RESERVA al crear el pedido (y no al cobrar) para no cobrar nunca
  * algo que ya no queda; si el pago no llega en MINUTOS_RESERVA, la reserva se libera.
  */
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { DIAS_HASTA_ENTREGADO } from "@/config/estadosPedido";
 import type { Prisma } from "@/generated/prisma/client";
 import type { EstadoPedido } from "@/generated/prisma/enums";
 import { generarCodigoActivacion, generarNumeroPedido } from "@/lib/codigos";
 import { db, transaccion, type Tx } from "@/lib/db";
 import { calcularTotales } from "@/lib/precios";
 import type { ArticuloPedido, DatosCliente } from "@/lib/validaciones/pedido";
-
 
 /** Filtro de Prisma: pedidos cobrados y no cancelados (Pagado, Preparando, Enviado, Entregado) */
 export const PEDIDO_COBRADO = {
@@ -413,7 +414,8 @@ export async function reservarCorreoConfirmacion(pedidoId: string): Promise<bool
 }
 
 /** Un pedido con sus líneas y sus códigos de activación (con los datos del kit) */
-export function obtenerPedido(id: string) {
+export async function obtenerPedido(id: string) {
+  await marcarEntregados();
   return db.pedido.findUnique({
     where: { id },
     include: {
@@ -440,10 +442,24 @@ export function piezasDeLinea(valor: unknown): PiezaLinea[] {
 }
 
 /**
+ * Las agencias no avisan a la tienda al entregar: un pedido ENVIADO hace DIAS_HASTA_ENTREGADO
+ * días se da por entregado. Se llama al leer pedidos (panel y cliente), sin tareas programadas.
+ * Si alguno no ha llegado, desde el panel se puede volver a «Enviado» (cuenta de nuevo).
+ */
+export async function marcarEntregados(): Promise<void> {
+  const limite = new Date(Date.now() - DIAS_HASTA_ENTREGADO * 24 * 60 * 60 * 1000);
+  await db.pedido.updateMany({
+    where: { estado: "ENVIADO", enviadoEn: { lte: limite } },
+    data: { estado: "ENTREGADO", entregadoEn: new Date() },
+  });
+}
+
+/**
  * Pedidos de una cuenta: los hechos con la sesión iniciada y los que hizo como invitado
  * con el mismo email (su email está verificado, así que son suyos).
  */
-export function pedidosDeUsuario(usuario: { id: string; email: string }) {
+export async function pedidosDeUsuario(usuario: { id: string; email: string }) {
+  await marcarEntregados();
   return db.pedido.findMany({
     where: {
       OR: [{ usuarioId: usuario.id }, { usuarioId: null, email: usuario.email }],

@@ -3,7 +3,7 @@
 import { Save } from "lucide-react";
 import { useState } from "react";
 import { actualizarPedido } from "@/app/admin/pedidos/acciones";
-import { estadosPedido, transicionesPanel } from "@/config/estadosPedido";
+import { DIAS_HASTA_ENTREGADO, estadosPedido, transicionesPanel } from "@/config/estadosPedido";
 import type { EstadoPedido } from "@/generated/prisma/enums";
 import { Aviso } from "./Aviso";
 import { BotonAdmin } from "./BotonAdmin";
@@ -42,7 +42,11 @@ export function FormularioPedido({
             ? "Pasa a «Pagado» solo cuando se confirma el pago. Desde aquí solo se puede cancelar."
             : final
               ? "Este pedido ya no puede cambiar de estado."
-              : undefined
+              : estado === "ENVIADO"
+                ? `Pasa solo a «Entregado» ${DIAS_HASTA_ENTREGADO} días después de enviarlo.`
+                : estado === "ENTREGADO"
+                  ? `Se marca solo ${DIAS_HASTA_ENTREGADO} días después de enviarlo. Si no ha llegado, vuelve a «Enviado».`
+                  : undefined
         }
         opciones={posibles.map((e) => ({
           valor: e,
