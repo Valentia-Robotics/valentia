@@ -10,7 +10,7 @@
  *   ALMACEN_REGION="auto"                (R2: auto · S3: la región, por ejemplo eu-west-1)
  *   ALMACEN_BUCKET="valentia-fotos"
  *   ALMACEN_CLAVE_ID="…"   ALMACEN_CLAVE_SECRETA="…"   (claves con permiso solo para ese bucket)
- *   ALMACEN_URL_PUBLICA="https://fotos.tudominio.es"   (dirección pública del bucket)
+ *   ALMACEN_URL_PUBLICA="https://fotos.valentiarobotics.com"   (dirección pública del bucket)
  * Las fotos que ya tengas en subidas/ se copian al bucket con la misma ruta (ver README).
  */
 import "server-only";

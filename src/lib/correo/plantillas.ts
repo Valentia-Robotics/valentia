@@ -343,3 +343,43 @@ export function plantillaPedidoEnviado(d: {
     notas: [`Si tienes cualquier problema con la entrega, escríbenos a ${tienda.empresa.email}.`],
   });
 }
+
+/** Aviso a la tienda de un pedido pagado: todo lo necesario para prepararlo y enviarlo */
+export function plantillaPedidoNuevoTienda(d: {
+  para: string;
+  numero: string;
+  totalCentimos: number;
+  /** Cada línea con su contenido (las piezas de un robot personalizado van debajo) */
+  lineas: { texto: string; piezas: string[] }[];
+  cliente: { nombre: string; email: string; telefono: string };
+  direccion: string[];
+  /** Códigos de activación creados para los kits de este pedido */
+  codigos: string[];
+  /** Enlace al pedido en el panel */
+  url: string;
+}): Correo {
+  return correo(d.para, `🛒 Nuevo pedido ${d.numero} (${precio(d.totalCentimos)})`, {
+    resumen: `Pedido pagado de ${escapar(d.cliente.nombre)}: hay que prepararlo y enviarlo.`,
+    titulo: "¡Nuevo pedido pagado!",
+    parrafos: [
+      `El pedido <strong>${escapar(d.numero)}</strong> ya está pagado. Prepáralo, llama a la agencia y, al enviarlo, márcalo como «Enviado» en el panel con el número de seguimiento (el cliente recibirá un correo).`,
+      "<strong>Qué hay que meter en la caja</strong>",
+      ...d.lineas.map(
+        (l) =>
+          `• ${escapar(l.texto)}${l.piezas.length ? `<br><span style="color:${C.gris};font-size:13px;">${l.piezas.map(escapar).join(" · ")}</span>` : ""}`,
+      ),
+      "<strong>Enviar a</strong>",
+      d.direccion.map(escapar).join("<br>"),
+      `<strong>Cliente:</strong> ${escapar(d.cliente.nombre)} · ${escapar(d.cliente.email)}${d.cliente.telefono ? ` · ${escapar(d.cliente.telefono)}` : ""}`,
+    ],
+    boton: { texto: "Abrir el pedido en el panel", url: d.url },
+    notas: [
+      ...(d.codigos.length
+        ? [
+            `Códigos de activación de este pedido (uno por kit): <strong>${d.codigos.map(escapar).join(", ")}</strong>. El cliente también los ve en su pedido.`,
+          ]
+        : []),
+      `Total cobrado: ${precio(d.totalCentimos)} (IVA incluido).`,
+    ],
+  });
+}

@@ -127,7 +127,7 @@ el registro del servidor.
 2. **`AUTH_SECRET` nuevo y largo** en el servidor (`npx auth secret`). Cambiarlo invalida las sesiones y
    los enlaces privados de pedidos ya enviados por email.
 3. Comprobar la **cabecera de la IP** del hosting (punto 3) y, si hay proxy propio, configurarlo.
-4. **Webhook de Stripe** en el panel de Stripe apuntando a `https://tudominio/api/pagos/stripe` con
+4. **Webhook de Stripe** en el panel de Stripe apuntando a `https://valentiarobotics.com/api/pagos/stripe` con
    el evento `payment_intent.succeeded` y `payment_intent.canceled`; copiar su `whsec_…`.
 5. Copias de seguridad de la base de datos (MongoDB Atlas M0: a mano, `npm run db:copia`) y del almacén de fotos.
 6. Activar la autenticación en dos pasos en las cuentas de Stripe, del hosting y del correo.
