@@ -73,9 +73,17 @@ La parte de **Network Access** (quién puede conectarse) se hace en el paso 4, c
 
 Son iguales que en cualquier hosting; están explicados en el README y en `INFORME.md` §3:
 
-- **Fotos (Cloudflare R2)**: el disco de Render se borra en cada despliegue, así que las fotos del panel
-  tienen que ir a la nube. Crea un bucket con acceso público de lectura y una clave solo para él
-  (README «Fotos en la nube»). Variables `ALMACEN_*`.
+- **Fotos que subes desde el panel de producción**: el disco normal de Render se borra en cada despliegue.
+  Hay dos opciones:
+  - **Disk de Render** (lo que tienes): en el servicio → _Disks_ → un disco montado, por ejemplo, en
+    `/var/data`. Variables: `ALMACEN_PROVEEDOR=local` y `ALMACEN_LOCAL_CARPETA=/var/data/subidas`.
+    Ojo: el Disk no tiene copia automática; descarga de vez en cuando las fotos importantes.
+  - **Cloudflare R2** (nube): un bucket con acceso público de lectura y una clave solo para él
+    (README «Fotos en la nube»). Variables `ALMACEN_*` con `ALMACEN_PROVEEDOR=nube`.
+
+  Las fotos del **catálogo exportado desde local** no necesitan nada de esto: van en git
+  (`public/images/`), ver §6 bis.
+
 - **Correo (Resend)**: verifica tu dominio y crea una clave (`re_…`). **Sin esto nadie puede registrarse
   ni iniciar sesión**, porque la web envía un código por correo.
 - **Stripe**: activa la cuenta, copia las claves reales (`pk_live_…`, `sk_live_…`) y crea el webhook hacia
@@ -89,18 +97,20 @@ Son iguales que en cualquier hosting; están explicados en el README y en `INFOR
    _Configure account_ y da acceso a la organización **Valentia Robotics**.
 3. Rellena:
 
-   | Campo         | Valor                                        |
-   | ------------- | -------------------------------------------- |
-   | Name          | `valentia`                                   |
-   | Region        | **Frankfurt (EU Central)** (junto a Atlas)   |
-   | Branch        | `main`                                       |
-   | Runtime       | Node                                         |
-   | Build Command | `npm ci && npm run db:push && npm run build` |
-   | Start Command | `npm start`                                  |
-   | Instance Type | **Starter**                                  |
+   | Campo              | Valor                                      |
+   | ------------------ | ------------------------------------------ |
+   | Name               | `valentia`                                 |
+   | Region             | **Frankfurt (EU Central)** (junto a Atlas) |
+   | Branch             | `main`                                     |
+   | Runtime            | Node                                       |
+   | Build Command      | `npm ci && npm run build`                  |
+   | Pre-Deploy Command | `npm run predeploy:prod`                   |
+   | Start Command      | `npm start`                                |
+   | Instance Type      | **Starter**                                |
 
-   Y en **Settings → Health Checks → Health Check Path**: **`/api/health`** (la página que Render visita
-   para saber si la web está viva; contesta al instante y no depende de la base de datos).
+   El **Pre-Deploy Command** está en _Settings → Build & Deploy_ (si al crear el servicio no aparece,
+   ponlo ahí después). Y en **Settings → Health Checks → Health Check Path**: **`/api/health`** (la página
+   que Render visita para saber si la web está viva; contesta al instante y no depende de la base de datos).
 
    No hace falta poner `PORT`: Render la pone sola (10000) y `npm start` escucha en ella y en `0.0.0.0`.
    La versión de Node sale de `package.json` (`"engines": { "node": "24.x" }`): no pongas `NODE_VERSION`.
@@ -119,8 +129,9 @@ Son iguales que en cualquier hosting; están explicados en el README y en `INFOR
    | `CORREO_PROVEEDOR`                                                                                                         | `resend`                                         |
    | `RESEND_API_KEY`                                                                                                           | `re_…`                                           |
    | `CORREO_REMITENTE`                                                                                                         | `Valentia <hola@tudominio.es>`                   |
-   | `ALMACEN_PROVEEDOR`                                                                                                        | `nube`                                           |
-   | `ALMACEN_ENDPOINT`, `ALMACEN_REGION`, `ALMACEN_BUCKET`, `ALMACEN_CLAVE_ID`, `ALMACEN_CLAVE_SECRETA`, `ALMACEN_URL_PUBLICA` | Los de R2 (ver `.env.example`)                   |
+   | `ALMACEN_PROVEEDOR`                                                                                                        | `local` (Disk de Render) o `nube` (R2), ver §2   |
+   | `ALMACEN_LOCAL_CARPETA`                                                                                                    | Con Disk: `/var/data/subidas` (su Mount Path)    |
+   | `ALMACEN_ENDPOINT`, `ALMACEN_REGION`, `ALMACEN_BUCKET`, `ALMACEN_CLAVE_ID`, `ALMACEN_CLAVE_SECRETA`, `ALMACEN_URL_PUBLICA` | Solo con R2 (ver `.env.example`)                 |
 
    **No pongas `NODE_ENV`**: Render instalaría sin las herramientas de compilación y la publicación
    fallaría. La web ya funciona en modo producción con `npm start`.
@@ -131,14 +142,20 @@ Son iguales que en cualquier hosting; están explicados en el README y en `INFOR
 Con **Auto-Deploy** activado (lo está por defecto), cada vez que se une un pull request a `main`, Render
 publica la nueva versión sola.
 
-### Qué hace el Build Command
+### Qué hace cada comando
 
-- `npm ci`: instala las librerías exactas de `package-lock.json`.
-- `npm run db:push`: aplica `prisma/schema.prisma` a la base de datos (crea colecciones e índices nuevos).
-  MongoDB no usa migraciones, así que **se ejecuta en cada despliegue**. Si un cambio del esquema pudiera
-  borrar datos, Prisma se niega y el despliegue falla **sin tocar nada**: la web sigue con la versión
-  anterior. En ese caso, haz una copia (§7) y pregunta antes de seguir.
-- `npm run build`: compila la web. Necesita la base de datos (las fichas de los kits se generan al compilar).
+- **Build Command**
+  - `npm ci`: instala las librerías exactas de `package-lock.json`.
+  - `npm run build`: genera el cliente de Prisma y compila la web. Lee la base de datos (portada, kits y
+    componentes se generan al compilar y se vuelven a leer solos cada 5 minutos como mucho).
+- **Pre-Deploy Command** (`npm run predeploy:prod`): Render lo ejecuta después de compilar y antes de
+  publicar la versión nueva, con las variables de producción.
+  1. `prisma db push`: aplica `prisma/schema.prisma` (crea colecciones e índices nuevos). MongoDB no usa
+     migraciones, así que **se ejecuta en cada despliegue**. Si un cambio del esquema pudiera **borrar
+     datos**, se para con un mensaje claro, el despliegue se cancela **sin tocar nada** y la web sigue con
+     la versión anterior. En ese caso, haz una copia (§7) y pregunta antes de seguir.
+  2. `seed:prod`: carga el catálogo de `data/catalogo/` (ver §6 bis). Crea lo que falta y actualiza lo
+     que ha cambiado en esos archivos; **nunca borra nada** ni toca usuarios, pedidos o códigos.
 
 ## 4. Network Access: solo las IP de Render
 
@@ -174,32 +191,64 @@ Address_, marca **«This entry is temporary»** (por ejemplo, 6 horas). Así no 
 
 ## 6. Primera puesta en marcha: catálogo y administrador
 
-En Render, abre el servicio → pestaña **Shell** (una terminal dentro del servidor, ya con `DATABASE_URL`
-de producción):
+**El catálogo se carga solo** en cada despliegue (Pre-Deploy Command, §3): no hay que hacer nada. Si la
+web acaba de publicarse y la portada aún dice «Los kits están en camino», espera unos minutos y recarga.
+
+**Tu usuario administrador**: en Render, abre el servicio → pestaña **Shell** (una terminal dentro del
+servidor, ya con la base de datos de producción) y escribe:
 
 ```bash
-npm run db:catalogo
+npm run prod:admin
 ```
 
-Carga los componentes, kits y cursos de `data/*.json` **solo si la base de datos está vacía** (si ya hay
-catálogo, no toca nada). No crea usuarios ni códigos de prueba. (El seed de desarrollo, `npm run db:seed`,
-se niega a ejecutarse en Render.)
+Te pide el **email**. Si ya tienes cuenta con ese email (te registraste en la web), la convierte en
+administrador **sin tocar tu contraseña**. Si no, te pide tu **nombre** y una **contraseña dos veces**
+(no se verá nada mientras escribes: es a propósito) y crea la cuenta como administrador con el email ya
+verificado.
 
 Después:
 
-1. Abre `https://tudominio.es/registro` y **crea tu cuenta** (te llegará el código: así compruebas que
-   Resend funciona).
-2. Vuelve a la **Shell** de Render y hazte administrador:
-   ```bash
-   npm run admin -- tu@email.com
-   ```
-3. Entra en `/admin`: revisa los productos, pon las fotos y los vídeos reales de los cursos.
-4. Haz una **compra real pequeña** con tu tarjeta y comprueba: correo de confirmación, pedido en el panel
+1. Entra en `https://tudominio.es/login` con ese email y contraseña. La primera vez en cada navegador te
+   llega un código por correo (así compruebas que Resend funciona).
+2. Entra en `/admin`: revisa los productos, pon las fotos y los vídeos reales de los cursos.
+3. Haz una **compra real pequeña** con tu tarjeta y comprueba: correo de confirmación, pedido en el panel
    y código de activación. Después puedes reembolsarla desde Stripe y cancelar el pedido en el panel.
 
 **Comprobación de la IP** (límites de intentos): tras publicar, intenta entrar 11 veces seguidas con una
 contraseña incorrecta. A la undécima debe salir «Demasiados intentos». Si no sale nunca, avisa: puede que
 Render pase la IP del visitante en una cabecera distinta de las que lee `src/lib/limite.ts`.
+
+## 6 bis. Cambiar el catálogo desde local y publicarlo
+
+El catálogo que se carga en producción está en **`data/catalogo/`** (un archivo por colección:
+`Componente`, `Kit`, `KitComponente`, `Curso`, `Leccion`, `Ejercicio`), con los mismos ids que en
+`valentia-dev`. Las categorías, las reglas de compatibilidad y los ajustes de la tienda están en el código.
+
+Cuando cambies el catálogo en tu `/admin` local (con tu `.env` apuntando a `valentia-dev`):
+
+1. Exporta (solo lee tu base de datos de desarrollo; **no se conecta a producción**):
+   ```powershell
+   npm run catalogo:exportar
+   ```
+   Las fotos que subiste desde el panel local se copian a `public/images/catalogo/` y el JSON apunta ahí.
+2. Rama nueva, commit de `data/catalogo/` y `public/images/`, pull request y únelo a `main`.
+3. Render despliega y el Pre-Deploy carga los cambios. En los _Logs_ del despliegue verás una tabla con
+   lo que se ha creado, actualizado o dejado igual.
+
+Qué hace exactamente `seed:prod` (también lo puedes lanzar a mano en la Shell; con `-- --dry-run` solo
+enseña lo que haría):
+
+- **Crea** lo que no existe y **actualiza** solo las fichas que **han cambiado en `data/catalogo/`** desde
+  la última vez. Lo que edites directamente en el panel de producción **no se pisa** mientras no cambies
+  esa ficha en local y la vuelvas a exportar.
+- **Nunca borra**. Lo creado en el panel de producción se queda. Si borras algo en el panel de producción,
+  no se vuelve a crear. Para quitar un producto de la tienda, ocúltalo o bórralo en el panel de producción.
+- **El stock** de un componente que ya existe en producción **no se toca nunca** (baja con las ventas).
+- **Nunca toca** usuarios, pedidos, códigos de activación ni progreso de los cursos.
+- Si producción ya tenía el catálogo con otros ids (cargado antes con `npm run db:catalogo`), lo
+  reconoce por su nombre (slug) y no lo duplica.
+- Si algo chocara (por ejemplo, dos kits con el mismo slug), se para sin escribir nada y el despliegue se
+  cancela con el motivo en los _Logs_.
 
 ## 7. Copias de seguridad
 
@@ -250,7 +299,7 @@ Lee las últimas líneas del log:
 - **`bad auth`, `Authentication failed`**: usuario o contraseña de `DATABASE_URL` incorrectos (o con símbolos
   sin codificar, §1).
 - **`P1013`, `invalid database string`**: `DATABASE_URL` mal escrita (comillas, espacios, falta `/valentia`).
-- **`Data loss`** al hacer `db:push`: un cambio del esquema borraría datos; ver «Qué hace el Build Command».
+- **`Data loss`** en el Pre-Deploy (`prisma db push`): un cambio del esquema borraría datos; ver «Qué hace cada comando» (§3).
 
 ### b) El build termina bien pero acaba en «Timed Out»
 

@@ -226,8 +226,10 @@ npm run test:e2e     # pruebas con navegador (Playwright): el recorrido completo
 `npm run test:e2e` usa el **Chrome** instalado, **su propia base de datos** (la tuya acabada en `_e2e`, por
 ejemplo `valentia_e2e`, en el mismo clúster de Atlas; la crea de cero cada vez) y **su propia copia** de la web compilada en http://localhost:3100, así que no toca tus
 datos ni tu `npm run dev`. Recorre: registro → código por correo → configurador → carrito → pago de
-prueba → activación del código → vídeo → test; y comprueba la seguridad básica, el SEO y la zona de envío.
-Tarda unos minutos (compila la web y Atlas está en Internet).
+prueba → activación del código → vídeo → test; comprueba la seguridad básica, el SEO y la zona de envío; y
+**recorre todas las páginas** siguiendo los enlaces (tienda, cuenta y panel: errores de consola, errores del
+servidor, enlaces e imágenes rotas) y las principales en un móvil (desbordes). Tarda unos minutos (compila la
+web y Atlas está en Internet).
 
 ## Otros comandos
 
@@ -239,9 +241,14 @@ Tarda unos minutos (compila la web y Atlas está en Internet).
 | `npm run format`                | Ordena y da formato a todo el código                                       |
 | `npm run marca`                 | Regenera el favicon, los iconos y las versiones PNG del logo               |
 | `npm run admin`                 | Da o quita el rol de administrador                                         |
+| `npm run prod:admin`            | Crea o asciende el administrador (Shell de Render; contraseña oculta)      |
+| `npm run catalogo:exportar`     | Guarda el catálogo de `valentia-dev` en `data/catalogo/` (ver DESPLIEGUE)  |
+| `npm run seed:prod`             | Carga `data/catalogo/` sin borrar nada (`-- --dry-run`: solo simula)       |
+| `npm run predeploy:prod`        | Pre-Deploy de Render: `db push` sin pérdida de datos + `seed:prod`         |
+| `npm run db:check`              | Prueba la conexión con MongoDB y explica el error                          |
 | `npm run db:push`               | Aplica `prisma/schema.prisma` a la base de datos (colecciones e índices)   |
 | `npm run db:seed`               | Catálogo (si no hay) + usuario y códigos de prueba. **Solo desarrollo**    |
-| `npm run db:catalogo`           | Solo el catálogo de `data/*.json`, si no hay ninguno (sirve en producción) |
+| `npm run db:catalogo`           | Solo el catálogo inicial de `data/*.json`, si no hay ninguno               |
 | `npm run db:reset`              | **Lo borra todo** y crea la base de datos de nuevo con los datos iniciales |
 | `npm run db:copia`              | Copia de seguridad de toda la base de datos en `copias/`                   |
 | `npm run db:restaurar`          | Restaura una copia (ver «Copias de seguridad»)                             |
@@ -374,10 +381,11 @@ En resumen:
 3. **Variables del servidor**: `AUTH_SECRET` nueva, `NEXT_PUBLIC_SITE_URL` con `https://`, `DATABASE_URL`.
 4. **Stripe**: claves reales, `STRIPE_PERMITIR_CLAVES_REALES="si"` y webhook en el panel de Stripe.
 5. **Correo**: Resend con tu dominio verificado (sin esto nadie puede registrarse).
-6. **Fotos en la nube** (ver arriba).
-7. **Catálogo y administrador**: `npm run db:catalogo` y, tras registrarte, `npm run admin -- tu@email.com`
-   desde la Shell de Render.
-8. **Datos de prueba**: no cargues el seed; crea los productos reales desde el panel.
+6. **Fotos del panel de producción**: Disk de Render o nube (ver `DESPLIEGUE.md` §2).
+7. **Catálogo**: se carga solo en cada despliegue desde `data/catalogo/` (Pre-Deploy Command
+   `npm run predeploy:prod`). Para cambiarlo: edítalo en tu panel local, `npm run catalogo:exportar`, commit
+   y pull request (`DESPLIEGUE.md` §6 bis).
+8. **Administrador**: `npm run prod:admin` desde la Shell de Render. No cargues el seed de desarrollo.
 9. **Vídeos** de los cursos (ahora «PENDIENTE») desde `/admin/cursos`.
 
 ## Actualizar las librerías

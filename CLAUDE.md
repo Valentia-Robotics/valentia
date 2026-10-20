@@ -32,8 +32,10 @@ ni tocar `.env`. Pruebas con BD temporales en valentia-dev (borrarlas al termina
       lo que existe, reconoce por slug (Ejercicio: lección + orden) lo cargado con otros ids. Probado en BD
       temporales (flujo Render: build vacío → predeploy ×2 → la web muestra el catálogo a los 5 min; otros ids,
       panel, borrado, cambio en JSON, URL mala) y login real del admin creado. BD de prueba borradas.
-- [ ] 3. Documentación: DESPLIEGUE.md, README, INFORME.md, CLAUDE.md.
-- [ ] 4. Final: todo en verde, graphify, commit, push y PR.
+- [x] 3. Documentación: DESPLIEGUE.md (Pre-Deploy, Health Check, prod:admin, §6 bis reexportar catálogo),
+      README, INFORME.md (§0 puesta a punto), CLAUDE.md.
+- [x] 4. Final (20-10-2026): lint, tipos, build, Vitest (94) y Playwright (11) en verde; graphify; commit,
+      push y PR hacia main (lo une el usuario). La BD real se llena sola con el Pre-Deploy de Render.
 
 ### Arreglo del despliegue en Render (19-10-2026, rama `valentiarobotics/arreglar-despliegue-render`)
 
