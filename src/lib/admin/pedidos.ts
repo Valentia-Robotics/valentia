@@ -4,6 +4,7 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { EstadoPedido } from "@/generated/prisma/enums";
+import { fechaHora } from "@/lib/admin/formato";
 import { db } from "@/lib/db";
 import { textoContiene } from "@/lib/busqueda";
 
@@ -84,3 +85,34 @@ export function obtenerPedidoAdmin(id: string) {
     },
   });
 }
+
+/** Pedidos pagados que aún no han salido (los más antiguos primero: son los más urgentes) */
+export async function pedidosPorEnviar() {
+  const pedidos = await db.pedido.findMany({
+    where: { estado: { in: ["PAGADO", "PREPARANDO"] } },
+    orderBy: { pagadoEn: "asc" },
+    take: 200,
+    select: {
+      id: true,
+      numero: true,
+      nombre: true,
+      codigoPostal: true,
+      ciudad: true,
+      estado: true,
+      pagadoEn: true,
+      creadoEn: true,
+      lineas: { select: { nombre: true, cantidad: true } },
+    },
+  });
+  return pedidos.map((p) => ({
+    id: p.id,
+    numero: p.numero,
+    nombre: p.nombre,
+    lugar: `${p.codigoPostal} ${p.ciudad}`,
+    estado: p.estado,
+    pagado: fechaHora(p.pagadoEn ?? p.creadoEn),
+    articulos: p.lineas.map((l) => `${l.cantidad} × ${l.nombre}`),
+  }));
+}
+
+export type PedidoPorEnviar = Awaited<ReturnType<typeof pedidosPorEnviar>>[number];

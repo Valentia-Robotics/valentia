@@ -3,19 +3,21 @@
 /**
  * ACCIONES DEL PANEL: PEDIDOS
  * Cambiar el estado (Preparando → Enviado → Entregado, o Cancelado) y el número de seguimiento.
+ * También varios a la vez (casillas de la lista y pantalla «Por enviar»).
  * Al pasar a ENVIADO se manda un correo al cliente. Solo para ADMIN (se comprueba aquí).
  */
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { transicionesPanel } from "@/config/estadosPedido";
+import { estadosPedido, transicionesPanel } from "@/config/estadosPedido";
 import { EstadoPedido } from "@/generated/prisma/enums";
-import { conErrores, type EstadoFormulario, texto } from "@/lib/admin/formularios";
+import { conErrores, type EstadoFormulario, texto, textos } from "@/lib/admin/formularios";
 import { enviarAvisoEnvio } from "@/lib/avisosPedido";
 import { db } from "@/lib/db";
 import { cancelarIntentoPago } from "@/lib/pagos/stripe";
 import { cancelarPedido } from "@/lib/pedidos";
 import { exigirAdminEnAccion } from "@/lib/sesion";
-import { esquemaId } from "@/lib/ids";
+import { esId, esquemaId } from "@/lib/ids";
+import { plural } from "@/lib/utils";
 
 const esquema = z.object({
   pedidoId: esquemaId,
@@ -85,22 +87,9 @@ export async function actualizarPedido(
   }
 
   // ---------- Otro estado o solo el número de seguimiento ----------
-  const ahora = new Date();
-  const cambio = await db.pedido.updateMany({
-    // Condicionado al estado que hemos leído: si alguien lo ha cambiado a la vez, no pisamos nada
-    where: { id: pedidoId, estado: pedido.estado },
-    data: {
-      estado,
-      numeroSeguimiento: numeroSeguimiento || null,
-      ...(cambiaEstado && estado === "ENVIADO" ? { enviadoEn: ahora } : {}),
-      ...(cambiaEstado && estado === "ENTREGADO" ? { entregadoEn: ahora } : {}),
-    },
-  });
-  if (cambio.count === 0) {
+  if (!(await aplicarCambio(pedidoId, pedido.estado, estado, numeroSeguimiento))) {
     return { ok: false, mensaje: "El pedido ha cambiado mientras tanto. Recarga la página." };
   }
-
-  if (cambiaEstado && estado === "ENVIADO") await enviarAvisoEnvio(pedidoId);
   refrescar(pedidoId);
   return {
     ok: true,
@@ -111,8 +100,140 @@ export async function actualizarPedido(
   };
 }
 
-function refrescar(pedidoId: string) {
-  revalidatePath("/admin/pedidos");
-  revalidatePath(`/admin/pedidos/${pedidoId}`);
+/**
+ * Guarda el nuevo estado (y el número de seguimiento) si el pedido sigue en el estado leído.
+ * Al pasar a ENVIADO avisa al cliente por email. Devuelve false si alguien lo cambió a la vez.
+ * (Cancelar no pasa por aquí: devuelve stock y puede tocar Stripe.)
+ */
+async function aplicarCambio(
+  pedidoId: string,
+  anterior: EstadoPedido,
+  estado: EstadoPedido,
+  numeroSeguimiento: string,
+): Promise<boolean> {
+  const cambiaEstado = estado !== anterior;
+  const ahora = new Date();
+  const cambio = await db.pedido.updateMany({
+    // Condicionado al estado que hemos leído: si alguien lo ha cambiado a la vez, no pisamos nada
+    where: { id: pedidoId, estado: anterior },
+    data: {
+      estado,
+      numeroSeguimiento: numeroSeguimiento || null,
+      ...(cambiaEstado && estado === "ENVIADO" ? { enviadoEn: ahora } : {}),
+      ...(cambiaEstado && estado === "ENTREGADO" ? { entregadoEn: ahora } : {}),
+    },
+  });
+  if (cambio.count === 0) return false;
+  if (cambiaEstado && estado === "ENVIADO") await enviarAvisoEnvio(pedidoId);
+  return true;
+}
+
+/** Como mucho, cuántos pedidos se cambian de una vez */
+const MAXIMO_LOTE = 200;
+
+const esquemaVarios = z.object({
+  ids: z.array(esquemaId).min(1, "Marca al menos un pedido.").max(MAXIMO_LOTE),
+  estado: z.enum(["PREPARANDO", "ENTREGADO"]),
+});
+
+/** Varios pedidos a la vez (casillas de la lista): pasarlos a «Preparando» o a «Entregado» */
+export async function cambiarVariosPedidos(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const datos = esquemaVarios.safeParse({
+    ids: [...new Set(textos(formulario, "ids"))],
+    estado: texto(formulario, "estado"),
+  });
+  if (!datos.success) return conErrores(datos.error);
+  const { ids, estado } = datos.data;
+
+  const pedidos = await db.pedido.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, estado: true, numeroSeguimiento: true },
+  });
+  let cambiados = 0;
+  for (const p of pedidos) {
+    if (!transicionesPanel[p.estado].includes(estado)) continue;
+    if (await aplicarCambio(p.id, p.estado, estado, p.numeroSeguimiento ?? "")) cambiados++;
+  }
+  refrescar();
+
+  const nombre = estadosPedido[estado].nombre;
+  const saltados = ids.length - cambiados;
+  return {
+    ok: cambiados > 0,
+    mensaje:
+      (cambiados
+        ? `${plural(cambiados, "pedido marcado", "pedidos marcados")} como «${nombre}».`
+        : `Ningún pedido se ha marcado como «${nombre}».`) +
+      (saltados
+        ? ` ${plural(saltados, "no se ha cambiado", "no se han cambiado")} porque su estado no lo permite${estado === "ENTREGADO" ? " (antes tiene que estar «Enviado»)" : ""}.`
+        : ""),
+  };
+}
+
+const seguimiento = esquema.shape.numeroSeguimiento;
+
+/**
+ * Pantalla «Por enviar»: cada pedido con número de seguimiento escrito pasa a ENVIADO
+ * (y su cliente recibe el correo). Los que se dejan en blanco no cambian.
+ */
+export async function enviarVariosPedidos(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const numeros = new Map<string, string>();
+  const errores: Record<string, string> = {};
+  for (const [campo, valor] of formulario.entries()) {
+    if (!campo.startsWith("seguimiento-") || typeof valor !== "string" || !valor.trim()) continue;
+    const id = campo.slice("seguimiento-".length);
+    if (!esId(id)) continue;
+    const leido = seguimiento.safeParse(valor);
+    if (leido.success) numeros.set(id, leido.data);
+    else errores[campo] = leido.error.issues[0]?.message ?? "Número no válido";
+  }
+  if (Object.keys(errores).length) {
+    return {
+      ok: false,
+      mensaje: "Revisa los números marcados en rojo: no se ha enviado nada.",
+      errores,
+    };
+  }
+  if (!numeros.size) {
+    return { ok: false, mensaje: "Escribe el número de seguimiento de los pedidos que salen hoy." };
+  }
+  if (numeros.size > MAXIMO_LOTE) {
+    return { ok: false, mensaje: `Como mucho ${MAXIMO_LOTE} pedidos de una vez.` };
+  }
+
+  const pedidos = await db.pedido.findMany({
+    where: { id: { in: [...numeros.keys()] } },
+    select: { id: true, estado: true },
+  });
+  let enviados = 0;
+  for (const p of pedidos) {
+    if (!transicionesPanel[p.estado].includes("ENVIADO")) continue;
+    if (await aplicarCambio(p.id, p.estado, "ENVIADO", numeros.get(p.id)!)) enviados++;
+  }
+  refrescar();
+  const saltados = numeros.size - enviados;
+  return {
+    ok: enviados > 0,
+    mensaje:
+      (enviados
+        ? `Enviados: ${enviados}. Hemos avisado a ${enviados === 1 ? "su cliente" : "cada cliente"} por email con su número de seguimiento.`
+        : "No se ha enviado ningún pedido.") +
+      (saltados
+        ? ` ${plural(saltados, "pedido ha", "pedidos han")} cambiado mientras tanto y no se ${saltados === 1 ? "ha" : "han"} tocado.`
+        : ""),
+  };
+}
+
+function refrescar(pedidoId?: string) {
+  revalidatePath("/admin/pedidos", "layout");
+  if (pedidoId) revalidatePath(`/admin/pedidos/${pedidoId}`);
   revalidatePath("/admin");
 }
