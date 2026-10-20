@@ -15,18 +15,25 @@ export function leerEstado(valor: unknown): EstadoPedido | "" {
   return typeof valor === "string" && valor in EstadoPedido ? (valor as EstadoPedido) : "";
 }
 
-/** Pedidos por estado y búsqueda (número, email o nombre), del más nuevo al más antiguo */
+/** Pedidos por estado y búsqueda (número, email, nombre o apellidos), del más nuevo al más antiguo */
 export async function buscarPedidos(busqueda: string, estado: EstadoPedido | "", pagina: number) {
   const q = busqueda.trim().slice(0, 100);
   const where: Prisma.PedidoWhereInput = {
     ...(estado ? { estado } : {}),
+    // Cada palabra tiene que aparecer en el número, el email o el nombre: así «garcía ana»
+    // encuentra a «Ana García» (el nombre y los apellidos se guardan juntos)
     ...(q
       ? {
-          OR: [
-            { numero: textoContiene(q.toUpperCase()) },
-            { email: textoContiene(q.toLowerCase()) },
-            { nombre: textoContiene(q) },
-          ],
+          AND: q
+            .split(/\s+/)
+            .slice(0, 5)
+            .map((palabra) => ({
+              OR: [
+                { numero: textoContiene(palabra.toUpperCase()) },
+                { email: textoContiene(palabra.toLowerCase()) },
+                { nombre: textoContiene(palabra) },
+              ],
+            })),
         }
       : {}),
   };
@@ -101,6 +108,7 @@ export async function pedidosPorEnviar() {
       estado: true,
       pagadoEn: true,
       creadoEn: true,
+      email: true,
       lineas: { select: { nombre: true, cantidad: true } },
     },
   });
@@ -109,6 +117,7 @@ export async function pedidosPorEnviar() {
     numero: p.numero,
     nombre: p.nombre,
     lugar: `${p.codigoPostal} ${p.ciudad}`,
+    email: p.email,
     estado: p.estado,
     pagado: fechaHora(p.pagadoEn ?? p.creadoEn),
     articulos: p.lineas.map((l) => `${l.cantidad} × ${l.nombre}`),

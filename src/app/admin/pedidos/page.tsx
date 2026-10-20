@@ -79,7 +79,7 @@ export default async function PedidosAdmin({ searchParams }: Props) {
       <div className="mb-4">
         <Buscador
           valor={q}
-          placeholder="Número, email o nombre"
+          placeholder="Nombre, apellidos, email o número"
           etiqueta="Buscar pedidos"
           extra={{ estado: estado || undefined }}
         />

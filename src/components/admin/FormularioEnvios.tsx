@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Send } from "lucide-react";
+import { Search, Send } from "lucide-react";
+import { useState } from "react";
 import { enviarVariosPedidos } from "@/app/admin/pedidos/acciones";
 import type { PedidoPorEnviar } from "@/lib/admin/pedidos";
 import { Aviso } from "./Aviso";
@@ -17,10 +18,42 @@ import { useFormulario } from "./useFormulario";
  */
 export function FormularioEnvios({ pedidos }: { pedidos: PedidoPorEnviar[] }) {
   const { estado, alEnviar, enviando, error } = useFormulario(enviarVariosPedidos);
+  const [buscar, setBuscar] = useState("");
+  const palabras = normalizar(buscar).split(/\s+/).filter(Boolean);
+  // Coincide si cada palabra aparece en el nombre, el email, el número o el lugar
+  const coincide = (p: PedidoPorEnviar) => {
+    const texto = normalizar(`${p.nombre} ${p.email} ${p.numero} ${p.lugar}`);
+    return palabras.every((palabra) => texto.includes(palabra));
+  };
+  const visibles = pedidos.filter(coincide).length;
 
   return (
     <form onSubmit={alEnviar} noValidate className="space-y-4">
       {estado.mensaje && <Aviso tipo={estado.ok ? "exito" : "error"}>{estado.mensaje}</Aviso>}
+      {pedidos.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 px-4 pt-4 print:hidden">
+          <label className="relative block w-full max-w-sm">
+            <span className="sr-only">Buscar por nombre, apellidos, email o número</span>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-gris"
+            />
+            <input
+              type="search"
+              value={buscar}
+              onChange={(e) => setBuscar(e.target.value)}
+              placeholder="Buscar por nombre, apellidos, email o número"
+              autoComplete="off"
+              className="h-9 w-full rounded-md bg-white pr-2.5 pl-8 text-sm ring-1 ring-linea focus:ring-2 focus:ring-acento focus:outline-none"
+            />
+          </label>
+          {palabras.length > 0 && (
+            <p className="text-xs text-gris" aria-live="polite">
+              {visibles === 1 ? "1 pedido" : `${visibles} pedidos`} de {pedidos.length}
+            </p>
+          )}
+        </div>
+      )}
       <Tabla
         columnas={["Pedido", "Enviar a", "Qué lleva", "Número de seguimiento"]}
         etiqueta="Pedidos por enviar"
@@ -30,7 +63,8 @@ export function FormularioEnvios({ pedidos }: { pedidos: PedidoPorEnviar[] }) {
           const campo = `seguimiento-${p.id}`;
           const fallo = error(campo);
           return (
-            <tr key={p.id} className="align-top">
+            // Los que no coinciden se ocultan, pero lo que tengan escrito se sigue enviando
+            <tr key={p.id} className="align-top" hidden={!coincide(p)}>
               <td className="whitespace-nowrap">
                 <Link
                   href={`/admin/pedidos/${p.id}`}
@@ -83,4 +117,12 @@ export function FormularioEnvios({ pedidos }: { pedidos: PedidoPorEnviar[] }) {
       )}
     </form>
   );
+}
+
+/** Minúsculas y sin tildes: «García» y «garcia» son lo mismo al buscar */
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
