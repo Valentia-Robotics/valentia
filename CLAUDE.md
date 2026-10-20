@@ -24,6 +24,11 @@ después (BroadcastChannel) con la cookie vieja y el servidor la volvía a crear
 `abiertaEn` (se pone al iniciar sesión) anterior. El navegador sigue siendo de confianza: al volver a entrar no
 pide código. (El «código pedido otra vez» que contó el usuario no se reprodujo en local: pendiente de saber dónde.)
 
+Seguía fallando en la web real: en Render las rutas `/api/auth` ven la dirección interna `https://localhost:10000`
+y «Cerrar sesión» redirigía allí (error en el navegador). `src/auth.config.ts` pone `AUTH_URL` =
+`NEXT_PUBLIC_SITE_URL` en producción si no existe (Auth.js lo lee en cada petición). Comprobar con
+`curl` a `/api/auth/csrf`: la cookie `callback-url` debe llevar el dominio real, no `localhost:10000`.
+
 ### Puesta a punto final (19-10-2026, rama `valentiarobotics/puesta-a-punto`; instrucciones en `PUESTA_A_PUNTO.md`)
 
 Rama desde `main` + PR #9 unido dentro (health, db:check, aviso de Turbopack). El PR #10 (`catalogo:copiar`,
