@@ -40,6 +40,9 @@ export const estadosPedido: Record<
   },
 };
 
+/** Días tras «Enviado» para dar el pedido por entregado (las agencias no avisan a la tienda) */
+export const DIAS_HASTA_ENTREGADO = 7;
+
 /** Pasos que ve el cliente en la línea de tiempo de su pedido */
 export const pasosPedido: EstadoPedido[] = ["PAGADO", "PREPARANDO", "ENVIADO", "ENTREGADO"];
 
@@ -49,6 +52,7 @@ export const transicionesPanel: Record<EstadoPedido, EstadoPedido[]> = {
   PAGADO: ["PREPARANDO", "ENVIADO", "CANCELADO"],
   PREPARANDO: ["ENVIADO", "CANCELADO"],
   ENVIADO: ["ENTREGADO"],
-  ENTREGADO: [],
+  // Por si se dio por entregado uno que no ha llegado: vuelve a «Enviado» (sin otro correo)
+  ENTREGADO: ["ENVIADO"],
   CANCELADO: [],
 };

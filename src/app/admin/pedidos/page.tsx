@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Truck } from "lucide-react";
+import { AccionesLotePedidos, FORMULARIO_LOTE } from "@/components/admin/AccionesLotePedidos";
+import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { Buscador } from "@/components/admin/Buscador";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
@@ -28,6 +31,7 @@ export default async function PedidosAdmin({ searchParams }: Props) {
   const estado = leerEstado(parametros.estado);
   const pagina = leerPagina(parametros.pagina);
   const { pedidos, total, totalPaginas, cuantos } = await buscarPedidos(q, estado, pagina);
+  const porEnviar = (cuantos.PAGADO ?? 0) + (cuantos.PREPARANDO ?? 0);
 
   const filtro = (valor: string) => {
     const p = new URLSearchParams();
@@ -42,6 +46,12 @@ export default async function PedidosAdmin({ searchParams }: Props) {
       <Cabecera
         titulo="Pedidos"
         descripcion={plural(total, "pedido", "pedidos") + (q ? ` para «${q}»` : "")}
+        acciones={
+          <BotonAdmin href="/admin/pedidos/por-enviar">
+            <Truck aria-hidden="true" className="size-4" />
+            Por enviar ({porEnviar})
+          </BotonAdmin>
+        }
       />
 
       <nav aria-label="Filtrar por estado" className="mb-4 flex flex-wrap gap-2 text-sm">
@@ -69,19 +79,30 @@ export default async function PedidosAdmin({ searchParams }: Props) {
       <div className="mb-4">
         <Buscador
           valor={q}
-          placeholder="Número, email o nombre"
+          placeholder="Nombre, apellidos, email o número"
           etiqueta="Buscar pedidos"
           extra={{ estado: estado || undefined }}
         />
       </div>
 
+      <AccionesLotePedidos />
       <Caja sinRelleno>
         <Tabla
-          columnas={["Pedido", "Cliente", "Fecha", "Total", "Estado"]}
+          columnas={["", "Pedido", "Cliente", "Fecha", "Total", "Estado"]}
           vacia={pedidos.length === 0 && "No hay pedidos con estos filtros."}
         >
           {pedidos.map((p) => (
             <tr key={p.id}>
+              <td className="w-0">
+                <input
+                  type="checkbox"
+                  name="ids"
+                  value={p.id}
+                  form={FORMULARIO_LOTE}
+                  aria-label={`Seleccionar el pedido ${p.numero}`}
+                  className="size-4 accent-acento"
+                />
+              </td>
               <td>
                 <Link
                   href={`/admin/pedidos/${p.id}`}
