@@ -29,13 +29,15 @@ async function main() {
   const archivo = argumentos.find((a) => !a.startsWith("--"));
   const confirmar = argumentos.includes("--si");
   const reemplazar = argumentos.includes("--reemplazar");
-  if (!archivo) throw new Error("Uso: npm run db:restaurar -- copias/archivo.json [--si] [--reemplazar]");
+  if (!archivo)
+    throw new Error("Uso: npm run db:restaurar -- copias/archivo.json [--si] [--reemplazar]");
 
   const url = process.env.DATABASE_URL;
   if (!url?.startsWith("mongodb")) throw new Error("DATABASE_URL no es una dirección de MongoDB.");
 
   const copia = EJSON.parse(await readFile(archivo, "utf8"), { relaxed: false }) as Copia;
-  if (!copia?.colecciones) throw new Error(`${archivo} no parece una copia hecha con "npm run db:copia".`);
+  if (!copia?.colecciones)
+    throw new Error(`${archivo} no parece una copia hecha con "npm run db:copia".`);
 
   const cliente = new MongoClient(url);
   try {

@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { SlidersHorizontal } from "lucide-react";
+import { Cpu, SlidersHorizontal } from "lucide-react";
 import { TarjetaComponente } from "@/components/tienda/TarjetaComponente";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
+import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { categorias } from "@/config/categorias";
 import { obtenerComponentes } from "@/lib/catalogo";
+
+/**
+ * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
+ * cargado después del build (npm run seed:prod en el Pre-Deploy de Render) aparece sin volver a desplegar.
+ * Los cambios del panel se ven al momento (refrescarTienda).
+ */
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Componentes",
@@ -54,6 +62,18 @@ export default async function PaginaComponentes() {
           ))}
         </ul>
       </nav>
+
+      {grupos.length === 0 && (
+        <EstadoVacio
+          icono={Cpu}
+          titulo="Pronto tendrás piezas aquí"
+          texto="Todavía no hay componentes a la venta. Vuelve en unos días o echa un vistazo a los kits."
+        >
+          <Boton href="/kits" variante="secundario">
+            Ver los kits
+          </Boton>
+        </EstadoVacio>
+      )}
 
       {grupos.map(({ id, nombre, descripcion, piezas }) => (
         <section

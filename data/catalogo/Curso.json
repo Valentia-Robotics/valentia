@@ -1,0 +1,29 @@
+[
+  {
+    "_id": {
+      "$oid": "6ad5f9b506cf870884abedf9"
+    },
+    "slug": "programa-tu-coche-robot",
+    "titulo": "Programa tu coche robot",
+    "descripcion": "De cero a un coche que sigue líneas y esquiva obstáculos. Sin conocimientos previos.",
+    "nivel": "Principiante"
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b706cf870884abee07"
+    },
+    "slug": "programa-tu-brazo-robotico",
+    "titulo": "Programa tu brazo robótico",
+    "descripcion": "Aprende a controlar servos y a programar movimientos precisos para coger y soltar objetos.",
+    "nivel": "Intermedio"
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee12"
+    },
+    "slug": "crea-tu-estacion-meteorologica",
+    "titulo": "Crea tu estación meteorológica",
+    "descripcion": "Mide el tiempo con sensores reales y muestra los datos en una pantalla.",
+    "nivel": "Principiante"
+  }
+]

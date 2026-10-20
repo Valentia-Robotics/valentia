@@ -8,6 +8,13 @@ import { SeccionKit } from "@/components/tienda/SeccionKit";
 import type { Metadata } from "next";
 import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
 
+/**
+ * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
+ * cargado después del build (npm run seed:prod en el Pre-Deploy de Render) aparece sin volver a desplegar.
+ * Los cambios del panel se ven al momento (refrescarTienda).
+ */
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   description:
     "Kits de robótica con curso incluido y componentes sueltos. Construye tu propio robot paso a paso, sin saber programar. Envíos a la Comunidad Valenciana.",

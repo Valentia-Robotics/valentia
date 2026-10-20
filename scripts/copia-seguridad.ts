@@ -37,7 +37,11 @@ async function main() {
     }
 
     // Fecha y hora locales en el nombre: valentia_2026-10-19_13-05.json
-    const fecha = new Date().toLocaleString("sv-SE").slice(0, 16).replace(" ", "_").replace(":", "-");
+    const fecha = new Date()
+      .toLocaleString("sv-SE")
+      .slice(0, 16)
+      .replace(" ", "_")
+      .replace(":", "-");
     const carpeta = path.join(process.cwd(), "copias");
     const archivo = path.join(carpeta, `${bd.databaseName}_${fecha}.json`);
     await mkdir(carpeta, { recursive: true });
@@ -49,9 +53,13 @@ async function main() {
       ),
     );
 
-    console.log(`✔ Copia de "${bd.databaseName}": ${colecciones.length} colecciones, ${documentos} documentos.`);
+    console.log(
+      `✔ Copia de "${bd.databaseName}": ${colecciones.length} colecciones, ${documentos} documentos.`,
+    );
     console.log(`  Guardada en ${path.relative(process.cwd(), archivo)}`);
-    console.log("  Guárdala también fuera de este ordenador (tiene datos personales: en un sitio privado).");
+    console.log(
+      "  Guárdala también fuera de este ordenador (tiene datos personales: en un sitio privado).",
+    );
   } finally {
     await cliente.close();
   }

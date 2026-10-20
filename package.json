@@ -14,6 +14,11 @@
     "setup": "prisma db push && prisma db seed",
     "db:generate": "prisma generate",
     "db:catalogo": "tsx scripts/cargar-catalogo.ts",
+    "catalogo:exportar": "tsx scripts/exportar-catalogo.ts",
+    "seed:prod": "tsx scripts/seed-prod.ts",
+    "predeploy:prod": "tsx scripts/predeploy.ts",
+    "prod:admin": "tsx scripts/prod-admin.ts",
+    "db:check": "tsx scripts/comprobar-bd.ts",
     "db:copia": "tsx scripts/copia-seguridad.ts",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
@@ -27,7 +32,7 @@
     "test:e2e": "playwright test"
   },
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -35,9 +40,9 @@
     "aws4fetch": "^1.0.20",
     "bcryptjs": "^3.0.3",
     "clipper-lib": "^6.4.2",
-    "lucide-react": "^1.57.0",
+    "lucide-react": "^1.59.0",
     "mongodb": "^6.21.0",
-    "next": "^16.4.1",
+    "next": "^16.4.2",
     "next-auth": "^5.0.0-beta.32",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",
@@ -60,9 +65,9 @@
     "@types/three": "^0.186.0",
     "dotenv": "^18.0.8",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.4.1",
+    "eslint-config-next": "^16.4.2",
     "eslint-config-prettier": "^10.1.8",
-    "postcss": "^8.5.30",
+    "postcss": "^8.5.31",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "prisma": "^6.19.3",

@@ -11,7 +11,48 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
-### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; TERMINADA, PR abierto)
+### Puesta a punto final (19-10-2026, rama `valentiarobotics/puesta-a-punto`; instrucciones en `PUESTA_A_PUNTO.md`)
+
+Rama desde `main` + PR #9 unido dentro (health, db:check, aviso de Turbopack). El PR #10 (`catalogo:copiar`,
+conectaba a prod desde el ordenador) queda sustituido por `seed:prod`. NUNCA conectar a valentia-prod desde aquí
+ni tocar `.env`. Pruebas con BD temporales en valentia-dev (borrarlas al terminar).
+
+- [x] 1. Depuración: lint, tipos, build, Vitest, Playwright; recorrido de todas las páginas (escritorio y móvil),
+      estados vacíos, npm audit. Hecho: `e2e/todas-las-paginas.spec.ts` + `e2e/recorrer.ts` (sigue enlaces: 23
+      públicas, 11 de cuenta, 120 del panel; consola, HTTP ≥ 400, imágenes rotas, desbordes en móvil; usar
+      `waitForLoadState("load")`, NO "networkidle": las precargas de Next lo cuelgan). Sin errores encontrados.
+      BD vacía: nada se rompe; añadido `ui/EstadoVacio` en /kits y /componentes. Portada, /kits, /kits/[slug],
+      /componentes y sitemap con `revalidate = 300` (el catálogo cargado tras el build aparece solo; probado).
+      Next 16.4.2, postcss, lucide-react. npm audit: 8 altos sin arreglo seguro (eslint-config-next y CLI de Prisma).
+- [x] 2. Catálogo: `catalogo:exportar` → `data/catalogo/*.json` (EJSON canónico, ids y tipos exactos;
+      `promoteValues: false`), `seed:prod` idempotente (nunca borra), `predeploy:prod` (db push SIN
+      --accept-data-loss + seed), `prod:admin` (`scripts/consola.ts`: entrada oculta; por tubería en pruebas).
+      Lógica en `src/lib/catalogoProduccion.ts` (+11 tests): memoria `CatalogoAplicado` (huella por ficha) → no
+      pisa lo editado en el panel si el JSON no cambió, no recrea lo borrado en el panel, nunca toca `stock` de
+      lo que existe, reconoce por slug (Ejercicio: lección + orden) lo cargado con otros ids. Probado en BD
+      temporales (flujo Render: build vacío → predeploy ×2 → la web muestra el catálogo a los 5 min; otros ids,
+      panel, borrado, cambio en JSON, URL mala) y login real del admin creado. BD de prueba borradas.
+- [x] 3. Documentación: DESPLIEGUE.md (Pre-Deploy, Health Check, prod:admin, §6 bis reexportar catálogo),
+      README, INFORME.md (§0 puesta a punto), CLAUDE.md.
+- [x] 4. Final (20-10-2026): lint, tipos, build, Vitest (94) y Playwright (11) en verde; graphify; commit,
+      push y PR hacia main (lo une el usuario). La BD real se llena sola con el Pre-Deploy de Render.
+
+### Arreglo del despliegue en Render (19-10-2026, rama `valentiarobotics/arreglar-despliegue-render`)
+
+- Causa del «Timed Out»: no existía `/api/health` (Health Check Path de Render → 404). Ahora
+  `src/app/api/health/route.ts`: sin parámetros responde al instante SIN tocar la BD; `?db=1` hace ping con
+  límite de 4 s → 503 + motivo en los logs (`[health]`), sin contraseñas. El proxy no pasa por `/api`.
+- `src/lib/diagnosticoBD.ts` (+ test): `revisarDireccion`, `explicarErrorBD`, `ocultarSecretos`, `conTiempoLimite`.
+  `npm run db:check` (`scripts/comprobar-bd.ts`): formato → driver de MongoDB → Prisma, con explicación en español.
+- «tlsv1 alert internal error» / «fatal alert: InternalError» = Atlas corta la conexión cifrada porque la IP no
+  está en Network Access del proyecto del clúster (o clúster en pausa). Pasó en local con `valentia-dev` (la entrada
+  de la IP del usuario no se aplicaba; con `0.0.0.0/0` temporal conectó). La 1.ª conexión de Prisma desde España
+  tarda ~5 s (el primer `?db=1` puede dar `tiempo-agotado`).
+- `engines.node` = `24.x`; `binaryTargets = ["native", "debian-openssl-3.0.x"]`; `npm start` sin `-H` (Next ya
+  escucha en todas las interfaces; con `-H 0.0.0.0` el callbackUrl del login salía con `0.0.0.0`).
+- `local.ts`: `path.resolve(/* turbopackIgnore: true */ process.cwd(), …)` quita el aviso de Turbopack.
+
+### Migración a MongoDB Atlas + Render (19-10-2026, rama `valentiarobotics/migrar-mongodb`; TERMINADA, unida a main)
 
 Decisión del usuario: MongoDB Atlas (M0) en lugar de PostgreSQL, y Render en lugar de Vercel (el PR #2 de Vercel
 queda obsoleto). Prisma 7 no admite MongoDB → Prisma **6.19.3**.

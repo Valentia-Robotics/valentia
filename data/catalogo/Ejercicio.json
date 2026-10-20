@@ -1,0 +1,396 @@
+[
+  {
+    "_id": {
+      "$oid": "6ad5f9b506cf870884abedfb"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b506cf870884abedfa"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿Para qué sirve la caja reductora de los motores amarillos?",
+    "opciones": [
+      "Para que giren más rápido",
+      "Para que giren más despacio pero con más fuerza",
+      "Para que gasten menos pilas"
+    ],
+    "correcta": {
+      "$numberLong": "1"
+    },
+    "explicacion": "La reductora es un juego de engranajes que baja la velocidad del motor y a cambio multiplica su fuerza. Así puede mover el peso del coche.",
+    "solucion": null
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abedfd"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿Qué hace la instrucción delay(1000)?",
+    "opciones": [
+      "Espera 1000 segundos",
+      "Espera 1 segundo",
+      "Enciende el LED 1000 veces"
+    ],
+    "correcta": {
+      "$numberLong": "1"
+    },
+    "explicacion": "delay() espera el número de milisegundos que le indiques. 1000 milisegundos son 1 segundo.",
+    "solucion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b606cf870884abedfc"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abedfe"
+    },
+    "orden": {
+      "$numberLong": "2"
+    },
+    "tipo": "RETO",
+    "enunciado": "Cambia el programa para que el LED parpadee el doble de rápido.",
+    "pistas": [
+      "Fíjate en los números que hay dentro de delay().",
+      "Si esperas la mitad de tiempo, parpadea el doble de rápido."
+    ],
+    "solucion": "Cambia los dos delay(1000) por delay(500). El LED estará medio segundo encendido y medio segundo apagado.",
+    "correcta": null,
+    "explicacion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b606cf870884abedfc"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abee00"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿Por qué no conectamos los motores directamente a la placa Arduino?",
+    "opciones": [
+      "Porque la placa no puede dar tanta corriente como necesitan los motores",
+      "Porque los motores solo funcionan con wifi",
+      "Porque los cables no llegan"
+    ],
+    "correcta": {
+      "$numberLong": "0"
+    },
+    "explicacion": "Los pines de la placa dan muy poca corriente. El driver toma la energía de las pilas y la entrega a los motores siguiendo las órdenes de la placa.",
+    "solucion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b606cf870884abedff"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abee01"
+    },
+    "orden": {
+      "$numberLong": "2"
+    },
+    "tipo": "RETO",
+    "enunciado": "Programa el coche para que dibuje un cuadrado: avanza, gira 90°, y repite cuatro veces.",
+    "pistas": [
+      "Para girar, haz que una rueda avance y la otra retroceda.",
+      "Prueba distintos tiempos de giro hasta que sea un cuarto de vuelta.",
+      "Usa un bucle for que se repita 4 veces."
+    ],
+    "solucion": "for (int i = 0; i < 4; i++) { avanzar(); delay(1000); girarDerecha(); delay(400); } — ajusta el 400 hasta que el giro sea de 90°.",
+    "correcta": null,
+    "explicacion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b606cf870884abedff"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b606cf870884abee03"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b606cf870884abee02"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "Si el sensor izquierdo ve la línea negra y el derecho no, ¿hacia dónde debe girar el coche?",
+    "opciones": [
+      "Hacia la izquierda",
+      "Hacia la derecha",
+      "Debe parar"
+    ],
+    "correcta": {
+      "$numberLong": "0"
+    },
+    "explicacion": "La línea se está escapando por la izquierda, así que el coche gira hacia la izquierda para volver a centrarla.",
+    "solucion": null
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b706cf870884abee05"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿Cómo mide la distancia el sensor de ultrasonidos?",
+    "opciones": [
+      "Con una cámara",
+      "Midiendo cuánto tarda en volver un sonido que rebota",
+      "Con un imán"
+    ],
+    "correcta": {
+      "$numberLong": "1"
+    },
+    "explicacion": "Emite un pulso de sonido muy agudo y cronometra el eco. Cuanto más tarda en volver, más lejos está el obstáculo.",
+    "solucion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b606cf870884abee04"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b706cf870884abee06"
+    },
+    "orden": {
+      "$numberLong": "2"
+    },
+    "tipo": "RETO",
+    "enunciado": "Haz que el coche se detenga si hay un obstáculo a menos de 15 cm y que siga cuando se aparte.",
+    "pistas": [
+      "Lee la distancia en cada vuelta del loop().",
+      "Usa un if para comparar la distancia con 15."
+    ],
+    "solucion": "if (medirDistancia() < 15) { parar(); } else { avanzar(); }",
+    "correcta": null,
+    "explicacion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b606cf870884abee04"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b706cf870884abee09"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b706cf870884abee08"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿Por qué hay que poner los servos a 90° antes de atornillar las piezas?",
+    "opciones": [
+      "Para que el brazo pueda moverse lo mismo hacia cada lado",
+      "Porque si no, no encienden",
+      "Para que gasten menos"
+    ],
+    "correcta": {
+      "$numberLong": "0"
+    },
+    "explicacion": "Un servo gira de 0 a 180°. Si lo montas en la mitad (90°), la articulación tiene el mismo recorrido hacia los dos lados.",
+    "solucion": null
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b706cf870884abee0b"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b706cf870884abee0a"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿Qué instrucción mueve un servo a la posición de 45 grados?",
+    "opciones": [
+      "servo.write(45)",
+      "servo.speed(45)",
+      "digitalWrite(45)"
+    ],
+    "correcta": {
+      "$numberLong": "0"
+    },
+    "explicacion": "Con la librería Servo, write() recibe el ángulo al que quieres que vaya el servo.",
+    "solucion": null
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b806cf870884abee0d"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b806cf870884abee0c"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "RETO",
+    "enunciado": "Haz que la base gire despacio de 0° a 180°, grado a grado.",
+    "correcta": null,
+    "explicacion": null,
+    "pistas": [
+      "Usa un bucle for que vaya de 0 a 180.",
+      "Añade un pequeño delay en cada paso para que sea suave."
+    ],
+    "solucion": "for (int angulo = 0; angulo <= 180; angulo++) { base.write(angulo); delay(15); }"
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b806cf870884abee0f"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b806cf870884abee0e"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿En qué orden debe moverse el brazo para coger un objeto?",
+    "opciones": [
+      "Cerrar la pinza, bajar, abrir la pinza",
+      "Abrir la pinza, bajar, cerrar la pinza, subir",
+      "Subir, cerrar la pinza, bajar"
+    ],
+    "correcta": {
+      "$numberLong": "1"
+    },
+    "explicacion": "Primero se abre la pinza, después se baja hasta el objeto, se cierra para sujetarlo y por último se sube.",
+    "solucion": null
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee11"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b906cf870884abee10"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "RETO",
+    "enunciado": "Guarda tres posiciones de la base en una lista y haz que el brazo las recorra en bucle.",
+    "correcta": null,
+    "explicacion": null,
+    "pistas": [
+      "Una lista de números en Arduino se escribe así: int posiciones[] = {30, 90, 150};",
+      "Recorre la lista con un for de 0 a 2."
+    ],
+    "solucion": "int posiciones[] = {30, 90, 150}; for (int i = 0; i < 3; i++) { base.write(posiciones[i]); delay(800); }"
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee14"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b906cf870884abee13"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿A qué tensión trabajan los pines del ESP32?",
+    "opciones": [
+      "12 V",
+      "5 V",
+      "3,3 V"
+    ],
+    "correcta": {
+      "$numberLong": "2"
+    },
+    "explicacion": "Los pines del ESP32 funcionan a 3,3 V. Conectarles señales de 5 V podría dañarlos.",
+    "solucion": null
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee16"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "¿Cada cuánto tiempo como mínimo se puede leer el DHT22?",
+    "opciones": [
+      "Cada 2 segundos",
+      "1000 veces por segundo",
+      "Una vez al día"
+    ],
+    "correcta": {
+      "$numberLong": "0"
+    },
+    "explicacion": "El DHT22 necesita unos 2 segundos entre lecturas. Si lo lees más rápido, te devolverá el dato anterior o un error.",
+    "solucion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b906cf870884abee15"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee17"
+    },
+    "orden": {
+      "$numberLong": "2"
+    },
+    "tipo": "RETO",
+    "enunciado": "Haz que el zumbador o un LED avise cuando la temperatura pase de 30 °C.",
+    "pistas": [
+      "Guarda la temperatura en una variable.",
+      "Compárala con 30 usando un if."
+    ],
+    "solucion": "float t = dht.readTemperature(); if (t > 30) { digitalWrite(PIN_AVISO, HIGH); } else { digitalWrite(PIN_AVISO, LOW); }",
+    "correcta": null,
+    "explicacion": null,
+    "leccionId": {
+      "$oid": "6ad5f9b906cf870884abee15"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9b906cf870884abee19"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9b906cf870884abee18"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "TEST",
+    "enunciado": "Si la presión del aire baja mucho en pocas horas, ¿qué suele significar?",
+    "opciones": [
+      "Que va a hacer buen tiempo",
+      "Que se acerca mal tiempo",
+      "Nada"
+    ],
+    "correcta": {
+      "$numberLong": "1"
+    },
+    "explicacion": "Una bajada rápida de la presión suele anunciar borrascas: viento y lluvia.",
+    "solucion": null
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9ba06cf870884abee1b"
+    },
+    "leccionId": {
+      "$oid": "6ad5f9ba06cf870884abee1a"
+    },
+    "orden": {
+      "$numberLong": "1"
+    },
+    "tipo": "RETO",
+    "enunciado": "Añade a la pantalla un mensaje que diga «Día» o «Noche» según el sensor de luz.",
+    "correcta": null,
+    "explicacion": null,
+    "pistas": [
+      "Lee el sensor LDR con analogRead().",
+      "Elige un valor límite probando con una linterna."
+    ],
+    "solucion": "int luz = analogRead(PIN_LDR); pantalla.println(luz > 2000 ? \"Día\" : \"Noche\");"
+  }
+]

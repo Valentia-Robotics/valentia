@@ -14,6 +14,43 @@ lanzamiento». Cada bloque tiene su commit en git (`Lanzamiento (1/10)` … `(10
 > datos», «Copias de seguridad») y en CLAUDE.md. Pruebas tras el cambio: 54 unitarias y 8 con navegador
 > en verde contra Atlas, más una revisión del panel, la activación por QR y la concurrencia de stock y códigos.
 
+> **Actualización 20-10-2026 — puesta a punto final** (rama `valentiarobotics/puesta-a-punto`, encargo en
+> `PUESTA_A_PUNTO.md`): web depurada y **catálogo de producción listo para cargarse solo en Render**. Ver
+> §0. Lint, tipos, build, **94 pruebas unitarias** y **11 con navegador** en verde.
+
+## 0. Puesta a punto final (19–20 de octubre de 2026)
+
+**Qué he corregido o añadido**
+
+- **Despliegue «Timed Out» en Render**: no existía `/api/health` (la página que Render visita para saber si
+  la web está viva). Ahora responde al instante sin tocar la base de datos; `/api/health?db=1` prueba
+  también MongoDB (máx. 4 s) y explica el fallo en los Logs. `npm run db:check` diagnostica la conexión.
+- **Aviso de Turbopack** en `src/lib/almacenamiento/local.ts` eliminado.
+- **Recorrido automático de todas las páginas** (`e2e/todas-las-paginas.spec.ts`): 23 públicas, 11 de
+  cuenta y ~120 del panel, más las principales en móvil. Busca errores de consola, errores del servidor,
+  enlaces e imágenes rotas y desbordes. No encontró errores.
+- **Base de datos vacía**: nada se rompe; /kits y /componentes muestran un mensaje amable.
+- **El catálogo aparece solo**: portada, kits, componentes y sitemap se vuelven a leer cada 5 minutos, así
+  que lo que el Pre-Deploy carga después de compilar se ve sin volver a desplegar.
+- **Catálogo de producción** en `data/catalogo/` (exportado de `valentia-dev`: 18 componentes, 3 kits,
+  3 cursos, 14 lecciones, 18 ejercicios; sin usuarios, pedidos, códigos ni progreso) y tres comandos:
+  `catalogo:exportar`, `seed:prod` (carga sin borrar nunca nada) y `predeploy:prod` (`prisma db push` sin
+  pérdida de datos + `seed:prod`). Probado dos veces seguidas en bases de datos temporales: no duplica.
+- **`npm run prod:admin`**: crea tu administrador desde la Shell de Render (contraseña oculta).
+- Actualizaciones: Next 16.4.2, postcss, lucide-react. `npm audit`: quedan 8 avisos «altos» sin arreglo
+  seguro (solo herramientas de desarrollo: ESLint y la CLI de Prisma).
+
+**Decisiones que he tomado**
+
+1. **No me he conectado nunca a `valentia-prod`.** La base de datos real se llena sola en Render con el
+   Pre-Deploy Command al unir el pull request.
+2. `seed:prod` **no pisa** lo que edites en el panel de producción mientras no cambie esa ficha en el JSON,
+   **no recrea** lo que borres allí y **nunca toca el stock** de lo que ya existe (baja con las ventas).
+3. Si `prisma db push` fuera a perder datos, el despliegue **se cancela** y la web sigue con la versión
+   anterior (no se usa `--accept-data-loss`).
+4. Las categorías y reglas de compatibilidad no se exportan: están en el código, no en la base de datos.
+5. El PR #10 (`catalogo:copiar`, que se conectaba a producción desde tu ordenador) queda sustituido.
+
 ## 1. Lo que se ha hecho
 
 | Bloque           | Resumen                                                                                                                                                                                                                                                                                                                                                 |
@@ -86,13 +123,15 @@ Ordenado por prioridad. Ninguno requiere programar; si algo no está claro, píd
    `payment_intent.succeeded` y `payment_intent.canceled`; copia su `whsec_…` en `STRIPE_WEBHOOK_SECRET`.
 7. **Proveedor de correo**: Resend (u otro) con tu dominio verificado. **Sin esto nadie puede registrarse**.
 8. **Fotos en la nube** (Cloudflare R2 o similar) y `npm run fotos:nube -- --hacer` si ya subiste fotos.
-9. **Catálogo y administrador**: desde la Shell de Render, `npm run db:catalogo`; regístrate en la web y
-   ejecuta `npm run admin -- tu@email.com` (`DESPLIEGUE.md` §6).
+9. **Render, tras unir el pull request de la puesta a punto** (`DESPLIEGUE.md` §3 y §6):
+   _Settings → Build & Deploy → Pre-Deploy Command_ = `npm run predeploy:prod`; _Settings → Health Checks →
+   Health Check Path_ = `/api/health`; despliega (el catálogo se carga solo) y, en la pestaña **Shell**,
+   `npm run prod:admin` para crear tu administrador.
 
 ### Importante
 
-10. **Productos y cursos reales** desde el panel; **no** cargues los datos de prueba (seed) ni el usuario o
-    los códigos `VAL-PRUE-…`.
+10. **Revisar el catálogo** cargado (precios, textos, fotos) desde el panel; **no** cargues los datos de
+    prueba (`db:seed`) ni el usuario o los códigos `VAL-PRUE-…`.
 11. **Vídeos** de las lecciones (ahora «PENDIENTE») desde `/admin/cursos`.
 12. **Envío**: confirmar los importes provisionales (4,95 € y gratis desde 50 €) y el plazo, y elegir
     transportista.
@@ -119,8 +158,8 @@ Ordenado por prioridad. Ninguno requiere programar; si algo no está claro, píd
 
 ```bash
 npm run dev          # http://localhost:3000
-npm test             # 51 pruebas unitarias
-npm run test:e2e     # 8 pruebas con navegador (tarda un par de minutos)
+npm test             # 94 pruebas unitarias
+npm run test:e2e     # 11 pruebas con navegador (tarda un par de minutos)
 ```
 
 Para probar una compra: añade un kit al carrito → «Tramitar pedido» → rellena los datos con un código

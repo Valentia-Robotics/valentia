@@ -1,0 +1,98 @@
+[
+  {
+    "_id": {
+      "$oid": "6ad5f9ba06cf870884abee1c"
+    },
+    "slug": "coche-seguidor-de-lineas",
+    "nombre": "Coche seguidor de líneas",
+    "eslogan": "Tu primer robot. Sigue el camino que tú le marques.",
+    "descripcion": "Monta un coche robot desde cero y enséñale a seguir una línea negra en el suelo y a frenar antes de chocar. Es el kit perfecto para empezar: todo encaja con tornillos, no hace falta soldar, y el curso te guía paso a paso desde encender un LED hasta tener tu coche recorriendo el circuito.",
+    "precioCentimos": {
+      "$numberLong": "6990"
+    },
+    "imagen": "/images/kits/coche-seguidor-de-lineas.svg",
+    "nivel": "Principiante",
+    "edadMinima": {
+      "$numberLong": "10"
+    },
+    "tiempoMontaje": "2 horas",
+    "destacado": true,
+    "orden": {
+      "$numberLong": "1"
+    },
+    "puntosFuertes": [
+      "Sigue líneas con dos sensores infrarrojos",
+      "Esquiva obstáculos con ultrasonidos",
+      "Sin soldar: todo con tornillos y cables",
+      "Curso de 5 lecciones incluido"
+    ],
+    "visible": true,
+    "cursoId": {
+      "$oid": "6ad5f9b506cf870884abedf9"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bb06cf870884abee25"
+    },
+    "slug": "brazo-robotico",
+    "nombre": "Brazo robótico",
+    "eslogan": "Coge, gira y suelta. Con la precisión de un robot de verdad.",
+    "descripcion": "Construye un brazo de cuatro articulaciones con pinza, como los que trabajan en las fábricas, pero en tu mesa. Aprenderás cómo funcionan los servos, a mover cada articulación con exactitud y a programar secuencias para que coja objetos y los deje donde tú quieras.",
+    "precioCentimos": {
+      "$numberLong": "7990"
+    },
+    "imagen": "/images/kits/brazo-robotico.svg",
+    "nivel": "Intermedio",
+    "edadMinima": {
+      "$numberLong": "12"
+    },
+    "tiempoMontaje": "3 horas",
+    "destacado": false,
+    "orden": {
+      "$numberLong": "2"
+    },
+    "puntosFuertes": [
+      "4 articulaciones: base, hombro, codo y pinza",
+      "Movimientos precisos con servos",
+      "Programa secuencias de coger y soltar",
+      "Curso de 5 lecciones incluido"
+    ],
+    "visible": true,
+    "cursoId": {
+      "$oid": "6ad5f9b706cf870884abee07"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ad5f9bc06cf870884abee2b"
+    },
+    "slug": "estacion-meteorologica",
+    "nombre": "Estación meteorológica",
+    "eslogan": "Mide el tiempo que hace. Y entiende por qué cambia.",
+    "descripcion": "Crea tu propia estación meteorológica conectada: mide la temperatura, la humedad, la presión del aire y la luz, y muestra los datos en una pequeña pantalla. Con el wifi del ESP32 podrás ir un paso más allá y consultar tus mediciones desde el móvil.",
+    "precioCentimos": {
+      "$numberLong": "5490"
+    },
+    "imagen": "/images/kits/estacion-meteorologica.svg",
+    "nivel": "Principiante",
+    "edadMinima": {
+      "$numberLong": "10"
+    },
+    "tiempoMontaje": "1 hora y media",
+    "destacado": false,
+    "orden": {
+      "$numberLong": "3"
+    },
+    "puntosFuertes": [
+      "Temperatura, humedad, presión y luz",
+      "Pantalla OLED para ver los datos al momento",
+      "Placa con wifi para proyectos conectados",
+      "Curso de 4 lecciones incluido"
+    ],
+    "visible": true,
+    "cursoId": {
+      "$oid": "6ad5f9b906cf870884abee12"
+    }
+  }
+]
