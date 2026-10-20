@@ -151,7 +151,7 @@ Notas técnicas de la fase de lanzamiento:
 - Pedidos (`src/lib/pedidos.ts`): stock RESERVADO al crear (PENDIENTE), `marcarPedidoPagado` idempotente con
   `updateMany` condicionado, `liberarPedidosCaducados` (60 min, se llama al preparar cada pedido),
   `PEDIDO_COBRADO` (filtro de pagados no cancelados). Enlace privado `tokenAccesoPedido` = HMAC(AUTH_SECRET).
-  Estados y transiciones del panel en `src/config/estadosPedido.ts`. Correos en `src/lib/avisosPedido.ts`.
+  Estados y transiciones del panel en `src/config/estadosPedido.ts`. Correos en `src/lib/avisosPedido.ts` (al pagar también avisa a la tienda: `AVISO_PEDIDOS_EMAIL` o, si está vacío, los ADMIN).
 - Pagos: `src/lib/pagos/index.ts` (`modoPago()`: stripe | simulado | desactivado), `stripe.ts`, webhook
   `src/app/api/pagos/stripe/route.ts` (tabla `EventoStripe`). Checkout: `prepararPedido` → `PagoStripe` o
   `confirmarPagoSimulado`. El formulario del checkout usa onSubmit + startTransition (no `action`, que reinicia el form).
