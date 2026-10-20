@@ -81,8 +81,8 @@ Son iguales que en cualquier hosting; están explicados en el README y en `INFOR
   - **Cloudflare R2** (nube): un bucket con acceso público de lectura y una clave solo para él
     (README «Fotos en la nube»). Variables `ALMACEN_*` con `ALMACEN_PROVEEDOR=nube`.
 
-  Las fotos del **catálogo exportado desde local** no necesitan nada de esto: van en git
-  (`public/images/`), ver §6 bis.
+  Las fotos del **catálogo inicial** (exportado desde local) no necesitan nada de esto: van en git
+  (`public/images/`), ver §6 bis. Las que subas después desde el panel de producción, sí.
 
 - **Correo (Resend)**: verifica tu dominio y crea una clave (`re_…`). **Sin esto nadie puede registrarse
   ni iniciar sesión**, porque la web envía un código por correo.
@@ -154,8 +154,8 @@ publica la nueva versión sola.
      migraciones, así que **se ejecuta en cada despliegue**. Si un cambio del esquema pudiera **borrar
      datos**, se para con un mensaje claro, el despliegue se cancela **sin tocar nada** y la web sigue con
      la versión anterior. En ese caso, haz una copia (§7) y pregunta antes de seguir.
-  2. `seed:prod`: carga el catálogo de `data/catalogo/` (ver §6 bis). Crea lo que falta y actualiza lo
-     que ha cambiado en esos archivos; **nunca borra nada** ni toca usuarios, pedidos o códigos.
+  2. `seed:prod`: crea lo que **falte** del catálogo de `data/catalogo/` (ver §6 bis). Lo que ya existe en
+     producción **no se modifica nunca** y **no se borra nada**; tampoco toca usuarios, pedidos o códigos.
 
 ## 4. Network Access: solo las IP de Render
 
@@ -191,7 +191,8 @@ Address_, marca **«This entry is temporary»** (por ejemplo, 6 horas). Así no 
 
 ## 6. Primera puesta en marcha: catálogo y administrador
 
-**El catálogo se carga solo** en cada despliegue (Pre-Deploy Command, §3): no hay que hacer nada. Si la
+**El catálogo se carga solo** la primera vez (Pre-Deploy Command, §3): no hay que hacer nada. Desde
+entonces lo gestionas en el panel de administración de producción (§6 bis). Si la
 web acaba de publicarse y la portada aún dice «Los kits están en camino», espera unos minutos y recarga.
 
 **Tu usuario administrador**: en Render, abre el servicio → pestaña **Shell** (una terminal dentro del
@@ -218,13 +219,49 @@ Después:
 contraseña incorrecta. A la undécima debe salir «Demasiados intentos». Si no sale nunca, avisa: puede que
 Render pase la IP del visitante en una cabecera distinta de las que lee `src/lib/limite.ts`.
 
-## 6 bis. Cambiar el catálogo desde local y publicarlo
+## 6 bis. El catálogo de producción: se gestiona desde el panel
 
-El catálogo que se carga en producción está en **`data/catalogo/`** (un archivo por colección:
-`Componente`, `Kit`, `KitComponente`, `Curso`, `Leccion`, `Ejercicio`), con los mismos ids que en
-`valentia-dev`. Las categorías, las reglas de compatibilidad y los ajustes de la tienda están en el código.
+**A partir del primer despliegue, el catálogo de producción se gestiona desde el panel de administración
+de producción** (`https://tudominio.es/admin`): precios, textos, fotos, stock, kits nuevos, ocultar o
+borrar productos, cursos y lecciones… Lo que cambies allí es lo que manda, y ningún despliegue lo pisa.
 
-Cuando cambies el catálogo en tu `/admin` local (con tu `.env` apuntando a `valentia-dev`):
+`data/catalogo/` (un archivo por colección: `Componente`, `Kit`, `KitComponente`, `Curso`, `Leccion`,
+`Ejercicio`, con los mismos ids que en `valentia-dev`) solo sirve para **rellenar lo que falta**: el
+catálogo inicial la primera vez y, si alguna vez lo necesitas, fichas nuevas. Las categorías, las reglas
+de compatibilidad y los ajustes de la tienda están en el código.
+
+Qué hace `seed:prod` en cada despliegue (también lo puedes lanzar a mano en la Shell de Render; con
+`npm run seed:prod -- --dry-run` solo enseña lo que haría):
+
+- **Solo crea** lo que **no existe** en producción.
+- **Nunca modifica** lo que ya existe, aunque en `data/catalogo/` sea distinto: ni el precio, ni los
+  textos, ni las fotos, ni el stock (baja con las ventas).
+- **No añade piezas, lecciones ni ejercicios** a un kit, curso o lección que ya existía (eso también sería
+  modificarlo). Solo se crean junto con su kit, curso o lección cuando este es nuevo.
+- **Nunca borra**. Lo creado en el panel de producción se queda.
+- **Lo que borres en el panel de producción no vuelve** en el siguiente despliegue: `seed:prod` recuerda
+  (en la colección `CatalogoAplicado`) qué fichas ya estuvieron en producción.
+- **Nunca toca** usuarios, pedidos, códigos de activación ni progreso de los cursos.
+- Si producción ya tenía el catálogo con otros ids (cargado antes con `npm run db:catalogo`), lo
+  reconoce por su nombre (slug): ni lo duplica ni lo modifica.
+- Si una ficha nueva chocara con otra que ya existe (por ejemplo, el mismo slug), se para sin escribir
+  nada y el despliegue se cancela con el motivo en los _Logs_. Cambia el slug en uno de los dos sitios.
+
+En los _Logs_ del despliegue verás una tabla con lo que se ha **creado**, lo que **ya existía** (y se ha
+dejado tal cual) y lo **omitido** (con el motivo).
+
+### Cambiar algo del catálogo de producción
+
+Hazlo **directamente en el panel de producción**. No hace falta tocar `data/catalogo/` ni desplegar: la
+portada, los kits y los componentes muestran el cambio en 5 minutos como mucho.
+
+> Cambiar una ficha en tu panel local y volver a exportarla **ya no** cambia producción: como esa ficha ya
+> existe allí, `seed:prod` la deja como está.
+
+### Añadir fichas nuevas desde local (opcional)
+
+Si prefieres preparar algo nuevo (por ejemplo, un kit completo con su curso) en tu `/admin` local (con tu
+`.env` apuntando a `valentia-dev`):
 
 1. Exporta (solo lee tu base de datos de desarrollo; **no se conecta a producción**):
    ```powershell
@@ -232,23 +269,7 @@ Cuando cambies el catálogo en tu `/admin` local (con tu `.env` apuntando a `val
    ```
    Las fotos que subiste desde el panel local se copian a `public/images/catalogo/` y el JSON apunta ahí.
 2. Rama nueva, commit de `data/catalogo/` y `public/images/`, pull request y únelo a `main`.
-3. Render despliega y el Pre-Deploy carga los cambios. En los _Logs_ del despliegue verás una tabla con
-   lo que se ha creado, actualizado o dejado igual.
-
-Qué hace exactamente `seed:prod` (también lo puedes lanzar a mano en la Shell; con `-- --dry-run` solo
-enseña lo que haría):
-
-- **Crea** lo que no existe y **actualiza** solo las fichas que **han cambiado en `data/catalogo/`** desde
-  la última vez. Lo que edites directamente en el panel de producción **no se pisa** mientras no cambies
-  esa ficha en local y la vuelvas a exportar.
-- **Nunca borra**. Lo creado en el panel de producción se queda. Si borras algo en el panel de producción,
-  no se vuelve a crear. Para quitar un producto de la tienda, ocúltalo o bórralo en el panel de producción.
-- **El stock** de un componente que ya existe en producción **no se toca nunca** (baja con las ventas).
-- **Nunca toca** usuarios, pedidos, códigos de activación ni progreso de los cursos.
-- Si producción ya tenía el catálogo con otros ids (cargado antes con `npm run db:catalogo`), lo
-  reconoce por su nombre (slug) y no lo duplica.
-- Si algo chocara (por ejemplo, dos kits con el mismo slug), se para sin escribir nada y el despliegue se
-  cancela con el motivo en los _Logs_.
+3. Render despliega y el Pre-Deploy crea **solo lo nuevo**. Lo que ya existía en producción no cambia.
 
 ## 7. Copias de seguridad
 
@@ -343,6 +364,8 @@ nunca recibe un «200 OK», cancela el despliegue y deja la versión anterior.
 
 ## El día a día
 
+- **Cambiar el catálogo** (precios, stock, kits, cursos…) = el panel de administración de producción
+  (`/admin`). No hace falta desplegar (§6 bis).
 - **Publicar un cambio** = unir su pull request a `main` en GitHub. Render lo publica en unos minutos
   (lo ves en la pestaña _Events_ del servicio).
 - **Si una publicación falla**, la web sigue con la versión anterior; el motivo está en _Events → Deploy

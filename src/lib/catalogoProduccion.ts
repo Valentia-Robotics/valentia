@@ -4,17 +4,18 @@
  *   npm run catalogo:exportar  (tu ordenador)  valentia-dev → data/catalogo/*.json
  *   npm run seed:prod          (Render)        data/catalogo/*.json → la base de datos de DATABASE_URL
  *
- * Reglas de seed:prod (pensadas para ejecutarse en CADA despliegue sin estropear nada):
+ * El catálogo de producción se gestiona desde el panel de administración de producción. seed:prod solo
+ * rellena lo que FALTA (pensado para ejecutarse en CADA despliegue sin estropear nada):
  *   - Solo las 6 colecciones del catálogo. Usuarios, pedidos, códigos y progreso no se tocan nunca.
+ *   - SOLO CREA lo que no existe (con el mismo id que en el JSON, así las relaciones se mantienen).
+ *   - NUNCA modifica lo que ya existe en producción (ni precio, ni textos, ni stock…), aunque el JSON sea distinto.
+ *   - Tampoco añade piezas, lecciones ni ejercicios a un kit, curso o lección que ya existía: eso también
+ *     sería modificarlo. Solo se crean junto con su kit, curso o lección cuando este es nuevo.
  *   - NUNCA borra. Lo que hay en producción y no está en el JSON (por ejemplo, creado en el panel) se queda.
- *   - Crea lo que falta (con el mismo id que en el JSON, así las relaciones se mantienen).
- *   - Actualiza una ficha SOLO si ha cambiado en el JSON desde la última vez que se aplicó (se guarda una
- *     huella en la colección CatalogoAplicado). Así, lo que edites en el panel de producción no se pisa
- *     en cada despliegue; solo cuando vuelvas a exportar esa ficha cambiada desde local.
- *   - Si algo se aplicó antes y ya no existe en producción, es que se borró desde el panel: no se vuelve a crear.
- *   - El stock de un componente que ya existe no se toca nunca (baja con las ventas).
+ *   - Recuerda lo que ya estaba o creó (colección CatalogoAplicado): si después se borra desde el panel,
+ *     no se vuelve a crear en el siguiente despliegue.
  *   - Si producción ya tiene la ficha con otro id (por ejemplo, cargada con db:catalogo), se reconoce por su
- *     slug y se actualiza esa (no se duplica).
+ *     slug y se da por existente (no se duplica).
  */
 import { createHash } from "node:crypto";
 import { BSON, type ObjectId } from "mongodb";
@@ -69,8 +70,15 @@ const UNICOS: Record<ColeccionCatalogo, string[][]> = {
   Ejercicio: [],
 };
 
-/** Campos que solo se ponen al crear (nunca se actualizan en producción) */
-const SOLO_AL_CREAR: Partial<Record<ColeccionCatalogo, string[]>> = { Componente: ["stock"] };
+/**
+ * Campo que apunta a la ficha "dueña" (las piezas son parte del kit; las lecciones, del curso…).
+ * Si la dueña ya existía en producción, sus fichas hijas no se crean: sería modificarla.
+ */
+const DUENA: Partial<Record<ColeccionCatalogo, string>> = {
+  KitComponente: "kitId",
+  Leccion: "cursoId",
+  Ejercicio: "leccionId",
+};
 
 const texto = (valor: unknown) => String(valor);
 
@@ -98,11 +106,10 @@ export function canonico(valor: unknown): string {
   return EJSON.stringify(ordenarClaves(valor), { relaxed: false });
 }
 
-/** Huella de una ficha del JSON (sin el id ni los campos que solo se ponen al crear) */
-export function huella(coleccion: ColeccionCatalogo, doc: Doc): string {
+/** Huella de una ficha del JSON (sin el id). Solo se guarda como recuerdo; no decide nada. */
+export function huella(doc: Doc): string {
   const copia: Record<string, unknown> = { ...doc };
   delete copia._id;
-  for (const campo of SOLO_AL_CREAR[coleccion] ?? []) delete copia[campo];
   return createHash("sha256").update(canonico(copia)).digest("hex");
 }
 
@@ -172,12 +179,13 @@ export interface Aplicado {
   hash: string;
 }
 
-export type TipoOperacion = "crear" | "actualizar" | "registrar";
+/** crear = ficha nueva en el catálogo; registrar = ya existía: solo se apunta en CatalogoAplicado */
+export type TipoOperacion = "crear" | "registrar";
 
 export interface Operacion {
   coleccion: ColeccionCatalogo;
   tipo: TipoOperacion;
-  /** Documento final, con el id de producción (para "registrar" no se escribe) */
+  /** Documento que se crea (para "registrar" no se escribe) */
   doc: Doc;
   /** Lo que se guarda en CatalogoAplicado */
   aplicado: Aplicado;
@@ -185,8 +193,8 @@ export interface Operacion {
 
 export interface ResumenColeccion {
   crear: number;
-  actualizar: number;
-  sinCambios: number;
+  /** Ya estaban en producción: se dejan tal cual */
+  existentes: number;
   omitidos: number;
 }
 
@@ -220,15 +228,17 @@ export function planificarSemilla(
   const omitidos: string[] = [];
   const conflictos: string[] = [];
   const resumen = Object.fromEntries(
-    COLECCIONES_CATALOGO.map((c) => [c, { crear: 0, actualizar: 0, sinCambios: 0, omitidos: 0 }]),
+    COLECCIONES_CATALOGO.map((c) => [c, { crear: 0, existentes: 0, omitidos: 0 }]),
   ) as Record<ColeccionCatalogo, ResumenColeccion>;
+  /** "Coleccion:idJSON" de las fichas que se crean en esta ejecución */
+  const nuevas = new Set<string>();
 
   for (const coleccion of COLECCIONES_CATALOGO) {
     const enProd = new Map(prod[coleccion].map((d) => [texto(d._id), d]));
     const porClave = new Map(prod[coleccion].map((d) => [claveNatural(coleccion, d), d]));
     /** Fichas de producción ya emparejadas con una del JSON (no se puede usar dos veces) */
     const usadas = new Set<string>();
-    /** Estado final de la colección (producción + cambios) para comprobar los únicos */
+    /** Estado final de la colección (producción + lo creado) para comprobar los únicos */
     const final = new Map(enProd);
 
     for (const original of json[coleccion]) {
@@ -247,21 +257,20 @@ export function planificarSemilla(
         else padreQueFalta = destino;
       }
       if (padreQueFalta) {
-        omitir(`su ${padreQueFalta} no se ha aplicado`);
+        omitir(`su ${padreQueFalta} no está en producción`);
         continue;
       }
 
       const clave = `${coleccion}:${texto(original._id)}`;
-      const hash = huella(coleccion, original);
       const recuerdo = memoria.get(clave);
 
-      // 2. ¿Qué ficha de producción le corresponde?
+      // 2. ¿Ya existe en producción?
       let actual: Doc | undefined;
       if (recuerdo) {
         actual = enProd.get(texto(recuerdo.prodId));
         if (!actual) {
           omitir(
-            "se aplicó antes y ya no está en producción (borrada desde el panel): no se vuelve a crear",
+            "estuvo en producción y ya no está (borrada desde el panel): no se vuelve a crear",
           );
           continue;
         }
@@ -279,37 +288,47 @@ export function planificarSemilla(
         }
       }
 
-      const prodId = actual?._id ?? original._id;
-      traduccion.set(clave, prodId);
-      if (actual) usadas.add(texto(actual._id));
-      const aplicado: Aplicado = { _id: clave, coleccion, prodId, hash };
+      // 3. Ya existe: se deja tal cual (solo se recuerda, por si luego se borra desde el panel)
+      if (actual) {
+        traduccion.set(clave, actual._id);
+        usadas.add(texto(actual._id));
+        resumen[coleccion].existentes++;
+        if (!recuerdo) {
+          const aplicado: Aplicado = {
+            _id: clave,
+            coleccion,
+            prodId: actual._id,
+            hash: huella(original),
+          };
+          operaciones.push({ coleccion, tipo: "registrar", doc: actual, aplicado });
+        }
+        continue;
+      }
 
-      // 3. Crear, actualizar o nada
-      if (!actual) {
-        operaciones.push({ coleccion, tipo: "crear", doc, aplicado });
-        resumen[coleccion].crear++;
-        final.set(texto(prodId), doc);
-        continue;
+      // 4. No existe. Si es parte de un kit, curso o lección que ya existía, no se añade (sería modificarlo)
+      const campoDuena = DUENA[coleccion];
+      if (campoDuena) {
+        const destino = REFERENCIAS[coleccion][campoDuena];
+        if (!nuevas.has(`${destino}:${texto(original[campoDuena])}`)) {
+          omitir(`su ${destino} ya existe en producción y no se modifica`);
+          continue;
+        }
       }
-      if (recuerdo && recuerdo.hash === hash) {
-        resumen[coleccion].sinCambios++; // no ha cambiado en el JSON: se respeta lo que haya en producción
-        continue;
-      }
-      const nuevo: Doc = { ...doc, _id: actual._id };
-      for (const campo of SOLO_AL_CREAR[coleccion] ?? []) {
-        if (campo in actual) nuevo[campo] = actual[campo];
-      }
-      if (canonico(nuevo) === canonico(actual)) {
-        operaciones.push({ coleccion, tipo: "registrar", doc: nuevo, aplicado });
-        resumen[coleccion].sinCambios++;
-      } else {
-        operaciones.push({ coleccion, tipo: "actualizar", doc: nuevo, aplicado });
-        resumen[coleccion].actualizar++;
-        final.set(texto(actual._id), nuevo);
-      }
+
+      traduccion.set(clave, original._id);
+      nuevas.add(clave);
+      const aplicado: Aplicado = {
+        _id: clave,
+        coleccion,
+        prodId: original._id,
+        hash: huella(original),
+      };
+      operaciones.push({ coleccion, tipo: "crear", doc, aplicado });
+      resumen[coleccion].crear++;
+      final.set(texto(original._id), doc);
     }
 
-    // 4. Únicos: lo nuevo no puede chocar con lo que ya hay en producción
+    // 5. Únicos: lo nuevo no puede chocar con lo que ya hay en producción
     for (const campos of UNICOS[coleccion]) {
       const vistos = new Map<string, Doc>();
       for (const doc of final.values()) {
@@ -318,7 +337,7 @@ export function planificarSemilla(
         if (otro) {
           conflictos.push(
             `${coleccion}: ${nombreDoc(doc)} y ${nombreDoc(otro)} tendrían el mismo ${campos.join(" + ")}. ` +
-              "Cambia uno de los dos en el panel de producción o en local (y vuelve a exportar).",
+              "Cambia el slug en el panel de producción o en local (y vuelve a exportar).",
           );
         } else vistos.set(valor, doc);
       }

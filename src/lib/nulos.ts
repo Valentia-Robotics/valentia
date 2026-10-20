@@ -47,7 +47,11 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "confirmadoEn" },
     { campo: "usadoEn" },
   ],
-  DispositivoConfianza: [{ campo: "paseHash" }, { campo: "paseCaducaEn" }],
+  DispositivoConfianza: [
+    { campo: "paseHash" },
+    { campo: "paseCaducaEn" },
+    { campo: "sesionCerradaEn" },
+  ],
   ProgresoEjercicio: [{ campo: "respuesta" }],
 };
 

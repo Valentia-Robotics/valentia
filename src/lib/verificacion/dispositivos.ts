@@ -143,12 +143,14 @@ export async function canjearPase(pase: string) {
 
 /**
  * ¿Sigue valiendo la sesión? (la llama Auth.js cada vez que se lee la sesión)
- * Vale si el dispositivo existe, es de ese usuario, no ha caducado y el email está verificado.
+ * Vale si el dispositivo existe, es de ese usuario, no ha caducado, el email está verificado
+ * y la sesión se abrió DESPUÉS del último "Cerrar sesión" en ese navegador.
  * Devuelve el rol actual (para el menú) o null si la sesión ya no vale.
  */
 export async function comprobarSesion(
   usuarioId: string,
   dispositivoId: string,
+  abiertaEn = 0,
 ): Promise<Rol | null> {
   const dispositivo = await db.dispositivoConfianza.findUnique({
     where: { id: dispositivoId },
@@ -156,6 +158,7 @@ export async function comprobarSesion(
       usuarioId: true,
       caducaEn: true,
       ultimoUsoEn: true,
+      sesionCerradaEn: true,
       usuario: { select: { rol: true, emailVerificadoEn: true } },
     },
   });
@@ -164,7 +167,8 @@ export async function comprobarSesion(
     !dispositivo ||
     dispositivo.usuarioId !== usuarioId ||
     dispositivo.caducaEn.getTime() < ahora ||
-    !dispositivo.usuario.emailVerificadoEn
+    !dispositivo.usuario.emailVerificadoEn ||
+    (dispositivo.sesionCerradaEn && abiertaEn <= dispositivo.sesionCerradaEn.getTime())
   ) {
     return null;
   }
@@ -177,6 +181,18 @@ export async function comprobarSesion(
     });
   }
   return dispositivo.usuario.rol;
+}
+
+/**
+ * "Cerrar sesión": apunta la hora en el dispositivo. Así la sesión cerrada ya no vale aunque
+ * una petición que iba a la vez (la librería consulta la sesión justo al salir) intente
+ * renovar su cookie. El navegador SIGUE siendo de confianza: al volver a entrar no pide código.
+ */
+export async function marcarSesionCerrada(usuarioId: string, dispositivoId: string) {
+  await db.dispositivoConfianza.updateMany({
+    where: { id: dispositivoId, usuarioId },
+    data: { sesionCerradaEn: new Date() },
+  });
 }
 
 /** Los dispositivos de confianza de un usuario (para "Mis dispositivos"), del más reciente al más antiguo */

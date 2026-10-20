@@ -243,7 +243,7 @@ web y Atlas está en Internet).
 | `npm run admin`                 | Da o quita el rol de administrador                                         |
 | `npm run prod:admin`            | Crea o asciende el administrador (Shell de Render; contraseña oculta)      |
 | `npm run catalogo:exportar`     | Guarda el catálogo de `valentia-dev` en `data/catalogo/` (ver DESPLIEGUE)  |
-| `npm run seed:prod`             | Carga `data/catalogo/` sin borrar nada (`-- --dry-run`: solo simula)       |
+| `npm run seed:prod`             | Solo crea lo que falta de `data/catalogo/` (`-- --dry-run`: simula)        |
 | `npm run predeploy:prod`        | Pre-Deploy de Render: `db push` sin pérdida de datos + `seed:prod`         |
 | `npm run db:check`              | Prueba la conexión con MongoDB y explica el error                          |
 | `npm run db:push`               | Aplica `prisma/schema.prisma` a la base de datos (colecciones e índices)   |
@@ -382,9 +382,9 @@ En resumen:
 4. **Stripe**: claves reales, `STRIPE_PERMITIR_CLAVES_REALES="si"` y webhook en el panel de Stripe.
 5. **Correo**: Resend con tu dominio verificado (sin esto nadie puede registrarse).
 6. **Fotos del panel de producción**: Disk de Render o nube (ver `DESPLIEGUE.md` §2).
-7. **Catálogo**: se carga solo en cada despliegue desde `data/catalogo/` (Pre-Deploy Command
-   `npm run predeploy:prod`). Para cambiarlo: edítalo en tu panel local, `npm run catalogo:exportar`, commit
-   y pull request (`DESPLIEGUE.md` §6 bis).
+7. **Catálogo**: el inicial se carga solo desde `data/catalogo/` (Pre-Deploy Command `npm run predeploy:prod`,
+   que solo crea lo que falta). Después se gestiona desde el **panel de administración de producción**: los
+   despliegues nunca modifican lo que ya existe (`DESPLIEGUE.md` §6 bis).
 8. **Administrador**: `npm run prod:admin` desde la Shell de Render. No cargues el seed de desarrollo.
 9. **Vídeos** de los cursos (ahora «PENDIENTE») desde `/admin/cursos`.
 

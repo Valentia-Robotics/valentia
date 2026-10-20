@@ -18,5 +18,7 @@ declare module "@auth/core/jwt" {
   interface JWT {
     rol?: "CLIENTE" | "ADMIN";
     dispositivoId?: string;
+    /** Cuándo se abrió la sesión (milisegundos): al cerrar sesión, las anteriores dejan de valer */
+    abiertaEn?: number;
   }
 }

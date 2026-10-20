@@ -1,7 +1,6 @@
 import { ObjectId } from "mongodb";
 import { describe, expect, it } from "vitest";
 import {
-  huella,
   planificarSemilla,
   revisarCatalogo,
   rutaImagenExportada,
@@ -44,15 +43,13 @@ function aplicar(prod: Catalogo, memoria: Aplicado[], plan: PlanSemilla) {
   const recuerdos = new Map(memoria.map((a) => [a._id, a]));
   for (const op of plan.operaciones) {
     const lista = nuevo[op.coleccion];
-    const i = lista.findIndex((d) => String(d._id) === String(op.doc._id));
     if (op.tipo === "crear") lista.push(op.doc);
-    if (op.tipo === "actualizar") lista[i] = op.doc;
     recuerdos.set(op.aplicado._id, op.aplicado);
   }
   return { prod: nuevo, memoria: [...recuerdos.values()] };
 }
 
-const totales = (plan: PlanSemilla, campo: "crear" | "actualizar" | "sinCambios" | "omitidos") =>
+const totales = (plan: PlanSemilla, campo: "crear" | "existentes" | "omitidos") =>
   Object.values(plan.resumen).reduce((t, r) => t + r[campo], 0);
 
 describe("revisarCatalogo", () => {
@@ -86,32 +83,66 @@ describe("planificarSemilla", () => {
     const despues = aplicar(vacio(), [], plan);
     const otraVez = planificarSemilla(json, despues.prod, despues.memoria);
     expect(otraVez.operaciones).toEqual([]);
-    expect(totales(otraVez, "sinCambios")).toBe(6);
+    expect(totales(otraVez, "existentes")).toBe(6);
   });
 
-  it("no pisa lo editado en el panel si el JSON no ha cambiado", () => {
+  it("nunca modifica lo que ya existe, aunque el JSON sea distinto (tampoco el stock)", () => {
     const json = catalogo();
     const { prod, memoria } = aplicar(vacio(), [], planificarSemilla(json, vacio(), []));
     prod.Componente[0].precioCentimos = 999; // cambiado en el panel de producción
-    expect(planificarSemilla(json, prod, memoria).operaciones).toEqual([]);
-  });
-
-  it("actualiza si cambia en el JSON, pero nunca toca el stock", () => {
-    const json = catalogo();
-    const { prod, memoria } = aplicar(vacio(), [], planificarSemilla(json, vacio(), []));
     prod.Componente[0].stock = 3; // se han vendido 7
-    json.Componente[0].precioCentimos = 650;
+    json.Componente[0].precioCentimos = 650; // y también cambiado en local
     json.Componente[0].stock = 50;
     const plan = planificarSemilla(json, prod, memoria);
-    expect(plan.operaciones).toHaveLength(1);
-    expect(plan.operaciones[0].tipo).toBe("actualizar");
-    expect(plan.operaciones[0].doc).toMatchObject({ precioCentimos: 650, stock: 3 });
+    expect(plan.operaciones).toEqual([]);
+    expect(aplicar(prod, memoria, plan).prod.Componente[0]).toMatchObject({
+      precioCentimos: 999,
+      stock: 3,
+    });
   });
 
-  it("un cambio solo de stock en el JSON no actualiza nada", () => {
+  it("crea solo lo nuevo del JSON y deja igual lo que ya había", () => {
     const json = catalogo();
-    const sinStock = huella("Componente", json.Componente[0]);
-    expect(huella("Componente", { ...json.Componente[0], stock: 99 })).toBe(sinStock);
+    const { prod, memoria } = aplicar(vacio(), [], planificarSemilla(json, vacio(), []));
+    const sensor: Doc = { _id: new ObjectId(), slug: "sensor", precioCentimos: 300, stock: 5 };
+    json.Componente.push(sensor);
+    json.Curso[0].titulo = "Otro título";
+    const plan = planificarSemilla(json, prod, memoria);
+    expect(plan.operaciones).toHaveLength(1);
+    expect(plan.operaciones[0]).toMatchObject({ tipo: "crear", doc: sensor });
+    expect(plan.resumen.Componente).toEqual({ crear: 1, existentes: 1, omitidos: 0 });
+  });
+
+  it("no añade piezas, lecciones ni ejercicios a un kit, curso o lección que ya existía", () => {
+    const json = catalogo();
+    const { prod, memoria } = aplicar(vacio(), [], planificarSemilla(json, vacio(), []));
+    const sensor: Doc = { _id: new ObjectId(), slug: "sensor" };
+    json.Componente.push(sensor);
+    json.KitComponente.push({
+      _id: new ObjectId(),
+      kitId: json.Kit[0]._id,
+      componenteId: sensor._id,
+      cantidad: 1,
+    });
+    json.Leccion.push({ _id: new ObjectId(), cursoId: json.Curso[0]._id, slug: "extra", orden: 2 });
+    json.Ejercicio.push({ _id: new ObjectId(), leccionId: json.Leccion[0]._id, orden: 2 });
+    const plan = planificarSemilla(json, prod, memoria);
+    // Solo se crea el componente suelto
+    expect(plan.operaciones.map((op) => op.coleccion)).toEqual(["Componente"]);
+    expect(plan.omitidos).toHaveLength(3);
+  });
+
+  it("un curso nuevo se crea con sus lecciones y ejercicios", () => {
+    const json = catalogo();
+    const { prod, memoria } = aplicar(vacio(), [], planificarSemilla(json, vacio(), []));
+    const curso: Doc = { _id: new ObjectId(), slug: "brazo" };
+    const leccion: Doc = { _id: new ObjectId(), cursoId: curso._id, slug: "intro", orden: 1 };
+    json.Curso.push(curso);
+    json.Leccion.push(leccion);
+    json.Ejercicio.push({ _id: new ObjectId(), leccionId: leccion._id, orden: 1 });
+    const plan = planificarSemilla(json, prod, memoria);
+    expect(plan.operaciones.map((op) => op.coleccion)).toEqual(["Curso", "Leccion", "Ejercicio"]);
+    expect(plan.operaciones.every((op) => op.tipo === "crear")).toBe(true);
   });
 
   it("nunca borra lo que no está en el JSON", () => {
@@ -133,17 +164,17 @@ describe("planificarSemilla", () => {
     expect(plan.omitidos).toHaveLength(2); // el kit y su pieza
   });
 
-  it("reconoce por slug lo cargado con otro id (db:catalogo) y no duplica", () => {
+  it("reconoce por slug lo cargado con otro id (db:catalogo): no duplica ni modifica", () => {
     const json = catalogo();
     const prod = catalogo(); // mismo contenido, otros ids
     prod.Componente[0].precioCentimos = 400;
     const plan = planificarSemilla(json, prod, []);
     expect(totales(plan, "crear")).toBe(0);
-    expect(plan.resumen.Componente.actualizar).toBe(1);
-    // Las referencias apuntan a los ids de producción
-    const pieza = plan.operaciones.find((op) => op.coleccion === "KitComponente")!.doc;
-    expect(pieza.kitId).toBe(prod.Kit[0]._id);
-    expect(pieza.componenteId).toBe(prod.Componente[0]._id);
+    expect(totales(plan, "existentes")).toBe(6);
+    // Solo se apunta en la memoria, con el id de producción (así, si se borra en el panel, no vuelve)
+    expect(plan.operaciones.every((op) => op.tipo === "registrar")).toBe(true);
+    const pieza = plan.operaciones.find((op) => op.coleccion === "KitComponente")!;
+    expect(pieza.aplicado.prodId).toBe(prod.KitComponente[0]._id);
     expect(plan.conflictos).toEqual([]);
   });
 

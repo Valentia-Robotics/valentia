@@ -34,6 +34,7 @@ export const authConfig = {
       if (user?.id) token.sub = user.id;
       if (user?.rol) token.rol = user.rol;
       if (user?.dispositivoId) token.dispositivoId = user.dispositivoId;
+      if (user) token.abiertaEn = Date.now();
       return token;
     },
     session({ session, token }) {
