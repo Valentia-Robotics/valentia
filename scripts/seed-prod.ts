@@ -1,9 +1,10 @@
 /**
  * CARGAR EL CATÁLOGO EN PRODUCCIÓN (data/catalogo/ → la base de datos de DATABASE_URL)
  * Lo ejecuta Render en cada despliegue («npm run predeploy:prod»). Se puede repetir sin problema:
- *   - crea lo que falta y actualiza solo lo que ha cambiado en data/catalogo/ desde la última vez;
- *   - NUNCA borra nada, ni toca usuarios, pedidos, códigos o progreso;
- *   - respeta lo editado en el panel de producción y el stock (reglas en src/lib/catalogoProduccion.ts).
+ *   - SOLO CREA lo que no existe en producción; lo que ya existe NUNCA se modifica (el catálogo de
+ *     producción se gestiona desde su panel de administración);
+ *   - NUNCA borra nada, ni toca usuarios, pedidos, códigos o progreso
+ *     (reglas completas en src/lib/catalogoProduccion.ts).
  *
  * Uso:  npm run seed:prod             (aplica)
  *       npm run seed:prod -- --dry-run (solo enseña lo que haría)
@@ -57,20 +58,18 @@ async function main() {
     const { prod, memoria } = await leerProduccion(db);
     const plan = planificarSemilla(json, prod, memoria);
 
-    console.log("\n  Colección        crear  actualizar  sin cambios  omitidos");
+    console.log("\n  Colección        crear  ya existen  omitidos");
     for (const c of COLECCIONES_CATALOGO) {
       const r = plan.resumen[c];
       console.log(
-        `  ${c.padEnd(16)} ${String(r.crear).padStart(5)}  ${String(r.actualizar).padStart(10)}  ${String(r.sinCambios).padStart(11)}  ${String(r.omitidos).padStart(8)}`,
+        `  ${c.padEnd(16)} ${String(r.crear).padStart(5)}  ${String(r.existentes).padStart(10)}  ${String(r.omitidos).padStart(8)}`,
       );
     }
-    // Detalle de lo que cambia (la primera carga crea todo: entonces basta con la tabla)
-    const cambios = plan.operaciones.filter((o) => o.tipo !== "registrar");
-    if (cambios.length <= 30) {
-      for (const op of cambios) {
-        console.log(
-          `  ${op.tipo === "crear" ? "+" : "~"} ${op.coleccion} ${String(op.doc.slug ?? op.doc._id)}`,
-        );
+    // Detalle de lo que se crea (la primera carga crea todo: entonces basta con la tabla)
+    const nuevas = plan.operaciones.filter((o) => o.tipo === "crear");
+    if (nuevas.length <= 30) {
+      for (const op of nuevas) {
+        console.log(`  + ${op.coleccion} ${String(op.doc.slug ?? op.doc._id)}`);
       }
     }
     if (plan.omitidos.length > 0) {
@@ -82,7 +81,7 @@ async function main() {
       );
     }
     if (plan.operaciones.length === 0) {
-      console.log("\n✔ El catálogo ya está al día. No hay nada que escribir.");
+      console.log("\n✔ No falta nada del catálogo. No hay nada que escribir.");
       return;
     }
     if (SOLO_SIMULAR) {
@@ -95,12 +94,9 @@ async function main() {
     try {
       await sesion.withTransaction(async () => {
         for (const op of plan.operaciones) {
+          // Solo inserciones: lo que ya existe nunca se reescribe
           if (op.tipo === "crear") {
             await db.collection<Doc>(op.coleccion).insertOne(op.doc, { session: sesion });
-          } else if (op.tipo === "actualizar") {
-            await db
-              .collection<Doc>(op.coleccion)
-              .replaceOne({ _id: op.doc._id }, op.doc, { session: sesion });
           }
           await db
             .collection<Aplicado & { aplicadoEn: Date }>(COLECCION_APLICADOS)

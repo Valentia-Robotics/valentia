@@ -44,8 +44,9 @@ lanzamiento». Cada bloque tiene su commit en git (`Lanzamiento (1/10)` … `(10
 
 1. **No me he conectado nunca a `valentia-prod`.** La base de datos real se llena sola en Render con el
    Pre-Deploy Command al unir el pull request.
-2. `seed:prod` **no pisa** lo que edites en el panel de producción mientras no cambie esa ficha en el JSON,
-   **no recrea** lo que borres allí y **nunca toca el stock** de lo que ya existe (baja con las ventas).
+2. `seed:prod` **solo crea lo que falta**: nunca modifica lo que ya existe en producción (tampoco el stock) y
+   **no recrea** lo que borres allí. El catálogo de producción se gestiona desde su panel (decisión del
+   usuario, 20-10-2026; antes actualizaba las fichas cambiadas en el JSON).
 3. Si `prisma db push` fuera a perder datos, el despliegue **se cancela** y la web sigue con la versión
    anterior (no se usa `--accept-data-loss`).
 4. Las categorías y reglas de compatibilidad no se exportan: están en el código, no en la base de datos.

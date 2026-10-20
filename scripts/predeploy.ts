@@ -3,7 +3,7 @@
  * Render lo ejecuta después de compilar y antes de arrancar la versión nueva:
  *   1. prisma db push: crea las colecciones y los índices nuevos del esquema. SIN --accept-data-loss:
  *      si un cambio pudiera borrar datos, se para con un mensaje claro y la web sigue con la versión anterior.
- *   2. seed:prod: carga el catálogo de data/catalogo/ (crea y actualiza; nunca borra).
+ *   2. seed:prod: crea lo que falte del catálogo de data/catalogo/ (nunca modifica ni borra lo que existe).
  * Si algo falla, el despliegue se cancela y no se publica la versión nueva.
  */
 import { spawnSync } from "node:child_process";

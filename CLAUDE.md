@@ -11,6 +11,13 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Catálogo de producción desde el panel (20-10-2026, rama `valentiarobotics/catalogo-solo-crear`)
+
+Decisión del usuario: el catálogo de producción se gestiona desde el panel de producción. `seed:prod` SOLO
+crea lo que no existe; nunca modifica lo existente (ni stock) ni añade piezas/lecciones/ejercicios a un kit,
+curso o lección que ya existía (`DUENA` en `src/lib/catalogoProduccion.ts`). Sigue sin borrar y sin recrear lo
+borrado en el panel (`CatalogoAplicado`; tipos de operación `crear` | `registrar`). DESPLIEGUE.md §6 bis.
+
 ### Puesta a punto final (19-10-2026, rama `valentiarobotics/puesta-a-punto`; instrucciones en `PUESTA_A_PUNTO.md`)
 
 Rama desde `main` + PR #9 unido dentro (health, db:check, aviso de Turbopack). El PR #10 (`catalogo:copiar`,
@@ -25,7 +32,7 @@ ni tocar `.env`. Pruebas con BD temporales en valentia-dev (borrarlas al termina
       /componentes y sitemap con `revalidate = 300` (el catálogo cargado tras el build aparece solo; probado).
       Next 16.4.2, postcss, lucide-react. npm audit: 8 altos sin arreglo seguro (eslint-config-next y CLI de Prisma).
 - [x] 2. Catálogo: `catalogo:exportar` → `data/catalogo/*.json` (EJSON canónico, ids y tipos exactos;
-      `promoteValues: false`), `seed:prod` idempotente (nunca borra), `predeploy:prod` (db push SIN
+      `promoteValues: false`), `seed:prod` idempotente (nunca borra; desde el 20-10 solo crea), `predeploy:prod` (db push SIN
       --accept-data-loss + seed), `prod:admin` (`scripts/consola.ts`: entrada oculta; por tubería en pruebas).
       Lógica en `src/lib/catalogoProduccion.ts` (+11 tests): memoria `CatalogoAplicado` (huella por ficha) → no
       pisa lo editado en el panel si el JSON no cambió, no recrea lo borrado en el panel, nunca toca `stock` de
