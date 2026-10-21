@@ -102,7 +102,8 @@ export function FormularioCheckout({ cuenta, direcciones, modo }: Props) {
   if (modo === "desactivado") {
     return (
       <p role="alert" className="mt-10 rounded-tarjeta bg-aviso/8 p-6 text-aviso-oscuro">
-        Ahora mismo no podemos cobrar pedidos. Vuelve a intentarlo en un rato, por favor.
+        Todavía no aceptamos pedidos en la web: abrimos la tienda muy pronto. Mientras tanto, puedes
+        ver los kits y preparar tu carrito.
       </p>
     );
   }

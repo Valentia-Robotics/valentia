@@ -13,6 +13,8 @@
  *
  * Por seguridad, solo se aceptan claves de PRUEBA (sk_test_… / pk_test_…) salvo que
  * STRIPE_PERMITIR_CLAVES_REALES="si" (ver README, «Antes de publicar»).
+ * Y al revés: en la web publicada, con claves de PRUEBA no se vende (cualquiera podría pagar con
+ * una tarjeta de prueba) salvo que STRIPE_PERMITIR_CLAVES_PRUEBA="si" (para probar un rato).
  */
 import "server-only";
 
@@ -40,11 +42,15 @@ function comprobarClaves(secreta: string, publica: string) {
 
 export function modoPago(): ModoPago {
   const { secreta, publica } = clavesStripe();
+  const enProduccion = process.env.NODE_ENV === "production";
   if (secreta && publica) {
     comprobarClaves(secreta, publica);
+    const dePrueba = secreta.startsWith("sk_test_") || publica.startsWith("pk_test_");
+    if (enProduccion && dePrueba && process.env.STRIPE_PERMITIR_CLAVES_PRUEBA !== "si") {
+      return "desactivado";
+    }
     return "stripe";
   }
-  const enProduccion = process.env.NODE_ENV === "production";
   if (!enProduccion || process.env.PERMITIR_PAGO_SIMULADO === "si") return "simulado";
   return "desactivado";
 }

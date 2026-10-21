@@ -117,22 +117,23 @@ Son iguales que en cualquier hosting; están explicados en el README y en `INFOR
 
 4. **Environment Variables** (en _Advanced_ o, después, en la pestaña _Environment_):
 
-   | Variable                                                                                                                   | Valor                                                                  |
-   | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-   | `DATABASE_URL`                                                                                                             | La de producción del paso 1                                            |
-   | `AUTH_SECRET`                                                                                                              | Una **nueva**: `npx auth secret` en tu ordenador                       |
-   | `NEXT_PUBLIC_SITE_URL`                                                                                                     | `https://valentiarobotics.com`                                         |
-   | `STRIPE_SECRET_KEY`                                                                                                        | `sk_live_…`                                                            |
-   | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                                                                                       | `pk_live_…`                                                            |
-   | `STRIPE_WEBHOOK_SECRET`                                                                                                    | `whsec_…`                                                              |
-   | `STRIPE_PERMITIR_CLAVES_REALES`                                                                                            | `si`                                                                   |
-   | `CORREO_PROVEEDOR`                                                                                                         | `resend`                                                               |
-   | `RESEND_API_KEY`                                                                                                           | `re_…`                                                                 |
-   | `CORREO_REMITENTE`                                                                                                         | `Valentia <hola@valentiarobotics.com>`                                 |
-   | `AVISO_PEDIDOS_EMAIL`                                                                                                      | Correo(s) que reciben los pedidos nuevos (vacío = los administradores) |
-   | `ALMACEN_PROVEEDOR`                                                                                                        | `local` (Disk de Render) o `nube` (R2), ver §2                         |
-   | `ALMACEN_LOCAL_CARPETA`                                                                                                    | Con Disk: `/var/data/subidas` (su Mount Path)                          |
-   | `ALMACEN_ENDPOINT`, `ALMACEN_REGION`, `ALMACEN_BUCKET`, `ALMACEN_CLAVE_ID`, `ALMACEN_CLAVE_SECRETA`, `ALMACEN_URL_PUBLICA` | Solo con R2 (ver `.env.example`)                                       |
+   | Variable                                                                                                                   | Valor                                                                              |
+   | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+   | `DATABASE_URL`                                                                                                             | La de producción del paso 1                                                        |
+   | `AUTH_SECRET`                                                                                                              | Una **nueva**: `npx auth secret` en tu ordenador                                   |
+   | `NEXT_PUBLIC_SITE_URL`                                                                                                     | `https://valentiarobotics.com`                                                     |
+   | `STRIPE_SECRET_KEY`                                                                                                        | `sk_live_…`                                                                        |
+   | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                                                                                       | `pk_live_…`                                                                        |
+   | `STRIPE_WEBHOOK_SECRET`                                                                                                    | `whsec_…`                                                                          |
+   | `STRIPE_PERMITIR_CLAVES_REALES`                                                                                            | `si`                                                                               |
+   | `STRIPE_PERMITIR_CLAVES_PRUEBA`                                                                                            | No la pongas: con claves `sk_test_` la compra queda cerrada; `si` solo para probar |
+   | `CORREO_PROVEEDOR`                                                                                                         | `resend`                                                                           |
+   | `RESEND_API_KEY`                                                                                                           | `re_…`                                                                             |
+   | `CORREO_REMITENTE`                                                                                                         | `Valentia <hola@valentiarobotics.com>`                                             |
+   | `AVISO_PEDIDOS_EMAIL`                                                                                                      | Correo(s) que reciben los pedidos nuevos (vacío = los administradores)             |
+   | `ALMACEN_PROVEEDOR`                                                                                                        | `local` (Disk de Render) o `nube` (R2), ver §2                                     |
+   | `ALMACEN_LOCAL_CARPETA`                                                                                                    | Con Disk: `/var/data/subidas` (su Mount Path)                                      |
+   | `ALMACEN_ENDPOINT`, `ALMACEN_REGION`, `ALMACEN_BUCKET`, `ALMACEN_CLAVE_ID`, `ALMACEN_CLAVE_SECRETA`, `ALMACEN_URL_PUBLICA` | Solo con R2 (ver `.env.example`)                                                   |
 
    **No pongas `NODE_ENV`**: Render instalaría sin las herramientas de compilación y la publicación
    fallaría. La web ya funciona en modo producción con `npm start`.

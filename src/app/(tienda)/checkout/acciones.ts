@@ -139,7 +139,7 @@ export async function prepararPedido(
         ok: false,
         valores,
         mensaje:
-          "Ahora mismo no podemos cobrar pedidos. Vuelve a intentarlo en un rato, por favor.",
+          "Todavía no aceptamos pedidos en la web: abrimos la tienda muy pronto. Mientras tanto, puedes ver los kits y preparar tu carrito.",
       };
     }
 
