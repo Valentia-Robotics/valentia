@@ -152,7 +152,7 @@ Notas técnicas de la fase de lanzamiento:
   `updateMany` condicionado, `liberarPedidosCaducados` (60 min, se llama al preparar cada pedido),
   `PEDIDO_COBRADO` (filtro de pagados no cancelados). Enlace privado `tokenAccesoPedido` = HMAC(AUTH_SECRET).
   Estados y transiciones del panel en `src/config/estadosPedido.ts`; cambios en lote: casillas de `/admin/pedidos` (Preparando/Entregado) y `/admin/pedidos/por-enviar` (seguimientos → Enviado + correo). Correos en `src/lib/avisosPedido.ts` (al pagar también avisa a la tienda: `AVISO_PEDIDOS_EMAIL` o, si está vacío, los ADMIN).
-- Pagos: `src/lib/pagos/index.ts` (`modoPago()`: stripe | simulado | desactivado), `stripe.ts`, webhook
+- Pagos: `src/lib/pagos/index.ts` (`modoPago()`: stripe | simulado | desactivado; en producción con claves `sk_test_` → desactivado salvo `STRIPE_PERMITIR_CLAVES_PRUEBA=si`, decisión de Jesse 21-10-2026), `stripe.ts`, webhook
   `src/app/api/pagos/stripe/route.ts` (tabla `EventoStripe`). Checkout: `prepararPedido` → `PagoStripe` o
   `confirmarPagoSimulado`. El formulario del checkout usa onSubmit + startTransition (no `action`, que reinicia el form).
 - Cursos: `VideoVisto`, `ResultadoTest`, `finDelVideo.ts` (APIs de YouTube/Vimeo), `TestLeccion`, `corregirTest`.
