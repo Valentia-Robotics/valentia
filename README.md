@@ -157,9 +157,8 @@ intentos; como mucho se envían 5 por hora a cada email. Las reglas están en `s
 no se escribe el código es solo un registro a medias: no puede iniciar sesión, activar códigos, ver
 cursos ni pedidos, ni contar en las cifras del panel. Si vuelve a registrarse con el mismo email,
 sigue con esa cuenta (nombre y contraseña nuevos) y recibe otro código; los mensajes nunca dicen si
-el email existía. Si en **7 días** no la confirma, se borra sola con sus códigos (la limpieza se hace
-al enviar un código y al abrir el panel; no hace falta ningún servicio aparte y nunca toca una
-cuenta verificada ni de administrador). `npm run admin` no asciende una cuenta sin verificar y
+el email existía. **Nunca se borran solas**: solo con el botón «Eliminar» del panel (que nunca toca
+una cuenta verificada ni de administrador). `npm run admin` no asciende una cuenta sin verificar y
 `npm run prod:admin` la rehace con la contraseña que escribas.
 
 Con `npm run dev` **no se envía ningún correo de verdad**: aparecen en la terminal y en

@@ -1,5 +1,5 @@
 /**
- * Limpieza de cuentas sin verificar: borra SOLO las pendientes antiguas de clientes, nunca una
+ * Borrar cuentas sin verificar desde el panel: borra SOLO la cuenta pendiente pedida, nunca una
  * cuenta verificada ni la de un administrador. La base de datos se simula en memoria
  * (entiende solo los filtros que usa src/lib/verificacion/pendientes.ts).
  */
@@ -63,69 +63,48 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-const { borrarPendientes, limitePendientes, limpiarPendientesCaducados } =
-  await import("./pendientes");
+const { borrarPendientes } = await import("./pendientes");
 
 const AHORA = new Date("2026-10-22T12:00:00Z");
 const haceDias = (dias: number) => new Date(AHORA.getTime() - dias * 24 * 60 * 60_000);
 
 beforeEach(() => {
   bd.usuarios = [
-    { id: "pendiente-viejo", rol: "CLIENTE", creadoEn: haceDias(8), emailVerificadoEn: null },
+    { id: "pendiente-viejo", rol: "CLIENTE", creadoEn: haceDias(30), emailVerificadoEn: null },
     { id: "pendiente-nuevo", rol: "CLIENTE", creadoEn: haceDias(2), emailVerificadoEn: null },
-    {
-      id: "verificado-viejo",
-      rol: "CLIENTE",
-      creadoEn: haceDias(30),
-      emailVerificadoEn: haceDias(30),
-    },
-    { id: "admin-viejo", rol: "ADMIN", creadoEn: haceDias(30), emailVerificadoEn: haceDias(30) },
-    // Un ADMIN sin verificar (no debería existir) tampoco se borra nunca solo
+    { id: "verificado", rol: "CLIENTE", creadoEn: haceDias(30), emailVerificadoEn: haceDias(30) },
+    { id: "admin", rol: "ADMIN", creadoEn: haceDias(30), emailVerificadoEn: haceDias(30) },
+    // Un ADMIN sin verificar (no debería existir) tampoco se borra nunca
     { id: "admin-sin-verificar", rol: "ADMIN", creadoEn: haceDias(30), emailVerificadoEn: null },
   ];
   bd.verificaciones = [
     { id: "v1", usuarioId: "pendiente-viejo" },
     { id: "v2", usuarioId: "pendiente-nuevo" },
-    { id: "v3", usuarioId: "verificado-viejo" },
+    { id: "v3", usuarioId: "verificado" },
     { id: "senuelo", usuarioId: null },
   ];
-  bd.dispositivos = [{ id: "d1", usuarioId: "verificado-viejo" }];
+  bd.dispositivos = [{ id: "d1", usuarioId: "verificado" }];
 });
 
-describe("limpieza de cuentas sin verificar", () => {
-  it("el límite es de 7 días", () => {
-    expect(limitePendientes(AHORA)).toEqual(haceDias(7));
-  });
-
-  it("borra solo las pendientes de hace más de 7 días, con sus códigos", async () => {
-    expect(await limpiarPendientesCaducados(AHORA)).toBe(1);
+describe("borrar una cuenta sin verificar (botón «Eliminar» del panel)", () => {
+  it("borra solo la cuenta pedida, con sus códigos; las demás no se tocan", async () => {
+    expect(await borrarPendientes({ id: "pendiente-nuevo" })).toBe(1);
     expect(bd.usuarios.map((u) => u.id)).toEqual([
-      "pendiente-nuevo",
-      "verificado-viejo",
-      "admin-viejo",
+      "pendiente-viejo",
+      "verificado",
+      "admin",
       "admin-sin-verificar",
     ]);
-    expect(bd.verificaciones.map((v) => v.id)).toEqual(["v2", "v3", "senuelo"]);
+    expect(bd.verificaciones.map((v) => v.id)).toEqual(["v1", "v3", "senuelo"]);
     expect(bd.dispositivos).toHaveLength(1);
   });
 
-  it("no hace nada si no hay pendientes antiguas", async () => {
-    await limpiarPendientesCaducados(AHORA);
-    expect(await limpiarPendientesCaducados(AHORA)).toBe(0);
-    expect(bd.usuarios).toHaveLength(4);
-  });
-
-  it("nunca borra una cuenta verificada, aunque se pida por su id", async () => {
-    expect(await borrarPendientes({ id: "verificado-viejo" })).toBe(0);
-    expect(await borrarPendientes({ id: "admin-viejo" })).toBe(0);
+  it("nunca borra una cuenta verificada ni un ADMIN, aunque se pida por su id", async () => {
+    for (const id of ["verificado", "admin", "admin-sin-verificar"]) {
+      expect(await borrarPendientes({ id })).toBe(0);
+    }
     expect(bd.usuarios).toHaveLength(5);
     expect(bd.verificaciones).toHaveLength(4);
     expect(bd.dispositivos).toHaveLength(1);
-  });
-
-  it("borra una pendiente reciente si se pide por su id (botón del panel)", async () => {
-    expect(await borrarPendientes({ id: "pendiente-nuevo" })).toBe(1);
-    expect(bd.usuarios.some((u) => u.id === "pendiente-nuevo")).toBe(false);
-    expect(bd.verificaciones.some((v) => v.usuarioId === "pendiente-nuevo")).toBe(false);
   });
 });

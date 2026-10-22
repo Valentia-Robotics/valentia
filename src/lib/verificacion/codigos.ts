@@ -20,7 +20,6 @@ import { enviarCorreo, type Correo } from "@/lib/correo";
 import { plantillaCodigo, type MotivoCodigo } from "@/lib/correo/plantillas";
 import { db } from "@/lib/db";
 import { generarCodigo, generarToken, hashCodigo, hashToken, mismaHuella } from "./cripto";
-import { limpiarPendientesCaducados } from "./pendientes";
 import { CODIGO, COOKIES } from "./reglas";
 
 const MOTIVO_PLANTILLA: Record<MotivoVerificacion, MotivoCodigo> = {
@@ -152,8 +151,6 @@ export async function empezarVerificacion(opciones: {
   await db.envioCodigo.deleteMany({
     where: { enviadoEn: { lt: new Date(ahora.getTime() - 60 * 60_000) } },
   });
-  // …y cuentas que llevan más de una semana sin confirmar su email
-  await limpiarPendientesCaducados(ahora);
 
   // ¿Acabamos de enviar un código para lo mismo (por ejemplo, ha vuelto a pulsar "Entrar")?
   // Entonces no enviamos otro: seguimos con el mismo código que ya tiene en su correo.

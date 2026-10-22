@@ -20,7 +20,6 @@ import { ipDelCliente, registrarIntento } from "@/lib/limite";
 import { esquemaLogin, esquemaRegistro } from "@/lib/validaciones/cuenta";
 import { empezarVerificacion } from "@/lib/verificacion/codigos";
 import { dispositivoDeConfianza } from "@/lib/verificacion/dispositivos";
-import { limpiarPendientesCaducados } from "@/lib/verificacion/pendientes";
 import { abrirSesion } from "@/lib/verificacion/entrar";
 
 export interface EstadoCuenta {
@@ -72,8 +71,6 @@ export async function registrarse(formulario: FormData): Promise<EstadoCuenta> {
   const contrasenaHash = await bcrypt.hash(contrasena, 10);
 
   try {
-    // Las cuentas sin confirmar de hace más de una semana se borran antes: ese email vuelve a estar libre
-    await limpiarPendientesCaducados();
     const existente = await db.usuario.findUnique({
       where: { email },
       select: { id: true, nombre: true, emailVerificadoEn: true },

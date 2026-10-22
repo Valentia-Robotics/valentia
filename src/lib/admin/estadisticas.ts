@@ -5,7 +5,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { PEDIDO_COBRADO } from "@/lib/pedidos";
-import { limpiarPendientesCaducados, USUARIO_VERIFICADO } from "@/lib/verificacion/pendientes";
+import { USUARIO_VERIFICADO } from "@/lib/verificacion/pendientes";
 import { inicioDelMes } from "./formato";
 
 /** Días que se tienen en cuenta para "cursos más activos" */
@@ -13,8 +13,6 @@ export const DIAS_ACTIVIDAD = 30;
 
 export async function obtenerResumen() {
   const hace30Dias = new Date(Date.now() - DIAS_ACTIVIDAD * 24 * 3_600_000);
-  // Antes de contar, fuera las cuentas que llevan más de una semana sin confirmar su email
-  await limpiarPendientesCaducados();
 
   const [
     usuarios,

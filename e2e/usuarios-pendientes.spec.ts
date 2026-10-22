@@ -1,7 +1,7 @@
 /**
  * CUENTAS SIN VERIFICAR (se registraron pero no escribieron el código del correo):
  * no entran, no activan códigos, no cuentan en el panel, se pueden reenviar el código o borrar
- * desde el panel, volver a registrarse sigue con la misma cuenta y se borran solas a los 7 días.
+ * desde el panel y volver a registrarse sigue con la misma cuenta. Nunca se borran solas.
  */
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { ObjectId } from "mongodb";
@@ -186,49 +186,24 @@ test("panel: reenviar el código a una cuenta pendiente y eliminar otra", async 
   });
 });
 
-test("las cuentas sin verificar de hace más de 7 días se borran solas (y nada más)", async ({
-  page,
-}) => {
-  const haceDias = (dias: number) => new Date(Date.now() - dias * 24 * 60 * 60_000);
-  const cuenta = (email: string, creadoEn: Date, emailVerificadoEn: Date | null) => ({
+test("una cuenta sin verificar antigua nunca se borra sola", async ({ page }) => {
+  const antigua = {
     _id: new ObjectId(),
-    nombre: "Cuenta de prueba",
-    email,
+    nombre: "Cuenta antigua",
+    email: emailNuevo("antigua"),
     contrasenaHash: "sin-contrasena",
     rol: "CLIENTE",
-    creadoEn,
-    emailVerificadoEn,
-  });
-  const vieja = cuenta(emailNuevo("vieja"), haceDias(8), null);
-  const reciente = cuenta(emailNuevo("reciente"), haceDias(2), null);
-  const verificada = cuenta(emailNuevo("verificada"), haceDias(30), haceDias(30));
+    creadoEn: new Date(Date.now() - 90 * 24 * 60 * 60_000),
+    emailVerificadoEn: null,
+  };
+  await conBD((bd) => bd.collection("Usuario").insertOne(antigua));
 
-  await conBD(async (bd) => {
-    await bd.collection("Usuario").insertMany([vieja, reciente, verificada]);
-    await bd.collection("Verificacion").insertOne({
-      _id: new ObjectId(),
-      tokenHash: `prueba-${vieja._id.toHexString()}`,
-      usuarioId: vieja._id,
-      email: vieja.email,
-      motivo: "REGISTRO",
-      codigoHash: "x",
-      intentos: 0,
-      caducaEn: new Date(Date.now() + 60_000),
-      enviadoEn: new Date(),
-      confirmadoEn: null,
-      usadoEn: null,
-      creadoEn: new Date(),
-    });
-  });
-
-  // Cualquier registro hace la limpieza
-  await registrar(page, emailNuevo("dispara"), CONTRASENA);
-
-  const quedan = await conBD(async (bd) => ({
-    vieja: await bd.collection("Usuario").countDocuments({ _id: vieja._id }),
-    codigosVieja: await bd.collection("Verificacion").countDocuments({ usuarioId: vieja._id }),
-    reciente: await bd.collection("Usuario").countDocuments({ _id: reciente._id }),
-    verificada: await bd.collection("Usuario").countDocuments({ _id: verificada._id }),
-  }));
-  expect(quedan).toEqual({ vieja: 0, codigosVieja: 0, reciente: 1, verificada: 1 });
+  // Registrarse y abrir el panel no borran nada
+  await entrarComoAdmin(page);
+  await page.goto("/admin");
+  await page.goto(`/admin/usuarios?estado=pendientes&q=${encodeURIComponent(antigua.email)}`);
+  await expect(page.getByRole("row").filter({ hasText: antigua.email })).toBeVisible();
+  expect(await conBD((bd) => bd.collection("Usuario").countDocuments({ _id: antigua._id }))).toBe(
+    1,
+  );
 });

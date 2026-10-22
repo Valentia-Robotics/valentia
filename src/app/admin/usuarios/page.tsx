@@ -12,8 +12,6 @@ import { fecha, fechaHora } from "@/lib/admin/formato";
 import { buscarUsuarios, contarUsuarios, type EstadoUsuario } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
 import { cn, plural } from "@/lib/utils";
-import { limpiarPendientesCaducados } from "@/lib/verificacion/pendientes";
-import { DIAS_CUENTA_PENDIENTE } from "@/lib/verificacion/reglas";
 
 export const metadata: Metadata = { title: "Usuarios" };
 
@@ -40,8 +38,6 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
   const estado = ESTADOS.find((e) => e.id && e.id === parametros.estado)?.id;
   const pagina = leerPagina(parametros.pagina);
 
-  // Las que llevan más de una semana sin confirmar se borran antes de enseñar la lista
-  await limpiarPendientesCaducados();
   const [{ usuarios, total, totalPaginas }, cuentas] = await Promise.all([
     buscarUsuarios(q, pagina, estado),
     contarUsuarios(),
@@ -83,7 +79,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
         {estado === "pendientes" && (
           <p className="text-xs text-gris">
             Se registraron pero no escribieron el código del correo: no pueden entrar ni cuentan en
-            las cifras. Se borran solas a los {DIAS_CUENTA_PENDIENTE} días.
+            las cifras. No se borran solas: solo si pulsas «Eliminar».
           </p>
         )}
       </div>

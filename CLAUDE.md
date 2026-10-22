@@ -15,7 +15,7 @@ que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empe
 
 Error: un registro a medias (sin escribir el código) salía en el panel como usuario normal. La cuenta se crea
 al registrarse con `emailVerificadoEn = null`; el panel no lo miraba. Ahora todo en `src/lib/verificacion/pendientes.ts`
-(`USUARIO_VERIFICADO`, `USUARIO_PENDIENTE` = null + CLIENTE, `borrarPendientes`, `limpiarPendientesCaducados`):
+(`USUARIO_VERIFICADO`, `USUARIO_PENDIENTE` = null + CLIENTE, `borrarPendientes`):
 
 - Panel: cifras del inicio solo con verificados (pendientes aparte en la tarjeta), «Últimos registros» solo
   verificados; `/admin/usuarios` con etiqueta Verificado/Pendiente, filtro `?estado=verificados|pendientes`, y para
@@ -24,8 +24,9 @@ al registrarse con `emailVerificadoEn = null`; el panel no lo miraba. Ahora todo
   `/verificar/enlace?t=…` (route handler: pone la cookie de la verificación y lleva a /verificar; redirección
   relativa por Render). Plantilla `plantillaCodigo({ enlace })`.
 - Registro con email pendiente: sigue con esa cuenta (nombre y contraseña nuevos) y nuevo código; sin «ya existe».
-- Limpieza a los `DIAS_CUENTA_PENDIENTE` (7, reglas.ts): en `empezarVerificacion`, `registrarse`, inicio del panel
-  y `/admin/usuarios`. Nunca borra verificadas ni ADMIN (el filtro se repite en el deleteMany).
+- **Decisión del usuario: las cuentas pendientes NUNCA se borran solas** (ni por tiempo ni al desplegar; lo que ya
+  hay en la BD no se toca). Solo el botón «Eliminar» del panel, que nunca borra verificadas ni ADMIN (el filtro se
+  repite en el deleteMany). Hubo una limpieza a los 7 días y se quitó a petición suya.
 - Seguridad: `obtenerUsuario` exige además email verificado (2.ª barrera); `npm run admin` no asciende pendientes;
   `prod:admin` rehace la cuenta pendiente (nombre, contraseña, verificada, borra sus códigos/dispositivos).
 - Pruebas: `pendientes.test.ts` (BD simulada) y `e2e/usuarios-pendientes.spec.ts` (ayudantes `conBD`,

@@ -19,12 +19,6 @@ export const CODIGO = {
   horasValidezEnlace: 24,
 } as const;
 
-/**
- * Días que se guarda una cuenta que no ha confirmado su email. Después se borra sola
- * con sus códigos (ver src/lib/verificacion/pendientes.ts).
- */
-export const DIAS_CUENTA_PENDIENTE = 7;
-
 /** Días que un navegador es "de confianza" (sin volver a pedir código) según el rol */
 export const DIAS_CONFIANZA: Record<Rol, number> = {
   CLIENTE: 30,
