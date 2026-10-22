@@ -15,7 +15,15 @@ export const CODIGO = {
   segundosEntreEnvios: 60,
   /** Envíos como máximo por email en una hora */
   enviosPorHora: 5,
+  /** Horas que vale el código que se reenvía desde el panel (llega con un enlace secreto) */
+  horasValidezEnlace: 24,
 } as const;
+
+/**
+ * Días que se guarda una cuenta que no ha confirmado su email. Después se borra sola
+ * con sus códigos (ver src/lib/verificacion/pendientes.ts).
+ */
+export const DIAS_CUENTA_PENDIENTE = 7;
 
 /** Días que un navegador es "de confianza" (sin volver a pedir código) según el rol */
 export const DIAS_CONFIANZA: Record<Rol, number> = {

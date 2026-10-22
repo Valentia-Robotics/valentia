@@ -176,22 +176,40 @@ const textosCodigo: Record<MotivoCodigo, { asunto: string; titulo: string; intro
   },
 };
 
-/** Correo con un código de 6 cifras */
+/** "10 minutos", "24 horas" */
+function duracion(minutos: number): string {
+  return minutos >= 60 && minutos % 60 === 0
+    ? `${minutos / 60} ${minutos === 60 ? "hora" : "horas"}`
+    : `${minutos} minutos`;
+}
+
+/**
+ * Correo con un código de 6 cifras.
+ * "enlace": ruta que abre la pantalla del código (correos enviados desde el panel)
+ */
 export function plantillaCodigo(datos: {
   para: string;
   nombre: string;
   codigo: string;
   motivo: MotivoCodigo;
   minutos: number;
+  enlace?: string;
 }): Correo {
   const t = textosCodigo[datos.motivo];
+  const caduca = duracion(datos.minutos);
   return correo(datos.para, t.asunto, {
-    resumen: `Tu código es ${datos.codigo}. Caduca en ${datos.minutos} minutos.`,
+    resumen: `Tu código es ${datos.codigo}. Caduca en ${caduca}.`,
     titulo: t.titulo,
-    parrafos: [saludo(datos.nombre), t.intro],
+    parrafos: [
+      saludo(datos.nombre),
+      datos.enlace
+        ? "Empezaste a crear tu cuenta, pero falta confirmar tu email. Pulsa el botón y escribe este código para terminar."
+        : t.intro,
+    ],
     codigo: datos.codigo,
+    boton: datos.enlace ? { texto: "Confirmar mi email", url: urlWeb(datos.enlace) } : undefined,
     notas: [
-      `El código caduca en ${datos.minutos} minutos y solo sirve una vez.`,
+      `El código caduca en ${caduca} y solo sirve una vez.`,
       "Nadie de Valentia te lo pedirá nunca: no se lo des a nadie.",
       "Si no has sido tú, puedes ignorar este correo; sin el código nadie puede entrar.",
     ],

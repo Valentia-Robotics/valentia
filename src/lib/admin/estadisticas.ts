@@ -5,6 +5,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { PEDIDO_COBRADO } from "@/lib/pedidos";
+import { limpiarPendientesCaducados, USUARIO_VERIFICADO } from "@/lib/verificacion/pendientes";
 import { inicioDelMes } from "./formato";
 
 /** Días que se tienen en cuenta para "cursos más activos" */
@@ -12,10 +13,13 @@ export const DIAS_ACTIVIDAD = 30;
 
 export async function obtenerResumen() {
   const hace30Dias = new Date(Date.now() - DIAS_ACTIVIDAD * 24 * 3_600_000);
+  // Antes de contar, fuera las cuentas que llevan más de una semana sin confirmar su email
+  await limpiarPendientesCaducados();
 
   const [
     usuarios,
     usuariosMes,
+    usuariosPendientes,
     pedidos,
     pedidosPagados,
     kitsVendidos,
@@ -25,8 +29,10 @@ export async function obtenerResumen() {
     ultimosPedidos,
     ultimosUsuarios,
   ] = await Promise.all([
-    db.usuario.count(),
-    db.usuario.count({ where: { creadoEn: { gte: inicioDelMes() } } }),
+    // Solo cuentan las cuentas con el email confirmado; las pendientes, aparte
+    db.usuario.count({ where: USUARIO_VERIFICADO }),
+    db.usuario.count({ where: { ...USUARIO_VERIFICADO, creadoEn: { gte: inicioDelMes() } } }),
+    db.usuario.count({ where: { emailVerificadoEn: null } }),
     db.pedido.count(),
     db.pedido.count({ where: PEDIDO_COBRADO }),
     // Unidades de kit en pedidos pagados
@@ -55,6 +61,7 @@ export async function obtenerResumen() {
       },
     }),
     db.usuario.findMany({
+      where: USUARIO_VERIFICADO,
       orderBy: { creadoEn: "desc" },
       take: 8,
       select: { id: true, nombre: true, email: true, rol: true, creadoEn: true },
@@ -64,6 +71,7 @@ export async function obtenerResumen() {
   return {
     usuarios,
     usuariosMes,
+    usuariosPendientes,
     pedidos,
     pedidosPagados,
     kitsVendidos: kitsVendidos._sum.cantidad ?? 0,

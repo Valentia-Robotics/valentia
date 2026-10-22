@@ -20,6 +20,7 @@ import { enviarCorreo, type Correo } from "@/lib/correo";
 import { plantillaCodigo, type MotivoCodigo } from "@/lib/correo/plantillas";
 import { db } from "@/lib/db";
 import { generarCodigo, generarToken, hashCodigo, hashToken, mismaHuella } from "./cripto";
+import { limpiarPendientesCaducados } from "./pendientes";
 import { CODIGO, COOKIES } from "./reglas";
 
 const MOTIVO_PLANTILLA: Record<MotivoVerificacion, MotivoCodigo> = {
@@ -90,11 +91,15 @@ async function superaLimiteHora(email: string): Promise<NoEnviado | null> {
   };
 }
 
-/** Crea un código nuevo, lo apunta para el límite por hora y lo envía (si no es un señuelo) */
+/**
+ * Crea un código nuevo, lo apunta para el límite por hora y lo envía (si no es un señuelo).
+ * "enlace": ruta que abre la pantalla del código en cualquier navegador (lo usa el panel).
+ */
 async function nuevoCodigo(
   email: string,
   motivo: MotivoVerificacion,
   usuario: { nombre: string } | null,
+  { minutos = CODIGO.minutosValidez, enlace }: { minutos?: number; enlace?: string } = {},
 ) {
   const codigo = generarCodigo();
   const ahora = new Date();
@@ -106,7 +111,8 @@ async function nuevoCodigo(
         nombre: usuario.nombre,
         codigo,
         motivo: MOTIVO_PLANTILLA[motivo],
-        minutos: CODIGO.minutosValidez,
+        minutos,
+        enlace,
       }),
     );
   }
@@ -115,7 +121,7 @@ async function nuevoCodigo(
     codigoHash: hashCodigo(email, motivo, usuario ? codigo : generarCodigo() + generarToken()),
     intentos: 0,
     enviadoEn: ahora,
-    caducaEn: new Date(ahora.getTime() + CODIGO.minutosValidez * 60_000),
+    caducaEn: new Date(ahora.getTime() + minutos * 60_000),
   };
 }
 
@@ -146,6 +152,8 @@ export async function empezarVerificacion(opciones: {
   await db.envioCodigo.deleteMany({
     where: { enviadoEn: { lt: new Date(ahora.getTime() - 60 * 60_000) } },
   });
+  // …y cuentas que llevan más de una semana sin confirmar su email
+  await limpiarPendientesCaducados(ahora);
 
   // ¿Acabamos de enviar un código para lo mismo (por ejemplo, ha vuelto a pulsar "Entrar")?
   // Entonces no enviamos otro: seguimos con el mismo código que ya tiene en su correo.
@@ -270,6 +278,67 @@ export async function reenviarCodigo(): Promise<
     data: await nuevoCodigo(v.email, v.motivo, v.usuario),
   });
   return { ok: true, espera: CODIGO.segundosEntreEnvios };
+}
+
+/**
+ * Desde el panel: envía a una cuenta pendiente un código nuevo para confirmar su email.
+ * Como el código solo vale en el navegador que tiene la cookie de la verificación, el correo
+ * lleva además un enlace secreto (/verificar/enlace?t=…) que pone esa cookie en el navegador
+ * donde se abra. El código vale CODIGO.horasValidezEnlace horas (y se puede pedir otro allí).
+ */
+export async function enviarCodigoConEnlace(usuario: {
+  id: string;
+  nombre: string;
+  email: string;
+}): Promise<{ ok: true } | NoEnviado> {
+  const { email } = usuario;
+  const previa = await db.verificacion.findFirst({
+    where: { email, motivo: "REGISTRO", usadoEn: null, confirmadoEn: null },
+    orderBy: { enviadoEn: "desc" },
+    select: { enviadoEn: true },
+  });
+  if (previa && previa.enviadoEn.getTime() > Date.now() - segundos(CODIGO.segundosEntreEnvios)) {
+    return {
+      ok: false,
+      mensaje: "Acaba de recibir un código. Espera un minuto antes de enviar otro.",
+    };
+  }
+  const limite = await superaLimiteHora(email);
+  if (limite) return limite;
+
+  const token = generarToken();
+  const datosCodigo = await nuevoCodigo(email, "REGISTRO", usuario, {
+    minutos: CODIGO.horasValidezEnlace * 60,
+    enlace: `/verificar/enlace?t=${token}`,
+  });
+  // El código anterior (si había) deja de valer: solo una verificación abierta por email y motivo
+  await db.verificacion.deleteMany({ where: { email, motivo: "REGISTRO", usadoEn: null } });
+  await db.verificacion.create({
+    data: {
+      tokenHash: hashToken(token),
+      usuarioId: usuario.id,
+      email,
+      motivo: "REGISTRO",
+      ...datosCodigo,
+    },
+  });
+  return { ok: true };
+}
+
+/**
+ * El enlace del correo enviado desde el panel: si sigue valiendo, guarda su cookie en este
+ * navegador (así /verificar sabe qué verificación es). Devuelve false si ya no vale.
+ */
+export async function abrirEnlaceVerificacion(token: string): Promise<boolean> {
+  const v = await db.verificacion.findUnique({
+    where: { tokenHash: hashToken(token) },
+    select: { motivo: true, usadoEn: true, usuario: { select: { emailVerificadoEn: true } } },
+  });
+  if (!v || v.motivo !== "REGISTRO" || v.usadoEn || !v.usuario || v.usuario.emailVerificadoEn) {
+    return false;
+  }
+  await guardarCookie(token);
+  return true;
 }
 
 /**

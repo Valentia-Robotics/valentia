@@ -10,6 +10,7 @@ import { cache } from "react";
 import { auth } from "@/auth";
 import type { Rol } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
+import { USUARIO_VERIFICADO } from "@/lib/verificacion/pendientes";
 
 export interface UsuarioActual {
   id: string;
@@ -23,8 +24,10 @@ export const obtenerUsuario = cache(async (): Promise<UsuarioActual | null> => {
   const sesion = await auth();
   const id = sesion?.user?.id;
   if (!id) return null;
+  // Solo cuentas con el email confirmado (Auth.js ya lo exige al abrir y leer la sesión;
+  // esto es una segunda barrera para cursos, activar códigos, direcciones, pedidos y panel)
   return db.usuario.findUnique({
-    where: { id },
+    where: { id, ...USUARIO_VERIFICADO },
     select: { id: true, nombre: true, email: true, rol: true },
   });
 });
