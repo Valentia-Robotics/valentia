@@ -4,6 +4,7 @@
  * CREAR CUENTA E INICIAR SESIÓN (en el servidor)
  *
  * Registro: crea la cuenta (sin verificar) y envía un código al email → /verificar.
+ *   Si ese email ya tenía un registro a medias, sigue con él (nombre y contraseña nuevos).
  * Login: comprueba la contraseña y después…
  *   - email sin verificar          → código para verificarlo → /verificar
  *   - navegador de confianza       → dentro
@@ -72,8 +73,25 @@ export async function registrarse(formulario: FormData): Promise<EstadoCuenta> {
   try {
     const existente = await db.usuario.findUnique({
       where: { email },
-      select: { nombre: true },
+      select: { id: true, nombre: true, emailVerificadoEn: true },
     });
+
+    // Registro a medias (nunca escribió el código): seguimos con esa cuenta, con el nombre y la
+    // contraseña de ahora, y le enviamos otro código. Por fuera es igual que una cuenta nueva.
+    if (existente && !existente.emailVerificadoEn) {
+      const actualizada = await db.usuario.updateMany({
+        where: { id: existente.id, emailVerificadoEn: null },
+        data: { nombre, contrasenaHash },
+      });
+      if (actualizada.count === 1) {
+        const resultado = await empezarVerificacion({
+          email,
+          motivo: "REGISTRO",
+          usuario: { id: existente.id, nombre },
+        });
+        return resultado.ok ? { ok: true, paso: "verificar" } : resultado;
+      }
+    }
 
     // Email ya registrado: hacemos como si nada (pantalla del código igual), pero en vez
     // del código le llega al dueño un aviso de "ya tienes una cuenta".

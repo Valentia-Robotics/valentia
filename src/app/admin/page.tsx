@@ -23,10 +23,16 @@ export default async function InicioAdmin() {
         <TarjetaDato
           titulo="Usuarios registrados"
           valor={r.usuarios}
+          detalle={`Con el email confirmado · ${plural(r.usuariosPendientes, "pendiente", "pendientes")} de verificar`}
           icono={Users}
           href="/admin/usuarios"
         />
-        <TarjetaDato titulo="Nuevos este mes" valor={r.usuariosMes} icono={UserPlus} />
+        <TarjetaDato
+          titulo="Nuevos este mes"
+          valor={r.usuariosMes}
+          detalle="Con el email confirmado"
+          icono={UserPlus}
+        />
         <TarjetaDato
           titulo="Pedidos"
           valor={r.pedidos}

@@ -1,9 +1,10 @@
 /**
  * CREAR (O ASCENDER) EL ADMINISTRADOR — pensado para la Shell de Render
  * Pide un email:
- *   - si ya hay una cuenta con ese email, la convierte en ADMIN sin tocar su contraseña;
+ *   - si ya hay una cuenta VERIFICADA con ese email, la convierte en ADMIN sin tocar su contraseña;
  *   - si no, pide nombre y contraseña (oculta, dos veces) y crea la cuenta como ADMIN con el email
  *     ya verificado y la contraseña cifrada igual que en el registro (bcrypt, 10 rondas).
+ *     Un registro a medias (sin verificar) con ese email se rehace así: nunca se asciende tal cual.
  * La contraseña nunca se muestra ni se guarda en ningún archivo.
  *
  * Uso:  npm run prod:admin
@@ -35,7 +36,7 @@ async function main() {
   if (errorEmail) throw new Error(errorEmail);
 
   const existente = await db.usuario.findUnique({ where: { email } });
-  if (existente) {
+  if (existente?.emailVerificadoEn) {
     if (existente.rol === "ADMIN") {
       console.log(`✔ ${existente.nombre} (${email}) ya era administrador. No se ha cambiado nada.`);
       return;
@@ -57,7 +58,14 @@ async function main() {
     return;
   }
 
-  console.log("No hay ninguna cuenta con ese email: se crea una nueva.");
+  // Registro a medias: nadie ha demostrado que ese email sea suyo y su contraseña la pudo poner
+  // cualquiera. No se asciende tal cual: se rehace con el nombre y la contraseña de ahora.
+  console.log(
+    existente
+      ? "Hay una cuenta con ese email, pero nunca confirmó su email (registro a medias).\n" +
+          "No se asciende tal cual: se rehace con el nombre y la contraseña que escribas ahora."
+      : "No hay ninguna cuenta con ese email: se crea una nueva.",
+  );
   const nombre = await preguntar("Nombre: ");
   const contrasena = await preguntarOculto("Contraseña (mínimo 8 caracteres; no se verá): ");
   const repetida = await preguntarOculto("Repite la contraseña: ");
@@ -68,15 +76,20 @@ async function main() {
   if (!datos.success) {
     throw new Error(errorDe(datos, "nombre") ?? errorDe(datos, "contrasena") ?? "Datos no válidos");
   }
-  await db.usuario.create({
-    data: {
-      nombre: datos.data.nombre,
-      email: datos.data.email,
-      contrasenaHash: await bcrypt.hash(datos.data.contrasena, 10),
-      rol: "ADMIN",
-      emailVerificadoEn: new Date(),
-    },
-  });
+  const cuenta = {
+    nombre: datos.data.nombre,
+    contrasenaHash: await bcrypt.hash(datos.data.contrasena, 10),
+    rol: "ADMIN" as const,
+    emailVerificadoEn: new Date(),
+  };
+  if (existente) {
+    // Sus códigos y dispositivos (si los hubiera) dejan de valer
+    await db.verificacion.deleteMany({ where: { usuarioId: existente.id } });
+    await db.dispositivoConfianza.deleteMany({ where: { usuarioId: existente.id } });
+    await db.usuario.update({ where: { id: existente.id }, data: cuenta });
+  } else {
+    await db.usuario.create({ data: { ...cuenta, email: datos.data.email } });
+  }
   console.log(
     `✔ Cuenta de administrador creada para ${datos.data.nombre} (${email}).\n` +
       "  Entra en /login: la primera vez en cada navegador te pedirá un código por correo.",

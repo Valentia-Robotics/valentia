@@ -11,6 +11,28 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Cuentas sin verificar (22-10-2026, rama `valentiarobotics/usuarios-sin-verificar`)
+
+Error: un registro a medias (sin escribir el código) salía en el panel como usuario normal. La cuenta se crea
+al registrarse con `emailVerificadoEn = null`; el panel no lo miraba. Ahora todo en `src/lib/verificacion/pendientes.ts`
+(`USUARIO_VERIFICADO`, `USUARIO_PENDIENTE` = null + CLIENTE, `borrarPendientes`):
+
+- Panel: cifras del inicio solo con verificados (pendientes aparte en la tarjeta), «Últimos registros» solo
+  verificados; `/admin/usuarios` con etiqueta Verificado/Pendiente, filtro `?estado=verificados|pendientes`, y para
+  pendientes «Reenviar código» y «Eliminar» (`src/app/admin/usuarios/acciones.ts`).
+- Reenviar desde el panel: `enviarCodigoConEnlace` (codigos.ts) manda código de 24 h + enlace secreto
+  `/verificar/enlace?t=…` (route handler: pone la cookie de la verificación y lleva a /verificar; redirección
+  relativa por Render). Plantilla `plantillaCodigo({ enlace })`.
+- Registro con email pendiente: sigue con esa cuenta (nombre y contraseña nuevos) y nuevo código; sin «ya existe».
+- **Decisión del usuario: las cuentas pendientes NUNCA se borran solas** (ni por tiempo ni al desplegar; lo que ya
+  hay en la BD no se toca). Solo el botón «Eliminar» del panel, que nunca borra verificadas ni ADMIN (el filtro se
+  repite en el deleteMany). Hubo una limpieza a los 7 días y se quitó a petición suya.
+- Seguridad: `obtenerUsuario` exige además email verificado (2.ª barrera); `npm run admin` no asciende pendientes;
+  `prod:admin` rehace la cuenta pendiente (nombre, contraseña, verificada, borra sus códigos/dispositivos).
+- Pruebas: `pendientes.test.ts` (BD simulada) y `e2e/usuarios-pendientes.spec.ts` (ayudantes `conBD`,
+  `vaciarLimites`, `registrar`, `iniciarSesion` en `e2e/ayudantes.ts`; `conBD` solo abre BD que acaben en `_e2e`).
+- Sin cambios en el esquema de la BD.
+
 ### Catálogo de producción desde el panel (20-10-2026, rama `valentiarobotics/catalogo-solo-crear`)
 
 Decisión del usuario: el catálogo de producción se gestiona desde el panel de producción. `seed:prod` SOLO

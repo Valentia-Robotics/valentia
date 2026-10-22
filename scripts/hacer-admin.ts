@@ -35,6 +35,15 @@ async function main() {
       process.exitCode = 1;
       return;
     }
+    // Un registro a medias no se asciende: nadie ha demostrado que ese email sea suyo
+    if (!quitar && !usuario.emailVerificadoEn) {
+      console.error(`✖ La cuenta ${email} todavía no ha confirmado su email.`);
+      console.error(
+        "  Inicia sesión en /login, escribe el código del correo y vuelve a ejecutar esto.",
+      );
+      process.exitCode = 1;
+      return;
+    }
     await db.usuario.update({ where: { email }, data: { rol: quitar ? "CLIENTE" : "ADMIN" } });
 
     // Nuevo ADMIN: su confianza en cada dispositivo dura menos (ver src/lib/verificacion/reglas.ts)

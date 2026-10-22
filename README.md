@@ -153,6 +153,14 @@ entrar desde un **dispositivo nuevo** (que pasa a ser de confianza 30 días, 7 p
 en **¿Olvidaste tu contraseña?**. Los códigos caducan a los 10 minutos, sirven una vez y admiten 5
 intentos; como mucho se envían 5 por hora a cada email. Las reglas están en `src/lib/verificacion/reglas.ts`.
 
+**Cuentas pendientes de verificar.** La cuenta se guarda al pulsar «Crear mi cuenta», pero hasta que
+no se escribe el código es solo un registro a medias: no puede iniciar sesión, activar códigos, ver
+cursos ni pedidos, ni contar en las cifras del panel. Si vuelve a registrarse con el mismo email,
+sigue con esa cuenta (nombre y contraseña nuevos) y recibe otro código; los mensajes nunca dicen si
+el email existía. **Nunca se borran solas**: solo con el botón «Eliminar» del panel (que nunca toca
+una cuenta verificada ni de administrador). `npm run admin` no asciende una cuenta sin verificar y
+`npm run prod:admin` la rehace con la contraseña que escribas.
+
 Con `npm run dev` **no se envía ningún correo de verdad**: aparecen en la terminal y en
 **http://localhost:3000/dev/correos** (esa página no existe en la web publicada).
 
@@ -179,15 +187,15 @@ npm run admin                            # dice quién es ADMIN ahora
 
 ### Qué se puede hacer
 
-| Sección         | Qué hace                                                                                                                                                                                                             |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Inicio**      | Usuarios, pedidos, kits vendidos, códigos activados, cursos más activos, últimos pedidos                                                                                                                             |
-| **Pedidos**     | Filtrar por estado, buscar, ver cada pedido y cambiar su estado: Pagado → **Preparando** → **Enviado** (con número de seguimiento; el cliente recibe un correo) → **Entregado**, o **Cancelado** (devuelve el stock) |
-| **Componentes** | Crear, editar, ocultar y borrar. Foto, precio, stock, categoría y datos técnicos                                                                                                                                     |
-| **Kits**        | Piezas con buscador, foto, descripción, precio, curso incluido, destacado                                                                                                                                            |
-| **Cursos**      | Lecciones (ordenables), vídeo, tests y retos, y progreso de los alumnos                                                                                                                                              |
-| **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR o descargarlas para láser (.zip de SVG), desactivarlos                                                                                                             |
-| **Usuarios**    | Lista con buscador: email, registro, cursos activados y pedidos                                                                                                                                                      |
+| Sección         | Qué hace                                                                                                                                                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Inicio**      | Usuarios (solo los verificados; los pendientes, aparte), pedidos, kits vendidos, códigos activados, cursos más activos, últimos pedidos                                                                                         |
+| **Pedidos**     | Filtrar por estado, buscar, ver cada pedido y cambiar su estado: Pagado → **Preparando** → **Enviado** (con número de seguimiento; el cliente recibe un correo) → **Entregado**, o **Cancelado** (devuelve el stock)            |
+| **Componentes** | Crear, editar, ocultar y borrar. Foto, precio, stock, categoría y datos técnicos                                                                                                                                                |
+| **Kits**        | Piezas con buscador, foto, descripción, precio, curso incluido, destacado                                                                                                                                                       |
+| **Cursos**      | Lecciones (ordenables), vídeo, tests y retos, y progreso de los alumnos                                                                                                                                                         |
+| **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR o descargarlas para láser (.zip de SVG), desactivarlos                                                                                                                        |
+| **Usuarios**    | Lista con buscador y filtro Todos / Verificados / Pendientes: estado, email, registro, cursos activados y pedidos. A una cuenta pendiente se le puede reenviar el código (llega con un botón «Confirmar mi email») o eliminarla |
 
 Algunas reglas: un pedido solo pasa a «Pagado» con el pago confirmado (nunca desde el panel). Si
 cancelas un pedido ya cobrado con Stripe, **devuelve el dinero desde el panel de Stripe** (la ficha del
