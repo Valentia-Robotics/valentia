@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="t">
+  <title id="t">Valentia</title>
+  <!-- Icono de la web (favicon, Google, móviles): la "V" del monograma, más grande y gruesa
+       y sobre un cuadrado sin esquinas redondeadas, porque Google y los móviles ya lo recortan
+       (en círculo o con esquinas) y así la V se ve bien incluso a 16 px.
+       El monograma.svg (esquinas redondeadas) se sigue usando en las tarjetas impresas. -->
+  <defs><clipPath id="banda"><rect x="0" y="92" width="512" height="328"/></clipPath></defs>
+  <rect width="512" height="512" fill="#0B0B0B"/>
+  <path clip-path="url(#banda)" d="M100 40 L256 410 L412 40" fill="none" stroke="#FFFFFF" stroke-width="72" stroke-linejoin="miter" stroke-miterlimit="10"/>
+</svg>

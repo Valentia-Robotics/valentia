@@ -5,14 +5,15 @@
  *
  * Lee (NO modifica):
  *   - imagenes/logo.png                    → tu logo original
- *   - public/images/brand/monograma.svg    → la "V" para favicon e iconos
+ *   - public/images/brand/icono-web.svg    → la "V" grande para el favicon y los iconos
  *
  * Crea:
  *   - public/images/brand/logo.png         → copia exacta del original
  *   - public/images/brand/logo-negro.png   → recortado, letras negras, fondo transparente
  *   - public/images/brand/logo-blanco.png  → recortado, letras blancas, fondo transparente
  *   - public/images/brand/icono-192.png, icono-512.png → iconos para el manifest (móviles)
- *   - src/app/icon.png (512), src/app/apple-icon.png (180), src/app/favicon.ico (16/32/48)
+ *   - src/app/icon.png (192), src/app/apple-icon.png (180), src/app/favicon.ico (16/32/48)
+ *     (Google pide un icono cuadrado de un múltiplo de 48 px: 48, 96, 144, 192…)
  *
  * Si cambias el logo: sustituye imagenes/logo.png y vuelve a ejecutar "npm run marca".
  */
@@ -25,7 +26,7 @@ const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ruta = (...partes) => path.join(raiz, ...partes);
 
 const ORIGINAL = ruta("imagenes", "logo.png");
-const MONOGRAMA = ruta("public", "images", "brand", "monograma.svg");
+const ICONO = ruta("public", "images", "brand", "icono-web.svg");
 const BRAND = ruta("public", "images", "brand");
 const APP = ruta("src", "app");
 
@@ -116,13 +117,13 @@ async function main() {
   await logoTransparente(recorte, TINTA, path.join(BRAND, "logo-negro.png"));
   await logoTransparente(recorte, BLANCO, path.join(BRAND, "logo-blanco.png"));
 
-  // 3. Iconos a partir del monograma "V"
-  const svg = await readFile(MONOGRAMA);
+  // 3. Iconos a partir de la "V" del icono de la web
+  const svg = await readFile(ICONO);
   const png = (tamano) => sharp(svg, { density: 300 }).resize(tamano, tamano).png().toBuffer();
 
   await writeFile(path.join(BRAND, "icono-192.png"), await png(192));
   await writeFile(path.join(BRAND, "icono-512.png"), await png(512));
-  await writeFile(path.join(APP, "icon.png"), await png(512));
+  await writeFile(path.join(APP, "icon.png"), await png(192));
   await writeFile(path.join(APP, "apple-icon.png"), await png(180));
 
   const tamanosIco = [16, 32, 48];
