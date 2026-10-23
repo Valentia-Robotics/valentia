@@ -5,7 +5,7 @@
  *
  * Lee (NO modifica):
  *   - imagenes/logo.png                    → tu logo original
- *   - public/images/brand/icono-web.svg    → la "V" grande para el favicon y los iconos
+ *   - public/images/brand/monograma.svg    → la "V" para favicon e iconos
  *
  * Crea:
  *   - public/images/brand/logo.png         → copia exacta del original
@@ -26,7 +26,7 @@ const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ruta = (...partes) => path.join(raiz, ...partes);
 
 const ORIGINAL = ruta("imagenes", "logo.png");
-const ICONO = ruta("public", "images", "brand", "icono-web.svg");
+const MONOGRAMA = ruta("public", "images", "brand", "monograma.svg");
 const BRAND = ruta("public", "images", "brand");
 const APP = ruta("src", "app");
 
@@ -117,8 +117,8 @@ async function main() {
   await logoTransparente(recorte, TINTA, path.join(BRAND, "logo-negro.png"));
   await logoTransparente(recorte, BLANCO, path.join(BRAND, "logo-blanco.png"));
 
-  // 3. Iconos a partir de la "V" del icono de la web
-  const svg = await readFile(ICONO);
+  // 3. Iconos a partir del monograma "V"
+  const svg = await readFile(MONOGRAMA);
   const png = (tamano) => sharp(svg, { density: 300 }).resize(tamano, tamano).png().toBuffer();
 
   await writeFile(path.join(BRAND, "icono-192.png"), await png(192));
