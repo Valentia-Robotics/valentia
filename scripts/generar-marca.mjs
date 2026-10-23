@@ -12,7 +12,8 @@
  *   - public/images/brand/logo-negro.png   → recortado, letras negras, fondo transparente
  *   - public/images/brand/logo-blanco.png  → recortado, letras blancas, fondo transparente
  *   - public/images/brand/icono-192.png, icono-512.png → iconos para el manifest (móviles)
- *   - src/app/icon.png (512), src/app/apple-icon.png (180), src/app/favicon.ico (16/32/48)
+ *   - src/app/icon.png (192), src/app/apple-icon.png (180), src/app/favicon.ico (16/32/48)
+ *     (Google pide un icono cuadrado de un múltiplo de 48 px: 48, 96, 144, 192…)
  *
  * Si cambias el logo: sustituye imagenes/logo.png y vuelve a ejecutar "npm run marca".
  */
@@ -122,7 +123,7 @@ async function main() {
 
   await writeFile(path.join(BRAND, "icono-192.png"), await png(192));
   await writeFile(path.join(BRAND, "icono-512.png"), await png(512));
-  await writeFile(path.join(APP, "icon.png"), await png(512));
+  await writeFile(path.join(APP, "icon.png"), await png(192));
   await writeFile(path.join(APP, "apple-icon.png"), await png(180));
 
   const tamanosIco = [16, 32, 48];

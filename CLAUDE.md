@@ -366,6 +366,8 @@ Requisitos completos: `PROMPT.md`.
 - Logo original: `imagenes/logo.png` (negro #0B0B0B sobre blanco, sin transparencia, trazos muy finos).
 - Versiones web en `public/images/brand/`: `logo.svg` (redibujo vectorial, negro), `logo-blanco.svg`,
   `logo.png` (copia), `logo-negro.png` / `logo-blanco.png` (recortados, transparentes), `monograma.svg` ("V" para iconos).
+  `monograma.svg` es la fuente del favicon (elegido por Jesse el 23-10-2026), `icon.png` (192, múltiplo de 48 como
+  pide Google), `apple-icon.png` y los iconos del manifest.
 - `npm run marca` regenera las copias PNG, el favicon y los iconos (`scripts/generar-marca.mjs`).
 - Usar siempre el componente `<Logo fondo="claro|oscuro" />`, con al menos 14 px de alto.
 - **Todos los tokens** (colores, tipografías, radios, sombras) están en `src/app/globals.css` (`@theme` de Tailwind 4).
