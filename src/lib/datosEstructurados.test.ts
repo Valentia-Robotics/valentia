@@ -32,3 +32,20 @@ describe("datos estructurados para Google", () => {
     expect(web["@type"]).toBe("WebSite");
   });
 });
+
+describe("estrellas de las opiniones en Google", () => {
+  it("solo añade la nota si hay opiniones publicadas", () => {
+    expect(datosKit(kit, true, { media: 0, total: 0, resenas: [] })).not.toHaveProperty(
+      "aggregateRating",
+    );
+    const conOpiniones = datosKit(kit, true, {
+      media: 4.5,
+      total: 2,
+      resenas: [{ autor: "Ana G.", estrellas: 5, texto: "Genial", fecha: new Date("2026-10-24") }],
+    });
+    expect(conOpiniones).toMatchObject({
+      aggregateRating: { ratingValue: 4.5, reviewCount: 2 },
+      review: [{ author: { name: "Ana G." }, datePublished: "2026-10-24" }],
+    });
+  });
+});

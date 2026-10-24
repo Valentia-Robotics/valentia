@@ -88,6 +88,7 @@ model Kit {
   cursoId     String             @unique @db.ObjectId
   codigos     CodigoActivacion[]
   lotes       LoteCodigos[]
+  resenas     Resena[]
 }
 
 /// Qué componentes (y cuántos) lleva cada kit
@@ -331,6 +332,7 @@ model Usuario {
   direcciones    Direccion[]
   videosVistos   VideoVisto[]
   resultadosTest ResultadoTest[]
+  resenas        Resena[]
 }
 
 /// Para qué se ha enviado un código por email
@@ -485,6 +487,39 @@ model LimiteIntento {
   caducaEn DateTime
 
   @@index([caducaEn])
+}
+
+// ============================================================
+//  RESEÑAS DE LOS KITS (ver src/lib/resenas.ts y src/config/resenas.ts)
+// ============================================================
+
+/// En qué punto está una reseña
+enum EstadoResena {
+  /// Escrita, esperando a que el administrador la publique (no se ve en la tienda)
+  PENDIENTE
+  /// Se ve en la ficha del kit y cuenta para la media de estrellas
+  PUBLICADA
+  /// Retirada desde el panel (no se ve; se puede volver a publicar)
+  OCULTA
+}
+
+/// La opinión de un cliente sobre un kit: una por persona y kit (si la cambia, se sobrescribe)
+model Resena {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  kit           Kit          @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  kitId         String       @db.ObjectId
+  usuario       Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId     String       @db.ObjectId
+  /// De 1 a 5
+  estrellas     Int
+  texto         String
+  estado        EstadoResena @default(PENDIENTE)
+  creadoEn      DateTime     @default(now())
+  /// Última vez que el cliente la escribió o la cambió
+  actualizadoEn DateTime     @default(now())
+
+  @@unique([usuarioId, kitId])
+  @@index([kitId, estado])
 }
 
 // ============================================================
