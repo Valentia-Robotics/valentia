@@ -3,10 +3,12 @@ import { BloqueFinal } from "@/components/portada/BloqueFinal";
 import { PortadaRobot } from "@/components/portada/PortadaRobot";
 import { BloqueConfigurador } from "@/components/tienda/BloqueConfigurador";
 import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
+import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { HeroKit } from "@/components/tienda/HeroKit";
 import { SeccionKit } from "@/components/tienda/SeccionKit";
 import type { Metadata } from "next";
 import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
+import { datosTienda } from "@/lib/datosEstructurados";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -37,6 +39,7 @@ export default async function Inicio() {
 
   return (
     <>
+      <DatosEstructurados datos={datosTienda()} />
       <PortadaRobot />
       <BloqueComoFunciona cifras={cifras} />
       {estrella && <HeroKit kit={estrella} />}

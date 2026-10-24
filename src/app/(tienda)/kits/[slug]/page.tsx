@@ -15,8 +15,15 @@ import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Estrellas } from "@/components/resenas/Estrellas";
+import { SeccionResenas } from "@/components/resenas/SeccionResenas";
+import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { nombreCategoria } from "@/config/categorias";
 import { listaDeTextos, obtenerKitPorSlug, obtenerKits } from "@/lib/catalogo";
+import { datosKit } from "@/lib/datosEstructurados";
+import { compraAbierta } from "@/lib/pagos";
+import { resenasDelKit } from "@/lib/resenas";
+import { formatearMedia } from "@/lib/resenas/formato";
 import { formatearPrecio } from "@/lib/utils";
 
 /**
@@ -44,6 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: kit.nombre,
     description: kit.eslogan,
+    alternates: { canonical: `/kits/${kit.slug}` },
     // La imagen para redes es la general de la web (las de los kits son SVG, que las redes no admiten)
     openGraph: { title: kit.nombre, description: kit.eslogan, images: ["/opengraph-image"] },
   };
@@ -55,6 +63,7 @@ export default async function PaginaKit({ params }: Props) {
   const kit = await obtenerKitPorSlug(slug);
   if (!kit) notFound();
 
+  const resenas = await resenasDelKit(kit.id);
   const puntosFuertes = listaDeTextos(kit.puntosFuertes);
   const lecciones = kit.curso.lecciones;
   const minutosCurso = lecciones.reduce((total, l) => total + l.duracionMin, 0);
@@ -62,6 +71,8 @@ export default async function PaginaKit({ params }: Props) {
 
   return (
     <>
+      <DatosEstructurados datos={datosKit(kit, compraAbierta(), resenas)} />
+
       {/* ---------- Cabecera: imagen + compra ---------- */}
       <section id="comprar" className="scroll-mt-nav">
         <Contenedor className="pt-6 pb-16 sm:pb-24">
@@ -97,6 +108,16 @@ export default async function PaginaKit({ params }: Props) {
               </div>
               <h1 className="mt-5 text-4xl font-medium sm:text-5xl">{kit.nombre}</h1>
               <p className="mt-3 text-lg text-gris">{kit.eslogan}</p>
+              {resenas.total > 0 && (
+                <a
+                  href="#opiniones"
+                  className="mt-3 inline-flex items-center gap-2 text-sm text-gris hover:text-tinta"
+                >
+                  <Estrellas nota={resenas.media} className="text-base" />
+                  {formatearMedia(resenas.media)} · {resenas.total}{" "}
+                  {resenas.total === 1 ? "opinión" : "opiniones"}
+                </a>
+              )}
 
               <p className="mt-6 text-3xl font-medium">{formatearPrecio(kit.precioCentimos)}</p>
               <p className="mt-1 text-sm text-gris">IVA incluido · Curso de regalo</p>
@@ -226,6 +247,9 @@ export default async function PaginaKit({ params }: Props) {
           </ol>
         </Contenedor>
       </section>
+
+      {/* ---------- Opiniones de los clientes ---------- */}
+      <SeccionResenas slug={kit.slug} resumen={resenas} />
     </>
   );
 }

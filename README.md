@@ -188,11 +188,14 @@ npm run admin                            # dice quién es ADMIN ahora
 | **Cursos**      | Lecciones (ordenables), vídeo, tests y retos, y progreso de los alumnos                                                                                                                                              |
 | **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR o descargarlas para láser (.zip de SVG), desactivarlos                                                                                                             |
 | **Usuarios**    | Lista con buscador: email, registro, cursos activados y pedidos                                                                                                                                                      |
+| **Reseñas**     | Opiniones de los kits (estrellas y comentario): ocultar, volver a publicar o borrar                                                                                                                                  |
 
 Algunas reglas: un pedido solo pasa a «Pagado» con el pago confirmado (nunca desde el panel). Si
 cancelas un pedido ya cobrado con Stripe, **devuelve el dinero desde el panel de Stripe** (la ficha del
 pedido tiene un enlace). Ocultar un componente o un kit lo quita de la tienda sin borrarlo. Borrar algo
 con dependencias se bloquea y se propone ocultarlo. Las fotos se reducen y se convierten a WebP solas.
+Reseñas: solo puede opinar quien ha activado el código QR de ese kit; salen al momento en la ficha
+(y sus estrellas, en Google). Las reglas están en `src/config/resenas.ts`.
 
 ### La base de datos manda
 

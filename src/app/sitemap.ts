@@ -10,7 +10,10 @@ export const revalidate = 300;
 
 const web = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-/** sitemap.xml: las páginas públicas, con un enlace por cada kit a la venta */
+/**
+ * sitemap.xml: las páginas públicas, con un enlace por cada kit a la venta.
+ * Sin /login ni /registro: llevan «noindex» y Google avisa si el sitemap le manda a páginas que no debe indexar.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const kits = await obtenerKits();
   const paginas: [string, number][] = [
@@ -18,8 +21,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/kits", 0.9],
     ["/componentes", 0.8],
     ["/configurador", 0.8],
-    ["/login", 0.3],
-    ["/registro", 0.3],
     ["/legal/aviso-legal", 0.1],
     ["/legal/privacidad", 0.1],
     ["/legal/cookies", 0.1],

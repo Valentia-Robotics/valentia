@@ -11,6 +11,17 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Google y reseñas (24-10-2026, rama `claude/project-thread-k6zvn1`, PR #20)
+
+- Search Console verificado con `public/googlef2ee1364afad6701.html` (no borrarlo). Favicon = `monograma.svg`.
+- Datos estructurados (`src/lib/datosEstructurados.ts` + `components/seo/DatosEstructurados`): Organization +
+  WebSite en la portada; Product en cada ficha (InStock solo si `compraAbierta()`), con `aggregateRating` y
+  `review` cuando hay reseñas publicadas. Canonical en las fichas. sitemap sin /login ni /registro.
+- Reseñas (decisión de Jesse: solo quien activó el código del kit, salen al momento, ocultables): modelo
+  `Resena` (una por usuario y kit, `EstadoResena` PENDIENTE/PUBLICADA/OCULTA), reglas en `src/config/resenas.ts`,
+  consultas en `src/lib/resenas/`, acciones en `src/app/(tienda)/kits/[slug]/acciones.ts` (la ficha es ISR:
+  el formulario pide `leerMiResena` al cargar), panel `/admin/resenas`. Nombre público «Ana G.».
+
 ### Catálogo de producción desde el panel (20-10-2026, rama `valentiarobotics/catalogo-solo-crear`)
 
 Decisión del usuario: el catálogo de producción se gestiona desde el panel de producción. `seed:prod` SOLO

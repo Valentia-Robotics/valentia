@@ -54,3 +54,12 @@ export function modoPago(): ModoPago {
   if (!enProduccion || process.env.PERMITIR_PAGO_SIMULADO === "si") return "simulado";
   return "desactivado";
 }
+
+/** ¿Se puede comprar ahora mismo? (para avisar a Google; una configuración mala cuenta como «no») */
+export function compraAbierta(): boolean {
+  try {
+    return modoPago() !== "desactivado";
+  } catch {
+    return false;
+  }
+}

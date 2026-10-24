@@ -11,6 +11,7 @@ import {
   LogOut,
   QrCode,
   ShoppingBag,
+  Star,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const secciones: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },
   { href: "/admin/codigos", etiqueta: "Códigos", icono: QrCode },
+  { href: "/admin/resenas", etiqueta: "Reseñas", icono: Star },
   { href: "/admin/usuarios", etiqueta: "Usuarios", icono: Users },
 ];
 
