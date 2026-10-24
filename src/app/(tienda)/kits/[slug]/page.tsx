@@ -15,8 +15,11 @@ import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { nombreCategoria } from "@/config/categorias";
 import { listaDeTextos, obtenerKitPorSlug, obtenerKits } from "@/lib/catalogo";
+import { datosKit } from "@/lib/datosEstructurados";
+import { compraAbierta } from "@/lib/pagos";
 import { formatearPrecio } from "@/lib/utils";
 
 /**
@@ -44,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: kit.nombre,
     description: kit.eslogan,
+    alternates: { canonical: `/kits/${kit.slug}` },
     // La imagen para redes es la general de la web (las de los kits son SVG, que las redes no admiten)
     openGraph: { title: kit.nombre, description: kit.eslogan, images: ["/opengraph-image"] },
   };
@@ -62,6 +66,8 @@ export default async function PaginaKit({ params }: Props) {
 
   return (
     <>
+      <DatosEstructurados datos={datosKit(kit, compraAbierta())} />
+
       {/* ---------- Cabecera: imagen + compra ---------- */}
       <section id="comprar" className="scroll-mt-nav">
         <Contenedor className="pt-6 pb-16 sm:pb-24">
