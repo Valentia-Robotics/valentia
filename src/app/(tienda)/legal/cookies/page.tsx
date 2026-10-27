@@ -1,5 +1,6 @@
 // ⚠ BORRADOR — pendiente de revisión por un profesional.
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BotonConfigurarCookies } from "@/components/layout/BotonConfigurarCookies";
 import { PaginaLegal, TablaLegal } from "@/components/legal/PaginaLegal";
 import { tienda } from "@/config/tienda";
@@ -52,7 +53,9 @@ export default function PoliticaCookies() {
         Las cookies son pequeños archivos que una web guarda en tu navegador. En{" "}
         {tienda.empresa.nombreComercial} usamos las mínimas: las necesarias para que la web funcione
         y, solo si nos das permiso, las de los reproductores de vídeo. No usamos cookies de
-        publicidad ni de analítica.
+        publicidad ni de analítica: para saber cuánta gente visita la web contamos las páginas
+        vistas sin cookies y sin guardar tu IP (lo explicamos en la{" "}
+        <Link href="/legal/privacidad">política de privacidad</Link>).
       </p>
 
       <h2>1. Cookies necesarias (siempre activas)</h2>

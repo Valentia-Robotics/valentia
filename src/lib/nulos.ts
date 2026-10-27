@@ -22,6 +22,7 @@ type Opcional = { campo: string; relacion?: string };
 export const OPCIONALES: Record<string, Opcional[]> = {
   Componente: [{ campo: "voltajeLogico" }],
   ListaEspera: [{ campo: "kitSlug" }, { campo: "avisadoEn" }],
+  Visita: [{ campo: "origen" }],
   Ejercicio: [{ campo: "correcta" }, { campo: "explicacion" }, { campo: "solucion" }],
   Pedido: [
     { campo: "usuarioId", relacion: "usuario" },

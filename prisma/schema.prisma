@@ -535,6 +535,28 @@ model ListaEspera {
   avisadoEn DateTime?
 }
 
+/// Una página vista en la web pública (estadísticas propias, sin cookies ni IP).
+/// Se borran solas a los 13 meses.
+model Visita {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// Día en España, "2026-10-27"
+  dia         String
+  /// Página vista, sin parámetros ("/kits/coche-seguidor")
+  ruta        String
+  /// true si es la primera página al llegar a la web (las demás son navegación dentro)
+  entrada     Boolean
+  /// De dónde llegó ("Google", "Instagram"…); null = directo. Solo en las entradas.
+  origen      String?
+  /// "movil", "tableta" u "ordenador"
+  dispositivo String
+  /// Huella que cambia cada día (no se puede saber quién es): cuenta personas distintas
+  visitante   String
+  creadoEn    DateTime @default(now())
+
+  @@index([dia])
+  @@index([creadoEn])
+}
+
 // ============================================================
 //  CATÁLOGO DE PRODUCCIÓN (npm run seed:prod)
 // ============================================================

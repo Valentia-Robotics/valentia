@@ -11,6 +11,14 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Estadísticas de visitas (27-10-2026, rama `claude/project-thread-g3cf1v`)
+
+Propias, sin cookies ni IP: `ContadorVisitas` (en `Proveedores`; no cuenta ADMIN ni `navigator.webdriver`) →
+`POST /api/visitas` (robots fuera, límite `visita` por IP, huella diaria HMAC(AUTH_SECRET) de IP+navegador+día,
+borra lo de > 400 días) → modelo `Visita`. Reglas puras en `src/lib/visitas/reglas.ts` (+ test). Panel
+`/admin/visitas` (`src/lib/admin/visitas.ts`, `PanelVisitas`): 7/30/90 días, personas, páginas, origen
+(`?utm_source=` manda), aparato. Fila nueva en privacidad (interés legítimo) y frase en cookies.
+
 ### Lista de espera (27-10-2026, rama `claude/project-thread-g3cf1v`)
 
 Mientras `compraAbierta()` sea falso (claves de prueba en producción), la portada (`BloqueFinal`), la ficha de

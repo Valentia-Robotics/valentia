@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BookOpen,
   Boxes,
+  ChartColumn,
   Cpu,
   ExternalLink,
   LayoutDashboard,
@@ -23,6 +24,7 @@ import { cn } from "@/lib/utils";
 /** Secciones del panel. Para añadir una nueva, añádela aquí. */
 const secciones: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin", etiqueta: "Inicio", icono: LayoutDashboard },
+  { href: "/admin/visitas", etiqueta: "Visitas", icono: ChartColumn },
   { href: "/admin/pedidos", etiqueta: "Pedidos", icono: ShoppingBag },
   { href: "/admin/componentes", etiqueta: "Componentes", icono: Cpu },
   { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
