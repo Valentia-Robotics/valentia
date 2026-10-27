@@ -75,6 +75,14 @@ export default function Privacidad() {
             <td>Ejecución del contrato (art. 6.1.b)</td>
           </tr>
           <tr>
+            <td>
+              Avisarte por email cuando abramos la tienda, si te apuntas a la lista de espera (un
+              solo correo; después borramos la lista)
+            </td>
+            <td>Email y el kit que estabas mirando</td>
+            <td>Tu consentimiento (art. 6.1.a), que puedes retirar escribiéndonos</td>
+          </tr>
+          <tr>
             <td>Cargar vídeos de YouTube o Vimeo en los cursos</td>
             <td>Datos técnicos del navegador que recogen esos servicios</td>
             <td>Tu consentimiento (art. 6.1.a), que puedes retirar en «Configurar cookies»</td>

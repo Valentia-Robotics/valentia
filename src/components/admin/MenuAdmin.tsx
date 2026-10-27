@@ -9,6 +9,7 @@ import {
   ExternalLink,
   LayoutDashboard,
   LogOut,
+  Mail,
   QrCode,
   ShoppingBag,
   Star,
@@ -28,6 +29,7 @@ const secciones: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },
   { href: "/admin/codigos", etiqueta: "Códigos", icono: QrCode },
   { href: "/admin/resenas", etiqueta: "Reseñas", icono: Star },
+  { href: "/admin/lista-espera", etiqueta: "Lista de espera", icono: Mail },
   { href: "/admin/usuarios", etiqueta: "Usuarios", icono: Users },
 ];
 

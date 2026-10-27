@@ -9,6 +9,7 @@ import { SeccionKit } from "@/components/tienda/SeccionKit";
 import type { Metadata } from "next";
 import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
 import { datosTienda } from "@/lib/datosEstructurados";
+import { compraAbierta } from "@/lib/pagos";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -48,7 +49,7 @@ export default async function Inicio() {
       ))}
       <BloqueConfigurador />
       <BloqueCursoQR />
-      <BloqueFinal />
+      <BloqueFinal compraAbierta={compraAbierta()} />
     </>
   );
 }

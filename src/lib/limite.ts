@@ -34,6 +34,8 @@ export const LIMITES = {
   recuperar: { maximo: 10, minutos: 15 },
   /** Preparar un pedido en el checkout (por IP): evita bloquear el stock con pedidos falsos */
   checkout: { maximo: 20, minutos: 15 },
+  /** Apuntarse a la lista de espera (por IP) */
+  listaEspera: { maximo: 10, minutos: 60 },
 } as const;
 
 export type AccionLimitada = keyof typeof LIMITES;
