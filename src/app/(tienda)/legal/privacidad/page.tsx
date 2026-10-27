@@ -83,6 +83,17 @@ export default function Privacidad() {
             <td>Tu consentimiento (art. 6.1.a), que puedes retirar escribiéndonos</td>
           </tr>
           <tr>
+            <td>
+              Saber cuánta gente visita la web, qué páginas mira y de dónde llega (estadísticas
+              propias, sin cookies)
+            </td>
+            <td>
+              Página vista, web de la que vienes, tipo de aparato y una huella de tu conexión que
+              cambia cada día y no permite saber quién eres. La IP no se guarda
+            </td>
+            <td>Interés legítimo en mejorar la web (art. 6.1.f)</td>
+          </tr>
+          <tr>
             <td>Cargar vídeos de YouTube o Vimeo en los cursos</td>
             <td>Datos técnicos del navegador que recogen esos servicios</td>
             <td>Tu consentimiento (art. 6.1.a), que puedes retirar en «Configurar cookies»</td>
@@ -105,6 +116,7 @@ export default function Privacidad() {
           Pedidos y facturas: el tiempo que exige la normativa fiscal y mercantil (en general, 6
           años).
         </li>
+        <li>Estadísticas de visitas: 13 meses.</li>
         <li>
           Códigos de verificación: unos minutos; registros de seguridad: el mínimo imprescindible.
         </li>

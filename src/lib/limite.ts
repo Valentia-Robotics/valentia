@@ -36,6 +36,8 @@ export const LIMITES = {
   checkout: { maximo: 20, minutos: 15 },
   /** Apuntarse a la lista de espera (por IP) */
   listaEspera: { maximo: 10, minutos: 60 },
+  /** Páginas vistas que se cuentan en las estadísticas (por IP) */
+  visita: { maximo: 120, minutos: 10 },
 } as const;
 
 export type AccionLimitada = keyof typeof LIMITES;
