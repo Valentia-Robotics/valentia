@@ -11,6 +11,14 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Lista de espera (27-10-2026, rama `claude/project-thread-g3cf1v`)
+
+Mientras `compraAbierta()` sea falso (claves de prueba en producción), la portada (`BloqueFinal`), la ficha de
+cada kit y el checkout muestran `FormularioAvisame` (`src/components/espera/`, acción `src/app/(tienda)/listaEspera.ts`,
+honeypot `web`, límite `listaEspera` por IP). Modelo `ListaEspera` (email único). Panel `/admin/lista-espera`
+(copiar emails para CCO, CSV, borrar). Fila nueva en la política de privacidad. Textos sencillos, sin tono
+de anuncio (lo pidió Jesse).
+
 ### Google y reseñas (24-10-2026, rama `claude/project-thread-k6zvn1`, PR #20)
 
 - Search Console verificado con `public/googlef2ee1364afad6701.html` (no borrarlo). Favicon = `monograma.svg`.

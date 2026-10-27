@@ -21,6 +21,7 @@ type Opcional = { campo: string; relacion?: string };
 /** Campos opcionales de cada colección (los Json? no: no se filtran y null ahí es otra cosa) */
 export const OPCIONALES: Record<string, Opcional[]> = {
   Componente: [{ campo: "voltajeLogico" }],
+  ListaEspera: [{ campo: "kitSlug" }, { campo: "avisadoEn" }],
   Ejercicio: [{ campo: "correcta" }, { campo: "explicacion" }, { campo: "solucion" }],
   Pedido: [
     { campo: "usuarioId", relacion: "usuario" },

@@ -522,6 +522,19 @@ model Resena {
   @@index([kitId, estado])
 }
 
+/// Personas que quieren que les avisemos cuando abra la tienda (formulario «Avísame»)
+model ListaEspera {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  email     String    @unique
+  /// Dónde se apuntó: "portada", "kit" o "checkout"
+  origen    String
+  /// Kit que estaba mirando al apuntarse (su slug), si lo hay
+  kitSlug   String?
+  creadoEn  DateTime  @default(now())
+  /// Cuándo se le mandó el aviso de apertura
+  avisadoEn DateTime?
+}
+
 // ============================================================
 //  CATÁLOGO DE PRODUCCIÓN (npm run seed:prod)
 // ============================================================

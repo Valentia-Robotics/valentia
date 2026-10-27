@@ -1,5 +1,6 @@
 "use client";
 
+import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import Image from "next/image";
 import Link from "next/link";
 import { CircleAlert, FlaskConical, Lock, MapPin, Pencil } from "lucide-react";
@@ -101,10 +102,18 @@ export function FormularioCheckout({ cuenta, direcciones, modo }: Props) {
 
   if (modo === "desactivado") {
     return (
-      <p role="alert" className="mt-10 rounded-tarjeta bg-aviso/8 p-6 text-aviso-oscuro">
-        Todavía no aceptamos pedidos en la web: abrimos la tienda muy pronto. Mientras tanto, puedes
-        ver los kits y preparar tu carrito.
-      </p>
+      <div className="mt-10 max-w-xl rounded-tarjeta bg-niebla p-6 sm:p-8">
+        <h2 className="text-2xl font-medium">Aún no podemos cobrar pedidos online.</h2>
+        <p className="mt-2 text-gris">
+          Nos falta muy poco para abrir. Tu carrito se queda guardado en este navegador: déjanos tu
+          email y te escribimos el día que puedas terminar la compra.
+        </p>
+        <FormularioAvisame
+          origen="checkout"
+          kitSlug={articulos.find((a) => a.tipo === "kit")?.slug}
+          className="mt-5"
+        />
+      </div>
     );
   }
 

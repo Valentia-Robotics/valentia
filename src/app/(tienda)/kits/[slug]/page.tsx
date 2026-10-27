@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   Wrench,
 } from "lucide-react";
+import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
@@ -64,6 +65,7 @@ export default async function PaginaKit({ params }: Props) {
   if (!kit) notFound();
 
   const resenas = await resenasDelKit(kit.id);
+  const abierta = compraAbierta();
   const puntosFuertes = listaDeTextos(kit.puntosFuertes);
   const lecciones = kit.curso.lecciones;
   const minutosCurso = lecciones.reduce((total, l) => total + l.duracionMin, 0);
@@ -71,7 +73,7 @@ export default async function PaginaKit({ params }: Props) {
 
   return (
     <>
-      <DatosEstructurados datos={datosKit(kit, compraAbierta(), resenas)} />
+      <DatosEstructurados datos={datosKit(kit, abierta, resenas)} />
 
       {/* ---------- Cabecera: imagen + compra ---------- */}
       <section id="comprar" className="scroll-mt-nav">
@@ -131,28 +133,39 @@ export default async function PaginaKit({ params }: Props) {
                 ))}
               </ul>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <BotonAnadirCarrito
-                  articulo={{
-                    id: `kit:${kit.slug}`,
-                    tipo: "kit",
-                    slug: kit.slug,
-                    nombre: kit.nombre,
-                    precioCentimos: kit.precioCentimos,
-                    imagen: kit.imagen,
-                  }}
-                  className="w-full sm:w-auto"
-                />
-                <Boton
-                  href={`/configurador?kit=${kit.slug}`}
-                  variante="secundario"
-                  tamano="lg"
-                  className="w-full sm:w-auto"
-                >
-                  <SlidersHorizontal aria-hidden="true" className="size-5" strokeWidth={1.8} />
-                  Personalizar este kit
-                </Boton>
-              </div>
+              {abierta ? (
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                  <BotonAnadirCarrito
+                    articulo={{
+                      id: `kit:${kit.slug}`,
+                      tipo: "kit",
+                      slug: kit.slug,
+                      nombre: kit.nombre,
+                      precioCentimos: kit.precioCentimos,
+                      imagen: kit.imagen,
+                    }}
+                    className="w-full sm:w-auto"
+                  />
+                  <Boton
+                    href={`/configurador?kit=${kit.slug}`}
+                    variante="secundario"
+                    tamano="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    <SlidersHorizontal aria-hidden="true" className="size-5" strokeWidth={1.8} />
+                    Personalizar este kit
+                  </Boton>
+                </div>
+              ) : (
+                <div className="mt-8 rounded-tarjeta bg-niebla p-5 sm:p-6">
+                  <p className="font-medium">Todavía no lo vendemos online.</p>
+                  <p className="mt-1 text-sm text-gris">
+                    Estamos preparando las primeras unidades. Déjanos tu email y te avisamos en
+                    cuanto puedas pedirlo.
+                  </p>
+                  <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
+                </div>
+              )}
             </div>
           </div>
         </Contenedor>
