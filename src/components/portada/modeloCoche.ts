@@ -35,7 +35,9 @@ import type { PiezaRobot } from "./piezasRobot";
 import {
   texturaChip,
   texturaConector,
+  texturaDibujoNeumatico,
   texturaDriver,
+  texturaPila,
   texturaPlacaUno,
   texturaProtoboard,
   texturaRejilla,
@@ -69,6 +71,9 @@ export function crearModeloCoche(): ModeloCoche {
   const g = <T extends BufferGeometry>(geo: T) => (geometrias.push(geo), geo);
   const tx = <T extends Texture>(t: T) => (texturas.push(t), t);
 
+  const geoTuerca = g(new CylinderGeometry(0.028, 0.028, 0.018, 6));
+  const geoCabeza = g(new SphereGeometry(0.016, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2));
+
   const raiz = new Group();
   const piezas = new Map<PiezaRobot["id"], PiezaModelo>();
 
@@ -100,7 +105,14 @@ export function crearModeloCoche(): ModeloCoche {
       padre.add(m);
       return m;
     };
-    return { mat, malla };
+    /** Tuerca hexagonal con la cabeza del tornillo asomando (la tornillería de montaje) */
+    let acero: MeshStandardMaterial | undefined;
+    const tuerca = (x: number, y: number, z: number) => {
+      acero ??= mat({ color: 0xbfc3c9, metalness: 1, roughness: 0.28 });
+      malla(geoTuerca, acero, x, y + 0.009, z);
+      malla(geoCabeza, acero, x, y + 0.022, z);
+    };
+    return { mat, malla, tuerca };
   }
 
   const crear = (id: PiezaRobot["id"]) => {
@@ -117,7 +129,7 @@ export function crearModeloCoche(): ModeloCoche {
   // CHASIS: placa de metacrilato transparente con ranuras y la rueda loca
   // ------------------------------------------------------------------
   {
-    const { pieza, mat, malla } = crear("chasis");
+    const { pieza, mat, malla, tuerca } = crear("chasis");
     const forma = new Shape();
     const [L, A, r] = [1.28, 0.6, 0.16]; // medio largo, medio ancho, radio de las esquinas
     forma.moveTo(-L + r, -A);
@@ -178,18 +190,19 @@ export function crearModeloCoche(): ModeloCoche {
     geo.rotateX(-Math.PI / 2); // la forma pasa a estar tumbada: grosor hacia arriba
     const metacrilato = mat(
       {
-        color: 0xdfe9f2,
-        roughness: 0.08,
+        color: 0xe4eef4,
+        roughness: 0.05,
         metalness: 0,
         transparent: true,
-        opacity: 0.42,
+        opacity: 0.3,
         depthWrite: false,
         side: DoubleSide,
       },
       true,
     ) as MeshPhysicalMaterial;
+    // Capa brillante por encima: refleja la luz como el metacrilato de verdad
     metacrilato.clearcoat = 1;
-    metacrilato.clearcoatRoughness = 0.05;
+    metacrilato.clearcoatRoughness = 0.03;
     const chapa = malla(geo, metacrilato, 0, -0.02, 0);
     chapa.castShadow = false;
     // Cantos del metacrilato, que brillan un poco
@@ -201,6 +214,15 @@ export function crearModeloCoche(): ModeloCoche {
     cantos.position.y = -0.02;
     pieza.grupo.add(cantos);
 
+    // Tornillería de la rueda loca y del soporte de los motores
+    for (const z of [-0.09, 0.09]) tuerca(0.92, 0.02, z);
+    for (const [x, z] of [
+      [-0.67, -0.32],
+      [-0.43, -0.32],
+      [-0.67, 0.32],
+      [-0.43, 0.32],
+    ])
+      tuerca(x, 0.02, z);
     // Rueda loca delantera: dos separadores de latón, soporte y bola de acero
     const laton = mat({ color: 0xc9a24a, metalness: 0.9, roughness: 0.3 });
     const separador = g(new CylinderGeometry(0.022, 0.022, 0.26, 12));
@@ -222,7 +244,7 @@ export function crearModeloCoche(): ModeloCoche {
   // PLACA: el «cerebro» (placa UNO sobre separadores) y la protoboard
   // ------------------------------------------------------------------
   {
-    const { mat, malla } = crear("placa");
+    const { mat, malla, tuerca } = crear("placa");
     const cx = 0.38;
     const cz = -0.26;
     const y = 0.085; // cara de arriba de la placa
@@ -238,6 +260,13 @@ export function crearModeloCoche(): ModeloCoche {
       [0.34, 0.25],
     ])
       malla(sep, laton, cx + dx, 0.04, cz + dz);
+    for (const [dx, dz] of [
+      [-0.34, -0.25],
+      [0.34, -0.25],
+      [-0.34, 0.25],
+      [0.34, 0.25],
+    ])
+      tuerca(cx + dx, y - 0.004, cz + dz);
 
     // Conector USB (metálico) y conector de alimentación (negro), en el borde de atrás
     const metal = mat({ color: 0xc8ccd2, metalness: 0.95, roughness: 0.22 });
@@ -333,18 +362,23 @@ export function crearModeloCoche(): ModeloCoche {
   // MOTORES: dos motores TT amarillos, sus ruedas y el driver L298N
   // ------------------------------------------------------------------
   {
-    const { mat, malla } = crear("motores");
+    const { mat, malla, tuerca } = crear("motores");
     const ejeX = -0.55;
     const ejeY = -0.135;
-    const amarillo = mat({ color: 0xf2c218, roughness: 0.42 });
+    const amarillo = mat({ color: 0xe9b910, roughness: 0.38 });
     const metal = mat({ color: 0xc3c7cd, metalness: 0.95, roughness: 0.25 });
     const blanco = mat({ color: 0xf1f1ec, roughness: 0.5 });
-    const goma = mat({ color: 0x1c1c1c, roughness: 0.92 });
-    const llanta = mat({ color: 0xf2c218, roughness: 0.4 });
+    const tapaMotor = mat({ color: 0x2a2a2a, roughness: 0.6 });
+    const dibujo = tx(texturaDibujoNeumatico());
+    const goma = mat({ color: 0x1e1e1e, roughness: 0.88, bumpMap: dibujo, bumpScale: 1.2 });
+    const llanta = mat({ color: 0xe9b910, roughness: 0.36 });
+    const hueco = mat({ color: 0x0d0d0d, roughness: 0.8 });
     const caja = g(new RoundedBoxGeometry(0.46, 0.22, 0.19, 3, 0.025));
     const lata = g(new CylinderGeometry(0.095, 0.095, 0.24, 28));
     const eje = g(new CylinderGeometry(0.022, 0.022, 0.3, 12));
-    const neumatico = g(new TorusGeometry(0.3, 0.085, 18, 48));
+    const neumatico = g(new TorusGeometry(0.3, 0.085, 24, 96));
+    const reborde = g(new TorusGeometry(0.255, 0.018, 10, 64));
+    const agujero = g(new CylinderGeometry(0.024, 0.024, 0.2, 14));
     const disco = g(new CylinderGeometry(0.255, 0.255, 0.07, 40));
     const radio = g(new BoxGeometry(0.04, 0.42, 0.075));
     const buje = g(new CylinderGeometry(0.06, 0.06, 0.12, 20));
@@ -352,10 +386,18 @@ export function crearModeloCoche(): ModeloCoche {
       const z = lado * 0.45;
       // Caja reductora amarilla: el eje de la rueda sale cerca de un extremo
       malla(caja, amarillo, ejeX + 0.12, ejeY, z);
+      // Los dos agujeros pasantes de los motores TT
+      for (const dxh of [0.2, 0.29])
+        malla(agujero, hueco, ejeX + dxh, ejeY - 0.04, z).rotation.x = Math.PI / 2;
       // Motor (lata metálica) que sale hacia el centro del coche
       malla(lata, metal, ejeX + 0.47, ejeY, z).rotation.z = Math.PI / 2;
-      malla(g(new CylinderGeometry(0.06, 0.06, 0.03, 20)), blanco, ejeX + 0.6, ejeY, z).rotation.z =
-        Math.PI / 2;
+      malla(
+        g(new CylinderGeometry(0.085, 0.085, 0.03, 24)),
+        tapaMotor,
+        ejeX + 0.6,
+        ejeY,
+        z,
+      ).rotation.z = Math.PI / 2;
       malla(eje, blanco, ejeX, ejeY, z + lado * 0.12).rotation.x = Math.PI / 2;
       // Rueda: neumático negro, llanta amarilla con radios y buje
       const zr = lado * 0.74;
@@ -368,6 +410,15 @@ export function crearModeloCoche(): ModeloCoche {
         rr.rotation.z = (k * Math.PI) / 3;
       }
       malla(buje, llanta, ejeX, ejeY, zr).rotation.x = Math.PI / 2;
+      malla(reborde, llanta, ejeX, ejeY, zr + lado * 0.035);
+      // Tornillo central de la rueda
+      malla(
+        g(new CylinderGeometry(0.02, 0.02, 0.13, 12)),
+        mat({ color: 0xbfc3c9, metalness: 1, roughness: 0.3 }),
+        ejeX,
+        ejeY,
+        zr,
+      ).rotation.x = Math.PI / 2;
       // Sujeción de metacrilato que une el motor al chasis
       malla(
         g(new BoxGeometry(0.2, 0.2, 0.025)),
@@ -394,6 +445,13 @@ export function crearModeloCoche(): ModeloCoche {
       [0.21, 0.21],
     ])
       malla(sep, laton, dx + a, 0.035, dz + b);
+    for (const [a, b] of [
+      [-0.21, -0.21],
+      [0.21, -0.21],
+      [-0.21, 0.21],
+      [0.21, 0.21],
+    ])
+      tuerca(dx + a, y - 0.004, dz + b);
     // Disipador negro con aletas
     const aluminio = mat({ color: 0x1e1f22, metalness: 0.6, roughness: 0.45 });
     malla(g(new BoxGeometry(0.26, 0.04, 0.17)), aluminio, dx + 0.02, y + 0.02, dz - 0.04);
@@ -436,13 +494,14 @@ export function crearModeloCoche(): ModeloCoche {
   // SENSORES: ultrasonidos HC-SR04 delante y dos sensores de línea debajo
   // ------------------------------------------------------------------
   {
-    const { mat, malla } = crear("sensores");
+    const { mat, malla, tuerca } = crear("sensores");
     const x = 1.2;
     const y = 0.2;
     // Soporte negro en L atornillado al chasis
     const negro = mat({ color: 0x161616, roughness: 0.55 });
     malla(g(new BoxGeometry(0.14, 0.02, 0.3)), negro, x - 0.07, 0.01, 0);
     malla(g(new BoxGeometry(0.02, 0.14, 0.3)), negro, x - 0.01, 0.08, 0);
+    for (const z of [-0.09, 0.09]) tuerca(x - 0.09, 0.02, z);
     // Placa azul vertical (mirando hacia delante)
     const azulLado = mat({ color: 0x113d85, roughness: 0.6 });
     const azulCara = mat({ map: tx(texturaSonar()), roughness: 0.55 });
@@ -504,18 +563,21 @@ export function crearModeloCoche(): ModeloCoche {
     const testa = g(new BoxGeometry(0.03, 0.12, 0.64));
     malla(testa, negro, bx - 0.345, 0.07, bz);
     malla(testa, negro, bx + 0.345, 0.07, bz);
-    // Pilas: cuerpo oscuro, franja cobre en el polo positivo y extremos metálicos
-    const cuerpo = mat({ color: 0x23262b, metalness: 0.35, roughness: 0.35 });
-    const cobre = mat({ color: 0xc27a3a, metalness: 0.7, roughness: 0.3 });
+    // Pilas: envoltorio impreso (cuerpo oscuro, franja cobre y texto) y extremos metálicos
+    const envoltorio = mat({ map: tx(texturaPila()), metalness: 0.3, roughness: 0.32 });
     const acero = mat({ color: 0xcfd2d6, metalness: 1, roughness: 0.2 });
-    const tramoNegro = g(new CylinderGeometry(0.072, 0.072, 0.48, 28));
-    const tramoCobre = g(new CylinderGeometry(0.072, 0.072, 0.1, 28));
+    const cuerpo = g(new CylinderGeometry(0.072, 0.072, 0.58, 40, 1, true));
+    const tapa = g(new CylinderGeometry(0.07, 0.07, 0.01, 28));
     const polo = g(new CylinderGeometry(0.025, 0.025, 0.03, 16));
     for (let i = 0; i < 4; i++) {
       const z = bz - 0.225 + i * 0.15;
       const sentido = i % 2 === 0 ? 1 : -1; // alternadas, como en un portapilas de verdad
-      malla(tramoNegro, cuerpo, bx - sentido * 0.05, 0.095, z).rotation.z = Math.PI / 2;
-      malla(tramoCobre, cobre, bx + sentido * 0.24, 0.095, z).rotation.z = Math.PI / 2;
+      // rotation.z = -π/2 lleva la parte de arriba del cilindro (la franja cobre) hacia +x
+      const pila = malla(cuerpo, envoltorio, bx, 0.095, z);
+      pila.rotation.z = -sentido * (Math.PI / 2);
+      pila.rotation.x = 0.6;
+      malla(tapa, acero, bx + sentido * 0.29, 0.095, z).rotation.z = Math.PI / 2;
+      malla(tapa, acero, bx - sentido * 0.29, 0.095, z).rotation.z = Math.PI / 2;
       malla(polo, acero, bx + sentido * 0.305, 0.095, z).rotation.z = Math.PI / 2;
     }
   }
@@ -544,7 +606,7 @@ export function crearModeloCoche(): ModeloCoche {
         false,
         "centripetal",
       );
-      const tubo = new Mesh(g(new TubeGeometry(curva, 48, 0.011, 6, false)), material);
+      const tubo = new Mesh(g(new TubeGeometry(curva, 64, 0.0085, 8, false)), material);
       tubo.castShadow = true;
       cables.grupo.add(tubo);
       if (extremos)
@@ -559,14 +621,14 @@ export function crearModeloCoche(): ModeloCoche {
     // Placa UNO → protoboard (5 V y GND)
     cable(R, [
       [0.3, 0.18, -0.55],
-      [0.45, 0.32, -0.2],
-      [0.62, 0.3, 0.2],
+      [0.45, 0.24, -0.2],
+      [0.62, 0.22, 0.2],
       [0.62, 0.11, 0.14],
     ]);
     cable(N, [
       [0.34, 0.18, -0.55],
-      [0.52, 0.28, -0.15],
-      [0.68, 0.26, 0.18],
+      [0.52, 0.22, -0.15],
+      [0.68, 0.2, 0.18],
       [0.68, 0.11, 0.14],
     ]);
     // Ultrasonidos → protoboard
@@ -575,7 +637,7 @@ export function crearModeloCoche(): ModeloCoche {
       cable(color, [
         [1.2, 0.04, z],
         [1.13, -0.01, z + 0.02],
-        [1.0, 0.2, z + 0.25],
+        [1.0, 0.15, z + 0.25],
         [0.92, 0.11, 0.3 + i * 0.04],
       ]);
     });
@@ -584,40 +646,33 @@ export function crearModeloCoche(): ModeloCoche {
       const x = 0.32 + i * 0.03;
       cable(color, [
         [x, 0.18, -0.03],
-        [x - 0.15, 0.36 + i * 0.02, 0.12],
-        [-0.3, 0.28, 0.32],
+        [x - 0.15, 0.25 + i * 0.012, 0.12],
+        [-0.3, 0.22, 0.32],
         [-0.41 + i * 0.025, 0.16, 0.43],
       ]);
     });
-    // Salidas del driver → motores (pasan por debajo del chasis)
-    for (const [lado, zBorne] of [
-      [-1, 0.26],
-      [1, 0.26],
+    // Salidas del driver → motores: bajan por el agujero central del chasis
+    for (const [xb, zm] of [
+      [-0.7, -0.45],
+      [-0.3, 0.45],
     ] as const) {
-      const xb = lado < 0 ? -0.7 : -0.3;
-      const zm = lado < 0 ? -0.45 : 0.45;
-      cable(
-        R,
-        [
-          [xb, 0.17, zBorne],
-          [xb, 0.2, 0.0],
-          [-0.15, 0.05, zm * 0.6],
-          [-0.05, -0.05, zm],
-          [0.02, -0.12, zm],
-        ],
-        false,
-      );
-      cable(
-        N,
-        [
-          [xb + 0.02, 0.17, zBorne + 0.02],
-          [xb + 0.03, 0.22, 0.03],
-          [-0.12, 0.06, zm * 0.55],
-          [-0.02, -0.06, zm * 1.05],
-          [0.02, -0.15, zm],
-        ],
-        false,
-      );
+      const lado = Math.sign(zm);
+      for (const [color, d] of [
+        [R, 0],
+        [N, 0.02],
+      ] as const)
+        cable(
+          color,
+          [
+            [xb + d, 0.17, 0.26 + d],
+            [(xb - 0.1) / 2, 0.16, 0.12],
+            [-0.1 + d, 0.06, d - 0.01],
+            [-0.1 + d, -0.04, d],
+            [-0.06, -0.09, lado * 0.25],
+            [0.02, -0.12 - d, zm],
+          ],
+          false,
+        );
     }
     // Portapilas → borne de alimentación del driver
     cable(
@@ -640,15 +695,15 @@ export function crearModeloCoche(): ModeloCoche {
       ],
       false,
     );
-    // Sensores de línea → placa UNO (rodean el borde delantero)
+    // Sensores de línea → placa UNO: van por debajo y suben por una ranura del chasis
     [0x8e44ad, 0xe8e8e8].forEach((color, i) => {
       const z = -0.16 + i * 0.32;
       cable(color, [
         [0.98, -0.1, z],
-        [1.28, -0.02, z * 0.8],
-        [1.25, 0.08, -0.4],
-        [0.7, 0.2, -0.6],
-        [0.55, 0.18, -0.55],
+        [0.85, -0.08, z * 0.5 - 0.15],
+        [0.76 + i * 0.02, -0.03, -0.42],
+        [0.75 + i * 0.02, 0.08, -0.42],
+        [0.62, 0.18, -0.55],
       ]);
     });
   }

@@ -3,7 +3,7 @@
  * la serigrafía de las placas, la rejilla de los ultrasonidos, los agujeros de la protoboard…
  * Solo lo usa escenaRobot.ts / modeloCoche.ts (se cargan con import(), después de pintar la página).
  */
-import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from "three";
+import { CanvasTexture, NoColorSpace, RepeatWrapping, SRGBColorSpace } from "three";
 
 type Dibujo = (ctx: CanvasRenderingContext2D, ancho: number, alto: number) => void;
 
@@ -176,3 +176,47 @@ export const texturaSombra = () =>
     ctx.fillStyle = degradado;
     ctx.fillRect(0, 0, 128, 128);
   });
+
+/**
+ * Dibujo del neumático (relieve). En el toro de la rueda, el borde de arriba y el de abajo de
+ * esta imagen son la banda de rodadura (la parte que pisa el suelo); el centro es la cara interior.
+ */
+export const texturaDibujoNeumatico = () => {
+  const t = textura(64, 128, (ctx, w, h) => {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "#fff";
+    // Tacos en los dos bordes (que se juntan en la banda de rodadura)
+    for (const y of [0, h - 22]) ctx.fillRect(14, y, 26, 22);
+  });
+  t.colorSpace = NoColorSpace; // es relieve, no color
+  t.wrapS = t.wrapT = RepeatWrapping;
+  t.repeat.set(44, 1);
+  return t;
+};
+
+/** Envoltorio de una pila AA: cuerpo oscuro, franja cobre en el polo positivo y el texto */
+export const texturaPila = () => {
+  const t = textura(256, 512, (ctx, w, h) => {
+    const degradado = ctx.createLinearGradient(0, 0, w, 0);
+    degradado.addColorStop(0, "#1d1f23");
+    degradado.addColorStop(0.5, "#2c2f35");
+    degradado.addColorStop(1, "#1d1f23");
+    ctx.fillStyle = degradado;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "#c47a36";
+    ctx.fillRect(0, 0, w, h * 0.2);
+    ctx.fillStyle = "#e8e8e8";
+    ctx.save();
+    ctx.translate(w * 0.25, h * 0.6);
+    ctx.rotate(-Math.PI / 2);
+    texto(ctx, "AA  1.5V", 0, 0, 34, 700, "center");
+    ctx.restore();
+    ctx.save();
+    ctx.translate(w * 0.75, h * 0.6);
+    ctx.rotate(-Math.PI / 2);
+    texto(ctx, "ALCALINA", 0, 0, 24, 600, "center");
+    ctx.restore();
+  });
+  return t;
+};

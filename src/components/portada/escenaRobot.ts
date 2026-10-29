@@ -13,7 +13,7 @@ import {
   HemisphereLight,
   Mesh,
   MeshBasicMaterial,
-  PCFShadowMap,
+  VSMShadowMap,
   PMREMGenerator,
   PerspectiveCamera,
   PlaneGeometry,
@@ -39,7 +39,11 @@ export interface EscenaRobot {
   destruir(): void;
 }
 
-export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
+/**
+ * @param giroFijo ángulo fijo del coche (sin girar solo). Para hacer fotos del robot;
+ *                 en la web se deja sin poner y el coche gira despacio.
+ */
+export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): EscenaRobot {
   const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
@@ -48,31 +52,33 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFShadowMap;
+  renderer.shadowMap.type = VSMShadowMap; // sombras de bordes suaves, como con luz de estudio
 
   const escena = new Scene();
   // Reflejos de una habitación neutra: así el metal, el plástico y el metacrilato parecen reales
   const pmrem = new PMREMGenerator(renderer);
   const entorno = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   escena.environment = entorno;
-  escena.environmentIntensity = 0.55;
+  escena.environmentIntensity = 0.85;
 
-  const camara = new PerspectiveCamera(30, 1, 0.1, 100);
-  camara.position.set(3.9, 2.9, 4.75);
-  camara.lookAt(0, 0.28, 0);
+  // Teleobjetivo suave (poco ángulo, desde lejos): menos deformación, como una foto de producto
+  const camara = new PerspectiveCamera(21, 1, 0.1, 100);
+  camara.position.set(5.6, 3.7, 6.75);
+  camara.lookAt(0, 0.26, 0);
 
-  escena.add(new HemisphereLight(0xffffff, 0xd9dce3, 0.9));
-  const sol = new DirectionalLight(0xffffff, 2.4);
+  escena.add(new HemisphereLight(0xffffff, 0xd9dce3, 0.45));
+  const sol = new DirectionalLight(0xfff8f0, 1.9);
   sol.position.set(3, 7, 4);
   sol.castShadow = true;
-  sol.shadow.mapSize.set(1024, 1024);
+  sol.shadow.mapSize.set(2048, 2048);
+  sol.shadow.blurSamples = 16;
   sol.shadow.camera.left = sol.shadow.camera.bottom = -2.4;
   sol.shadow.camera.right = sol.shadow.camera.top = 2.4;
   sol.shadow.camera.near = 1;
   sol.shadow.camera.far = 16;
-  sol.shadow.radius = 4;
+  sol.shadow.radius = 10;
   sol.shadow.bias = -0.0006;
   escena.add(sol);
   const contraluz = new DirectionalLight(0xe2e7ff, 0.7);
@@ -137,7 +143,7 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
     const explosion = explosionDesdeProgreso(suave);
     const activa = piezaActiva(suave);
 
-    giro += dt * 0.25;
+    giro = giroFijo ?? giro + dt * 0.25;
     robot.rotation.y = giro + suave * Math.PI * 1.2;
     robot.position.y = ALTURA + Math.sin(ahora / 900) * 0.03 * (1 - explosion);
 
