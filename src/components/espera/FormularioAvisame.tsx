@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useId } from "react";
 import { apuntarseListaEspera, type EstadoListaEspera } from "@/app/(tienda)/listaEspera";
 import { Boton } from "@/components/ui/Boton";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,8 @@ export function FormularioAvisame({
   className?: string;
 }) {
   const [estado, enviar, enviando] = useActionState(apuntarseListaEspera, inicial);
+  // Id propio: en la portada hay dos formularios (arriba y al final)
+  const id = useId();
 
   if (estado.ok) {
     return (
@@ -48,11 +50,11 @@ export function FormularioAvisame({
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
-        <label htmlFor={`avisame-${origen}`} className="sr-only">
+        <label htmlFor={id} className="sr-only">
           Tu email
         </label>
         <input
-          id={`avisame-${origen}`}
+          id={id}
           type="email"
           name="email"
           required
@@ -60,7 +62,7 @@ export function FormularioAvisame({
           placeholder="tu@email.com"
           defaultValue={estado.email}
           aria-invalid={estado.mensaje ? true : undefined}
-          aria-describedby={estado.mensaje ? `avisame-${origen}-error` : undefined}
+          aria-describedby={estado.mensaje ? `${id}-error` : undefined}
           className={cn(
             "h-12 w-full min-w-0 rounded-boton px-4 text-base outline-none focus:ring-2 sm:flex-1",
             oscuro
@@ -79,7 +81,7 @@ export function FormularioAvisame({
       </div>
       {estado.mensaje && (
         <p
-          id={`avisame-${origen}-error`}
+          id={`${id}-error`}
           role="alert"
           className={cn("mt-2 text-sm", oscuro ? "text-white" : "text-error-oscuro")}
         >
