@@ -1,3 +1,4 @@
+import { AvisoApertura } from "@/components/portada/AvisoApertura";
 import { BloqueComoFunciona } from "@/components/portada/BloqueComoFunciona";
 import { BloqueFinal } from "@/components/portada/BloqueFinal";
 import { PortadaRobot } from "@/components/portada/PortadaRobot";
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 /**
  * PÁGINA DE INICIO (estilo web de Apple)
  *   1. Robot protagonista: en 3D (o dibujo ligero) que se despieza al hacer scroll
+ *      (debajo, mientras la tienda no cobra, un aviso pequeño con «Avísame»)
  *   2. Cómo funciona, en tres pasos, con cifras reales
  *   3. El kit estrella (el marcado como "destacado" en el panel) y los demás kits
  *   4. Bloque "Crea tu propio robot" → configurador
@@ -37,11 +39,13 @@ export default async function Inicio() {
   const [kits, cifras] = await Promise.all([obtenerKits(), obtenerCifras()]);
   const estrella = kits.find((k) => k.destacado) ?? kits[0];
   const resto = kits.filter((k) => k.id !== estrella?.id);
+  const abierta = compraAbierta();
 
   return (
     <>
       <DatosEstructurados datos={datosTienda()} />
       <PortadaRobot />
+      {!abierta && <AvisoApertura />}
       <BloqueComoFunciona cifras={cifras} />
       {estrella && <HeroKit kit={estrella} />}
       {resto.map((kit, i) => (
@@ -49,7 +53,7 @@ export default async function Inicio() {
       ))}
       <BloqueConfigurador />
       <BloqueCursoQR />
-      <BloqueFinal compraAbierta={compraAbierta()} />
+      <BloqueFinal compraAbierta={abierta} />
     </>
   );
 }

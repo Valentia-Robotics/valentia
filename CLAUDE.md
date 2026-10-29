@@ -29,7 +29,7 @@ borra lo de > 400 días) → modelo `Visita`. Reglas puras en `src/lib/visitas/r
 
 ### Lista de espera (27-10-2026, rama `claude/project-thread-g3cf1v`)
 
-Mientras `compraAbierta()` sea falso (claves de prueba en producción), la portada (`BloqueFinal`), la ficha de
+Mientras `compraAbierta()` sea falso (claves de prueba en producción), la portada (`AvisoApertura` bajo el robot y `BloqueFinal`), la ficha de
 cada kit y el checkout muestran `FormularioAvisame` (`src/components/espera/`, acción `src/app/(tienda)/listaEspera.ts`,
 honeypot `web`, límite `listaEspera` por IP). Modelo `ListaEspera` (email único). Panel `/admin/lista-espera`
 (copiar emails para CCO, CSV, borrar). Fila nueva en la política de privacidad. Textos sencillos, sin tono
