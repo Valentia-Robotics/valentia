@@ -11,6 +11,13 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Robot 3D realista de la portada (29-10-2026, rama `claude/project-thread-g3cf1v`)
+
+`modeloCoche.ts` (piezas reales del kit del coche: metacrilato, placa UNO, protoboard, L298N, motores TT, HC-SR04,
+sensores de línea, portapilas 4×AA y cables que se desvanecen al despiezar) + `texturasRobot.ts` (serigrafías en
+canvas, sin imágenes). `escenaRobot.ts`: RoomEnvironment (reflejos), sombras, ACES; la pieza activa se aclara con
+su propio color. En el móvil sigue el dibujo SVG (`RobotEstatico`).
+
 ### Diploma y preguntas frecuentes (29-10-2026, rama `claude/project-thread-g3cf1v`)
 
 - Diploma: `/cursos/[slug]/diploma` (solo con todas las lecciones hechas; `obtenerDiploma` en `src/lib/cursos.ts`),
