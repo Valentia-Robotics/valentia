@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Award } from "lucide-react";
 import type { CursoDeUsuario } from "@/lib/cursos";
 import { BarraProgreso } from "./BarraProgreso";
 
@@ -37,12 +38,24 @@ export function TarjetaCurso({ curso }: { curso: CursoDeUsuario }) {
         <div className="mt-5">
           <BarraProgreso hechas={curso.completadas} total={curso.totalLecciones} />
         </div>
-        <span
-          aria-hidden="true"
-          className="mt-5 text-sm font-medium text-acento group-hover:underline"
-        >
-          {terminado ? "Repasar el curso ›" : empezado ? "Continuar ›" : "Empezar ›"}
-        </span>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <span
+            aria-hidden="true"
+            className="text-sm font-medium text-acento group-hover:underline"
+          >
+            {terminado ? "Repasar el curso ›" : empezado ? "Continuar ›" : "Empezar ›"}
+          </span>
+          {/* Encima del enlace que cubre toda la tarjeta (z-10) */}
+          {terminado && curso.totalLecciones > 0 && (
+            <Link
+              href={`/cursos/${curso.slug}/diploma`}
+              className="relative z-10 inline-flex items-center gap-1.5 rounded-full bg-niebla px-3 py-1.5 text-sm font-medium hover:bg-linea"
+            >
+              <Award aria-hidden="true" className="size-4 text-acento" />
+              Tu diploma
+            </Link>
+          )}
+        </div>
       </div>
     </article>
   );

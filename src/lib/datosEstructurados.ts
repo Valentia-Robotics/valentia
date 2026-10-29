@@ -105,3 +105,16 @@ export function datosKit(kit: KitParaGoogle, aLaVenta: boolean, resenas?: Resena
       : {}),
   };
 }
+
+/** Preguntas frecuentes: Google puede mostrarlas desplegables bajo el resultado */
+export function datosPreguntas(preguntas: { pregunta: string; respuesta: string[] }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: preguntas.map((p) => ({
+      "@type": "Question",
+      name: p.pregunta,
+      acceptedAnswer: { "@type": "Answer", text: p.respuesta.join(" ") },
+    })),
+  };
+}

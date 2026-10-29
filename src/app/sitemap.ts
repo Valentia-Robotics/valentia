@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/kits", 0.9],
     ["/componentes", 0.8],
     ["/configurador", 0.8],
+    ["/preguntas-frecuentes", 0.6],
     ["/legal/aviso-legal", 0.1],
     ["/legal/privacidad", 0.1],
     ["/legal/cookies", 0.1],

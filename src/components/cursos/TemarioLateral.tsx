@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleCheck } from "lucide-react";
+import { Award, CircleCheck } from "lucide-react";
 import type { DatosLeccion } from "@/lib/cursos";
 import { cn } from "@/lib/utils";
 import { BarraProgreso } from "./BarraProgreso";
@@ -68,6 +68,15 @@ export function TemarioLateral({ cursoSlug, cursoTitulo, temario, actual }: Prop
       <div className="mt-3">
         <BarraProgreso hechas={hechas} total={temario.length} />
       </div>
+      {hechas === temario.length && temario.length > 0 && (
+        <Link
+          href={`/cursos/${cursoSlug}/diploma`}
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-acento hover:underline"
+        >
+          <Award aria-hidden="true" className="size-4" />
+          Ver tu diploma ›
+        </Link>
+      )}
 
       {/* Móvil: desplegable · Ordenador: siempre visible */}
       <details className="group lg:hidden">
