@@ -11,6 +11,14 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Diploma y preguntas frecuentes (29-10-2026, rama `claude/project-thread-g3cf1v`)
+
+- Diploma: `/cursos/[slug]/diploma` (solo con todas las lecciones hechas; `obtenerDiploma` en `src/lib/cursos.ts`),
+  componente `cursos/Diploma` (nombre editable, A4 apaisado con `@page`, «Descargar en PDF» = `window.print()`,
+  tamaños en `cqw`). Enlaces en `TarjetaCurso` y `TemarioLateral` al terminar.
+- `/preguntas-frecuentes`: textos en `src/config/preguntas.ts` (envíos/devoluciones desde `tienda.ts`; la pregunta
+  «¿Cuándo se podrá comprar?» solo con la tienda cerrada), FAQPage en datos estructurados, pie y sitemap.
+
 ### Estadísticas de visitas (27-10-2026, rama `claude/project-thread-g3cf1v`)
 
 Propias, sin cookies ni IP: `ContadorVisitas` (en `Proveedores`; no cuenta ADMIN ni `navigator.webdriver`) →

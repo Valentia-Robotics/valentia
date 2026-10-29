@@ -60,6 +60,42 @@ export async function cursoDesbloqueado(usuarioId: string, cursoSlug: string) {
   return fila !== null;
 }
 
+/**
+ * Datos del diploma de un curso: si lo ha terminado, cuándo (la última lección completada)
+ * y cuántas lecciones le faltan si no. null si el usuario no tiene el curso.
+ */
+export async function obtenerDiploma(usuarioId: string, cursoSlug: string) {
+  const fila = await db.cursoUsuario.findFirst({
+    where: { usuarioId, curso: { slug: cursoSlug } },
+    select: {
+      curso: {
+        select: {
+          slug: true,
+          titulo: true,
+          kit: { select: { nombre: true } },
+          lecciones: {
+            select: { progreso: { where: { usuarioId }, select: { completadaEn: true } } },
+          },
+        },
+      },
+    },
+  });
+  if (!fila) return null;
+
+  const { curso } = fila;
+  const fechas = curso.lecciones.flatMap((l) => l.progreso.map((p) => p.completadaEn.getTime()));
+  const completadas = curso.lecciones.filter((l) => l.progreso.length > 0).length;
+  const faltan = curso.lecciones.length - completadas;
+  return {
+    slug: curso.slug,
+    titulo: curso.titulo,
+    kit: curso.kit?.nombre ?? null,
+    lecciones: curso.lecciones.length,
+    faltan,
+    terminadoEn: faltan === 0 && fechas.length > 0 ? new Date(Math.max(...fechas)) : null,
+  };
+}
+
 /** Primera lección sin completar de un curso (o la primera, si están todas hechas) */
 export async function siguienteLeccion(usuarioId: string, cursoSlug: string) {
   const lecciones = await db.leccion.findMany({
