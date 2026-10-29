@@ -118,7 +118,7 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): 
     renderer.setSize(ancho, alto, false);
     camara.aspect = ancho / alto;
     // En lienzos estrechos alejamos la cámara para que el robot quepa entero
-    camara.zoom = Math.min(1, camara.aspect / 1.1);
+    camara.zoom = 1.3 * Math.min(1, camara.aspect / 1.1);
     camara.updateProjectionMatrix();
   }
   const observador = new ResizeObserver(ajustarTamano);
