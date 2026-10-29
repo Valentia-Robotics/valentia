@@ -55,10 +55,9 @@ export function preguntasFrecuentes({
         },
         {
           pregunta: "¿Qué necesito además del kit?",
-          // ⚠ CONFIRMAR CON JESSE: pilas no incluidas y cable USB incluido
           respuesta: [
             "Un ordenador (Windows, Mac o Linux) para programar la placa. El programa que se usa, Arduino, es gratuito y en el curso te enseñamos a instalarlo paso a paso. El cable USB para conectar la placa al ordenador va en la caja.",
-            "El coche y el brazo funcionan con 4 pilas AA, que no van incluidas. La estación meteorológica no necesita pilas: va conectada por USB.",
+            "El coche y el brazo funcionan con 4 pilas AA, y ya vienen en la caja. La estación meteorológica no necesita pilas: va conectada por USB.",
           ],
         },
         {
@@ -112,7 +111,7 @@ export function preguntasFrecuentes({
         {
           pregunta: "Me ha llegado una pieza rota o falta algo. ¿Qué hago?",
           respuesta: [
-            "Escríbenos con una foto de lo que ha pasado y te mandamos la pieza. No hace falta devolver el kit entero.",
+            "Escríbenos con una foto de lo que ha pasado y lo solucionamos lo antes posible.",
           ],
         },
       ],
