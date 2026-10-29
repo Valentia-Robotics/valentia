@@ -19,6 +19,8 @@ que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empe
   mismas rutas → nada que cambiar en la BD). Se regeneran con `npm run fotos:piezas` (`scripts/fotos-piezas/`:
   `modelos.ts` una función por slug, `estudio.ts` luz y cámara como la portada; `-- --prueba` deja PNG en
   `.fotos-prueba/`). Usa el Chrome del sistema (o `CHROME_RUTA`). Pieza nueva → añadir su modelo.
+- Móvil y tablet (< lg): también robot 3D con scroll (sección pegajosa con `svh`, lienzo a todo el ancho,
+  tarjeta `PiezaMovil` con la pieza activa; sombras ligeras). Con «reducir movimiento» sigue la lista y el SVG.
 
 ### Robot 3D realista de la portada (29-10-2026, rama `claude/project-thread-g3cf1v`)
 
