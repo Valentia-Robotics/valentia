@@ -1,44 +1,34 @@
 /**
  * ESCENA 3D DE LA PORTADA
- * Un robot (coche seguidor de líneas) hecho con formas geométricas sencillas.
- * Gira despacio y, según avanza el scroll, se despieza en sus componentes y se vuelve a montar.
+ * El coche seguidor de líneas con sus piezas reales (modeloCoche.ts). Gira despacio y,
+ * según avanza el scroll, se despieza en sus componentes y se vuelve a montar.
  *
  * Este archivo importa "three" (la librería 3D, bastante pesada), así que SOLO se carga
- * con import() desde Robot3D.tsx, cuando el navegador ya ha pintado la página.
+ * con import() desde PortadaRobot.tsx, cuando el navegador ya ha pintado la página.
  * No usa React: recibe un <canvas> y devuelve funciones para controlarlo.
  */
 import {
-  AmbientLight,
-  CanvasTexture,
-  Color,
-  CylinderGeometry,
+  ACESFilmicToneMapping,
   DirectionalLight,
-  Group,
+  HemisphereLight,
   Mesh,
-  MeshStandardMaterial,
+  MeshBasicMaterial,
+  VSMShadowMap,
+  PMREMGenerator,
   PerspectiveCamera,
   PlaneGeometry,
-  MeshBasicMaterial,
   Scene,
-  SphereGeometry,
+  ShadowMaterial,
   Vector3,
   WebGLRenderer,
-  type BufferGeometry,
-  type Material,
 } from "three";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { SUELO, crearModeloCoche } from "./modeloCoche";
 import { PIEZAS_ROBOT, explosionDesdeProgreso, piezaActiva } from "./piezasRobot";
+import { texturaSombra } from "./texturasRobot";
 
-/** Colores de la marca (los mismos que src/app/globals.css) */
-const COLOR = {
-  tinta: 0x0b0b0b,
-  grafito: 0x1a1a1a,
-  gris: 0x6b6b6b,
-  niebla: 0xf4f4f2,
-  blanco: 0xffffff,
-  acento: 0x2d4bff,
-  acentoClaro: 0x7a8cff,
-};
+/** Altura a la que se dibuja el coche (para que quede centrado en el lienzo) */
+const ALTURA = 0.12;
 
 export interface EscenaRobot {
   /** Avance del scroll por la sección, de 0 a 1 */
@@ -49,20 +39,11 @@ export interface EscenaRobot {
   destruir(): void;
 }
 
-/** Sombra suave bajo el robot: un círculo difuminado dibujado en un canvas 2D */
-function texturaSombra() {
-  const lienzo = document.createElement("canvas");
-  lienzo.width = lienzo.height = 128;
-  const ctx = lienzo.getContext("2d")!;
-  const degradado = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  degradado.addColorStop(0, "rgba(11,11,11,0.35)");
-  degradado.addColorStop(1, "rgba(11,11,11,0)");
-  ctx.fillStyle = degradado;
-  ctx.fillRect(0, 0, 128, 128);
-  return new CanvasTexture(lienzo);
-}
-
-export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
+/**
+ * @param giroFijo ángulo fijo del coche (sin girar solo). Para hacer fotos del robot;
+ *                 en la web se deja sin poner y el coche gira despacio.
+ */
+export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): EscenaRobot {
   const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
@@ -70,158 +51,65 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
     powerPreference: "low-power",
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = VSMShadowMap; // sombras de bordes suaves, como con luz de estudio
 
   const escena = new Scene();
-  const camara = new PerspectiveCamera(32, 1, 0.1, 100);
-  camara.position.set(4.8, 3.2, 5.9);
-  camara.lookAt(0, 0.15, 0);
+  // Reflejos de una habitación neutra: así el metal, el plástico y el metacrilato parecen reales
+  const pmrem = new PMREMGenerator(renderer);
+  const entorno = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  escena.environment = entorno;
+  escena.environmentIntensity = 0.85;
 
-  escena.add(new AmbientLight(COLOR.blanco, 1.1));
-  const sol = new DirectionalLight(COLOR.blanco, 2.2);
-  sol.position.set(4, 8, 5);
+  // Teleobjetivo suave (poco ángulo, desde lejos): menos deformación, como una foto de producto
+  const camara = new PerspectiveCamera(21, 1, 0.1, 100);
+  camara.position.set(5.6, 3.7, 6.75);
+  camara.lookAt(0, 0.26, 0);
+
+  escena.add(new HemisphereLight(0xffffff, 0xd9dce3, 0.45));
+  const sol = new DirectionalLight(0xfff8f0, 1.9);
+  sol.position.set(3, 7, 4);
+  sol.castShadow = true;
+  sol.shadow.mapSize.set(2048, 2048);
+  sol.shadow.blurSamples = 16;
+  sol.shadow.camera.left = sol.shadow.camera.bottom = -2.4;
+  sol.shadow.camera.right = sol.shadow.camera.top = 2.4;
+  sol.shadow.camera.near = 1;
+  sol.shadow.camera.far = 16;
+  sol.shadow.radius = 10;
+  sol.shadow.bias = -0.0006;
   escena.add(sol);
-  const contraluz = new DirectionalLight(0xdfe4ff, 0.6);
-  contraluz.position.set(-6, 3, -4);
+  const contraluz = new DirectionalLight(0xe2e7ff, 0.7);
+  contraluz.position.set(-5, 3, -4);
   escena.add(contraluz);
 
-  // Todo lo que creamos, para poder liberarlo al final
-  const geometrias: BufferGeometry[] = [];
-  const materiales: Material[] = [];
-  const geo = <T extends BufferGeometry>(g: T) => (geometrias.push(g), g);
-  const mat = (color: number, extra: Partial<MeshStandardMaterial> = {}) => {
-    const m = new MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.1, ...extra });
-    materiales.push(m);
-    return m;
-  };
-
-  const robot = new Group();
+  // ---------- El coche ----------
+  const modelo = crearModeloCoche();
+  const robot = modelo.raiz;
+  robot.position.y = ALTURA;
   escena.add(robot);
 
-  /** Grupo de cada pieza (con su posición montada y su dirección al despiezarse) */
-  const grupos = new Map<string, { grupo: Group; materiales: MeshStandardMaterial[] }>();
-  const nuevaPieza = (id: string) => {
-    const grupo = new Group();
-    robot.add(grupo);
-    const registro = { grupo, materiales: [] as MeshStandardMaterial[] };
-    grupos.set(id, registro);
-    return {
-      grupo,
-      malla(geometria: BufferGeometry, material: MeshStandardMaterial, x = 0, y = 0, z = 0) {
-        const m = new Mesh(geometria, material);
-        m.position.set(x, y, z);
-        grupo.add(m);
-        if (!registro.materiales.includes(material)) registro.materiales.push(material);
-        return m;
-      },
-    };
-  };
-
-  // ---------- Chasis ----------
-  {
-    const p = nuevaPieza("chasis");
-    p.malla(geo(new RoundedBoxGeometry(2.5, 0.22, 1.5, 4, 0.08)), mat(COLOR.grafito), 0, 0, 0);
-    // Rueda loca delantera
-    p.malla(
-      geo(new SphereGeometry(0.12, 20, 16)),
-      mat(COLOR.gris, { metalness: 0.6 }),
-      0.95,
-      -0.2,
-      0,
-    );
-  }
-
-  // ---------- Placa (el "cerebro") ----------
-  {
-    const p = nuevaPieza("placa");
-    p.malla(
-      geo(new RoundedBoxGeometry(1.15, 0.07, 0.85, 2, 0.02)),
-      mat(COLOR.acento),
-      0.1,
-      0.32,
-      0,
-    );
-    const chip = mat(COLOR.tinta, { roughness: 0.3 });
-    p.malla(geo(new RoundedBoxGeometry(0.34, 0.06, 0.34, 2, 0.015)), chip, 0.15, 0.39, 0.05);
-    const pequeno = geo(new RoundedBoxGeometry(0.14, 0.05, 0.1, 1, 0.01));
-    p.malla(pequeno, chip, -0.3, 0.38, 0.25);
-    p.malla(pequeno, chip, -0.3, 0.38, -0.25);
-    // Fila de pines
-    const pin = geo(new RoundedBoxGeometry(0.05, 0.08, 0.05, 1, 0.01));
-    const dorado = mat(0xd8b65a, { metalness: 0.8, roughness: 0.3 });
-    for (let i = 0; i < 9; i++) p.malla(pin, dorado, -0.32 + i * 0.09, 0.39, -0.36);
-  }
-
-  // ---------- Motores y ruedas ----------
-  {
-    const p = nuevaPieza("motores");
-    const motor = geo(new CylinderGeometry(0.16, 0.16, 0.5, 24));
-    const metal = mat(0xb9bcc4, { metalness: 0.7, roughness: 0.35 });
-    for (const z of [-0.5, 0.5]) {
-      const m = p.malla(motor, metal, -0.75, -0.24, z);
-      m.rotation.x = Math.PI / 2;
-    }
-    const rueda = geo(new CylinderGeometry(0.42, 0.42, 0.2, 40));
-    const llanta = geo(new CylinderGeometry(0.2, 0.2, 0.22, 24));
-    const goma = mat(COLOR.tinta, { roughness: 0.9 });
-    const centro = mat(COLOR.niebla);
-    for (const z of [-0.88, 0.88]) {
-      p.malla(rueda, goma, -0.75, -0.24, z).rotation.x = Math.PI / 2;
-      p.malla(llanta, centro, -0.75, -0.24, z).rotation.x = Math.PI / 2;
-    }
-  }
-
-  // ---------- Sensores (ultrasonidos delante y sensor de línea debajo) ----------
-  {
-    const p = nuevaPieza("sensores");
-    p.malla(geo(new RoundedBoxGeometry(0.1, 0.32, 0.78, 2, 0.02)), mat(COLOR.acento), 1.3, 0.3, 0);
-    const ojo = geo(new CylinderGeometry(0.13, 0.13, 0.16, 32));
-    const plata = mat(0xdadde3, { metalness: 0.75, roughness: 0.25 });
-    for (const z of [-0.2, 0.2]) {
-      p.malla(ojo, plata, 1.4, 0.3, z).rotation.z = Math.PI / 2;
-    }
-    p.malla(
-      geo(new RoundedBoxGeometry(0.3, 0.05, 0.9, 1, 0.015)),
-      mat(COLOR.tinta),
-      1.05,
-      -0.16,
-      0,
-    );
-  }
-
-  // ---------- Batería ----------
-  {
-    const p = nuevaPieza("bateria");
-    p.malla(geo(new RoundedBoxGeometry(0.7, 0.32, 0.6, 3, 0.05)), mat(COLOR.niebla), -0.8, 0.28, 0);
-    p.malla(
-      geo(new RoundedBoxGeometry(0.72, 0.06, 0.62, 2, 0.02)),
-      mat(COLOR.acentoClaro),
-      -0.8,
-      0.36,
-      0,
-    );
-    // Antena con luz
-    p.malla(geo(new CylinderGeometry(0.02, 0.02, 0.6, 8)), mat(COLOR.tinta), -0.95, 0.72, -0.18);
-    p.malla(
-      geo(new SphereGeometry(0.07, 16, 12)),
-      mat(COLOR.acentoClaro, { emissive: new Color(COLOR.acento), emissiveIntensity: 0.6 }),
-      -0.95,
-      1.04,
-      -0.18,
-    );
-  }
-
-  // Sombra en el suelo
-  const texturas = [texturaSombra()];
-  const materialSombra = new MeshBasicMaterial({
-    map: texturas[0],
+  // ---------- Suelo: sombra nítida del sol + una sombra suave debajo ----------
+  const sueloGeo = new PlaneGeometry(8, 8);
+  const sueloMat = new ShadowMaterial({ opacity: 0.16 });
+  const suelo = new Mesh(sueloGeo, sueloMat);
+  suelo.rotation.x = -Math.PI / 2;
+  suelo.position.y = SUELO + ALTURA - 0.002;
+  suelo.receiveShadow = true;
+  escena.add(suelo);
+  const texturaDifusa = texturaSombra();
+  const difusaGeo = new PlaneGeometry(4.4, 3.2);
+  const difusaMat = new MeshBasicMaterial({
+    map: texturaDifusa,
     transparent: true,
     depthWrite: false,
   });
-  materiales.push(materialSombra);
-  const sombra = new Mesh(geo(new PlaneGeometry(4.6, 3.4)), materialSombra);
-  sombra.rotation.x = -Math.PI / 2;
-  sombra.position.y = -0.68;
-  escena.add(sombra);
+  const difusa = new Mesh(difusaGeo, difusaMat);
+  difusa.rotation.x = -Math.PI / 2;
+  difusa.position.y = SUELO + ALTURA - 0.004;
+  escena.add(difusa);
 
   // ---------- Tamaño del lienzo ----------
   function ajustarTamano() {
@@ -230,7 +118,7 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
     renderer.setSize(ancho, alto, false);
     camara.aspect = ancho / alto;
     // En lienzos estrechos alejamos la cámara para que el robot quepa entero
-    camara.zoom = Math.min(1, camara.aspect / 1.1);
+    camara.zoom = 1.3 * Math.min(1, camara.aspect / 1.1);
     camara.updateProjectionMatrix();
   }
   const observador = new ResizeObserver(ajustarTamano);
@@ -255,23 +143,34 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
     const explosion = explosionDesdeProgreso(suave);
     const activa = piezaActiva(suave);
 
-    giro += dt * 0.25;
+    giro = giroFijo ?? giro + dt * 0.25;
     robot.rotation.y = giro + suave * Math.PI * 1.2;
-    robot.position.y = Math.sin(ahora / 900) * 0.04;
+    robot.position.y = ALTURA + Math.sin(ahora / 900) * 0.03 * (1 - explosion);
 
     for (const pieza of PIEZAS_ROBOT) {
-      const registro = grupos.get(pieza.id);
+      const registro = modelo.piezas.get(pieza.id);
       if (!registro) continue;
       const [x, y, z] = pieza.direccion3d;
       destino.set(x * explosion, y * explosion, z * explosion);
       registro.grupo.position.lerp(destino, Math.min(1, dt * 8));
-      // La pieza de la que hablamos se ilumina un poco
-      const brillo = activa === pieza.id ? 0.35 * explosion : 0;
+      // La pieza de la que hablamos se aclara un poco (con su propio color, sin teñirla)
+      const brillo = activa === pieza.id ? 0.22 * explosion : 0;
       for (const m of registro.materiales) {
-        m.emissive.setHex(COLOR.acento);
+        if (m.emissiveIntensity > 1) continue; // luces propias (el LED verde)
+        if (!m.map) m.emissive.copy(m.color);
+        else m.emissive.setHex(0x808080);
         m.emissiveIntensity += (brillo - m.emissiveIntensity) * Math.min(1, dt * 6);
       }
     }
+
+    // Los cables se desvanecen al despiezar: con las piezas separadas no tendrían sentido
+    const opacidad = 1 - Math.min(1, explosion * 4);
+    modelo.cables.grupo.visible = opacidad > 0.01;
+    for (const m of modelo.cables.materiales) {
+      m.transparent = opacidad < 1;
+      m.opacity = opacidad;
+    }
+
     renderer.render(escena, camara);
   }
   marco = requestAnimationFrame(dibujar);
@@ -292,9 +191,12 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement): EscenaRobot {
     destruir() {
       cancelAnimationFrame(marco);
       observador.disconnect();
-      geometrias.forEach((g) => g.dispose());
-      materiales.forEach((m) => m.dispose());
-      texturas.forEach((t) => t.dispose());
+      modelo.liberar();
+      [sueloGeo, difusaGeo].forEach((g) => g.dispose());
+      [sueloMat, difusaMat].forEach((m) => m.dispose());
+      texturaDifusa.dispose();
+      entorno.dispose();
+      pmrem.dispose();
       renderer.dispose();
     },
   };
