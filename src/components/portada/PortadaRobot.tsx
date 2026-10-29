@@ -208,6 +208,12 @@ export function PortadaRobot() {
                 "absolute inset-[-12%] size-[124%] transition-opacity duration-700",
                 tres ? "opacity-100" : "pointer-events-none opacity-0",
               )}
+              // Bordes difuminados: al acercarse a una pieza, lo que se sale del lienzo no queda cortado en seco
+              style={{
+                maskImage:
+                  "linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent), linear-gradient(to right, transparent, #000 12%, #000 88%, transparent)",
+                maskComposite: "intersect",
+              }}
             />
           </div>
 

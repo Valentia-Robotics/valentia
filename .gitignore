@@ -41,3 +41,6 @@ npm-debug.log*
 
 # Copias de seguridad de la base de datos (npm run db:copia): tienen datos personales
 /copias/
+
+# Fotos de prueba de npm run fotos:piezas -- --prueba
+/.fotos-prueba
