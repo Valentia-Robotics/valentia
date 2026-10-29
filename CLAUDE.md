@@ -11,6 +11,15 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Fotos 3D de las piezas y acercamiento en la portada (29-10-2026, rama `claude/project-thread-g3cf1v`)
+
+- Portada: al explicar cada pieza, la cámara se acerca a ella (`encuadres` en `escenaRobot.ts`, por la misma
+  dirección; el modelo del coche NO se toca: a Jesse le encanta). El lienzo lleva los bordes difuminados (mask-image).
+- Configurador: las 18 fotos de `public/images/componentes/*.svg` son fotos de estudio en 3D (WebP dentro del SVG,
+  mismas rutas → nada que cambiar en la BD). Se regeneran con `npm run fotos:piezas` (`scripts/fotos-piezas/`:
+  `modelos.ts` una función por slug, `estudio.ts` luz y cámara como la portada; `-- --prueba` deja PNG en
+  `.fotos-prueba/`). Usa el Chrome del sistema (o `CHROME_RUTA`). Pieza nueva → añadir su modelo.
+
 ### Robot 3D realista de la portada (29-10-2026, rama `claude/project-thread-g3cf1v`)
 
 `modeloCoche.ts` (piezas reales del kit del coche: metacrilato, placa UNO, protoboard, L298N, motores TT, HC-SR04,

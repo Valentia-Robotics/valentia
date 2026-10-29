@@ -9,6 +9,7 @@
  */
 import {
   ACESFilmicToneMapping,
+  Box3,
   DirectionalLight,
   HemisphereLight,
   Mesh,
@@ -19,6 +20,7 @@ import {
   PlaneGeometry,
   Scene,
   ShadowMaterial,
+  Sphere,
   Vector3,
   WebGLRenderer,
 } from "three";
@@ -65,8 +67,12 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): 
 
   // Teleobjetivo suave (poco ángulo, desde lejos): menos deformación, como una foto de producto
   const camara = new PerspectiveCamera(21, 1, 0.1, 100);
-  camara.position.set(5.6, 3.7, 6.75);
-  camara.lookAt(0, 0.26, 0);
+  // Vista general: la cámara mira a MIRA_GENERAL desde esta dirección y distancia.
+  // Al explicar una pieza, se acerca a ella por la misma dirección (sin cambiar el ángulo).
+  const MIRA_GENERAL = new Vector3(0, 0.26, 0);
+  const desdeMira = new Vector3(5.6, 3.7, 6.75).sub(MIRA_GENERAL);
+  camara.position.copy(MIRA_GENERAL).add(desdeMira);
+  camara.lookAt(MIRA_GENERAL);
 
   escena.add(new HemisphereLight(0xffffff, 0xd9dce3, 0.45));
   const sol = new DirectionalLight(0xfff8f0, 1.9);
@@ -90,6 +96,22 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): 
   const robot = modelo.raiz;
   robot.position.y = ALTURA;
   escena.add(robot);
+
+  // Centro y tamaño de cada pieza (montada), para acercar la cámara a la que se explica
+  const caja = new Box3();
+  const esfera = new Sphere();
+  robot.updateMatrixWorld(true);
+  const radioTotal = caja.setFromObject(robot).getBoundingSphere(esfera).radius;
+  const encuadres = new Map<string, { centro: Vector3; acercar: number }>();
+  for (const [id, registro] of modelo.piezas) {
+    caja.setFromObject(registro.grupo).getBoundingSphere(esfera);
+    encuadres.set(id, {
+      // en coordenadas del robot (quitando la altura a la que se dibuja)
+      centro: esfera.center.clone().sub(robot.position),
+      // cuánto se acerca: las piezas pequeñas, más; el chasis, poco
+      acercar: Math.min(0.85, Math.max(0.42, (esfera.radius / radioTotal) * 1.1 + 0.18)),
+    });
+  }
 
   // ---------- Suelo: sombra nítida del sol + una sombra suave debajo ----------
   const sueloGeo = new PlaneGeometry(8, 8);
@@ -133,6 +155,9 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): 
   let anterior = performance.now();
   let giro = 0;
   const destino = new Vector3();
+  const mira = MIRA_GENERAL.clone(); // adónde mira la cámara ahora (se mueve suave)
+  const miraDestino = new Vector3();
+  let distancia = 1; // 1 = vista general; menos = más cerca
 
   function dibujar(ahora: number) {
     marco = requestAnimationFrame(dibujar);
@@ -170,6 +195,23 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): 
       m.transparent = opacidad < 1;
       m.opacity = opacidad;
     }
+
+    // Acercar la cámara a la pieza de la que se habla (y alejarla al final)
+    const encuadre = activa ? encuadres.get(activa) : undefined;
+    let distanciaDestino = 1;
+    if (encuadre) {
+      const grupo = modelo.piezas.get(activa!)!.grupo;
+      robot.updateMatrixWorld();
+      miraDestino.copy(encuadre.centro).add(grupo.position).applyMatrix4(robot.matrixWorld);
+      distanciaDestino = encuadre.acercar;
+    } else {
+      miraDestino.copy(MIRA_GENERAL);
+    }
+    const paso = Math.min(1, dt * 2.2);
+    mira.lerp(miraDestino, paso);
+    distancia += (distanciaDestino - distancia) * paso;
+    camara.position.copy(desdeMira).multiplyScalar(distancia).add(mira);
+    camara.lookAt(mira);
 
     renderer.render(escena, camara);
   }
