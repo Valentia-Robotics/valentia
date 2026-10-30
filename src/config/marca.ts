@@ -5,9 +5,9 @@
 
 export const marca = {
   nombre: "Valentia",
-  lema: "Kits de robótica con cursos",
+  lema: "Kits de robótica para montar, con curso en vídeo",
   descripcion:
-    "Kits de robótica y componentes con cursos paso a paso. Cualquiera puede atreverse a construir su propio robot.",
+    "Kits de robótica para montar en casa, con Arduino o ESP32 y un curso en vídeo paso a paso. Cualquiera puede construir su propio robot.",
 
   /**
    * Archivos del logo (en public/images/brand).

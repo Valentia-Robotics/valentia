@@ -24,6 +24,24 @@ export const metadata: Metadata = {
   },
   description: marca.descripcion,
   applicationName: marca.nombre,
+  // Google puede enseñar la foto grande y el texto completo en sus resultados (y en Discover)
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  category: "education",
+  formatDetection: { telephone: false, email: false, address: false },
+  // Bing Webmaster Tools: si se verifica con etiqueta, su código va en BING_VERIFICACION (Render)
+  ...(process.env.BING_VERIFICACION
+    ? { verification: { other: { "msvalidate.01": process.env.BING_VERIFICACION } } }
+    : {}),
   openGraph: {
     siteName: marca.nombre,
     locale: "es_ES",
@@ -39,7 +57,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={`${jost.variable} ${inter.variable}`}>
+    <html lang="es-ES" className={`${jost.variable} ${inter.variable}`}>
       <body className="flex min-h-dvh flex-col">
         {/* Enlace oculto para quien navega con teclado: salta directamente al contenido */}
         <a
