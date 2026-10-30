@@ -118,8 +118,10 @@
     border-radius: 4px;
   }
 
-  /* Portada: imán suave en cada pieza del robot (solo se para si sueltas el scroll cerca de una) */
-  @media (prefers-reduced-motion: no-preference) {
+  /* Portada: imán suave en cada pieza del robot (solo se para si sueltas el scroll cerca de una).
+     Solo con ratón: en las pantallas táctiles el imán peleaba con el deslizamiento del dedo
+     y la página daba saltos al soltar */
+  @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
     html:has(.portada-robot) {
       scroll-snap-type: y proximity;
     }
