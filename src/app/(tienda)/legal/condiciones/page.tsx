@@ -1,14 +1,16 @@
 // ⚠ BORRADOR — pendiente de revisión por un profesional.
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import Link from "next/link";
 import { DatosEmpresa, PaginaLegal } from "@/components/legal/PaginaLegal";
 import { tienda } from "@/config/tienda";
 import { formatearPrecio } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Condiciones de venta",
-  description: "Condiciones de compra de los kits, componentes y cursos de Valentia.",
-};
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Condiciones de venta",
+  descripcion: "Condiciones de compra de los kits, componentes y cursos de Valentia.",
+  ruta: "/legal/condiciones",
+});
 
 const e = tienda.empresa;
 const envio = tienda.envio;

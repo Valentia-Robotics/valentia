@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
@@ -8,12 +9,12 @@ import { esMarcador, tienda } from "@/config/tienda";
 import { datosPreguntas } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 
-export const metadata: Metadata = {
-  title: "Preguntas frecuentes",
-  description:
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Preguntas frecuentes",
+  descripcion:
     "Si hace falta saber programar, para qué edad son los kits, envíos, devoluciones y cómo se activa el curso.",
-  alternates: { canonical: "/preguntas-frecuentes" },
-};
+  ruta: "/preguntas-frecuentes",
+});
 
 /** PREGUNTAS FRECUENTES: las respuestas están en src/config/preguntas.ts */
 export default function PreguntasFrecuentes() {

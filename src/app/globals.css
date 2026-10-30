@@ -60,6 +60,17 @@
   --animate-subir: subir 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; /* Panel que sube desde abajo (móvil) */
   --animate-resaltar: resaltar 1.2s ease-out; /* Fondo azul que se desvanece al añadir una pieza */
 
+  /* Tarjetas del configurador al cambiar de categoría: aparecen una tras otra, solo con opacidad y
+     desplazamiento (lo más barato para el navegador: 60 imágenes por segundo también en el móvil) */
+  --animate-tarjeta: tarjeta 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes tarjeta {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+  }
+
   @keyframes subir {
     from {
       translate: 0 100%;
@@ -123,6 +134,16 @@
     background-color: var(--color-acento);
     color: white;
   }
+}
+
+/*
+ * Secciones de más abajo de la portada: el navegador no las dibuja hasta que te acercas a
+ * ellas (la página carga y se mueve más fluida en móviles modestos). El tamaño de reserva evita
+ * saltos de la barra de desplazamiento; "auto" recuerda el tamaño real una vez vistas.
+ */
+@utility diferido {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
 }
 
 /* Oculta la barra de desplazamiento (por ejemplo, en las categorías deslizables del móvil) */

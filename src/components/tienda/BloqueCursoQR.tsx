@@ -24,7 +24,7 @@ const pasos = [
 /** Bloque de la portada que explica que cada kit incluye un curso que se activa con el QR. */
 export function BloqueCursoQR() {
   return (
-    <section aria-labelledby="titulo-curso-qr" className="bg-white py-24 sm:py-32">
+    <section aria-labelledby="titulo-curso-qr" className="bg-white py-24 diferido sm:py-32">
       <Contenedor className="grid items-center gap-16 lg:grid-cols-2">
         <div className="aparecer">
           <p className="text-sm font-medium tracking-wide text-acento uppercase">Curso incluido</p>

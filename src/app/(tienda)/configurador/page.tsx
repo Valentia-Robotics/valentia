@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import { Configurador } from "@/components/configurador/Configurador";
 import { obtenerComponentes, obtenerKitsParaConfigurador } from "@/lib/catalogo";
 
-export const metadata: Metadata = {
-  title: "Configurador",
-  description:
-    "Crea tu propio robot pieza a pieza. Te avisamos si algo no encaja para que aciertes a la primera.",
-};
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Crea tu propio robot",
+  descripcion:
+    "Elige placa, motores y sensores y monta tu robot pieza a pieza. Si algo no encaja, te avisamos y te decimos qué falta.",
+  ruta: "/configurador",
+});
 
 interface Props {
   searchParams: Promise<{ [clave: string]: string | string[] | undefined }>;

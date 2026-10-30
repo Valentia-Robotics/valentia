@@ -8,6 +8,7 @@ import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { HeroKit } from "@/components/tienda/HeroKit";
 import { SeccionKit } from "@/components/tienda/SeccionKit";
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
 import { datosTienda } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
@@ -19,11 +20,11 @@ import { compraAbierta } from "@/lib/pagos";
  */
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  description:
+export const metadata: Metadata = metadatosPagina({
+  descripcion:
     "Kits de robótica con curso incluido y componentes sueltos. Construye tu propio robot paso a paso, sin saber programar. Envíos a la Comunidad Valenciana.",
-  alternates: { canonical: "/" },
-};
+  ruta: "/",
+});
 
 /**
  * PÁGINA DE INICIO (estilo web de Apple)

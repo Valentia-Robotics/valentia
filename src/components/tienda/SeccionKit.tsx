@@ -14,7 +14,7 @@ export function SeccionKit({ kit, tema }: { kit: KitResumen; tema: "claro" | "os
     <section
       aria-labelledby={`titulo-${kit.slug}`}
       className={cn(
-        "overflow-hidden px-4 pt-20 pb-10 text-center sm:pt-28",
+        "overflow-hidden px-4 pt-20 pb-10 text-center diferido sm:pt-28",
         oscuro ? "bg-tinta text-white" : "bg-niebla text-tinta",
       )}
     >
@@ -50,7 +50,7 @@ export function SeccionKit({ kit, tema }: { kit: KitResumen; tema: "claro" | "os
       <div className="aparecer mx-auto mt-10 max-w-3xl">
         <Image
           src={kit.imagen}
-          alt={`Ilustración del kit ${kit.nombre}`}
+          alt={`Foto del kit ${kit.nombre} montado`}
           width={800}
           height={600}
           unoptimized

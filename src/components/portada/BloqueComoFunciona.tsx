@@ -11,7 +11,7 @@ const pasos: { icono: LucideIcon; titulo: string; texto: string }[] = [
   {
     icono: PlayCircle,
     titulo: "Sigue el curso",
-    texto: "Escanea el QR y aprende con vídeos cortos, tests y retos a tu ritmo.",
+    texto: "Escanea con el móvil el código QR de la caja y aprende con vídeos cortos, a tu ritmo.",
   },
   {
     icono: Wrench,
@@ -45,7 +45,7 @@ export function BloqueComoFunciona({ cifras }: Props) {
             De la caja a tu primer robot.
           </h2>
           <p className="mt-4 text-lg text-gris sm:text-xl">
-            Cualquiera puede construir su propio robot. Solo hacen falta ganas.
+            Tengas 15 años o 70, puedes construir tu propio robot. Solo hacen falta ganas.
           </p>
         </div>
 

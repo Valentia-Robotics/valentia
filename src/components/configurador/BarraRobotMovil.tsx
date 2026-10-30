@@ -17,7 +17,7 @@ export function BarraRobotMovil({ robot, alAbrir }: { robot: Robot; alAbrir: () 
     <div
       // "data-barra-inferior" reserva hueco al final de la página (ver globals.css)
       data-barra-inferior
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-white/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden"
     >
       <button
         type="button"

@@ -5,7 +5,10 @@ import { categorias } from "@/config/categorias";
 /** Bloque de la portada que invita a montar tu propio robot en el configurador. */
 export function BloqueConfigurador() {
   return (
-    <section aria-labelledby="titulo-configurador" className="bg-grafito py-24 text-white sm:py-32">
+    <section
+      aria-labelledby="titulo-configurador"
+      className="bg-grafito py-24 text-white diferido sm:py-32"
+    >
       <Contenedor className="text-center">
         <div className="aparecer">
           <p className="text-sm font-medium tracking-wide text-acento-claro uppercase">

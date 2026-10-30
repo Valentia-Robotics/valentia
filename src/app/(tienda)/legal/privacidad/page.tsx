@@ -1,13 +1,15 @@
 // ⚠ BORRADOR — pendiente de revisión por un profesional.
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import Link from "next/link";
 import { DatosEmpresa, PaginaLegal, TablaLegal } from "@/components/legal/PaginaLegal";
 import { tienda } from "@/config/tienda";
 
-export const metadata: Metadata = {
-  title: "Política de privacidad",
-  description: "Cómo tratamos tus datos personales en Valentia (RGPD y LOPDGDD).",
-};
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Política de privacidad",
+  descripcion: "Cómo tratamos tus datos personales en Valentia (RGPD y LOPDGDD).",
+  ruta: "/legal/privacidad",
+});
 
 const e = tienda.empresa;
 

@@ -152,8 +152,8 @@ export function PortadaRobot() {
             </h1>
             {/* En móviles bajitos se omite en la versión animada, para dejar sitio al robot */}
             <p className="mt-4 animate-entrada text-lg text-gris [animation-delay:160ms] motion-safe:mt-3 motion-safe:text-base sm:text-xl motion-safe:sm:text-xl max-lg:[@media(max-height:44rem)]:motion-safe:hidden">
-              No hace falta saber programar: cada kit trae todas las piezas y un curso que te guía
-              paso a paso.
+              No hace falta saber programar: cada kit trae todas las piezas y un curso en vídeo que
+              te guía paso a paso, hasta que lo ves moverse.
             </p>
             <div className="mt-7 flex animate-entrada flex-wrap items-center justify-center gap-x-6 gap-y-3 [animation-delay:240ms] motion-safe:mt-5 lg:justify-start lg:motion-safe:mt-7">
               <Boton href="/kits" variante="acento" tamano="lg">
@@ -173,7 +173,7 @@ export function PortadaRobot() {
                 <li
                   key={pieza.id}
                   className={cn(
-                    "rounded-control border-l-2 py-1 pl-4 transition-all duration-500",
+                    "rounded-control border-l-2 py-1 pl-4 transition-[opacity,border-color] duration-500",
                     !modoScroll || activa === pieza.id
                       ? "border-acento opacity-100"
                       : "border-linea opacity-40",
@@ -185,7 +185,7 @@ export function PortadaRobot() {
                   </p>
                   <p
                     className={cn(
-                      "text-sm text-gris transition-all duration-500",
+                      "text-sm text-gris transition-[opacity,max-height] duration-500",
                       modoScroll && activa !== pieza.id && "max-h-0 overflow-hidden opacity-0",
                     )}
                   >
@@ -209,7 +209,8 @@ export function PortadaRobot() {
               aria-hidden="true"
               className={cn(
                 // En el móvil ocupa todo el ancho de la pantalla; en el ordenador, algo más que su hueco
-                "absolute inset-y-0 -left-4 h-full w-[calc(100%+2rem)] transition-opacity duration-700 sm:-left-6 sm:w-[calc(100%+3rem)] lg:inset-[-12%] lg:size-[124%]",
+                // will-change: el lienzo va en su propia capa (se redibuja en cada fotograma y lleva máscara)
+                "absolute inset-y-0 -left-4 h-full w-[calc(100%+2rem)] transition-opacity duration-700 will-change-transform sm:-left-6 sm:w-[calc(100%+3rem)] lg:inset-[-12%] lg:size-[124%]",
                 tres ? "opacity-100" : "pointer-events-none opacity-0",
               )}
               // Bordes difuminados: al acercarse a una pieza, lo que se sale del lienzo no queda cortado en seco
@@ -278,7 +279,7 @@ function PiezaMovil({ activa }: { activa: PiezaRobot["id"] | null }) {
           key={pieza.id}
           aria-hidden={i !== indice}
           className={cn(
-            "absolute inset-0 rounded-tarjeta bg-niebla px-4 py-3 transition-all duration-500",
+            "absolute inset-0 rounded-tarjeta bg-niebla px-4 py-3 transition-[opacity,translate] duration-500",
             i === indice
               ? "translate-y-0 opacity-100"
               : "pointer-events-none translate-y-2 opacity-0",

@@ -109,7 +109,8 @@ export function Configurador({ componentes, kits, kitInicial }: Props) {
           )}
 
           <section aria-labelledby="titulo-categoria" className="mt-8">
-            <div className="flex items-center gap-3">
+            {/* key: al cambiar de categoría, título y tarjetas entran de nuevo con una animación suave */}
+            <div key={`titulo-${categoria}`} className="flex animate-tarjeta items-center gap-3">
               <infoCategoria.icono
                 aria-hidden="true"
                 className="size-7 text-acento"
@@ -121,9 +122,17 @@ export function Configurador({ componentes, kits, kitInicial }: Props) {
             </div>
             <p className="mt-1 text-gris">{infoCategoria.descripcion}</p>
 
-            <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-              {piezasCategoria.map((componente) => (
-                <li key={componente.slug} className="flex">
+            <ul
+              key={categoria}
+              className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3"
+            >
+              {piezasCategoria.map((componente, i) => (
+                <li
+                  key={componente.slug}
+                  className="flex animate-tarjeta"
+                  // Una detrás de otra (como mucho 0,3 s de espera, para no hacer esperar)
+                  style={{ animationDelay: `${Math.min(i, 6) * 50}ms` }}
+                >
                   <TarjetaPieza
                     componente={componente}
                     enRobot={robot.cantidadDe(componente.slug)}

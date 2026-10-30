@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import { Cpu, SlidersHorizontal } from "lucide-react";
 import { TarjetaComponente } from "@/components/tienda/TarjetaComponente";
 import { Boton } from "@/components/ui/Boton";
@@ -14,11 +15,12 @@ import { obtenerComponentes } from "@/lib/catalogo";
  */
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Componentes",
-  description:
-    "Placas, motores, sensores y todo lo que necesitas para ampliar tu robot o crear uno nuevo.",
-};
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Componentes de robótica",
+  descripcion:
+    "Placas Arduino y ESP32, motores, servos, sensores y baterías sueltos para ampliar tu robot o crear uno nuevo.",
+  ruta: "/componentes",
+});
 
 /** COMPONENTES SUELTOS, agrupados por categoría */
 export default async function PaginaComponentes() {

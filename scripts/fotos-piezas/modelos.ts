@@ -30,6 +30,7 @@ import {
   texturaRejilla,
   texturaSonar,
 } from "../../src/components/portada/texturasRobot";
+import { crearModeloCoche } from "../../src/components/portada/modeloCoche";
 import { Taller } from "./taller";
 import {
   texturaAntena,
@@ -1238,6 +1239,70 @@ export const MODELOS: Record<string, Modelo> = {
         if (i % 3 !== 2) t.caja(0.064, 0.064, 0.6, t.oro, ax - 0.02, 0.125, az - 1.7);
         if (i % 2 === 0) t.caja(0.064, 0.064, 0.6, t.oro, bx + 0.02, 0.125, bz - 1.7);
       }
+    },
+  },
+};
+
+/**
+ * Coloca una pieza del configurador dentro de otra foto (para montar las de los kits).
+ * La pieza se construye con sus propias medidas; `escala` la ajusta a las de la foto.
+ */
+function colocar(
+  t: Taller,
+  slug: string,
+  [x, y, z]: [number, number, number],
+  {
+    giro = 0,
+    inclinacion = 0,
+    escala = 1,
+  }: { giro?: number; inclinacion?: number; escala?: number } = {},
+) {
+  const pieza = new Taller();
+  MODELOS[slug].construir(pieza);
+  pieza.grupo.position.set(x, y, z);
+  pieza.grupo.rotation.set(inclinacion, giro, 0);
+  pieza.grupo.scale.setScalar(escala);
+  t.grupo.add(pieza.grupo);
+}
+
+/**
+ * Fotos de los kits (ficha, listado y la imagen al compartir). El nombre es el slug del kit.
+ * Medidas en centímetros, como las piezas.
+ */
+export const KITS: Record<string, Modelo> = {
+  // El coche de la portada, montado
+  "coche-seguidor-de-lineas": {
+    encuadre: { elevacion: 22, azimut: 38, margen: 1.02 },
+    construir(t) {
+      t.grupo.add(crearModeloCoche().raiz);
+    },
+  },
+
+  // El brazo montado con sus cuatro servos, y al lado la placa y el portapilas
+  "brazo-robotico": {
+    encuadre: { elevacion: 20, azimut: 32, margen: 1.04 },
+    construir(t) {
+      colocar(t, "estructura-brazo-4dof", [0, 0, 0]);
+      // Servo de la base (entre las dos planchas) y los de hombro, codo y pinza
+      colocar(t, "servo-sg90", [0, 0.3, 0], { escala: 0.75 });
+      colocar(t, "servo-sg90", [0.2, 5.4, -2.75], { inclinacion: -Math.PI / 2, escala: 0.75 });
+      colocar(t, "servo-sg90", [2.6, 13.4, 2.0], { inclinacion: Math.PI / 2, escala: 0.6 });
+      colocar(t, "servo-sg90", [12.4, 13.1, -1.4], { escala: 0.55 });
+      colocar(t, "arduino-uno-r3", [-9.5, 0, 3.5], { giro: 0.35 });
+      colocar(t, "portapilas-4xaa", [-10, 0, -4.5], { giro: -0.2, escala: 0.9 });
+    },
+  },
+
+  // La estación montada en la protoboard: sensores pinchados, pantalla encendida y la ESP32 al lado
+  "estacion-meteorologica": {
+    encuadre: { elevacion: 30, azimut: 26, margen: 1.03 },
+    construir(t) {
+      colocar(t, "protoboard-cables", [0, 0, 0]);
+      colocar(t, "sensor-dht22", [2.6, 0.85, -1.4]);
+      colocar(t, "pantalla-oled-096", [-1.6, 0.85, -1.2]);
+      colocar(t, "esp32-devkit", [-8.2, 0, -0.5], { giro: 0.25 });
+      colocar(t, "sensor-presion-bmp280", [7.0, 0, -0.4], { giro: -0.3 });
+      colocar(t, "sensor-luz-ldr", [6.2, 0, 3.2], { giro: -0.5 });
     },
   },
 };

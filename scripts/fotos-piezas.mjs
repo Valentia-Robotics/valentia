@@ -7,6 +7,8 @@
  *   npm run fotos:piezas                 → todas
  *   npm run fotos:piezas -- servo-sg90   → solo esa (o varias separadas por espacios)
  *   npm run fotos:piezas -- --prueba     → las deja en .fotos-prueba/ (PNG) sin tocar la web
+ *   npm run fotos:piezas -- --kits       → fotos de los kits: public/images/kits/<slug>.svg (ficha y listado)
+ *                                          y public/images/redes/kits/<slug>.png (al compartir en redes)
  *
  * Usa Chrome (sin ventana) para dibujar el 3D.
  */
@@ -23,6 +25,7 @@ const LADO_FINAL = 800;
 
 const argumentos = process.argv.slice(2);
 const prueba = argumentos.includes("--prueba");
+const soloKits = argumentos.includes("--kits");
 const elegidas = argumentos.filter((a) => !a.startsWith("--"));
 
 // 1. Empaquetar el estudio (three + modelos) en un solo script para el navegador
@@ -51,6 +54,45 @@ await pagina.setContent(
 await pagina.addScriptTag({ content: outputFiles[0].text });
 
 const todas = await pagina.evaluate(() => window.piezas);
+
+// Fotos de los kits: SVG 4:3 con la foto dentro (mismas rutas que ya usa la BD) y PNG para las redes
+if (soloKits) {
+  const kits = await pagina.evaluate(() => window.kits);
+  const carpetaRedes = path.join(RAIZ, "public/images/redes/kits");
+  await mkdir(carpetaRedes, { recursive: true });
+  for (const slug of kits) {
+    const datos = await pagina.evaluate((s) => window.fotografiar(s), slug);
+    const recortada = await sharp(Buffer.from(datos.split(",")[1], "base64"))
+      .trim({ threshold: 1 })
+      .toBuffer();
+    await sharp(recortada)
+      .resize({ width: 1000 })
+      .png({ compressionLevel: 9 })
+      .toFile(path.join(carpetaRedes, `${slug}.png`));
+    // En la web, 800 × 600 con aire alrededor (como las ilustraciones que sustituye)
+    const webp = await sharp(recortada)
+      .resize(720, 520, { fit: "inside" })
+      .extend({
+        top: 40,
+        bottom: 40,
+        left: 40,
+        right: 40,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .resize(800, 600, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .webp({ quality: 86, alphaQuality: 90, effort: 6 })
+      .toBuffer();
+    await writeFile(
+      path.join(RAIZ, "public/images/kits", `${slug}.svg`),
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">` +
+        `<!-- Foto de estudio generada con npm run fotos:piezas -- --kits (scripts/fotos-piezas). -->` +
+        `<image width="800" height="600" href="data:image/webp;base64,${webp.toString("base64")}"/></svg>\n`,
+    );
+    console.log(`✓ kit ${slug}`);
+  }
+  await navegador.close();
+  process.exit(0);
+}
 const lista = elegidas.length ? elegidas : todas;
 await mkdir(prueba ? PRUEBA : SALIDA, { recursive: true });
 
