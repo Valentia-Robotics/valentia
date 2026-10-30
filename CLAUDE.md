@@ -36,8 +36,9 @@ que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empe
 Decisión de Jesse: los kits se presentan MODULARES (las piezas no cambian): se unen con imanes y pines pogo
 (`conectorImantado` en `modelos.ts`) y solo lo que no se puede imantar (servos, motores, pilas) lleva cables
 JST blancos; sin cables Dupont. `MODELOS[slug].construir(t, { modular: true })`
-quita los cables sueltos (servo con JST, portapilas y protoboard sin cables). Brazo: antropomórfico de 4 gdl
-con servos negros MG996R (`brazoMg996r`). Estación: caja propia (`cajaEstacion`) con pantalla, interruptor y
+quita los cables sueltos (servo con JST, portapilas y protoboard sin cables). Brazo (Jesse, 30-10-2026): carcasa
+impresa en 3D negra mate que esconde los servos, juntas redondas con tornillos, pinza de dedos paralelos, base
+torneada con la placa y las pilas dentro, anillo de luz azul y USB/interruptor delante (`brazoImpreso`). Estación: caja propia (`cajaEstacion`) con pantalla, interruptor y
 USB-C; los sensores se pegan con imanes a sus lados. El coche se queda como estaba (Jesse, 30-10-2026).
 
 ### SEO, imágenes para compartir y fluidez (30-10-2026, rama `claude/project-thread-g3cf1v`)

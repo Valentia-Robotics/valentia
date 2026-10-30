@@ -31,6 +31,7 @@ import {
   texturaSonar,
 } from "../../src/components/portada/texturasRobot";
 import { crearModeloCoche } from "../../src/components/portada/modeloCoche";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { Taller } from "./taller";
 import {
   texturaAntena,
@@ -418,35 +419,6 @@ function conectorJst(t: Taller, x: number, y: number, z: number, e = 1, padre?: 
   t.caja(0.06 * e, 0.24 * e, 0.3 * e, blanco, x + 0.18 * e, y + 0.06 * e, z, padre);
   for (const k of [-1, 0, 1])
     t.caja(0.02 * e, 0.08 * e, 0.1 * e, t.oro, x - 0.16 * e, y - 0.12 * e, z + k * 0.17 * e, padre);
-}
-
-/**
- * Conector imantado de los kits Valentia: carcasa negra con pines pogo dorados en el centro y un
- * imán en cada punta. Mira hacia +x (la cara de contacto); `n` = número de pines.
- */
-function conectorImantado(
-  t: Taller,
-  padre: Group,
-  [x, y, z]: [number, number, number],
-  { giro = 0, n = 5, macho = true }: { giro?: number; n?: number; macho?: boolean } = {},
-) {
-  const g = new Group();
-  g.position.set(x, y, z);
-  g.rotation.y = giro;
-  padre.add(g);
-  const largo = 0.32 * n + 0.9;
-  t.redonda(0.45, 0.55, largo, 0.12, plastico(t, 0x161616, 0.4), 0, 0, 0, g);
-  // Cara de contacto un poco más clara
-  t.caja(0.02, 0.36, largo - 0.24, t.mat({ color: 0x2a2a2c, roughness: 0.35 }), 0.226, 0, 0, g);
-  for (let i = 0; i < n; i++) {
-    const zz = (i - (n - 1) / 2) * 0.32;
-    if (macho) t.cilindro(0.06, 0.16, t.oro, 0.29, 0, zz, "x", 16, 0.045, g);
-    else t.cilindro(0.075, 0.02, t.oro, 0.235, 0, zz, "x", 16, 0.075, g);
-  }
-  const iman = t.mat({ color: 0xc9ccd0, metalness: 0.9, roughness: 0.25 });
-  for (const s of [-1, 1])
-    t.cilindro(0.15, 0.03, iman, 0.235, 0, s * (largo / 2 - 0.3), "x", 24, 0.15, g);
-  return g;
 }
 
 // =====================================================================================
@@ -1340,34 +1312,6 @@ function colocar(
   padre.add(pieza.grupo);
   return pieza.grupo;
 }
-// ------------------------------------------------------------------------------------
-// Brazo robótico del kit (medidas en cm, pensado para servos MG996R)
-// ------------------------------------------------------------------------------------
-const E_MG = 1.75; // escala del MG996R respecto al SG90
-const CARA_BOCINA = 3.4 * E_MG; // altura de la cara de la bocina, medida desde la base del servo
-const EJE_SERVO = 0.55 * E_MG; // distancia del eje de salida al centro del cuerpo
-
-function servoNegro(padre: Group) {
-  const s = new Taller();
-  MODELOS["servo-mg996r"].construir(s, { modular: true });
-  padre.add(s.grupo);
-  return s.grupo;
-}
-
-/**
- * Servo con el eje de salida en el origen del grupo, mirando a +z, la cara de la bocina en z = cara
- * y el cuerpo hacia el ángulo `hacia` (en el plano xy). Así cada articulación gira alrededor de z.
- */
-function servoEnEje(padre: Group, cara: number, hacia: number) {
-  const g = new Group();
-  g.rotation.z = hacia;
-  padre.add(g);
-  const s = servoNegro(g);
-  s.rotation.x = Math.PI / 2;
-  s.position.set(EJE_SERVO, 0, cara - CARA_BOCINA);
-  return g;
-}
-
 /** Plancha de metacrilato con un hueco rectangular (por donde pasa el cuerpo del servo) */
 function placaConHueco(
   forma: Shape,
@@ -1393,278 +1337,194 @@ function placaConHueco(
   return forma;
 }
 
-/** Eslabón: estadio de `largo` entre centros, con un agujero de radio propio en cada punto */
-function eslabon(largo: number, ancho: number, agujeros: [number, number][]) {
-  const s = estadio(largo, ancho);
-  for (const [x, r] of agujeros) {
-    const c = new Path();
-    c.absarc(x, 0, r, 0, Math.PI * 2, true);
-    s.holes.push(c);
-  }
-  return s;
-}
-
-/** Torre del hombro: rectángulo con la parte de arriba redonda (centro del arco en y = alto) */
-function torre(ancho: number, alto: number) {
-  const s = new Shape();
-  s.moveTo(-ancho / 2, 0);
-  s.lineTo(ancho / 2, 0);
-  s.lineTo(ancho / 2, alto);
-  s.absarc(0, alto, ancho / 2, 0, Math.PI, false);
-  s.lineTo(-ancho / 2, 0);
-  return s;
-}
-
-/** Separador de latón hexagonal entre dos puntos alineados con un eje */
-function separador(
-  t: Taller,
-  padre: Group,
-  x: number,
-  y: number,
-  z: number,
-  largo: number,
-  eje: "y" | "z",
-) {
-  t.cilindro(0.2, largo, t.laton, x, y, z, eje, 6, 0.2, padre);
-}
-
-/** Engranaje plano (para la pinza) */
-function engranaje(t: Taller, padre: Group, x: number, y: number, z: number, material: Material) {
-  t.cilindro(0.62, 0.3, material, x, y, z, "y", 40, 0.62, padre);
-  for (let k = 0; k < 16; k++) {
-    const a = (k / 16) * Math.PI * 2;
-    t.caja(
-      0.2,
-      0.3,
-      0.14,
-      material,
-      x + Math.cos(a) * 0.7,
-      y,
-      z + Math.sin(a) * 0.7,
-      padre,
-    ).rotation.y = -a;
-  }
-  t.cilindro(0.16, 0.34, t.acero, x, y, z, "y", 16, 0.16, padre);
-}
-
-function brazoMg996r(t: Taller) {
-  const acr = t.fisico({
-    color: 0x5f8fdc,
-    roughness: 0.08,
-    transparent: true,
-    opacity: 0.72,
-    clearcoat: 1,
-    clearcoatRoughness: 0.03,
-    side: DoubleSide,
-  });
-  const G = 0.3; // grosor del metacrilato
+// ------------------------------------------------------------------------------------
+// Brazo robótico del kit: carcasa impresa en 3D, negra mate, que esconde los servos MG996R.
+// Base (giro), hombro, codo y muñeca con pinza de dedos paralelos. La placa y las pilas van
+// dentro de la base; delante, el USB, el interruptor y la luz de encendido. Medidas en cm.
+// ------------------------------------------------------------------------------------
+function brazoImpreso(t: Taller) {
   const raiz = t.grupo;
-  const horizontal = (forma: Shape, x: number, y: number, z: number, padre: Group = raiz) => {
-    const p = acrilico(t, forma, G, acr, padre);
-    p.rotation.x = -Math.PI / 2;
-    p.position.set(x, y, z);
-    return p;
-  };
-  const vertical = (forma: Shape, x: number, y: number, z: number, padre: Group = raiz) => {
-    const p = acrilico(t, forma, G, acr, padre);
-    p.position.set(x, y, z);
-    return p;
+  // PLA negro mate con un ligero brillo, como una pieza impresa y lijada
+  const cuerpo = t.fisico({
+    color: 0x1e1f22,
+    roughness: 0.58,
+    clearcoat: 0.25,
+    clearcoatRoughness: 0.5,
+  });
+  const junta = t.mat({ color: 0x2c2d31, roughness: 0.42, metalness: 0.35 });
+  const ranura = t.mat({ color: 0x0b0b0c, roughness: 0.8 });
+  const tornillo = t.mat({ color: 0x55585e, roughness: 0.3, metalness: 1 });
+  const goma = t.mat({ color: 0x111112, roughness: 0.95 });
+  const luz = t.mat({ color: 0x2d4bff, emissive: 0x2d4bff, emissiveIntensity: 0.9 });
+
+  /** Pieza con perfil de revolución (de abajo arriba): [radio, altura] */
+  const torneado = (perfil: [number, number][], material: Material, y: number) => {
+    const m = t.malla(
+      new LatheGeometry(
+        perfil.map(([r, h]) => new Vector2(r, h)),
+        96,
+      ),
+      material,
+      0,
+      y,
+      0,
+    );
+    return m;
   };
 
-  // ---------- Base: tres planchas con columnas de latón; el servo de la base va dentro ----------
-  const B = 12;
-  const esquinas: [number, number][] = [
-    [-5.2, -5.2],
-    [5.2, -5.2],
-    [-5.2, 5.2],
-    [5.2, 5.2],
-  ];
-  const agujerosEsquinas = esquinas.map(([x, z]) => [x, -z, 0.17] as [number, number, number]);
-  horizontal(rectanguloRedondo(B, B, 0.9, agujerosEsquinas), 0, 0.15, 0);
-  horizontal(
-    placaConHueco(rectanguloRedondo(B, B, 0.9), [EJE_SERVO, 0, 4.3, 2.35], agujerosEsquinas),
-    0,
-    3.31,
+  /** Ranura fina entre las dos mitades de una carcasa (en el plano xy, centrada en z = 0) */
+  const junturaCarcasa = (
+    padre: Group,
+    w: number,
+    h: number,
+    r: number,
+    x: number,
+    giroY: number,
+  ) => {
+    const g = new ExtrudeGeometry(rectanguloRedondo(w, h, r), { depth: 0.05, bevelEnabled: false });
+    g.translate(0, 0, -0.025);
+    const m = t.malla(g, ranura, x, 0, 0, padre);
+    m.rotation.y = giroY;
+    return m;
+  };
+
+  /** Barra redondeada (como una cápsula aplastada) a lo largo de x, desde x = 0 hasta `largo` */
+  const barra = (padre: Group, largo: number, alto: number, ancho: number, x0 = 0) => {
+    const r = Math.min(alto, ancho) / 2 - 0.01;
+    const m = t.malla(
+      new RoundedBoxGeometry(largo + alto, alto, ancho, 6, r),
+      cuerpo,
+      x0 + largo / 2,
+      0,
+      0,
+      padre,
+    );
+    // Junta de las dos mitades de la carcasa (una ranura fina alrededor)
+    junturaCarcasa(padre, largo + alto + 0.03, alto + 0.03, r, x0 + largo / 2, 0);
+    return m;
+  };
+
+  /** Articulación: cilindro a lo largo de z con tapas, anillo y tornillos */
+  const articulacion = (padre: Group, x: number, y: number, r: number, ancho: number) => {
+    t.cilindro(r, ancho, cuerpo, x, y, 0, "z", 64, r, padre);
+    for (const s of [-1, 1]) {
+      const z = s * (ancho / 2);
+      t.cilindro(r * 0.96, 0.16, junta, x, y, z + s * 0.08, "z", 64, r * 0.96, padre);
+      t.cilindro(r * 0.7, 0.12, cuerpo, x, y, z + s * 0.2, "z", 64, r * 0.7, padre);
+      t.cilindro(r * 0.2, 0.06, ranura, x, y, z + s * 0.27, "z", 32, r * 0.2, padre);
+      for (let i = 0; i < 4; i++) {
+        const a = Math.PI / 4 + (i * Math.PI) / 2;
+        t.cilindro(
+          0.12,
+          0.06,
+          tornillo,
+          x + Math.cos(a) * r * 0.48,
+          y + Math.sin(a) * r * 0.48,
+          z + s * 0.27,
+          "z",
+          16,
+          0.12,
+          padre,
+        );
+      }
+    }
+  };
+
+  const grupo = (padre: Group, x: number, y: number, giro: number) => {
+    const g = new Group();
+    g.position.set(x, y, 0);
+    g.rotation.z = giro;
+    padre.add(g);
+    return g;
+  };
+
+  // ---------- Base: pie torneado con la electrónica dentro ----------
+  torneado(
+    [
+      [0, 0],
+      [7.2, 0],
+      [7.4, 0.25],
+      [7.4, 2.9],
+      [7.1, 3.4],
+      [6.2, 3.7],
+      [0, 3.7],
+    ],
+    cuerpo,
     0,
   );
-  horizontal(rectanguloRedondo(B, B, 0.9, [...agujerosEsquinas, [0, 0, 0.6]]), 0, 5.75, 0);
-  for (const [x, z] of esquinas) {
-    separador(t, raiz, x, 1.73, z, 2.86, "y");
-    separador(t, raiz, x, 4.53, z, 2.14, "y");
-    t.tornillo(x, 5.9, z, 0.24);
+  // Anillo de luz azul entre el pie y la plataforma que gira
+  t.cilindro(5.6, 0.18, luz, 0, 3.79, 0, "y", 96);
+  torneado(
+    [
+      [0, 0],
+      [5.4, 0],
+      [5.5, 0.3],
+      [5.3, 1.9],
+      [0, 1.9],
+    ],
+    cuerpo,
+    3.88,
+  );
+  // Patas de goma
+  for (let i = 0; i < 4; i++) {
+    const a = Math.PI / 4 + (i * Math.PI) / 2;
+    t.cilindro(0.7, 0.18, goma, Math.cos(a) * 5.6, -0.09, Math.sin(a) * 5.6, "y", 24);
   }
-  const base = servoNegro(raiz);
-  base.position.set(EJE_SERVO, 0.45, 0);
+  // Delante (hacia la cámara): USB, interruptor y luz de encendido, en un panel plano
+  const panel = new Group();
+  panel.rotation.y = 0.5;
+  raiz.add(panel);
+  t.redonda(4.6, 1.7, 0.4, 0.15, cuerpo, 0, 1.75, 7.25, panel);
+  t.redonda(1.25, 0.55, 0.2, 0.08, ranura, -1.2, 1.75, 7.47, panel);
+  t.caja(0.8, 0.28, 0.1, tornillo, -1.2, 1.75, 7.52, panel);
+  t.redonda(0.9, 0.62, 0.2, 0.1, ranura, 0.55, 1.75, 7.47, panel);
+  const tecla = t.redonda(0.7, 0.42, 0.2, 0.08, junta, 0.55, 1.75, 7.55, panel);
+  tecla.rotation.x = 0.18;
+  t.cilindro(0.12, 0.12, luz, 1.65, 1.75, 7.5, "z", 16, 0.12, panel);
 
-  // ---------- Plato giratorio (sobre la bocina del servo de la base) ----------
-  const giro = new Group();
-  giro.position.y = 6.4;
-  giro.rotation.y = 0.12;
-  raiz.add(giro);
-  horizontal(
-    rectanguloRedondo(
-      8.8,
-      8.8,
-      4.4,
-      Array.from({ length: 6 }, (_, k) => {
-        const a = (k / 6) * Math.PI * 2;
-        return [Math.cos(a) * 3.4, Math.sin(a) * 3.4, 0.15] as [number, number, number];
-      }),
-    ),
-    0,
-    0.15,
-    0,
-    giro,
-  );
-
-  // ---------- Hombro: dos torres que sujetan el servo (cuerpo hacia abajo, eje hacia +z) ----------
-  const H = 10.1 - 6.4; // altura del eje del hombro sobre el plato
-  const zFrente = -0.5;
-  const zFondo = -4.0;
-  vertical(
-    placaConHueco(torre(5.2, H - 0.3), [0, H - 0.3 - 0.96, 2.4, 4.3]),
-    0,
-    0.3,
-    zFrente,
-    giro,
-  );
-  vertical(
-    (() => {
-      const f = torre(5.2, H - 0.3);
-      const c = new Path();
-      c.absarc(0, H - 0.3, 0.22, 0, Math.PI * 2, true);
-      f.holes.push(c);
-      return f;
-    })(),
-    0,
-    0.3,
-    zFondo,
-    giro,
-  );
-  horizontal(rectanguloRedondo(5.2, 3.8, 0.3), 0, 0.45, (zFrente + zFondo) / 2, giro);
-  const hombro = new Group();
-  hombro.position.set(0, H, 0);
-  giro.add(hombro);
-  servoEnEje(hombro, 2.6, -Math.PI / 2);
-
-  // ---------- Brazo: dos eslabones paralelos (uno en la bocina, otro en un eje libre detrás) ----------
-  const L1 = 10.5;
-  const a1 = (64 * Math.PI) / 180;
-  const brazo = new Group();
-  brazo.rotation.z = a1;
-  hombro.add(brazo);
-  vertical(
-    eslabon(L1, 2.8, [
-      [0, 0.22],
-      [L1, 0.6],
-    ]),
-    0,
-    0,
-    2.75,
-    brazo,
-  );
-  vertical(
-    eslabon(L1, 2.8, [
-      [0, 0.22],
-      [L1, 0.22],
-    ]),
-    0,
-    0,
-    -4.45,
-    brazo,
-  );
-  for (const y of [-0.85, 0.85]) separador(t, brazo, L1 * 0.42, y, -0.85, 6.9, "z");
-  for (const x of [0, L1]) {
-    t.cilindro(0.22, 0.75, t.acero, x, 0, -4.2, "z", 20, 0.22, brazo);
-    t.cilindro(0.3, 0.12, t.acero, x, 0, -4.66, "z", 6, 0.3, brazo);
+  // ---------- Hombro: horquilla sobre la plataforma ----------
+  const yHombro = 9.4;
+  for (const s of [-1, 1]) {
+    // Cada lado de la horquilla es una pieza redondeada que sube hasta el eje
+    t.redonda(4.4, 4.2, 1.1, 0.5, cuerpo, 0, 7.6, s * 2.45);
   }
-  t.cilindro(0.18, 0.1, t.acero, 0, 0, 2.95, "z", 20, 0.18, brazo);
+  t.redonda(4.6, 1.6, 6.0, 0.6, cuerpo, 0, 6.3, 0);
+  articulacion(raiz, 0, yHombro, 2.2, 6.0);
 
-  // ---------- Codo: servo sujeto entre los dos eslabones, con el cuerpo hacia el hombro ----------
-  const codo = new Group();
-  codo.position.set(L1, 0, 0);
-  brazo.add(codo);
-  servoEnEje(codo, 3.25, Math.PI);
-  // Calzo bajo el cuerpo del servo (hasta el eslabón de atrás)
-  t.caja(3.8, 2.2, 1.55, acr, -EJE_SERVO, 0, -3.5, codo);
+  // ---------- Brazo (hombro → codo) ----------
+  const L1 = 11.5;
+  const brazo = grupo(raiz, 0, yHombro, 1.05);
+  barra(brazo, L1, 3.4, 3.6);
+  articulacion(brazo, L1, 0, 1.95, 4.4);
 
-  // ---------- Antebrazo: en la bocina del codo, casi horizontal ----------
-  const L2 = 8.5;
-  const a2 = (-6 * Math.PI) / 180;
-  const ante = new Group();
-  ante.rotation.z = a2 - a1;
-  codo.add(ante);
-  vertical(eslabon(L2, 2.4, [[0, 0.18]]), 0, 0, 3.4, ante);
-  t.cilindro(0.18, 0.1, t.acero, 0, 0, 3.6, "z", 20, 0.18, ante);
-  // Nervio por debajo para que no se doble
-  horizontal(rectanguloRedondo(L2 - 1.2, 1.6, 0.2), L2 / 2 + 0.2, -1.05, 2.45, ante);
+  // ---------- Antebrazo (codo → muñeca) ----------
+  const L2 = 9.5;
+  const antebrazo = grupo(brazo, L1, 0, -1.55);
+  barra(antebrazo, L2, 2.9, 3.0);
+  articulacion(antebrazo, L2, 0, 1.6, 3.6);
 
-  // ---------- Pinza: servo boca abajo sobre una plataforma y dos dedos con engranajes ----------
-  const xPl = L2 + 1.35;
-  const zPl = 1.125;
-  const zEje = 0.35;
-  horizontal(
-    placaConHueco(rectanguloRedondo(5.1, 4.25, 0.5), [L2 + 1.44 - xPl, -(zEje - zPl), 4.3, 2.4]),
-    xPl,
-    -1.35,
-    zPl,
-    ante,
-  );
-  t.caja(1.2, 1.0, 0.3, acr, L2 - 0.3, -0.95, 3.1, ante); // escuadra entre antebrazo y plataforma
-  const pinzaServo = servoNegro(ante);
-  pinzaServo.rotation.z = Math.PI;
-  pinzaServo.position.set(L2 + 1.44, -1.2 + 3.45, zEje);
-  // Placa de abajo y engranajes
-  const yEng = -3.95;
-  separador(t, ante, L2 + 2.4, -2.95, 1.85, 2.9, "y");
-  separador(t, ante, L2 + 0.2, -2.95, 2.6, 2.9, "y");
-  separador(t, ante, L2 + 0.2, -2.95, -0.6, 2.9, "y");
-  horizontal(rectanguloRedondo(4.2, 4.0, 0.5), L2 + 1.5, -4.55, zPl, ante);
-  const blanco = t.mat({ color: 0xf3f3ef, roughness: 0.45 });
-  engranaje(t, ante, L2 + 2.4, yEng, zEje, blanco);
-  engranaje(t, ante, L2 + 2.4, yEng, zEje + 1.5, blanco);
-  const dedo = new Shape();
-  dedo.moveTo(0, -0.35);
-  dedo.quadraticCurveTo(2.8, -0.75, 5.4, 0.15);
-  dedo.lineTo(5.3, 0.5);
-  dedo.quadraticCurveTo(2.8, 0.15, 0, 0.42);
-  dedo.absarc(0, 0.035, 0.39, Math.PI / 2, (3 * Math.PI) / 2, false);
-  for (const [z, s] of [
-    [zEje, 1],
-    [zEje + 1.5, -1],
-  ] as const) {
-    const d = acrilico(t, dedo, G, acr, ante);
-    d.rotation.set(-Math.PI / 2, 0, s * 0.2);
-    d.scale.y = s;
-    d.position.set(L2 + 2.4, yEng - 0.3, z);
+  // ---------- Muñeca y pinza ----------
+  const muneca = grupo(antebrazo, L2, 0, -0.55);
+  // La pinza abre hacia arriba y hacia abajo (así se ven los dos dedos)
+  const pinza = new Group();
+  pinza.rotation.x = Math.PI / 2;
+  muneca.add(pinza);
+  // Cuerpo de la pinza: aloja el servo que la abre y la cierra
+  t.redonda(4.6, 2.9, 3.4, 0.9, cuerpo, 2.4, 0, 0, pinza);
+  junturaCarcasa(muneca, 3.43, 2.93, 0.9, 3.2, Math.PI / 2);
+  // Guía por la que se deslizan los dedos
+  t.redonda(0.9, 1.8, 3.8, 0.35, junta, 4.85, 0, 0, pinza);
+  for (const s of [-1, 1]) {
+    const dedo = new Group();
+    dedo.position.set(5.0, 0, s * 0.9);
+    pinza.add(dedo);
+    // Dedo: más grueso junto a la guía y más fino en la punta
+    t.redonda(2.0, 1.8, 0.75, 0.3, cuerpo, 1.0, 0, 0, dedo);
+    t.redonda(2.4, 1.4, 0.5, 0.22, cuerpo, 2.6, 0, -s * 0.12, dedo);
+    // Almohadilla de goma con estrías, por dentro
+    t.redonda(2.2, 1.2, 0.12, 0.05, goma, 2.5, 0, -s * 0.42, dedo);
+    for (let i = 0; i < 6; i++) t.caja(0.05, 1.1, 0.04, ranura, 1.6 + i * 0.36, 0, -s * 0.49, dedo);
   }
-
-  // ---------- Placa y pilas al lado, en sus bandejas, unidas a la base con imanes ----------
-  const bandeja = (w: number, d: number, x: number, z: number) => {
-    horizontal(rectanguloRedondo(w, d, 0.6), x, 0.15, z);
-    for (const [sx, sz] of [
-      [-1, -1],
-      [1, -1],
-      [-1, 1],
-      [1, 1],
-    ])
-      separador(t, raiz, x + sx * (w / 2 - 0.5), 0.55, z + sz * (d / 2 - 0.5), 0.5, "y");
-  };
-  // Imán con pines en la base (hembra) y en cada bandeja (macho), a 1,5 mm de encajar
-  const union = (x: number, z: number, n: number, giroBase: number) => {
-    conectorImantado(t, raiz, [x, 0.58, z], { n, macho: false, giro: giroBase });
-    const d = 0.62;
-    conectorImantado(t, raiz, [x + Math.cos(giroBase) * d, 0.58, z - Math.sin(giroBase) * d], {
-      n,
-      giro: giroBase + Math.PI,
-    });
-  };
-  bandeja(8.0, 6.4, -10.7, 1.8);
-  colocar(raiz, "arduino-uno-r3", [-10.8, 0.8, 1.8]);
-  union(-6.25, 1.8, 6, Math.PI);
-  bandeja(7.0, 7.0, 10.1, -2.6);
-  colocar(raiz, "portapilas-4xaa", [10.1, 0.3, -2.6], { giro: Math.PI });
-  union(6.25, -2.6, 2, 0);
 }
 
 // ------------------------------------------------------------------------------------
@@ -1803,12 +1663,11 @@ export const KITS: Record<string, Modelo> = {
     },
   },
 
-  // Brazo antropomórfico de 4 grados de libertad con servos MG996R (base, hombro, codo y pinza),
-  // con la placa y las pilas al lado, unidas a la base con conectores imantados
+  // Brazo con carcasa impresa en 3D (negra mate) que esconde los servos; la electrónica va en la base
   "brazo-robotico": {
-    encuadre: { elevacion: 18, azimut: 34, margen: 1.03 },
+    encuadre: { elevacion: 16, azimut: 30, margen: 1.03 },
     construir(t) {
-      brazoMg996r(t);
+      brazoImpreso(t);
     },
   },
 
