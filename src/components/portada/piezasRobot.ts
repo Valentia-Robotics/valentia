@@ -67,10 +67,19 @@ export function explosionDesdeProgreso(progreso: number): number {
   return suavizar(0.04, 0.22, progreso) * (1 - suavizar(0.86, 0.98, progreso));
 }
 
+// Tramo del scroll en el que se explican las piezas (una detrás de otra, a partes iguales)
+const INICIO_PIEZAS = 0.2;
+const FIN_PIEZAS = 0.88;
+
+/** Progreso del scroll en el centro del tramo de la pieza i (donde la página «se para») */
+export function centroDePieza(indice: number): number {
+  return INICIO_PIEZAS + ((indice + 0.5) / PIEZAS_ROBOT.length) * (FIN_PIEZAS - INICIO_PIEZAS);
+}
+
 /** Qué pieza se está explicando según el scroll (null al principio y al final) */
 export function piezaActiva(progreso: number): PiezaRobot["id"] | null {
-  if (progreso < 0.2 || progreso > 0.88) return null;
-  const tramo = (progreso - 0.2) / (0.88 - 0.2);
+  if (progreso < INICIO_PIEZAS || progreso > FIN_PIEZAS) return null;
+  const tramo = (progreso - INICIO_PIEZAS) / (FIN_PIEZAS - INICIO_PIEZAS);
   const indice = Math.min(PIEZAS_ROBOT.length - 1, Math.floor(tramo * PIEZAS_ROBOT.length));
   return PIEZAS_ROBOT[indice].id;
 }

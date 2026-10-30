@@ -301,8 +301,11 @@ export const texturaPantallaEstacion = () =>
       [640, 130, 34],
       [600, 140, 28],
       [676, 142, 26],
-    ])
-      (ctx.beginPath(), ctx.arc(x, y, r, 0, Math.PI * 2), ctx.fill());
+    ]) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.fillRect(580, 140, 120, 30);
     // Temperatura
     ctx.fillStyle = claro;

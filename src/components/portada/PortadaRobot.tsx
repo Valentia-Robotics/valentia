@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { cn } from "@/lib/utils";
 import type { EscenaRobot } from "./escenaRobot";
-import { PIEZAS_ROBOT, explosionDesdeProgreso, piezaActiva, type PiezaRobot } from "./piezasRobot";
+import {
+  PIEZAS_ROBOT,
+  centroDePieza,
+  explosionDesdeProgreso,
+  piezaActiva,
+  type PiezaRobot,
+} from "./piezasRobot";
 import { RobotEstatico } from "./RobotEstatico";
 
 /** ¿Puede este equipo con el 3D sin ir a tirones ni gastar mucha batería? */
@@ -27,7 +33,7 @@ function equipoAdmite3D(): boolean {
 /** Ejecuta algo cuando el navegador esté desocupado (después de pintar la página) */
 function cuandoEsteLibre(tarea: () => void): () => void {
   if ("requestIdleCallback" in window) {
-    const id = window.requestIdleCallback(tarea, { timeout: 2500 });
+    const id = window.requestIdleCallback(tarea, { timeout: 600 });
     return () => window.cancelIdleCallback(id);
   }
   const id = setTimeout(tarea, 400);
@@ -48,6 +54,8 @@ export function PortadaRobot() {
   const escena = useRef<EscenaRobot | null>(null);
   const [modoScroll, setModoScroll] = useState(false);
   const [tres, setTres] = useState(false); // el 3D ya está listo
+  // Este equipo no puede con el 3D (o falló al cargar): se enseña el dibujo SVG
+  const [sin3d, setSin3d] = useState(false);
   const [activa, setActiva] = useState<PiezaRobot["id"] | null>(null);
   const [alInicio, setAlInicio] = useState(true);
 
@@ -93,7 +101,7 @@ export function PortadaRobot() {
   // 3. Carga diferida del 3D (solo en modo scroll y en equipos capaces)
   useEffect(() => {
     const elemento = seccion.current;
-    if (!modoScroll || !elemento || !equipoAdmite3D()) return;
+    if (!modoScroll || !elemento) return;
     let cancelado = false;
     let visible = true;
 
@@ -104,6 +112,10 @@ export function PortadaRobot() {
     observador.observe(elemento);
 
     const cancelarEspera = cuandoEsteLibre(async () => {
+      if (!equipoAdmite3D()) {
+        setSin3d(true);
+        return;
+      }
       try {
         const { crearEscenaRobot } = await import("./escenaRobot");
         if (cancelado || !lienzo.current) return;
@@ -115,6 +127,7 @@ export function PortadaRobot() {
         setTres(true);
       } catch (error) {
         console.warn("No se ha podido cargar el robot en 3D; se queda el dibujo.", error);
+        if (!cancelado) setSin3d(true);
       }
     });
 
@@ -133,8 +146,19 @@ export function PortadaRobot() {
       ref={seccion}
       aria-labelledby="titulo-portada"
       data-pieza-activa={tres ? undefined : (activa ?? undefined)}
-      className="relative bg-white motion-safe:h-[320vh]"
+      // Alta para que cada pieza dure un buen tramo de scroll (antes pasaba de una a otra muy rápido)
+      className="portada-robot relative bg-white motion-safe:h-[620vh]"
     >
+      {/* Puntos de imán: al dejar de hacer scroll cerca de una pieza, la página se para justo en ella */}
+      {modoScroll &&
+        PIEZAS_ROBOT.map((pieza, i) => (
+          <span
+            key={pieza.id}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 h-px snap-start"
+            style={{ top: `calc((100% - 100vh) * ${centroDePieza(i)})` }}
+          />
+        ))}
       {/* En el móvil, svh (alto con la barra del navegador visible): así el lienzo no cambia de
           tamaño cuando la barra se esconde al hacer scroll */}
       <div className="overflow-hidden motion-safe:sticky motion-safe:top-nav motion-safe:h-[calc(100svh-var(--spacing-nav))] lg:motion-safe:h-[calc(100dvh-var(--spacing-nav))]">
@@ -198,10 +222,12 @@ export function PortadaRobot() {
 
           {/* ---------- Robot ---------- */}
           <div className="relative mx-auto aspect-[32/21] w-full max-w-2xl animate-entrada [animation-delay:320ms] motion-safe:min-h-0 motion-safe:flex-1 max-lg:motion-safe:aspect-auto lg:max-w-none">
+            {/* El dibujo solo sale si no hay 3D (reducir movimiento, equipo lento o error). Mientras
+                carga el 3D el hueco queda vacío: así no se ve el dibujo antiguo un momento al recargar */}
             <RobotEstatico
               className={cn(
                 "absolute inset-0 size-full transition-opacity duration-700",
-                tres && "opacity-0",
+                !sin3d && "motion-safe:opacity-0",
               )}
             />
             <canvas
