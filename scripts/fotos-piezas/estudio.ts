@@ -21,7 +21,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { MODELOS } from "./modelos";
+import { KITS, MODELOS } from "./modelos";
 import { Taller } from "./taller";
 import { texturaSombraSuave } from "./texturas";
 
@@ -44,7 +44,7 @@ const pmrem = new PMREMGenerator(renderer);
 const entorno = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
 function fotografiar(slug: string): string {
-  const modelo = MODELOS[slug];
+  const modelo = MODELOS[slug] ?? KITS[slug];
   if (!modelo) throw new Error(`No hay modelo para ${slug}`);
   const encuadre = { azimut: 30, elevacion: 32, giro: 0, margen: 1.06, ...modelo.encuadre };
 
@@ -181,4 +181,4 @@ function fotografiar(slug: string): string {
   return datos;
 }
 
-Object.assign(window, { fotografiar, piezas: Object.keys(MODELOS) });
+Object.assign(window, { fotografiar, piezas: Object.keys(MODELOS), kits: Object.keys(KITS) });

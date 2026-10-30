@@ -1,4 +1,5 @@
 import { marca } from "@/config/marca";
+import { tienda } from "@/config/tienda";
 
 /**
  * DATOS ESTRUCTURADOS (schema.org en JSON-LD)
@@ -65,7 +66,8 @@ export function datosKit(kit: KitParaGoogle, aLaVenta: boolean, resenas?: Resena
     "@type": "Product",
     name: kit.nombre,
     description: kit.descripcion || kit.eslogan,
-    image: urlAbsoluta(kit.imagen),
+    // Google prefiere fotos normales (PNG/JPG): la foto 3D del kit en PNG y, por si acaso, la de la web
+    image: [urlAbsoluta(`/images/redes/kits/${kit.slug}.png`), urlAbsoluta(kit.imagen)],
     sku: kit.slug,
     url,
     brand: { "@type": "Brand", name: marca.nombre },
@@ -78,6 +80,8 @@ export function datosKit(kit: KitParaGoogle, aLaVenta: boolean, resenas?: Resena
       availability: aLaVenta ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@id": `${urlAbsoluta("/")}#tienda` },
+      shippingDetails: datosEnvio(kit.precioCentimos),
+      hasMerchantReturnPolicy: datosDevolucion(),
     },
     // Las estrellas solo si hay opiniones publicadas (Google no admite una nota sin reseñas)
     ...(resenas && resenas.total > 0
@@ -103,6 +107,76 @@ export function datosKit(kit: KitParaGoogle, aLaVenta: boolean, resenas?: Resena
           })),
         }
       : {}),
+  };
+}
+
+/** Gastos y plazo de envío de un producto (gratis si él solo ya llega al mínimo) */
+function datosEnvio(precioCentimos: number) {
+  const { envio } = tienda;
+  const coste = precioCentimos >= envio.gratisDesdeCentimos ? 0 : envio.costeCentimos;
+  // "2–4 días laborables" → 2 y 4
+  const [minimo = 2, maximo = 4] = (envio.plazo.match(/\d+/g) ?? []).map(Number);
+  return {
+    "@type": "OfferShippingDetails",
+    shippingRate: { "@type": "MonetaryAmount", value: (coste / 100).toFixed(2), currency: "EUR" },
+    shippingDestination: envio.provincias.map((p) => ({
+      "@type": "DefinedRegion",
+      addressCountry: "ES",
+      postalCodeBegin: `${p.prefijoCP}000`,
+      postalCodeEnd: `${p.prefijoCP}999`,
+    })),
+    deliveryTime: {
+      "@type": "ShippingDeliveryTime",
+      handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+      transitTime: {
+        "@type": "QuantitativeValue",
+        minValue: minimo,
+        maxValue: maximo,
+        unitCode: "DAY",
+      },
+    },
+  };
+}
+
+/** Devoluciones: los días del derecho de desistimiento, por correo */
+function datosDevolucion() {
+  return {
+    "@type": "MerchantReturnPolicy",
+    applicableCountry: "ES",
+    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+    merchantReturnDays: tienda.diasDesistimiento,
+    returnMethod: "https://schema.org/ReturnByMail",
+    // Como dice /legal/devoluciones: el envío de vuelta lo paga el cliente
+    returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
+    merchantReturnLink: urlAbsoluta("/legal/devoluciones"),
+  };
+}
+
+/** Migas de pan («Inicio › Kits › Coche»): Google las enseña en lugar de la dirección */
+export function datosMigas(pasos: { nombre: string; ruta: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: pasos.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: p.nombre,
+      item: urlAbsoluta(p.ruta),
+    })),
+  };
+}
+
+/** Lista de productos de una página (por ejemplo, /kits) */
+export function datosListaKits(kits: { slug: string; nombre: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: kits.map((k, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: k.nombre,
+      url: urlAbsoluta(`/kits/${k.slug}`),
+    })),
   };
 }
 

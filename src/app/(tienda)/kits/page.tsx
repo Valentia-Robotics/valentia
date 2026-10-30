@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import { PackageOpen } from "lucide-react";
 import { TarjetaKit } from "@/components/tienda/TarjetaKit";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
+import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { obtenerKits } from "@/lib/catalogo";
+import { datosListaKits } from "@/lib/datosEstructurados";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -13,10 +16,12 @@ import { obtenerKits } from "@/lib/catalogo";
  */
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Kits",
-  description: "Kits de robótica de Valentia con curso incluido: elige tu primer robot.",
-};
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Kits de robótica con curso",
+  descripcion:
+    "Un coche que sigue líneas, un brazo robótico o una estación del tiempo. Cada kit trae todas las piezas y un curso en vídeo para montarlo sin saber programar.",
+  ruta: "/kits",
+});
 
 /** Listado de todos los kits */
 export default async function PaginaKits() {
@@ -24,6 +29,7 @@ export default async function PaginaKits() {
 
   return (
     <Contenedor className="py-16 sm:py-24">
+      {kits.length > 0 && <DatosEstructurados datos={datosListaKits(kits)} />}
       <header className="max-w-2xl">
         <p className="text-sm font-medium tracking-wide text-acento uppercase">Kits Valentia</p>
         <h1 className="mt-3 text-4xl font-medium sm:text-6xl">Elige tu primer robot.</h1>

@@ -30,7 +30,7 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
       <div className="self-start rounded-tarjeta bg-niebla p-6">
         <Image
           src={componente.imagen}
-          alt={`Ilustración de ${componente.nombre}`}
+          alt={`Foto de ${componente.nombre}`}
           width={320}
           height={320}
           unoptimized

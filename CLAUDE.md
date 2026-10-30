@@ -11,6 +11,20 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### SEO, imágenes para compartir y fluidez (30-10-2026, rama `claude/project-thread-g3cf1v`)
+
+- Cada página pública usa `metadatosPagina` (`src/lib/metadatos.ts`: título, descripción, canonical, Open Graph y
+  Twitter completos; Next no hereda el openGraph del layout si la página pone el suyo).
+- Imagen al compartir (WhatsApp, TikTok…): `src/app/opengraph-image.tsx` (portada y resto) y
+  `kits/[slug]/opengraph-image.tsx`, con `TarjetaRedes` (`src/lib/imagenRedes.tsx`) y la foto PNG del kit de
+  `public/images/redes/kits/` (satori no lee SVG). Fotos de kits: `npm run fotos:piezas -- --kits` (`KITS` en
+  `modelos.ts`; también reescribe `public/images/kits/<slug>.svg`). Kit nuevo → añadir su modelo.
+- Datos estructurados: Product con imagen PNG, `shippingDetails` y `hasMerchantReturnPolicy` (de `tienda.ts`),
+  BreadcrumbList en la ficha e ItemList en /kits.
+- Fluidez: utilidad `diferido` (content-visibility) en las secciones bajas de la portada; transiciones solo de
+  opacity/translate; menos desenfoque en el móvil; tarjetas del configurador entran con `animate-tarjeta` al
+  cambiar de categoría (key en el `<ul>`).
+
 ### Fotos 3D de las piezas y acercamiento en la portada (29-10-2026, rama `claude/project-thread-g3cf1v`)
 
 - Portada: al explicar cada pieza, la cámara se acerca a ella (`encuadres` en `escenaRobot.ts`, por la misma

@@ -1,12 +1,14 @@
 // ⚠ BORRADOR — pendiente de revisión por un profesional.
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import { DatosEmpresa, PaginaLegal } from "@/components/legal/PaginaLegal";
 import { tienda } from "@/config/tienda";
 
-export const metadata: Metadata = {
-  title: "Devoluciones y desistimiento",
-  description: `Cómo devolver un pedido de Valentia: tienes ${tienda.diasDesistimiento} días.`,
-};
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Devoluciones y desistimiento",
+  descripcion: `Cómo devolver un pedido de Valentia: tienes ${tienda.diasDesistimiento} días.`,
+  ruta: "/legal/devoluciones",
+});
 
 const e = tienda.empresa;
 const dias = tienda.diasDesistimiento;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -21,7 +22,7 @@ import { SeccionResenas } from "@/components/resenas/SeccionResenas";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { nombreCategoria } from "@/config/categorias";
 import { listaDeTextos, obtenerKitPorSlug, obtenerKits } from "@/lib/catalogo";
-import { datosKit } from "@/lib/datosEstructurados";
+import { datosKit, datosMigas } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 import { resenasDelKit } from "@/lib/resenas";
 import { formatearMedia } from "@/lib/resenas/formato";
@@ -49,13 +50,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const kit = await obtenerKitPorSlug(slug);
   if (!kit) return { title: "Kit no encontrado" };
-  return {
-    title: kit.nombre,
-    description: kit.eslogan,
-    alternates: { canonical: `/kits/${kit.slug}` },
-    // La imagen para redes es la general de la web (las de los kits son SVG, que las redes no admiten)
-    openGraph: { title: kit.nombre, description: kit.eslogan, images: ["/opengraph-image"] },
-  };
+  // La imagen para redes la dibuja ./opengraph-image.tsx (nombre, precio y foto del kit)
+  return metadatosPagina({
+    titulo: kit.nombre,
+    descripcion: `${kit.eslogan} Incluye todas las piezas y un curso en vídeo paso a paso, sin saber programar.`,
+    ruta: `/kits/${kit.slug}`,
+  });
 }
 
 /** FICHA DE KIT: imagen, precio, descripción, componentes incluidos y temario del curso */
@@ -74,6 +74,13 @@ export default async function PaginaKit({ params }: Props) {
   return (
     <>
       <DatosEstructurados datos={datosKit(kit, abierta, resenas)} />
+      <DatosEstructurados
+        datos={datosMigas([
+          { nombre: "Inicio", ruta: "/" },
+          { nombre: "Kits", ruta: "/kits" },
+          { nombre: kit.nombre, ruta: `/kits/${kit.slug}` },
+        ])}
+      />
 
       {/* ---------- Cabecera: imagen + compra ---------- */}
       <section id="comprar" className="scroll-mt-nav">
@@ -90,7 +97,7 @@ export default async function PaginaKit({ params }: Props) {
             <div className="rounded-tarjeta bg-niebla p-6 sm:p-10">
               <Image
                 src={kit.imagen}
-                alt={`Ilustración del kit ${kit.nombre}`}
+                alt={`Foto del kit ${kit.nombre} montado`}
                 width={800}
                 height={600}
                 priority

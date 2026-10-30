@@ -14,7 +14,7 @@ export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
       <section
         id="avisame"
         aria-labelledby="titulo-final"
-        className="scroll-mt-nav bg-tinta py-24 text-white sm:py-32"
+        className="scroll-mt-nav bg-tinta py-24 text-white diferido sm:py-32"
       >
         <Contenedor className="aparecer max-w-2xl text-center">
           <h2 id="titulo-final" className="text-4xl font-medium sm:text-6xl">
@@ -31,7 +31,7 @@ export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
   }
 
   return (
-    <section aria-labelledby="titulo-final" className="bg-tinta py-24 text-white sm:py-32">
+    <section aria-labelledby="titulo-final" className="bg-tinta py-24 text-white diferido sm:py-32">
       <Contenedor className="aparecer text-center">
         <h2 id="titulo-final" className="text-4xl font-medium sm:text-6xl">
           Tu primer robot te está esperando.

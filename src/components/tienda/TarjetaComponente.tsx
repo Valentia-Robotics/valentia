@@ -14,7 +14,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
       <div className="bg-niebla p-6">
         <Image
           src={componente.imagen}
-          alt={`Ilustración de ${componente.nombre}`}
+          alt={`Foto de ${componente.nombre}`}
           width={240}
           height={240}
           unoptimized

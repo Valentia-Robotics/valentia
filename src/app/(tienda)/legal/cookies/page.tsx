@@ -1,14 +1,16 @@
 // ⚠ BORRADOR — pendiente de revisión por un profesional.
 import type { Metadata } from "next";
+import { metadatosPagina } from "@/lib/metadatos";
 import Link from "next/link";
 import { BotonConfigurarCookies } from "@/components/layout/BotonConfigurarCookies";
 import { PaginaLegal, TablaLegal } from "@/components/legal/PaginaLegal";
 import { tienda } from "@/config/tienda";
 
-export const metadata: Metadata = {
-  title: "Política de cookies",
-  description: "Qué cookies usa Valentia, para qué y cómo cambiar tu elección.",
-};
+export const metadata: Metadata = metadatosPagina({
+  titulo: "Política de cookies",
+  descripcion: "Qué cookies usa Valentia, para qué y cómo cambiar tu elección.",
+  ruta: "/legal/cookies",
+});
 
 const necesarias: [string, string, string][] = [
   ["authjs.session-token", "Mantiene tu sesión iniciada (cifrada).", "30 días"],

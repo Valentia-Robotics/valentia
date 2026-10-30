@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import type { KitParaConfigurador } from "@/types/catalogo";
@@ -54,6 +55,16 @@ export function InicioConfigurador({ kits, alEmpezarDesdeCero, alEmpezarDesdeKit
           </li>
         ))}
       </ul>
+
+      {/* Para quien compra un regalo sin saber de robótica: lo más sencillo es un kit cerrado */}
+      <p className="mt-4 text-sm text-gris">
+        ¿Es para regalar? Lo más fácil es un{" "}
+        <Link href="/kits" className="text-tinta underline underline-offset-2 hover:text-acento">
+          kit
+        </Link>
+        : trae todas las piezas y un curso en vídeo para montarlo paso a paso. Un robot hecho aquí
+        no lleva curso.
+      </p>
     </section>
   );
 }

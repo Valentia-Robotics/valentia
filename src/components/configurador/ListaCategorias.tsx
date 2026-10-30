@@ -21,7 +21,7 @@ export function ListaCategorias({ activa, alCambiar, contadores }: Props) {
     <nav
       aria-label="Categorías de componentes"
       className={cn(
-        "sticky top-nav z-30 border-b border-linea bg-white/90 backdrop-blur-xl",
+        "sticky top-nav z-30 border-b border-linea bg-white/95 backdrop-blur-md",
         "lg:top-[calc(var(--spacing-nav)+1.5rem)] lg:self-start lg:border-0 lg:bg-transparent lg:backdrop-blur-none",
       )}
     >
