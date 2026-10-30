@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { obtenerKits } from "@/lib/catalogo";
+import { guias } from "@/config/guias";
+import { obtenerComponentes, obtenerKits } from "@/lib/catalogo";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -15,13 +16,14 @@ const web = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replac
  * Sin /login ni /registro: llevan «noindex» y Google avisa si el sitemap le manda a páginas que no debe indexar.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const kits = await obtenerKits();
+  const [kits, componentes] = await Promise.all([obtenerKits(), obtenerComponentes()]);
   // [ruta, prioridad, fotos que salen en ella (Google Imágenes)]
   const paginas: [string, number, string[]?][] = [
     ["/", 1, ["/opengraph-image", ...kits.map((k) => `/images/redes/kits/${k.slug}.png`)]],
     ["/kits", 0.9],
     ["/componentes", 0.8],
     ["/configurador", 0.8],
+    ["/guias", 0.7],
     ["/preguntas-frecuentes", 0.6],
     ["/legal/aviso-legal", 0.1],
     ["/legal/privacidad", 0.1],
@@ -40,11 +42,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${web}/kits/${kit.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.9,
-      // La foto 3D del kit (PNG) y su tarjeta para compartir
-      images: [
-        `${web}/images/redes/kits/${kit.slug}.png`,
-        `${web}/kits/${kit.slug}/opengraph-image`,
-      ],
+      // La foto 3D del kit (PNG). La tarjeta para compartir no: su dirección lleva un código que
+      // pone Next (opengraph-image-xxxx) y sin él da 404
+      images: [`${web}/images/redes/kits/${kit.slug}.png`],
+    })),
+    ...componentes.map((c) => ({
+      url: `${web}/componentes/${c.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+      images: [`${web}/images/redes/componentes/${c.slug}.jpg`],
+    })),
+    ...guias.map((g) => ({
+      url: `${web}/guias/${g.slug}`,
+      lastModified: g.actualizada,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
   ];
 }

@@ -80,25 +80,51 @@ export async function obtenerComponentes(): Promise<ComponenteCatalogo[]> {
     orderBy: { precioCentimos: "asc" },
   });
   const posicion = (c: string) => CATEGORIAS.indexOf(c as (typeof CATEGORIAS)[number]);
-  return filas
-    .sort((a, b) => posicion(a.categoria) - posicion(b.categoria))
-    .map((fila) => ({
-      slug: fila.slug,
-      nombre: fila.nombre,
-      categoria: fila.categoria,
-      tipo: fila.tipo,
-      resumen: fila.resumen,
-      descripcion: fila.descripcion,
-      precioCentimos: fila.precioCentimos,
-      stock: fila.stock,
-      imagen: fila.imagen,
-      voltaje: fila.voltaje,
-      voltajeLogico: fila.voltajeLogico,
-      consumoMa: fila.consumoMa,
-      conector: fila.conector,
-      pines: fila.pines,
-      especificaciones: listaDeEspecificaciones(fila.especificaciones),
-    }));
+  return filas.sort((a, b) => posicion(a.categoria) - posicion(b.categoria)).map(componenteDeFila);
+}
+
+type FilaComponente = Awaited<ReturnType<typeof db.componente.findFirstOrThrow>>;
+
+/** Copia "plana" de la fila de la BD, lista para enviar al navegador */
+function componenteDeFila(fila: FilaComponente): ComponenteCatalogo {
+  return {
+    slug: fila.slug,
+    nombre: fila.nombre,
+    categoria: fila.categoria,
+    tipo: fila.tipo,
+    resumen: fila.resumen,
+    descripcion: fila.descripcion,
+    precioCentimos: fila.precioCentimos,
+    stock: fila.stock,
+    imagen: fila.imagen,
+    voltaje: fila.voltaje,
+    voltajeLogico: fila.voltajeLogico,
+    consumoMa: fila.consumoMa,
+    conector: fila.conector,
+    pines: fila.pines,
+    especificaciones: listaDeEspecificaciones(fila.especificaciones),
+  };
+}
+
+/**
+ * Un componente a la venta con los kits (a la venta) que lo llevan, o null si no existe o está
+ * oculto. Para su ficha en /componentes/[slug].
+ */
+export async function obtenerComponentePorSlug(slug: string) {
+  const fila = await db.componente.findFirst({
+    where: { slug, visible: true },
+    include: {
+      enKits: {
+        where: { kit: { visible: true } },
+        include: { kit: { select: { slug: true, nombre: true, eslogan: true, imagen: true } } },
+      },
+    },
+  });
+  if (!fila) return null;
+  return {
+    ...componenteDeFila(fila),
+    kits: fila.enKits.map((k) => ({ ...k.kit, cantidad: k.cantidad })),
+  };
 }
 
 /**

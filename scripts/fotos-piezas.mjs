@@ -20,6 +20,7 @@ import sharp from "sharp";
 
 const RAIZ = path.resolve(import.meta.dirname, "..");
 const SALIDA = path.join(RAIZ, "public/images/componentes");
+const SALIDA_GOOGLE = path.join(RAIZ, "public/images/redes/componentes");
 const PRUEBA = path.join(RAIZ, ".fotos-prueba");
 const LADO_FINAL = 800;
 
@@ -123,6 +124,13 @@ for (const slug of lista) {
       `<!-- Foto de estudio generada con npm run fotos:piezas (scripts/fotos-piezas). -->` +
       `<image width="${LADO_FINAL}" height="${LADO_FINAL}" href="data:image/webp;base64,${webp.toString("base64")}"/></svg>\n`;
     await writeFile(path.join(SALIDA, `${slug}.svg`), svg);
+    // JPG sobre el gris de la web para Google y las redes (no admiten SVG)
+    await mkdir(SALIDA_GOOGLE, { recursive: true });
+    await imagen
+      .clone()
+      .flatten({ background: "#f4f4f2" })
+      .jpeg({ quality: 86, mozjpeg: true })
+      .toFile(path.join(SALIDA_GOOGLE, `${slug}.jpg`));
   }
   console.log(`✓ ${slug} (${((Date.now() - inicio) / 1000).toFixed(1)} s)`);
 }

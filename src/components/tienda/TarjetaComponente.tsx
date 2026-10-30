@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { fichaTecnica } from "@/lib/fichaTecnica";
@@ -11,7 +12,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
 
   return (
     <article className="flex flex-col overflow-hidden rounded-tarjeta bg-white shadow-tarjeta ring-1 ring-linea">
-      <div className="bg-niebla p-6">
+      <Link href={`/componentes/${componente.slug}`} tabIndex={-1} className="block bg-niebla p-6">
         <Image
           src={componente.imagen}
           alt={`Foto de ${componente.nombre}`}
@@ -20,10 +21,14 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
           unoptimized
           className="mx-auto aspect-square h-auto w-full max-w-48"
         />
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-sans text-lg font-medium">{componente.nombre}</h3>
+        <h3 className="font-sans text-lg font-medium">
+          <Link href={`/componentes/${componente.slug}`} className="hover:text-acento">
+            {componente.nombre}
+          </Link>
+        </h3>
         <p className="mt-1 text-gris">{componente.resumen}</p>
 
         {/* <details> despliega los datos técnicos sin necesidad de JavaScript */}
