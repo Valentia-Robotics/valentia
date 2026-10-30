@@ -11,6 +11,14 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Kits modulares en las fotos (30-10-2026, rama `claude/project-thread-g3cf1v`)
+
+Decisión de Jesse: los kits se presentan MODULARES (las piezas no cambian): se unen con imanes y pines pogo
+(`conectorImantado` en `modelos.ts`, imantado en `modeloCoche.ts`) y solo lo que no se puede imantar (servos,
+motores, pilas) lleva cables JST blancos; sin cables Dupont. `MODELOS[slug].construir(t, { modular: true })`
+quita los cables sueltos (servo con JST, portapilas y protoboard sin cables). Brazo: antropomórfico de 4 gdl
+con servos negros MG996R (`brazoMg996r`). Coche (también en la portada): mismo diseño, conexiones nuevas.
+
 ### SEO, imágenes para compartir y fluidez (30-10-2026, rama `claude/project-thread-g3cf1v`)
 
 - Cada página pública usa `metadatosPagina` (`src/lib/metadatos.ts`: título, descripción, canonical, Open Graph y

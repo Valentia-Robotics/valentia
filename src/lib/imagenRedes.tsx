@@ -110,7 +110,9 @@ export function TarjetaRedes({
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <div style={{ width: 56, height: 8, borderRadius: 4, background: "#2d4bff" }} />
-          <div style={{ fontSize: 26, color: "#0b0b0b", fontWeight: 600 }}>{pie}</div>
+          <div style={{ fontSize: 24, color: "#0b0b0b", fontWeight: 600, whiteSpace: "nowrap" }}>
+            {pie}
+          </div>
         </div>
       </div>
     </div>
