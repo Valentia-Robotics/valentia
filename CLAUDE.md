@@ -11,6 +11,16 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Guías y fichas de componentes (30-10-2026, rama `claude/project-thread-g3cf1v`)
+
+- `/guias` y `/guias/[slug]`: artículos en `src/config/guias.ts` (`[texto](/ruta)` = enlace; `kits`/`componentes` salen
+  al final; test `guias.test.ts` comprueba enlaces y slugs). Article + BreadcrumbList; enlazadas desde el pie, la
+  ficha de cada kit y la de cada componente (`GuiasRelacionadas`). Guía nueva → cambiar `actualizada`.
+- `/componentes/[slug]`: ficha de cada pieza (`obtenerComponentePorSlug`, Product con `datosComponente`, kits que la
+  llevan, parecidos). Foto para Google/redes en `public/images/redes/componentes/<slug>.jpg` (la escribe `fotos:piezas`).
+- Las tarjetas opengraph-image de rutas dinámicas llevan un código en la URL (`opengraph-image-xxxx`): no
+  enlazarlas a mano (en sitemap o JSON-LD dan 404); usar las fotos de `public/images/redes/`.
+
 ### SEO a fondo (30-10-2026, rama `claude/project-thread-g3cf1v`)
 
 - Títulos y descripciones con lo que busca la gente (kits de robótica para montar, Arduino, ESP32, regalo);

@@ -127,6 +127,64 @@ export function datosKit(kit: KitParaGoogle, aLaVenta: boolean, resenas?: Resena
   };
 }
 
+/** Un componente suelto como producto (ficha /componentes/[slug]) */
+export function datosComponente(
+  c: { slug: string; nombre: string; descripcion: string; precioCentimos: number; stock: number },
+  aLaVenta: boolean,
+) {
+  const url = urlAbsoluta(`/componentes/${c.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: c.nombre,
+    description: c.descripcion,
+    image: [urlAbsoluta(`/images/redes/componentes/${c.slug}.jpg`)],
+    sku: c.slug,
+    category: "Electrónica > Componentes electrónicos",
+    url,
+    brand: { "@type": "Brand", name: marca.nombre },
+    offers: {
+      "@type": "Offer",
+      url,
+      priceCurrency: "EUR",
+      price: (c.precioCentimos / 100).toFixed(2),
+      availability:
+        aLaVenta && c.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@id": `${urlAbsoluta("/")}#tienda` },
+      shippingDetails: datosEnvio(c.precioCentimos),
+      hasMerchantReturnPolicy: datosDevolucion(),
+    },
+  };
+}
+
+/** Una guía (artículo) de /guias */
+export function datosGuia(g: {
+  slug: string;
+  titulo: string;
+  descripcion: string;
+  publicada: string;
+  actualizada: string;
+  kits: string[];
+}) {
+  const url = urlAbsoluta(`/guias/${g.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: g.titulo,
+    description: g.descripcion,
+    url,
+    mainEntityOfPage: url,
+    // La foto del primer kit del que habla (o la de la portada)
+    image: [urlAbsoluta(g.kits[0] ? `/images/redes/kits/${g.kits[0]}.png` : "/opengraph-image")],
+    datePublished: g.publicada,
+    dateModified: g.actualizada,
+    inLanguage: "es-ES",
+    author: { "@type": "Organization", name: marca.nombre, url: urlAbsoluta("/") },
+    publisher: { "@id": `${urlAbsoluta("/")}#tienda` },
+  };
+}
+
 /** Gastos y plazo de envío de un producto (gratis si él solo ya llega al mínimo) */
 function datosEnvio(precioCentimos: number) {
   const { envio } = tienda;

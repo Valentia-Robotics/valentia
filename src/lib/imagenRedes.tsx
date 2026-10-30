@@ -17,7 +17,8 @@ export async function fotoRedes(ruta: string): Promise<string | null> {
     const datos = await readFile(
       path.join(/* turbopackIgnore: true */ process.cwd(), "public", ruta),
     );
-    return `data:image/png;base64,${datos.toString("base64")}`;
+    const tipo = ruta.endsWith(".jpg") ? "jpeg" : "png";
+    return `data:image/${tipo};base64,${datos.toString("base64")}`;
   } catch {
     return null;
   }

@@ -20,6 +20,8 @@ import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Estrellas } from "@/components/resenas/Estrellas";
 import { SeccionResenas } from "@/components/resenas/SeccionResenas";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
+import { GuiasRelacionadas } from "@/components/guias/GuiasRelacionadas";
+import { guiasRelacionadas } from "@/config/guias";
 import { nombreCategoria } from "@/config/categorias";
 import { listaDeTextos, obtenerKitPorSlug, obtenerKits } from "@/lib/catalogo";
 import { datosKit, datosMigas } from "@/lib/datosEstructurados";
@@ -220,7 +222,13 @@ export default async function PaginaKit({ params }: Props) {
                   <p className="text-xs text-gris">{nombreCategoria(componente.categoria)}</p>
                   <h3 className="font-sans text-base font-medium">
                     {cantidad > 1 && <span className="text-acento">{cantidad} × </span>}
-                    {componente.nombre}
+                    {componente.visible ? (
+                      <Link href={`/componentes/${componente.slug}`} className="hover:text-acento">
+                        {componente.nombre}
+                      </Link>
+                    ) : (
+                      componente.nombre
+                    )}
                   </h3>
                   <p className="mt-0.5 text-sm text-gris">{componente.resumen}</p>
                 </div>
@@ -270,6 +278,13 @@ export default async function PaginaKit({ params }: Props) {
 
       {/* ---------- Opiniones de los clientes ---------- */}
       <SeccionResenas slug={kit.slug} resumen={resenas} />
+
+      {/* ---------- Guías que hablan de este kit ---------- */}
+      {guiasRelacionadas("kits", kit.slug).length > 0 && (
+        <Contenedor className="pb-20 sm:pb-28">
+          <GuiasRelacionadas guias={guiasRelacionadas("kits", kit.slug)} />
+        </Contenedor>
+      )}
     </>
   );
 }
