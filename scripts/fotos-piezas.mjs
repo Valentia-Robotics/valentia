@@ -93,7 +93,7 @@ if (soloKits) {
     await writeFile(
       path.join(RAIZ, "public/images/kits", `${slug}.svg`),
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">` +
-        `<!-- Foto de estudio generada con npm run fotos:piezas -- --kits (scripts/fotos-piezas). -->` +
+        `<!-- Foto de estudio de un kit, generada con scripts/fotos-piezas (opción kits). En un comentario XML no puede haber dos guiones seguidos. -->` +
         `<image width="800" height="600" href="data:image/webp;base64,${webp.toString("base64")}"/></svg>\n`,
     );
     console.log(`✓ kit ${slug}`);
