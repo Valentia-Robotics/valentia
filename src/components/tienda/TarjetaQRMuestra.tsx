@@ -1,3 +1,4 @@
+import { urlActivacion } from "@/lib/qr";
 import { tarjetaLaserSvg, type CaraTarjeta } from "@/lib/tarjetaLaser/tarjeta";
 
 /**
@@ -7,7 +8,8 @@ import { tarjetaLaserSvg, type CaraTarjeta } from "@/lib/tarjetaLaser/tarjeta";
  * Detrás, la cara con los pasos; delante, la del QR. El QR lleva a /activar (código de muestra).
  */
 
-const web = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://valentiarobotics.com").replace(/\/$/, "");
+// La misma web que llevan las tarjetas de verdad (nunca localhost)
+const web = new URL(urlActivacion("X")).origin;
 const DATOS = {
   codigo: "VAL-7K2Q-9MXP",
   nombreKit: "Estación meteorológica",

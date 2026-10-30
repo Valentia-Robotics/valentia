@@ -2,8 +2,7 @@
  * MODELO 3D DEL COCHE SEGUIDOR DE LÍNEAS (portada)
  * Las piezas reales del kit, hechas con formas sencillas y texturas dibujadas en canvas:
  * chasis de metacrilato, placa UNO, protoboard, driver L298N, dos motores TT amarillos con
- * sus ruedas, sensor de ultrasonidos HC-SR04, dos sensores de línea, portapilas 4×AA, conectores
- * imantados y cables JST.
+ * sus ruedas, sensor de ultrasonidos HC-SR04, dos sensores de línea, portapilas 4×AA y cables.
  *
  * Medidas: 1 unidad ≈ 8,5 cm. El eje x apunta hacia delante (donde están los sensores),
  * y hacia arriba y z hacia los lados. El suelo está en y = SUELO.
@@ -584,87 +583,74 @@ export function crearModeloCoche(): ModeloCoche {
   }
 
   // ------------------------------------------------------------------
-  // CONEXIONES. Los kits Valentia son modulares: las piezas se unen con imanes y pines pogo
-  // (conectores negros con pines dorados) y solo lo que no se puede imantar (motores, pilas y
-  // el driver, que va lejos de la placa) lleva cables cortos con conectores JST blancos.
-  // Todo esto se desvanece al despiezar.
+  // CABLES de colores (tipo Dupont) entre las piezas
   // ------------------------------------------------------------------
   const cables = { grupo: new Group(), materiales: [] as MeshStandardMaterial[] };
   raiz.add(cables.grupo);
   {
-    const material = (opciones: Opciones) => {
-      const m = new MeshStandardMaterial(opciones);
-      materiales.push(m);
-      cables.materiales.push(m);
-      return m;
-    };
-    const malla = (geo: BufferGeometry, m: Material, x: number, y: number, z: number) => {
-      const o = new Mesh(geo, m);
-      o.position.set(x, y, z);
-      o.castShadow = true;
-      cables.grupo.add(o);
-      return o;
-    };
+    const conector = g(new BoxGeometry(0.03, 0.06, 0.03));
+    const funda = new MeshStandardMaterial({ color: 0x111111, roughness: 0.6 });
+    materiales.push(funda);
+    cables.materiales.push(funda);
     const colores = new Map<number, MeshStandardMaterial>();
-    const cable = (color: number, puntos: [number, number, number][]) => {
-      let m = colores.get(color);
-      if (!m) {
-        m = material({ color, roughness: 0.45 });
-        colores.set(color, m);
+    const cable = (color: number, puntos: [number, number, number][], extremos = true) => {
+      let material = colores.get(color);
+      if (!material) {
+        material = new MeshStandardMaterial({ color, roughness: 0.45 });
+        materiales.push(material);
+        cables.materiales.push(material);
+        colores.set(color, material);
       }
       const curva = new CatmullRomCurve3(
         puntos.map((p) => new Vector3(...p)),
         false,
         "centripetal",
       );
-      malla(g(new TubeGeometry(curva, 64, 0.0075, 8, false)), m, 0, 0, 0);
+      const tubo = new Mesh(g(new TubeGeometry(curva, 64, 0.0085, 8, false)), material);
+      tubo.castShadow = true;
+      cables.grupo.add(tubo);
+      if (extremos)
+        for (const p of [puntos[0], puntos[puntos.length - 1]]) {
+          const c = new Mesh(conector, funda);
+          c.position.set(p[0], p[1] + 0.02, p[2]);
+          cables.grupo.add(c);
+        }
     };
-    // Conector JST blanco, de `ancho` (según los cables que lleva), girado `giro` alrededor de y
-    const blanco = material({ color: 0xf1eee4, roughness: 0.5 });
-    const jst = (x: number, y: number, z: number, ancho: number, giro = 0) => {
-      malla(g(new BoxGeometry(0.045, 0.05, ancho)), blanco, x, y, z).rotation.y = giro;
-    };
-    // Conector imantado: carcasa negra, pines dorados y un imán en cada punta (a lo largo de `eje`)
-    const negro = material({ color: 0x151515, roughness: 0.45 });
-    const oro = material({ color: 0xd9b25a, metalness: 1, roughness: 0.25 });
-    const iman = material({ color: 0xc9ccd2, metalness: 0.9, roughness: 0.25 });
-    const geoPin = g(new CylinderGeometry(0.0055, 0.0055, 0.006, 10));
-    const geoIman = g(new CylinderGeometry(0.011, 0.011, 0.005, 16));
-    const imantado = (x: number, y: number, z: number, n: number, eje: "x" | "z") => {
-      const largo = 0.025 * n + 0.05;
-      const enX = eje === "x";
-      malla(g(new BoxGeometry(enX ? largo : 0.04, 0.03, enX ? 0.04 : largo)), negro, x, y, z);
-      const punto = (d: number): [number, number] => (enX ? [x + d, z] : [x, z + d]);
-      for (let i = 0; i < n; i++) {
-        const [px, pz] = punto((i - (n - 1) / 2) * 0.025);
-        malla(geoPin, oro, px, y + 0.017, pz);
-      }
-      for (const s of [-1, 1]) {
-        const [px, pz] = punto(s * (largo / 2 - 0.014));
-        malla(geoIman, iman, px, y + 0.016, pz);
-      }
-    };
-
     const R = 0xd8262b;
     const N = 0x1b1b1b;
-    // Placa UNO ↔ protoboard, ultrasonidos ↔ chasis y sensores de línea ↔ chasis: con imanes
-    imantado(0.62, 0.1, 0.08, 4, "x");
-    imantado(1.02, 0.02, 0, 4, "z");
-    for (const z of [-0.16, 0.16]) imantado(0.9, -0.035, z, 3, "x");
-
-    // Placa UNO → entradas del driver: cinta de 4 cables con un JST en cada punta
-    [0xff8a1f, 0xf2c218, 0x26a65b, 0x3166ff].forEach((color, i) => {
-      const x = 0.32 + i * 0.016;
+    // Placa UNO → protoboard (5 V y GND)
+    cable(R, [
+      [0.3, 0.18, -0.55],
+      [0.45, 0.24, -0.2],
+      [0.62, 0.22, 0.2],
+      [0.62, 0.11, 0.14],
+    ]);
+    cable(N, [
+      [0.34, 0.18, -0.55],
+      [0.52, 0.22, -0.15],
+      [0.68, 0.2, 0.18],
+      [0.68, 0.11, 0.14],
+    ]);
+    // Ultrasonidos → protoboard
+    [0xd8262b, 0xf2c218, 0x26a65b, 0x1b1b1b].forEach((color, i) => {
+      const z = -0.045 + i * 0.03;
       cable(color, [
-        [x, 0.17, -0.03],
-        [x - 0.12, 0.22, 0.1],
-        [-0.3, 0.2, 0.32],
-        [-0.38 + i * 0.016, 0.16, 0.43],
+        [1.2, 0.04, z],
+        [1.13, -0.01, z + 0.02],
+        [1.0, 0.15, z + 0.25],
+        [0.92, 0.11, 0.3 + i * 0.04],
       ]);
     });
-    jst(0.344, 0.18, -0.03, 0.08, Math.PI / 2);
-    jst(-0.356, 0.17, 0.43, 0.08, Math.PI / 2);
-
+    // Pines digitales de la placa UNO → entradas del driver
+    [0xff8a1f, 0xf2c218, 0x26a65b, 0x3166ff].forEach((color, i) => {
+      const x = 0.32 + i * 0.03;
+      cable(color, [
+        [x, 0.18, -0.03],
+        [x - 0.15, 0.25 + i * 0.012, 0.12],
+        [-0.3, 0.22, 0.32],
+        [-0.41 + i * 0.025, 0.16, 0.43],
+      ]);
+    });
     // Salidas del driver → motores: bajan por el agujero central del chasis
     for (const [xb, zm] of [
       [-0.7, -0.45],
@@ -673,33 +659,53 @@ export function crearModeloCoche(): ModeloCoche {
       const lado = Math.sign(zm);
       for (const [color, d] of [
         [R, 0],
-        [N, 0.016],
+        [N, 0.02],
       ] as const)
-        cable(color, [
-          [xb + d, 0.17, 0.26 + d],
-          [(xb - 0.1) / 2, 0.16, 0.12],
-          [-0.1 + d, 0.06, d - 0.01],
-          [-0.1 + d, -0.04, d],
-          [-0.06, -0.09, lado * 0.25],
-          [0.02, -0.12 - d, zm],
-        ]);
-      jst(xb + 0.008, 0.18, 0.268, 0.05, Math.PI / 4);
+        cable(
+          color,
+          [
+            [xb + d, 0.17, 0.26 + d],
+            [(xb - 0.1) / 2, 0.16, 0.12],
+            [-0.1 + d, 0.06, d - 0.01],
+            [-0.1 + d, -0.04, d],
+            [-0.06, -0.09, lado * 0.25],
+            [0.02, -0.12 - d, zm],
+          ],
+          false,
+        );
     }
-    // Portapilas → alimentación del driver
-    cable(R, [
-      [-0.27, 0.06, -0.3],
-      [-0.2, 0.2, 0.0],
-      [-0.45, 0.25, 0.5],
-      [-0.53, 0.17, 0.53],
-    ]);
-    cable(N, [
-      [-0.27, 0.06, -0.284],
-      [-0.18, 0.19, 0.02],
-      [-0.46, 0.23, 0.52],
-      [-0.515, 0.17, 0.53],
-    ]);
-    jst(-0.27, 0.06, -0.292, 0.05);
-    jst(-0.522, 0.18, 0.53, 0.05, Math.PI / 2);
+    // Portapilas → borne de alimentación del driver
+    cable(
+      R,
+      [
+        [-0.27, 0.06, -0.3],
+        [-0.2, 0.2, 0.0],
+        [-0.45, 0.25, 0.5],
+        [-0.53, 0.17, 0.53],
+      ],
+      false,
+    );
+    cable(
+      N,
+      [
+        [-0.27, 0.06, -0.26],
+        [-0.16, 0.18, 0.04],
+        [-0.47, 0.22, 0.56],
+        [-0.5, 0.17, 0.53],
+      ],
+      false,
+    );
+    // Sensores de línea → placa UNO: van por debajo y suben por una ranura del chasis
+    [0x8e44ad, 0xe8e8e8].forEach((color, i) => {
+      const z = -0.16 + i * 0.32;
+      cable(color, [
+        [0.98, -0.1, z],
+        [0.85, -0.08, z * 0.5 - 0.15],
+        [0.76 + i * 0.02, -0.03, -0.42],
+        [0.75 + i * 0.02, 0.08, -0.42],
+        [0.62, 0.18, -0.55],
+      ]);
+    });
   }
 
   return {

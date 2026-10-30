@@ -1666,6 +1666,120 @@ function brazoMg996r(t: Taller) {
   union(6.25, -2.6, 2, 0);
 }
 
+// ------------------------------------------------------------------------------------
+// Caja de la estación meteorológica (medidas en cm)
+// ------------------------------------------------------------------------------------
+function cajaEstacion(t: Taller) {
+  const raiz = t.grupo;
+  const W = 12; // ancho (x)
+  const D = 8; // fondo (z)
+  const H = 2.4; // alto hasta la tapa
+  const carcasa = t.mat({
+    color: 0xeae8e3,
+    roughness: 0.62,
+    bumpMap: texturaGrano(),
+    bumpScale: 0.12,
+  });
+  /** Pieza de la caja: forma vista desde arriba, levantada `alto` desde y = desde */
+  const pieza = (forma: Shape, desde: number, alto: number, material: Material) => {
+    const p = acrilico(t, forma, alto, material);
+    p.rotation.x = -Math.PI / 2;
+    p.position.y = desde + alto / 2;
+    (p.children[1] as LineSegments).visible = false;
+    return p;
+  };
+  // Fondo macizo y paredes (hueca por dentro)
+  pieza(rectanguloRedondo(W, D, 0.9), 0, 0.45, carcasa);
+  pieza(
+    placaConHueco(rectanguloRedondo(W, D, 0.9), [0, 0, W - 0.5, D - 0.5]),
+    0.45,
+    H - 0.45,
+    carcasa,
+  );
+  // Tapa con dos aberturas: ventana de la placa (izquierda) y pantalla (derecha)
+  const ventana: [number, number, number, number] = [-2.55, 0.5, 5.9, 3.4];
+  const pantalla: [number, number, number, number] = [3.35, 0.15, 2.5, 2.2];
+  const tapa = placaConHueco(rectanguloRedondo(W, D, 0.9), ventana);
+  placaConHueco(tapa, pantalla);
+  pieza(tapa, H, 0.18, carcasa);
+  // Cristal ahumado sobre la ventana
+  const ahumado = t.fisico({
+    color: 0x2a2f38,
+    roughness: 0.06,
+    transparent: true,
+    opacity: 0.38,
+    clearcoat: 1,
+    clearcoatRoughness: 0.05,
+  });
+  pieza(
+    rectanguloRedondo(ventana[2] + 0.1, ventana[3] + 0.1, 0.15),
+    H + 0.04,
+    0.1,
+    ahumado,
+  ).position.set(ventana[0], H + 0.09, -ventana[1]);
+  // La ESP32 dentro, y la pantalla justo bajo su abertura (centrada en el cristal)
+  colocar(raiz, "esp32-devkit", [ventana[0], 0.25, -ventana[1]]);
+  colocar(raiz, "pantalla-oled-096", [pantalla[0], H - 1.2, -0.8]);
+  // Delante: interruptor de encendido, USB-C y luz de encendido
+  const frente = D / 2 + 0.12; // las paredes tienen un bisel de ~1 mm
+  t.caja(1.5, 0.95, 0.06, t.plasticoNegro, 4.0, 1.25, frente + 0.01);
+  const tecla = t.caja(1.2, 0.7, 0.22, plastico(t, 0x1c1c1e, 0.35), 4.0, 1.25, frente + 0.08);
+  tecla.rotation.x = 0.22;
+  t.caja(0.1, 0.24, 0.02, t.mat({ color: 0xf2f2f2, roughness: 0.4 }), 4.0, 1.38, frente + 0.2);
+  t.redonda(1.0, 0.36, 0.08, 0.16, t.plasticoNegro, 2.15, 1.25, frente + 0.01);
+  t.redonda(0.7, 0.12, 0.06, 0.05, t.acero, 2.15, 1.25, frente + 0.04);
+  t.cilindro(
+    0.09,
+    0.05,
+    t.mat({ color: 0x30d158, emissive: 0x30d158, emissiveIntensity: 1.6 }),
+    0.95,
+    1.25,
+    frente + 0.02,
+    "z",
+    16,
+  );
+
+  /**
+   * Un sensor en su bandeja, pegado a un lado de la caja con un conector imantado.
+   * `lado` = hacia dónde mira la bandeja (0 = +x, π/2 = -z, π = -x); `a` = posición a lo largo del lado.
+   */
+  const bandejaMat = carcasa;
+  const modulo = (
+    slug: string,
+    lado: number,
+    a: number,
+    [w, d]: [number, number],
+    giroPieza = 0,
+  ) => {
+    const fuera: [number, number] = [Math.cos(lado), -Math.sin(lado)];
+    const largo: [number, number] = [Math.sin(lado), Math.cos(lado)];
+    const borde = Math.abs(fuera[0]) > 0.5 ? W / 2 : D / 2;
+    const pos = (dist: number): [number, number] => [
+      fuera[0] * dist + largo[0] * a,
+      fuera[1] * dist + largo[1] * a,
+    ];
+    const [hx, hz] = pos(borde + 0.15);
+    conectorImantado(t, raiz, [hx, 0.6, hz], { n: 4, macho: false, giro: lado }).scale.setScalar(
+      0.8,
+    );
+    const [mx, mz] = pos(borde + 0.15 + 0.5);
+    conectorImantado(t, raiz, [mx, 0.6, mz], { n: 4, giro: lado + Math.PI }).scale.setScalar(0.8);
+    const [cx, cz] = pos(borde + 0.85 + d / 2);
+    const g = new Group();
+    g.position.set(cx, 0, cz);
+    g.rotation.y = lado;
+    raiz.add(g);
+    const b = acrilico(t, rectanguloRedondo(d, w, 0.4), 0.55, bandejaMat, g);
+    b.rotation.x = -Math.PI / 2;
+    b.position.y = 0.275;
+    (b.children[1] as LineSegments).visible = false;
+    colocar(g, slug, [0, 0.55, 0], { giro: giroPieza });
+  };
+  modulo("sensor-luz-ldr", Math.PI, 0.6, [3.8, 3.4], 0);
+  modulo("sensor-presion-bmp280", 0, 0.8, [3.0, 2.6], Math.PI / 2);
+  modulo("sensor-dht22", Math.PI / 2, -2.6, [3.2, 2.6], Math.PI / 2);
+}
+
 /**
  * Fotos de los kits (ficha, listado y la imagen al compartir). El nombre es el slug del kit.
  * Medidas en centímetros, como las piezas.
@@ -1688,59 +1802,12 @@ export const KITS: Record<string, Modelo> = {
     },
   },
 
-  // La estación modular: la ESP32 pinchada en la protoboard y cada sensor en su bandeja, que se
-  // une a la protoboard con un conector imantado (sin cables)
+  // La estación en su caja: la ESP32 dentro (se ve por una ventana ahumada), la pantalla en la
+  // tapa, interruptor y USB-C delante, y cada sensor pegado a un lado con un conector imantado
   "estacion-meteorologica": {
-    encuadre: { elevacion: 30, azimut: 26, margen: 1.03 },
+    encuadre: { elevacion: 30, azimut: 24, margen: 1.03 },
     construir(t) {
-      const raiz = t.grupo;
-      colocar(raiz, "protoboard-cables", [0, 0, 0]);
-      colocar(raiz, "esp32-devkit", [-0.9, 0.35, 0]);
-      const bandejaMat = t.mat({ color: 0xeceae4, roughness: 0.7 });
-      /**
-       * Un sensor en su bandeja, pegado a un lado de la protoboard. `lado` = hacia dónde mira la
-       * bandeja desde la protoboard (0 = +x, π/2 = -z, π = -x, -π/2 = +z); `a` = posición a lo largo del lado.
-       */
-      const modulo = (
-        slug: string,
-        lado: number,
-        a: number,
-        [w, d]: [number, number],
-        giroPieza = 0,
-        y = 0.3,
-      ) => {
-        const fuera: [number, number] = [Math.cos(lado), -Math.sin(lado)];
-        const largo: [number, number] = [Math.sin(lado), Math.cos(lado)];
-        // Borde de la protoboard en esa dirección
-        const borde = Math.abs(fuera[0]) > 0.5 ? 4.15 : 2.75;
-        const pos = (dist: number): [number, number] => [
-          fuera[0] * dist + largo[0] * a,
-          fuera[1] * dist + largo[1] * a,
-        ];
-        const [hx, hz] = pos(borde + 0.18);
-        conectorImantado(t, raiz, [hx, 0.45, hz], {
-          n: 4,
-          macho: false,
-          giro: lado,
-        }).scale.setScalar(0.8);
-        const [mx, mz] = pos(borde + 0.18 + 0.5);
-        conectorImantado(t, raiz, [mx, 0.45, mz], { n: 4, giro: lado + Math.PI }).scale.setScalar(
-          0.8,
-        );
-        const [cx, cz] = pos(borde + 0.95 + d / 2);
-        const g = new Group();
-        g.position.set(cx, 0, cz);
-        g.rotation.y = lado;
-        raiz.add(g);
-        const b = acrilico(t, rectanguloRedondo(d, w, 0.35), 0.3, bandejaMat, g);
-        b.rotation.x = -Math.PI / 2;
-        b.position.y = 0.15;
-        colocar(g, slug, [0, y, 0], { giro: giroPieza });
-      };
-      modulo("pantalla-oled-096", -Math.PI / 2, -2.1, [3.6, 3.4], Math.PI / 2);
-      modulo("sensor-luz-ldr", -Math.PI / 2, 2.2, [3.8, 3.4], 0);
-      modulo("sensor-presion-bmp280", 0, 0, [3.0, 2.6], Math.PI / 2);
-      modulo("sensor-dht22", Math.PI / 2, 0.8, [3.2, 2.6], Math.PI / 2);
+      cajaEstacion(t);
     },
   },
 };
