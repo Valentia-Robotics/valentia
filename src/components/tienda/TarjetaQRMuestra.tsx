@@ -1,70 +1,63 @@
-import Image from "next/image";
+import { urlActivacion } from "@/lib/qr";
+import { tarjetaLaserSvg, type CaraTarjeta } from "@/lib/tarjetaLaser/tarjeta";
 
 /**
- * Dibujo decorativo de la tarjeta con QR que va dentro de cada caja.
- * El QR de este dibujo es de adorno: los QR reales se generan en la compra (fase 4).
+ * La tarjeta de activación que va dentro de cada caja, tal como sale del láser: cartulina negra
+ * con el dibujo grabado (queda de color claro). Se dibuja con el mismo generador que las tarjetas
+ * de verdad (src/lib/tarjetaLaser), así que si cambia la tarjeta, cambia también aquí.
+ * Detrás, la cara con los pasos; delante, la del QR. El QR lleva a /activar (código de muestra).
  */
 
-// Cuadrícula de 21 × 21 módulos. Las esquinas imitan los "ojos" de un QR real
-// y el resto se rellena con un patrón fijo (siempre igual, para que no cambie al recargar).
-const TAMANO = 21;
+// La misma web que llevan las tarjetas de verdad (nunca localhost)
+const web = new URL(urlActivacion("X")).origin;
+const DATOS = {
+  codigo: "VAL-7K2Q-9MXP",
+  nombreKit: "Estación meteorológica",
+  slugKit: "estacion-meteorologica",
+  url: `${web}/activar`,
+  dominio: new URL(web).host,
+};
 
-function esOjo(f: number, c: number) {
-  const enCaja = (f0: number, c0: number) => f >= f0 && f < f0 + 7 && c >= c0 && c < c0 + 7;
-  return enCaja(0, 0) || enCaja(0, TAMANO - 7) || enCaja(TAMANO - 7, 0);
+/** Trazado de lo que se graba en una cara (el atributo d del SVG para el láser) */
+function grabado(cara: CaraTarjeta) {
+  return tarjetaLaserSvg(DATOS, cara).match(/ d="([^"]*)"/)?.[1] ?? "";
 }
 
-function moduloOjo(f: number, c: number) {
-  const ff = f % (TAMANO - 7) === f ? f : f - (TAMANO - 7);
-  const cc = c % (TAMANO - 7) === c ? c : c - (TAMANO - 7);
-  const borde = ff === 0 || ff === 6 || cc === 0 || cc === 6;
-  const centro = ff >= 2 && ff <= 4 && cc >= 2 && cc <= 4;
-  return borde || centro;
-}
-
-const modulos: [number, number][] = [];
-for (let f = 0; f < TAMANO; f++) {
-  for (let c = 0; c < TAMANO; c++) {
-    const relleno = esOjo(f, c) ? moduloOjo(f, c) : (f * 7 + c * 13 + ((f * c) % 5)) % 3 === 0;
-    // Hueco en el centro para el logo
-    const hueco = f >= 8 && f <= 12 && c >= 8 && c <= 12;
-    if (relleno && !hueco) modulos.push([f, c]);
-  }
+function Cara({ cara, className }: { cara: CaraTarjeta; className?: string }) {
+  return (
+    <svg viewBox="0 0 85.6 54" className={className} role="presentation">
+      <rect width="85.6" height="54" rx="3" fill="#151515" />
+      {/* Brillo suave de la cartulina */}
+      <rect width="85.6" height="54" rx="3" fill="url(#brillo-tarjeta)" />
+      <path d={grabado(cara)} fill="#e9e3d6" />
+    </svg>
+  );
 }
 
 export function TarjetaQRMuestra() {
   return (
-    <div
-      aria-hidden="true"
-      className="mx-auto w-full max-w-xs rotate-[-4deg] rounded-tarjeta bg-white p-6 shadow-flotante ring-1 ring-linea"
-    >
-      <div className="flex items-center justify-between">
-        <Image src="/images/brand/logo.svg" alt="" width={110} height={9} unoptimized />
-        <span className="text-[10px] font-medium tracking-wide text-gris uppercase">Tu curso</span>
-      </div>
-      <div className="relative mt-5">
-        <svg
-          viewBox={`0 0 ${TAMANO} ${TAMANO}`}
-          className="h-auto w-full"
-          shapeRendering="crispEdges"
-        >
-          {modulos.map(([f, c]) => (
-            <rect key={`${f}-${c}`} x={c} y={f} width="1" height="1" fill="#0b0b0b" />
-          ))}
-        </svg>
-        <Image
-          src="/images/brand/monograma.svg"
-          alt=""
-          width={48}
-          height={48}
-          unoptimized
-          className="absolute top-1/2 left-1/2 size-[18%] -translate-x-1/2 -translate-y-1/2"
+    <div aria-hidden="true" className="rounded-tarjeta bg-niebla px-6 py-14 sm:px-10 sm:py-20">
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="brillo-tarjeta" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.07" />
+            <stop offset="0.5" stopColor="#fff" stopOpacity="0" />
+            <stop offset="1" stopColor="#fff" stopOpacity="0.04" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="relative mx-auto w-full max-w-md pb-[42%]">
+        {/* Cara de los pasos, detrás y un poco girada */}
+        <Cara
+          cara="trasera"
+          className="h-auto w-[88%] translate-x-[12%] rotate-[3deg] rounded-[3.5%] shadow-flotante"
+        />
+        {/* Cara del QR, delante */}
+        <Cara
+          cara="delantera"
+          className="absolute top-[50%] left-0 h-auto w-[72%] -rotate-[6deg] rounded-[3.5%] shadow-flotante"
         />
       </div>
-      <p className="mt-5 text-center font-mono text-sm tracking-[0.2em] text-tinta">
-        VAL-7K2Q-9MXP
-      </p>
-      <p className="mt-1 text-center text-xs text-gris">Escanéame para empezar</p>
     </div>
   );
 }

@@ -5,9 +5,18 @@
 import "server-only";
 import QRCode from "qrcode";
 
-/** Dirección que abre el QR de la caja: /activar?codigo=XXXX */
+/** La web publicada: la que llevan siempre las tarjetas, aunque se generen en el ordenador */
+const WEB_PUBLICA = "https://valentiarobotics.com";
+
+/**
+ * Dirección que abre el QR de la caja: /activar?codigo=XXXX
+ * Las tarjetas se imprimen o se graban para siempre, así que nunca llevan una dirección local
+ * (localhost o 127.0.0.1): si la web está en el ordenador, usan la publicada.
+ */
 export function urlActivacion(codigo: string): string {
-  const web = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const configurada = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
+  const local = !configurada || /\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|$|\/)/.test(configurada);
+  const web = local ? WEB_PUBLICA : configurada;
   return `${web}/activar?codigo=${encodeURIComponent(codigo)}`;
 }
 

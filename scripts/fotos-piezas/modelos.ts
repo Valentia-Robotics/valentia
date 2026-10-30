@@ -41,6 +41,7 @@ import {
   texturaLdr,
   texturaModulo,
   texturaOled,
+  texturaPantallaEstacion,
   texturaPegatinaServo,
   texturaProtoboard400,
 } from "./texturas";
@@ -54,8 +55,16 @@ export interface Encuadre {
   margen?: number;
 }
 
+/**
+ * modular: la pieza tal como va en los kits Valentia, que se unen con imanes y pines pogo
+ * (sin cables sueltos; lo que no se puede imantar, como los servos, lleva un conector JST)
+ */
+export interface Opciones {
+  modular?: boolean;
+}
+
 export interface Modelo {
-  construir(t: Taller): void;
+  construir(t: Taller, o?: Opciones): void;
   encuadre?: Encuadre;
 }
 
@@ -314,6 +323,8 @@ function servo(
     pegatina: ReturnType<typeof texturaPegatinaServo>;
     eje: Material;
     bocinaRedonda: boolean;
+    /** "jst": cable corto que acaba en un conector JST blanco pegado al servo */
+    cable?: "suelto" | "jst";
   },
 ) {
   const e = o.escala;
@@ -375,7 +386,67 @@ function servo(
   );
   p.position.set(0, 0.85 * e, 0.612 * e);
   t.grupo.add(p);
-  cablesServo(t, [1.15 * e, 1.3 * e, 0.2 * e], e);
+  if (o.cable === "jst") cableJst(t, [1.15 * e, 1.3 * e, 0.2 * e], e);
+  else cablesServo(t, [1.15 * e, 1.3 * e, 0.2 * e], e);
+}
+
+/** Cable corto del servo (marrón, rojo y naranja) que baja pegado a él hasta un conector JST */
+function cableJst(t: Taller, [sx, sy, sz]: [number, number, number], e: number) {
+  const r = 0.04 * e;
+  [0x5b3a24, 0xc9302c, 0xf08a24].forEach((color, i) => {
+    const dz = (i - 1) * r * 2.05;
+    t.tubo(
+      [
+        [sx, sy, sz + dz],
+        [sx + 0.18 * e, sy - 0.05 * e, sz + dz],
+        [sx + 0.26 * e, sy - 0.35 * e, sz + dz],
+        [sx + 0.26 * e, 0.75 * e, sz + dz],
+      ],
+      r,
+      t.mat({ color, roughness: 0.42 }),
+      48,
+    );
+  });
+  conectorJst(t, sx + 0.26 * e, 0.5 * e, sz, e);
+}
+
+/** Conector JST blanco (3 vías), en vertical */
+function conectorJst(t: Taller, x: number, y: number, z: number, e = 1, padre?: Group) {
+  const blanco = t.mat({ color: 0xf1eee4, roughness: 0.5 });
+  t.redonda(0.32 * e, 0.5 * e, 0.62 * e, 0.03 * e, blanco, x, y, z, padre);
+  // Pestaña de cierre y las tres ventanas de los contactos
+  t.caja(0.06 * e, 0.24 * e, 0.3 * e, blanco, x + 0.18 * e, y + 0.06 * e, z, padre);
+  for (const k of [-1, 0, 1])
+    t.caja(0.02 * e, 0.08 * e, 0.1 * e, t.oro, x - 0.16 * e, y - 0.12 * e, z + k * 0.17 * e, padre);
+}
+
+/**
+ * Conector imantado de los kits Valentia: carcasa negra con pines pogo dorados en el centro y un
+ * imán en cada punta. Mira hacia +x (la cara de contacto); `n` = número de pines.
+ */
+function conectorImantado(
+  t: Taller,
+  padre: Group,
+  [x, y, z]: [number, number, number],
+  { giro = 0, n = 5, macho = true }: { giro?: number; n?: number; macho?: boolean } = {},
+) {
+  const g = new Group();
+  g.position.set(x, y, z);
+  g.rotation.y = giro;
+  padre.add(g);
+  const largo = 0.32 * n + 0.9;
+  t.redonda(0.45, 0.55, largo, 0.12, plastico(t, 0x161616, 0.4), 0, 0, 0, g);
+  // Cara de contacto un poco más clara
+  t.caja(0.02, 0.36, largo - 0.24, t.mat({ color: 0x2a2a2c, roughness: 0.35 }), 0.226, 0, 0, g);
+  for (let i = 0; i < n; i++) {
+    const zz = (i - (n - 1) / 2) * 0.32;
+    if (macho) t.cilindro(0.06, 0.16, t.oro, 0.29, 0, zz, "x", 16, 0.045, g);
+    else t.cilindro(0.075, 0.02, t.oro, 0.235, 0, zz, "x", 16, 0.075, g);
+  }
+  const iman = t.mat({ color: 0xc9ccd0, metalness: 0.9, roughness: 0.25 });
+  for (const s of [-1, 1])
+    t.cilindro(0.15, 0.03, iman, 0.235, 0, s * (largo / 2 - 0.3), "x", 24, 0.15, g);
+  return g;
 }
 
 // =====================================================================================
@@ -557,13 +628,14 @@ export const MODELOS: Record<string, Modelo> = {
 
   "servo-mg996r": {
     encuadre: { elevacion: 26, azimut: 30 },
-    construir(t) {
+    construir(t, o) {
       servo(t, {
         escala: 1.75,
         carcasa: plastico(t, 0x1a1a1a, 0.45),
         pegatina: texturaPegatinaServo("MG996R", "Alto par · 13 kg·cm", "#202226"),
         eje: t.laton,
         bocinaRedonda: true,
+        cable: o?.modular ? "jst" : "suelto",
       });
     },
   },
@@ -894,7 +966,7 @@ export const MODELOS: Record<string, Modelo> = {
   // ---------------------------------------------------------------- ENERGÍA
   "portapilas-4xaa": {
     encuadre: { elevacion: 42, azimut: 30 },
-    construir(t) {
+    construir(t, o) {
       const negro = plastico(t, 0x171717, 0.55);
       t.caja(6.4, 0.15, 6.3, negro, 0, 0.075, 0);
       for (const z of [-3.08, 3.08]) t.caja(6.4, 1.4, 0.15, negro, 0, 0.7, z);
@@ -911,18 +983,19 @@ export const MODELOS: Record<string, Modelo> = {
       // Interruptor de encendido
       t.caja(0.3, 0.75, 1.3, t.plasticoNegro, -3.35, 0.8, 1.6);
       t.caja(0.22, 0.3, 0.4, t.mat({ color: 0x2a2a2a, roughness: 0.4 }), -3.55, 0.85, 1.75);
-      cablesAlimentacion(
-        t,
-        [
-          [-3.2, 0.6, -2.5],
-          [-3.9, 0.4, -2.6],
-          [-4.6, 0.06, -1.6],
-          [-4.9, 0.06, 0.4],
-          [-4.5, 0.06, 2.4],
-        ],
-        0.08,
-        0.18,
-      );
+      if (!o?.modular)
+        cablesAlimentacion(
+          t,
+          [
+            [-3.2, 0.6, -2.5],
+            [-3.9, 0.4, -2.6],
+            [-4.6, 0.06, -1.6],
+            [-4.9, 0.06, 0.4],
+            [-4.5, 0.06, 2.4],
+          ],
+          0.08,
+          0.18,
+        );
     },
   },
 
@@ -1169,7 +1242,7 @@ export const MODELOS: Record<string, Modelo> = {
 
   "protoboard-cables": {
     encuadre: { elevacion: 40, azimut: 24 },
-    construir(t) {
+    construir(t, o) {
       const blanco = t.mat({ color: 0xeceae4, roughness: 0.7 });
       t.caja(
         8.3,
@@ -1180,6 +1253,8 @@ export const MODELOS: Record<string, Modelo> = {
         0.425,
         0,
       );
+      // En los kits modulares las piezas se pinchan o se unen con imanes: sin cables
+      if (o?.modular) return;
       // Posición de un agujero de la zona central (columna 0-29, fila 0-9)
       const agujero = (col: number, fila: number): [number, number] => [
         -4.15 + (130 + col * 48.5) / 200,
@@ -1244,11 +1319,11 @@ export const MODELOS: Record<string, Modelo> = {
 };
 
 /**
- * Coloca una pieza del configurador dentro de otra foto (para montar las de los kits).
- * La pieza se construye con sus propias medidas; `escala` la ajusta a las de la foto.
+ * Coloca una pieza del configurador dentro de otra foto (para montar las de los kits), ya en su
+ * versión modular. La pieza se construye con sus propias medidas; `escala` la ajusta a las de la foto.
  */
 function colocar(
-  t: Taller,
+  padre: Group,
   slug: string,
   [x, y, z]: [number, number, number],
   {
@@ -1258,11 +1333,461 @@ function colocar(
   }: { giro?: number; inclinacion?: number; escala?: number } = {},
 ) {
   const pieza = new Taller();
-  MODELOS[slug].construir(pieza);
+  MODELOS[slug].construir(pieza, { modular: true });
   pieza.grupo.position.set(x, y, z);
   pieza.grupo.rotation.set(inclinacion, giro, 0);
   pieza.grupo.scale.setScalar(escala);
-  t.grupo.add(pieza.grupo);
+  padre.add(pieza.grupo);
+  return pieza.grupo;
+}
+// ------------------------------------------------------------------------------------
+// Brazo robótico del kit (medidas en cm, pensado para servos MG996R)
+// ------------------------------------------------------------------------------------
+const E_MG = 1.75; // escala del MG996R respecto al SG90
+const CARA_BOCINA = 3.4 * E_MG; // altura de la cara de la bocina, medida desde la base del servo
+const EJE_SERVO = 0.55 * E_MG; // distancia del eje de salida al centro del cuerpo
+
+function servoNegro(padre: Group) {
+  const s = new Taller();
+  MODELOS["servo-mg996r"].construir(s, { modular: true });
+  padre.add(s.grupo);
+  return s.grupo;
+}
+
+/**
+ * Servo con el eje de salida en el origen del grupo, mirando a +z, la cara de la bocina en z = cara
+ * y el cuerpo hacia el ángulo `hacia` (en el plano xy). Así cada articulación gira alrededor de z.
+ */
+function servoEnEje(padre: Group, cara: number, hacia: number) {
+  const g = new Group();
+  g.rotation.z = hacia;
+  padre.add(g);
+  const s = servoNegro(g);
+  s.rotation.x = Math.PI / 2;
+  s.position.set(EJE_SERVO, 0, cara - CARA_BOCINA);
+  return g;
+}
+
+/** Plancha de metacrilato con un hueco rectangular (por donde pasa el cuerpo del servo) */
+function placaConHueco(
+  forma: Shape,
+  [cx, cy, w, h]: [number, number, number, number],
+  agujeros: [number, number, number][] = [],
+) {
+  const p = new Path();
+  const r = 0.15;
+  p.moveTo(cx - w / 2 + r, cy - h / 2);
+  p.lineTo(cx - w / 2, cy - h / 2 + r);
+  p.lineTo(cx - w / 2, cy + h / 2 - r);
+  p.lineTo(cx - w / 2 + r, cy + h / 2);
+  p.lineTo(cx + w / 2 - r, cy + h / 2);
+  p.lineTo(cx + w / 2, cy + h / 2 - r);
+  p.lineTo(cx + w / 2, cy - h / 2 + r);
+  p.lineTo(cx + w / 2 - r, cy - h / 2);
+  forma.holes.push(p);
+  for (const [x, y, ra] of agujeros) {
+    const c = new Path();
+    c.absarc(x, y, ra, 0, Math.PI * 2, true);
+    forma.holes.push(c);
+  }
+  return forma;
+}
+
+/** Eslabón: estadio de `largo` entre centros, con un agujero de radio propio en cada punto */
+function eslabon(largo: number, ancho: number, agujeros: [number, number][]) {
+  const s = estadio(largo, ancho);
+  for (const [x, r] of agujeros) {
+    const c = new Path();
+    c.absarc(x, 0, r, 0, Math.PI * 2, true);
+    s.holes.push(c);
+  }
+  return s;
+}
+
+/** Torre del hombro: rectángulo con la parte de arriba redonda (centro del arco en y = alto) */
+function torre(ancho: number, alto: number) {
+  const s = new Shape();
+  s.moveTo(-ancho / 2, 0);
+  s.lineTo(ancho / 2, 0);
+  s.lineTo(ancho / 2, alto);
+  s.absarc(0, alto, ancho / 2, 0, Math.PI, false);
+  s.lineTo(-ancho / 2, 0);
+  return s;
+}
+
+/** Separador de latón hexagonal entre dos puntos alineados con un eje */
+function separador(
+  t: Taller,
+  padre: Group,
+  x: number,
+  y: number,
+  z: number,
+  largo: number,
+  eje: "y" | "z",
+) {
+  t.cilindro(0.2, largo, t.laton, x, y, z, eje, 6, 0.2, padre);
+}
+
+/** Engranaje plano (para la pinza) */
+function engranaje(t: Taller, padre: Group, x: number, y: number, z: number, material: Material) {
+  t.cilindro(0.62, 0.3, material, x, y, z, "y", 40, 0.62, padre);
+  for (let k = 0; k < 16; k++) {
+    const a = (k / 16) * Math.PI * 2;
+    t.caja(
+      0.2,
+      0.3,
+      0.14,
+      material,
+      x + Math.cos(a) * 0.7,
+      y,
+      z + Math.sin(a) * 0.7,
+      padre,
+    ).rotation.y = -a;
+  }
+  t.cilindro(0.16, 0.34, t.acero, x, y, z, "y", 16, 0.16, padre);
+}
+
+function brazoMg996r(t: Taller) {
+  const acr = t.fisico({
+    color: 0x5f8fdc,
+    roughness: 0.08,
+    transparent: true,
+    opacity: 0.72,
+    clearcoat: 1,
+    clearcoatRoughness: 0.03,
+    side: DoubleSide,
+  });
+  const G = 0.3; // grosor del metacrilato
+  const raiz = t.grupo;
+  const horizontal = (forma: Shape, x: number, y: number, z: number, padre: Group = raiz) => {
+    const p = acrilico(t, forma, G, acr, padre);
+    p.rotation.x = -Math.PI / 2;
+    p.position.set(x, y, z);
+    return p;
+  };
+  const vertical = (forma: Shape, x: number, y: number, z: number, padre: Group = raiz) => {
+    const p = acrilico(t, forma, G, acr, padre);
+    p.position.set(x, y, z);
+    return p;
+  };
+
+  // ---------- Base: tres planchas con columnas de latón; el servo de la base va dentro ----------
+  const B = 12;
+  const esquinas: [number, number][] = [
+    [-5.2, -5.2],
+    [5.2, -5.2],
+    [-5.2, 5.2],
+    [5.2, 5.2],
+  ];
+  const agujerosEsquinas = esquinas.map(([x, z]) => [x, -z, 0.17] as [number, number, number]);
+  horizontal(rectanguloRedondo(B, B, 0.9, agujerosEsquinas), 0, 0.15, 0);
+  horizontal(
+    placaConHueco(rectanguloRedondo(B, B, 0.9), [EJE_SERVO, 0, 4.3, 2.35], agujerosEsquinas),
+    0,
+    3.31,
+    0,
+  );
+  horizontal(rectanguloRedondo(B, B, 0.9, [...agujerosEsquinas, [0, 0, 0.6]]), 0, 5.75, 0);
+  for (const [x, z] of esquinas) {
+    separador(t, raiz, x, 1.73, z, 2.86, "y");
+    separador(t, raiz, x, 4.53, z, 2.14, "y");
+    t.tornillo(x, 5.9, z, 0.24);
+  }
+  const base = servoNegro(raiz);
+  base.position.set(EJE_SERVO, 0.45, 0);
+
+  // ---------- Plato giratorio (sobre la bocina del servo de la base) ----------
+  const giro = new Group();
+  giro.position.y = 6.4;
+  giro.rotation.y = 0.12;
+  raiz.add(giro);
+  horizontal(
+    rectanguloRedondo(
+      8.8,
+      8.8,
+      4.4,
+      Array.from({ length: 6 }, (_, k) => {
+        const a = (k / 6) * Math.PI * 2;
+        return [Math.cos(a) * 3.4, Math.sin(a) * 3.4, 0.15] as [number, number, number];
+      }),
+    ),
+    0,
+    0.15,
+    0,
+    giro,
+  );
+
+  // ---------- Hombro: dos torres que sujetan el servo (cuerpo hacia abajo, eje hacia +z) ----------
+  const H = 10.1 - 6.4; // altura del eje del hombro sobre el plato
+  const zFrente = -0.5;
+  const zFondo = -4.0;
+  vertical(
+    placaConHueco(torre(5.2, H - 0.3), [0, H - 0.3 - 0.96, 2.4, 4.3]),
+    0,
+    0.3,
+    zFrente,
+    giro,
+  );
+  vertical(
+    (() => {
+      const f = torre(5.2, H - 0.3);
+      const c = new Path();
+      c.absarc(0, H - 0.3, 0.22, 0, Math.PI * 2, true);
+      f.holes.push(c);
+      return f;
+    })(),
+    0,
+    0.3,
+    zFondo,
+    giro,
+  );
+  horizontal(rectanguloRedondo(5.2, 3.8, 0.3), 0, 0.45, (zFrente + zFondo) / 2, giro);
+  const hombro = new Group();
+  hombro.position.set(0, H, 0);
+  giro.add(hombro);
+  servoEnEje(hombro, 2.6, -Math.PI / 2);
+
+  // ---------- Brazo: dos eslabones paralelos (uno en la bocina, otro en un eje libre detrás) ----------
+  const L1 = 10.5;
+  const a1 = (64 * Math.PI) / 180;
+  const brazo = new Group();
+  brazo.rotation.z = a1;
+  hombro.add(brazo);
+  vertical(
+    eslabon(L1, 2.8, [
+      [0, 0.22],
+      [L1, 0.6],
+    ]),
+    0,
+    0,
+    2.75,
+    brazo,
+  );
+  vertical(
+    eslabon(L1, 2.8, [
+      [0, 0.22],
+      [L1, 0.22],
+    ]),
+    0,
+    0,
+    -4.45,
+    brazo,
+  );
+  for (const y of [-0.85, 0.85]) separador(t, brazo, L1 * 0.42, y, -0.85, 6.9, "z");
+  for (const x of [0, L1]) {
+    t.cilindro(0.22, 0.75, t.acero, x, 0, -4.2, "z", 20, 0.22, brazo);
+    t.cilindro(0.3, 0.12, t.acero, x, 0, -4.66, "z", 6, 0.3, brazo);
+  }
+  t.cilindro(0.18, 0.1, t.acero, 0, 0, 2.95, "z", 20, 0.18, brazo);
+
+  // ---------- Codo: servo sujeto entre los dos eslabones, con el cuerpo hacia el hombro ----------
+  const codo = new Group();
+  codo.position.set(L1, 0, 0);
+  brazo.add(codo);
+  servoEnEje(codo, 3.25, Math.PI);
+  // Calzo bajo el cuerpo del servo (hasta el eslabón de atrás)
+  t.caja(3.8, 2.2, 1.55, acr, -EJE_SERVO, 0, -3.5, codo);
+
+  // ---------- Antebrazo: en la bocina del codo, casi horizontal ----------
+  const L2 = 8.5;
+  const a2 = (-6 * Math.PI) / 180;
+  const ante = new Group();
+  ante.rotation.z = a2 - a1;
+  codo.add(ante);
+  vertical(eslabon(L2, 2.4, [[0, 0.18]]), 0, 0, 3.4, ante);
+  t.cilindro(0.18, 0.1, t.acero, 0, 0, 3.6, "z", 20, 0.18, ante);
+  // Nervio por debajo para que no se doble
+  horizontal(rectanguloRedondo(L2 - 1.2, 1.6, 0.2), L2 / 2 + 0.2, -1.05, 2.45, ante);
+
+  // ---------- Pinza: servo boca abajo sobre una plataforma y dos dedos con engranajes ----------
+  const xPl = L2 + 1.35;
+  const zPl = 1.125;
+  const zEje = 0.35;
+  horizontal(
+    placaConHueco(rectanguloRedondo(5.1, 4.25, 0.5), [L2 + 1.44 - xPl, -(zEje - zPl), 4.3, 2.4]),
+    xPl,
+    -1.35,
+    zPl,
+    ante,
+  );
+  t.caja(1.2, 1.0, 0.3, acr, L2 - 0.3, -0.95, 3.1, ante); // escuadra entre antebrazo y plataforma
+  const pinzaServo = servoNegro(ante);
+  pinzaServo.rotation.z = Math.PI;
+  pinzaServo.position.set(L2 + 1.44, -1.2 + 3.45, zEje);
+  // Placa de abajo y engranajes
+  const yEng = -3.95;
+  separador(t, ante, L2 + 2.4, -2.95, 1.85, 2.9, "y");
+  separador(t, ante, L2 + 0.2, -2.95, 2.6, 2.9, "y");
+  separador(t, ante, L2 + 0.2, -2.95, -0.6, 2.9, "y");
+  horizontal(rectanguloRedondo(4.2, 4.0, 0.5), L2 + 1.5, -4.55, zPl, ante);
+  const blanco = t.mat({ color: 0xf3f3ef, roughness: 0.45 });
+  engranaje(t, ante, L2 + 2.4, yEng, zEje, blanco);
+  engranaje(t, ante, L2 + 2.4, yEng, zEje + 1.5, blanco);
+  const dedo = new Shape();
+  dedo.moveTo(0, -0.35);
+  dedo.quadraticCurveTo(2.8, -0.75, 5.4, 0.15);
+  dedo.lineTo(5.3, 0.5);
+  dedo.quadraticCurveTo(2.8, 0.15, 0, 0.42);
+  dedo.absarc(0, 0.035, 0.39, Math.PI / 2, (3 * Math.PI) / 2, false);
+  for (const [z, s] of [
+    [zEje, 1],
+    [zEje + 1.5, -1],
+  ] as const) {
+    const d = acrilico(t, dedo, G, acr, ante);
+    d.rotation.set(-Math.PI / 2, 0, s * 0.2);
+    d.scale.y = s;
+    d.position.set(L2 + 2.4, yEng - 0.3, z);
+  }
+
+  // ---------- Placa y pilas al lado, en sus bandejas, unidas a la base con imanes ----------
+  const bandeja = (w: number, d: number, x: number, z: number) => {
+    horizontal(rectanguloRedondo(w, d, 0.6), x, 0.15, z);
+    for (const [sx, sz] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ])
+      separador(t, raiz, x + sx * (w / 2 - 0.5), 0.55, z + sz * (d / 2 - 0.5), 0.5, "y");
+  };
+  // Imán con pines en la base (hembra) y en cada bandeja (macho), a 1,5 mm de encajar
+  const union = (x: number, z: number, n: number, giroBase: number) => {
+    conectorImantado(t, raiz, [x, 0.58, z], { n, macho: false, giro: giroBase });
+    const d = 0.62;
+    conectorImantado(t, raiz, [x + Math.cos(giroBase) * d, 0.58, z - Math.sin(giroBase) * d], {
+      n,
+      giro: giroBase + Math.PI,
+    });
+  };
+  bandeja(8.0, 6.4, -10.7, 1.8);
+  colocar(raiz, "arduino-uno-r3", [-10.8, 0.8, 1.8]);
+  union(-6.25, 1.8, 6, Math.PI);
+  bandeja(7.0, 7.0, 10.1, -2.6);
+  colocar(raiz, "portapilas-4xaa", [10.1, 0.3, -2.6], { giro: Math.PI });
+  union(6.25, -2.6, 2, 0);
+}
+
+// ------------------------------------------------------------------------------------
+// Caja de la estación meteorológica (medidas en cm)
+// ------------------------------------------------------------------------------------
+function cajaEstacion(t: Taller) {
+  const raiz = t.grupo;
+  const W = 8.6; // ancho (x)
+  const D = 5.8; // fondo (z)
+  const H = 1.9; // alto hasta la tapa
+  const R = 0.8; // radio de las esquinas
+  const carcasa = t.mat({
+    color: 0xeae8e3,
+    roughness: 0.62,
+    bumpMap: texturaGrano(),
+    bumpScale: 0.12,
+  });
+  /** Pieza de la caja: forma vista desde arriba, levantada `alto` desde y = desde */
+  const pieza = (forma: Shape, desde: number, alto: number, material: Material, padre = raiz) => {
+    const p = acrilico(t, forma, alto, material, padre);
+    p.rotation.x = -Math.PI / 2;
+    p.position.y = desde + alto / 2;
+    (p.children[1] as LineSegments).visible = false;
+    return p;
+  };
+  // Fondo macizo y paredes (hueca por dentro)
+  pieza(rectanguloRedondo(W, D, R), 0, 0.4, carcasa);
+  pieza(placaConHueco(rectanguloRedondo(W, D, R), [0, 0, W - 0.5, D - 0.5]), 0.4, H - 0.4, carcasa);
+  // Tapa: pantalla grande a la izquierda y ventana ahumada a la derecha (se ve la placa)
+  const pantalla: [number, number, number, number] = [-1.15, 0.15, 5.0, 3.0];
+  const ventana: [number, number, number, number] = [2.85, 0.15, 1.9, 3.0];
+  const tapa = placaConHueco(rectanguloRedondo(W, D, R), pantalla);
+  placaConHueco(tapa, ventana);
+  pieza(tapa, H, 0.16, carcasa);
+  const cristal = t.fisico({
+    color: 0x0b0c0f,
+    roughness: 0.05,
+    clearcoat: 1,
+    clearcoatRoughness: 0.02,
+  });
+  t.caja(pantalla[2], 0.12, pantalla[3], cristal, pantalla[0], H + 0.07, -pantalla[1]);
+  const imagen = new Mesh(
+    new PlaneGeometry(pantalla[2] - 0.3, pantalla[3] - 0.3),
+    t.mat({
+      color: 0x000000,
+      emissive: 0xffffff,
+      emissiveMap: texturaPantallaEstacion(),
+      emissiveIntensity: 1.5,
+      roughness: 0.1,
+    }),
+  );
+  imagen.rotation.x = -Math.PI / 2;
+  imagen.position.set(pantalla[0], H + 0.135, -pantalla[1]);
+  raiz.add(imagen);
+  const ahumado = t.fisico({
+    color: 0x2a2f38,
+    roughness: 0.06,
+    transparent: true,
+    opacity: 0.35,
+    clearcoat: 1,
+    clearcoatRoughness: 0.05,
+  });
+  t.caja(ventana[2], 0.1, ventana[3], ahumado, ventana[0], H + 0.08, -ventana[1]);
+  // La ESP32 dentro: por la ventana se ve su módulo wifi
+  colocar(raiz, "esp32-devkit", [0.55, 0.15, -ventana[1]]);
+
+  // Delante: luz de encendido, USB-C e interruptor
+  const frente = D / 2 + 0.1; // las paredes tienen un bisel de ~1 mm
+  t.cilindro(
+    0.07,
+    0.05,
+    t.mat({ color: 0x30d158, emissive: 0x30d158, emissiveIntensity: 1.6 }),
+    1.05,
+    1.0,
+    frente + 0.02,
+    "z",
+    16,
+  );
+  t.redonda(0.9, 0.32, 0.08, 0.14, t.plasticoNegro, 2.0, 1.0, frente + 0.02);
+  t.redonda(0.62, 0.1, 0.06, 0.04, t.acero, 2.0, 1.0, frente + 0.05);
+  t.caja(1.2, 0.8, 0.06, t.plasticoNegro, 3.3, 1.0, frente + 0.02);
+  const tecla = t.caja(0.95, 0.58, 0.2, plastico(t, 0x1c1c1e, 0.35), 3.3, 1.0, frente + 0.08);
+  tecla.rotation.x = 0.22;
+  t.caja(0.08, 0.2, 0.02, t.mat({ color: 0xf2f2f2, roughness: 0.4 }), 3.3, 1.1, frente + 0.19);
+
+  /**
+   * Un sensor en su cápsula, pegada a un lado de la caja (se une con imanes y pines pogo).
+   * `lado` = hacia dónde sale (0 = +x, π/2 = -z, π = -x); `a` = posición a lo largo del lado.
+   */
+  const capsula = (
+    slug: string,
+    lado: number,
+    a: number,
+    [ancho, fondo, alto]: [number, number, number],
+    giroPieza = 0,
+  ) => {
+    const g = new Group();
+    const borde = Math.abs(Math.cos(lado)) > 0.5 ? W / 2 : D / 2;
+    const dist = borde + 0.1 + fondo / 2;
+    g.position.set(
+      Math.cos(lado) * dist + Math.sin(lado) * a,
+      0,
+      -Math.sin(lado) * dist + Math.cos(lado) * a,
+    );
+    g.rotation.y = lado;
+    raiz.add(g);
+    pieza(rectanguloRedondo(fondo, ancho, 0.35), 0, alto, carcasa, g);
+    // Junta oscura donde se pega a la caja (ahí están el imán y los pines)
+    t.caja(
+      0.04,
+      alto * 0.55,
+      ancho * 0.7,
+      t.mat({ color: 0x2a2a2c, roughness: 0.5 }),
+      -fondo / 2 - 0.02,
+      alto * 0.45,
+      0,
+      g,
+    );
+    colocar(g, slug, [0, alto, 0], { giro: giroPieza });
+  };
+  capsula("sensor-luz-ldr", Math.PI, 0.3, [3.4, 3.4, 1.0], 0);
+  capsula("sensor-presion-bmp280", 0, 0.6, [2.4, 2.2, 1.0], Math.PI / 2);
+  capsula("sensor-dht22", Math.PI / 2, -2.2, [2.6, 2.2, 0.8], Math.PI / 2);
 }
 
 /**
@@ -1278,31 +1803,21 @@ export const KITS: Record<string, Modelo> = {
     },
   },
 
-  // El brazo montado con sus cuatro servos, y al lado la placa y el portapilas
+  // Brazo antropomórfico de 4 grados de libertad con servos MG996R (base, hombro, codo y pinza),
+  // con la placa y las pilas al lado, unidas a la base con conectores imantados
   "brazo-robotico": {
-    encuadre: { elevacion: 20, azimut: 32, margen: 1.04 },
+    encuadre: { elevacion: 18, azimut: 34, margen: 1.03 },
     construir(t) {
-      colocar(t, "estructura-brazo-4dof", [0, 0, 0]);
-      // Servo de la base (entre las dos planchas) y los de hombro, codo y pinza
-      colocar(t, "servo-sg90", [0, 0.3, 0], { escala: 0.75 });
-      colocar(t, "servo-sg90", [0.2, 5.4, -2.75], { inclinacion: -Math.PI / 2, escala: 0.75 });
-      colocar(t, "servo-sg90", [2.6, 13.4, 2.0], { inclinacion: Math.PI / 2, escala: 0.6 });
-      colocar(t, "servo-sg90", [12.4, 13.1, -1.4], { escala: 0.55 });
-      colocar(t, "arduino-uno-r3", [-9.5, 0, 3.5], { giro: 0.35 });
-      colocar(t, "portapilas-4xaa", [-10, 0, -4.5], { giro: -0.2, escala: 0.9 });
+      brazoMg996r(t);
     },
   },
 
-  // La estación montada en la protoboard: sensores pinchados, pantalla encendida y la ESP32 al lado
+  // La estación en su caja: la ESP32 dentro (se ve por una ventana ahumada), la pantalla en la
+  // tapa, interruptor y USB-C delante, y cada sensor pegado a un lado con un conector imantado
   "estacion-meteorologica": {
-    encuadre: { elevacion: 30, azimut: 26, margen: 1.03 },
+    encuadre: { elevacion: 30, azimut: 24, margen: 1.03 },
     construir(t) {
-      colocar(t, "protoboard-cables", [0, 0, 0]);
-      colocar(t, "sensor-dht22", [2.6, 0.85, -1.4]);
-      colocar(t, "pantalla-oled-096", [-1.6, 0.85, -1.2]);
-      colocar(t, "esp32-devkit", [-8.2, 0, -0.5], { giro: 0.25 });
-      colocar(t, "sensor-presion-bmp280", [7.0, 0, -0.4], { giro: -0.3 });
-      colocar(t, "sensor-luz-ldr", [6.2, 0, 3.2], { giro: -0.5 });
+      cajaEstacion(t);
     },
   },
 };

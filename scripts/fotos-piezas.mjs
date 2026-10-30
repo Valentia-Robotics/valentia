@@ -7,7 +7,7 @@
  *   npm run fotos:piezas                 → todas
  *   npm run fotos:piezas -- servo-sg90   → solo esa (o varias separadas por espacios)
  *   npm run fotos:piezas -- --prueba     → las deja en .fotos-prueba/ (PNG) sin tocar la web
- *   npm run fotos:piezas -- --kits       → fotos de los kits: public/images/kits/<slug>.svg (ficha y listado)
+ *   npm run fotos:piezas -- --kits [slug] [--prueba] → fotos de los kits: public/images/kits/<slug>.svg (ficha y listado)
  *                                          y public/images/redes/kits/<slug>.png (al compartir en redes)
  *
  * Usa Chrome (sin ventana) para dibujar el 3D.
@@ -60,11 +60,19 @@ if (soloKits) {
   const kits = await pagina.evaluate(() => window.kits);
   const carpetaRedes = path.join(RAIZ, "public/images/redes/kits");
   await mkdir(carpetaRedes, { recursive: true });
-  for (const slug of kits) {
+  for (const slug of elegidas.length ? kits.filter((k) => elegidas.includes(k)) : kits) {
     const datos = await pagina.evaluate((s) => window.fotografiar(s), slug);
     const recortada = await sharp(Buffer.from(datos.split(",")[1], "base64"))
       .trim({ threshold: 1 })
       .toBuffer();
+    if (prueba) {
+      await mkdir(PRUEBA, { recursive: true });
+      await sharp(recortada)
+        .png()
+        .toFile(path.join(PRUEBA, `kit-${slug}.png`));
+      console.log(`✓ prueba kit ${slug}`);
+      continue;
+    }
     await sharp(recortada)
       .resize({ width: 1000 })
       .png({ compressionLevel: 9 })
