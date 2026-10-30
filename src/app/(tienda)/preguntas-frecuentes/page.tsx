@@ -6,11 +6,11 @@ import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { preguntasFrecuentes } from "@/config/preguntas";
 import { esMarcador, tienda } from "@/config/tienda";
-import { datosPreguntas } from "@/lib/datosEstructurados";
+import { datosMigas, datosPreguntas } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 
 export const metadata: Metadata = metadatosPagina({
-  titulo: "Preguntas frecuentes",
+  titulo: "Preguntas frecuentes sobre los kits de robótica",
   descripcion:
     "Si hace falta saber programar, para qué edad son los kits, envíos, devoluciones y cómo se activa el curso.",
   ruta: "/preguntas-frecuentes",
@@ -24,6 +24,12 @@ export default function PreguntasFrecuentes() {
   return (
     <Contenedor className="py-12 sm:py-16">
       <DatosEstructurados datos={datosPreguntas(grupos.flatMap((g) => g.preguntas))} />
+      <DatosEstructurados
+        datos={datosMigas([
+          { nombre: "Inicio", ruta: "/" },
+          { nombre: "Preguntas frecuentes", ruta: "/preguntas-frecuentes" },
+        ])}
+      />
       <header className="max-w-2xl">
         <h1 className="text-4xl font-medium sm:text-5xl">Preguntas frecuentes.</h1>
         <p className="mt-4 text-lg text-gris">Lo que más nos preguntáis, contestado sin rodeos.</p>

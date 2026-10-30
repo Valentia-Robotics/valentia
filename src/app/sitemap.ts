@@ -16,8 +16,9 @@ const web = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replac
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const kits = await obtenerKits();
-  const paginas: [string, number][] = [
-    ["/", 1],
+  // [ruta, prioridad, fotos que salen en ella (Google Imágenes)]
+  const paginas: [string, number, string[]?][] = [
+    ["/", 1, ["/opengraph-image", ...kits.map((k) => `/images/redes/kits/${k.slug}.png`)]],
     ["/kits", 0.9],
     ["/componentes", 0.8],
     ["/configurador", 0.8],
@@ -29,7 +30,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/legal/devoluciones", 0.2],
   ];
   return [
-    ...paginas.map(([ruta, prioridad]) => ({ url: `${web}${ruta}`, priority: prioridad })),
-    ...kits.map((kit) => ({ url: `${web}/kits/${kit.slug}`, priority: 0.9 })),
+    ...paginas.map(([ruta, prioridad, fotos]) => ({
+      url: `${web}${ruta}`,
+      changeFrequency: prioridad >= 0.8 ? ("weekly" as const) : ("yearly" as const),
+      priority: prioridad,
+      ...(fotos ? { images: fotos.map((f) => `${web}${f}`) } : {}),
+    })),
+    ...kits.map((kit) => ({
+      url: `${web}/kits/${kit.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+      // La foto 3D del kit (PNG) y su tarjeta para compartir
+      images: [
+        `${web}/images/redes/kits/${kit.slug}.png`,
+        `${web}/kits/${kit.slug}/opengraph-image`,
+      ],
+    })),
   ];
 }

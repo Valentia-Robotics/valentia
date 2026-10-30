@@ -22,7 +22,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = metadatosPagina({
   descripcion:
-    "Kits de robótica con curso incluido y componentes sueltos. Construye tu propio robot paso a paso, sin saber programar. Envíos a la Comunidad Valenciana.",
+    "Kits de robótica para montar en casa, con Arduino o ESP32 y un curso en vídeo incluido. Sin saber programar y para cualquier edad: un regalo original. Envío a la Comunidad Valenciana.",
   ruta: "/",
 });
 

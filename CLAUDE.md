@@ -11,6 +11,16 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### SEO a fondo (30-10-2026, rama `claude/project-thread-g3cf1v`)
+
+- Títulos y descripciones con lo que busca la gente (kits de robótica para montar, Arduino, ESP32, regalo);
+  `marca.lema`/`descripcion` nuevos; `lang="es-ES"`; `googleBot` con `max-image-preview: large`.
+- Datos estructurados: `OnlineStore` (zona de envío, devoluciones), WebSite con `alternateName`, Product con
+  categoría y edad mínima, BreadcrumbList en /kits, /componentes, /configurador y preguntas frecuentes.
+- sitemap con fotos (PNG de los kits y tarjetas para compartir); sin `lastModified` (cambiaría cada 5 min).
+- Bing: IndexNow automático al arrancar en Render (`src/instrumentation.ts` → `src/lib/indexnow.ts`, clave en
+  `public/<clave>.txt`; log `[indexnow]`). Verificación por etiqueta opcional con `BING_VERIFICACION`.
+
 ### Kits modulares en las fotos (30-10-2026, rama `claude/project-thread-g3cf1v`)
 
 Decisión de Jesse: los kits se presentan MODULARES (las piezas no cambian): se unen con imanes y pines pogo

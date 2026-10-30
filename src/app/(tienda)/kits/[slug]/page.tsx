@@ -52,8 +52,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!kit) return { title: "Kit no encontrado" };
   // La imagen para redes la dibuja ./opengraph-image.tsx (nombre, precio y foto del kit)
   return metadatosPagina({
-    titulo: kit.nombre,
-    descripcion: `${kit.eslogan} Incluye todas las piezas y un curso en vídeo paso a paso, sin saber programar.`,
+    titulo: `${kit.nombre}: kit de robótica con curso`,
+    descripcion: `${kit.eslogan} Kit para montar con todas las piezas, pilas y cable USB, y un curso en vídeo paso a paso. Sin saber programar, desde ${kit.edadMinima} años.`,
     ruta: `/kits/${kit.slug}`,
   });
 }

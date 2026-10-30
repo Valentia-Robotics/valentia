@@ -7,7 +7,7 @@ import { Contenedor } from "@/components/ui/Contenedor";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { obtenerKits } from "@/lib/catalogo";
-import { datosListaKits } from "@/lib/datosEstructurados";
+import { datosListaKits, datosMigas } from "@/lib/datosEstructurados";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -17,9 +17,9 @@ import { datosListaKits } from "@/lib/datosEstructurados";
 export const revalidate = 300;
 
 export const metadata: Metadata = metadatosPagina({
-  titulo: "Kits de robótica con curso",
+  titulo: "Kits de robótica para montar con curso",
   descripcion:
-    "Un coche que sigue líneas, un brazo robótico o una estación del tiempo. Cada kit trae todas las piezas y un curso en vídeo para montarlo sin saber programar.",
+    "Coche seguidor de líneas, brazo robótico y estación meteorológica con Arduino y ESP32. Cada kit trae todas las piezas y un curso en vídeo para montarlo sin saber programar.",
   ruta: "/kits",
 });
 
@@ -30,6 +30,12 @@ export default async function PaginaKits() {
   return (
     <Contenedor className="py-16 sm:py-24">
       {kits.length > 0 && <DatosEstructurados datos={datosListaKits(kits)} />}
+      <DatosEstructurados
+        datos={datosMigas([
+          { nombre: "Inicio", ruta: "/" },
+          { nombre: "Kits", ruta: "/kits" },
+        ])}
+      />
       <header className="max-w-2xl">
         <p className="text-sm font-medium tracking-wide text-acento uppercase">Kits Valentia</p>
         <h1 className="mt-3 text-4xl font-medium sm:text-6xl">Elige tu primer robot.</h1>

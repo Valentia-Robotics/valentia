@@ -6,7 +6,9 @@ import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { categorias } from "@/config/categorias";
+import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { obtenerComponentes } from "@/lib/catalogo";
+import { datosMigas } from "@/lib/datosEstructurados";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -16,9 +18,9 @@ import { obtenerComponentes } from "@/lib/catalogo";
 export const revalidate = 300;
 
 export const metadata: Metadata = metadatosPagina({
-  titulo: "Componentes de robótica",
+  titulo: "Componentes de robótica: Arduino, sensores y servos",
   descripcion:
-    "Placas Arduino y ESP32, motores, servos, sensores y baterías sueltos para ampliar tu robot o crear uno nuevo.",
+    "Placas Arduino UNO y ESP32, motores, servos, sensores, pantallas y baterías sueltos para ampliar tu robot o crear uno nuevo. Precios con IVA.",
   ruta: "/componentes",
 });
 
@@ -35,6 +37,12 @@ export default async function PaginaComponentes() {
 
   return (
     <Contenedor className="py-16 sm:py-24">
+      <DatosEstructurados
+        datos={datosMigas([
+          { nombre: "Inicio", ruta: "/" },
+          { nombre: "Componentes", ruta: "/componentes" },
+        ])}
+      />
       <header className="max-w-2xl">
         <p className="text-sm font-medium tracking-wide text-acento uppercase">Componentes</p>
         <h1 className="mt-3 text-4xl font-medium sm:text-6xl">Las piezas de tus ideas.</h1>

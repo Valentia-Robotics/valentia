@@ -1,10 +1,12 @@
+import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
+import { datosMigas } from "@/lib/datosEstructurados";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
 import { Configurador } from "@/components/configurador/Configurador";
 import { obtenerComponentes, obtenerKitsParaConfigurador } from "@/lib/catalogo";
 
 export const metadata: Metadata = metadatosPagina({
-  titulo: "Crea tu propio robot",
+  titulo: "Configurador: crea tu robot pieza a pieza",
   descripcion:
     "Elige placa, motores y sensores y monta tu robot pieza a pieza. Si algo no encaja, te avisamos y te decimos qué falta.",
   ruta: "/configurador",
@@ -27,10 +29,18 @@ export default async function PaginaConfigurador({ searchParams }: Props) {
   ]);
 
   return (
-    <Configurador
-      componentes={componentes}
-      kits={kits}
-      kitInicial={typeof kit === "string" ? kit : null}
-    />
+    <>
+      <DatosEstructurados
+        datos={datosMigas([
+          { nombre: "Inicio", ruta: "/" },
+          { nombre: "Configurador", ruta: "/configurador" },
+        ])}
+      />
+      <Configurador
+        componentes={componentes}
+        kits={kits}
+        kitInicial={typeof kit === "string" ? kit : null}
+      />
+    </>
   );
 }

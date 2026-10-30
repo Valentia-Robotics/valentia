@@ -27,7 +27,7 @@ describe("datos estructurados para Google", () => {
 
   it("presenta la tienda con su logo", () => {
     const [tienda, web] = datosTienda();
-    expect(tienda["@type"]).toBe("Organization");
+    expect(tienda["@type"]).toBe("OnlineStore");
     expect(tienda.logo).toMatch(/icono-512\.png$/);
     expect(web["@type"]).toBe("WebSite");
   });

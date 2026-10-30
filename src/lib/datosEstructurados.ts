@@ -20,18 +20,30 @@ export function datosTienda() {
   return [
     {
       "@context": "https://schema.org",
-      "@type": "Organization",
+      // Tienda online (un tipo de organización): Google la usa para el panel de la marca
+      "@type": "OnlineStore",
       "@id": `${web}/#tienda`,
       name: marca.nombre,
+      alternateName: "Valentia Robotics",
       url: `${web}/`,
       logo: urlAbsoluta("/images/brand/icono-512.png"),
+      image: urlAbsoluta("/opengraph-image"),
       description: marca.descripcion,
+      slogan: marca.lema,
+      knowsLanguage: "es-ES",
+      areaServed: tienda.envio.provincias.map((p) => ({
+        "@type": "AdministrativeArea",
+        name: p.nombre,
+      })),
+      hasMerchantReturnPolicy: datosDevolucion(),
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "@id": `${web}/#web`,
       name: marca.nombre,
+      alternateName: ["Valentia Robotics", "valentiarobotics.com"],
+      description: marca.descripcion,
       url: `${web}/`,
       inLanguage: "es-ES",
       publisher: { "@id": `${web}/#tienda` },
@@ -46,6 +58,7 @@ interface KitParaGoogle {
   descripcion: string;
   imagen: string;
   precioCentimos: number;
+  edadMinima?: number;
 }
 
 /** Reseñas publicadas del kit (media de 1 a 5, total y las más recientes) */
@@ -69,6 +82,10 @@ export function datosKit(kit: KitParaGoogle, aLaVenta: boolean, resenas?: Resena
     // Google prefiere fotos normales (PNG/JPG): la foto 3D del kit en PNG y, por si acaso, la de la web
     image: [urlAbsoluta(`/images/redes/kits/${kit.slug}.png`), urlAbsoluta(kit.imagen)],
     sku: kit.slug,
+    category: "Juguetes y juegos > Juguetes educativos > Kits de robótica",
+    ...(kit.edadMinima
+      ? { audience: { "@type": "PeopleAudience", suggestedMinAge: kit.edadMinima } }
+      : {}),
     url,
     brand: { "@type": "Brand", name: marca.nombre },
     offers: {
