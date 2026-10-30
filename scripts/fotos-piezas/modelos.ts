@@ -1550,13 +1550,13 @@ function brazoImpreso(t: Taller) {
     // Carro del dedo
     t.redonda(0.32, 0.85, 1.6, 0.1, tapaMat, 0.62, s * 0.95, 0, pinza);
     // Dedo grueso y plano, con la punta en bisel por fuera
-    const L = 2.7;
+    const L = 1.8;
     const e = 0.52;
     const perfil = new Shape();
     perfil.moveTo(0, 0);
     perfil.lineTo(L, 0);
     perfil.lineTo(L, e * 0.35);
-    perfil.lineTo(L - 0.7, e);
+    perfil.lineTo(L - 0.5, e);
     perfil.lineTo(0, e);
     perfil.lineTo(0, 0);
     const g = new ExtrudeGeometry(perfil, {
