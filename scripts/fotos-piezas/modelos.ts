@@ -1485,7 +1485,15 @@ function brazoImpreso(t: Taller) {
     const x0 = xEje - largo;
     const fuera = interior / 2 + grosor;
     // Base de la U (une las dos mejillas)
-    t.malla(new RoundedBoxGeometry(1.6, 2 * R, 2 * fuera, 5, 0.45), cuerpo, x0 + 0.8, 0, 0, padre);
+    const b = Math.min(1.6, R * 0.9);
+    t.malla(
+      new RoundedBoxGeometry(b, 2 * R, 2 * fuera, 5, Math.min(0.45, R * 0.3)),
+      cuerpo,
+      x0 + b / 2,
+      0,
+      0,
+      padre,
+    );
     for (const s of [-1, 1]) {
       const g = new ExtrudeGeometry(estadio(largo, 2 * R), {
         depth: grosor - 0.3,
@@ -1543,6 +1551,7 @@ function brazoImpreso(t: Taller) {
   };
 
   // ---------- Base: pie torneado con la electrónica dentro ----------
+  const nBase = raiz.children.length;
   torneado(
     [
       [0, 0],
@@ -1607,59 +1616,70 @@ function brazoImpreso(t: Taller) {
   tecla.rotation.x = 0.18;
   t.cilindro(0.12, 0.12, luz, 1.65, 1.75, 7.5, "z", 16, 0.12, panel);
 
-  // ---------- 2.ª articulación: hombro (horquilla sobre la plataforma) ----------
-  const hombro = grupo(raiz, 0, 5.75, Math.PI / 2); // aquí x apunta hacia arriba
-  horquilla(hombro, 5.6, 5.6, 2.6, 4.6, 1.0);
+  // La base, más pequeña que el resto de medidas de arriba (el brazo es alto y fino)
+  const pie = new Group();
+  pie.scale.setScalar(0.62);
+  for (const hijo of raiz.children.slice(nBase)) pie.add(hijo);
+  raiz.add(pie);
+  const yPlataforma = 5.78 * 0.62;
 
-  // ---------- Brazo (hombro → codo): entra en la horquilla del hombro y acaba en la del codo ----------
-  const L1 = 12;
-  const brazo = grupo(hombro, 5.6, 0, 1.12 - Math.PI / 2);
-  lengua(brazo, 2.45, 4.45);
-  barra(brazo, 0.6, L1 - 3.6, 3.9, 4.45);
-  horquilla(brazo, L1, 3.0, 2.15, 3.6, 0.85);
+  // ---------- 1.ª articulación: bloque que gira sobre la base ----------
+  t.redonda(3.4, 2.4, 3.4, 0.7, cuerpo, 0, yPlataforma + 1.2, 0);
+  t.cilindro(1.75, 0.05, ranura, 0, yPlataforma + 0.5, 0, "y", 64, 1.75);
 
-  // ---------- Antebrazo: 3.ª (codo), 4.ª (gira sobre sí mismo) y horquilla de la muñeca ----------
-  const L2 = 10;
-  const antebrazo = grupo(brazo, L1, 0, -1.72);
-  lengua(antebrazo, 2.0, 3.45);
-  barra(antebrazo, 0.4, 2.4, 3.5, 3.45);
-  rodillo(antebrazo, 3.75, 1.65, 1.1);
-  barra(antebrazo, 4.6, L2 - 2.4 - 4.6, 3.0, 3.1);
-  horquilla(antebrazo, L2, 2.4, 1.7, 2.9, 0.7);
+  // ---------- 2.ª articulación: hombro (U pequeña sobre el bloque) ----------
+  const hombro = grupo(raiz, 0, yPlataforma + 2.3, Math.PI / 2); // aquí x apunta hacia arriba
+  horquilla(hombro, 2.6, 2.6, 1.45, 2.5, 0.6);
+
+  // ---------- Brazo (hombro → codo), casi vertical ----------
+  const L1 = 9.5;
+  const brazo = grupo(hombro, 2.6, 0, 1.38 - Math.PI / 2);
+  lengua(brazo, 1.38, 2.4);
+  barra(brazo, 0.4, L1 - 2.6, 2.2, 2.4);
+  horquilla(brazo, L1, 2.2, 1.3, 2.2, 0.55);
+
+  // ---------- Antebrazo: 3.ª (codo), 4.ª (gira sobre sí mismo) y U de la muñeca ----------
+  const L2 = 8;
+  const antebrazo = grupo(brazo, L1, 0, -1.62);
+  lengua(antebrazo, 1.22, 2.1);
+  barra(antebrazo, 0.3, 1.8, 2.1, 2.1);
+  rodillo(antebrazo, 2.9, 1.05, 0.8);
+  barra(antebrazo, 3.5, L2 - 2.0 - 3.5, 1.9, 1.95);
+  horquilla(antebrazo, L2, 2.0, 1.15, 1.95, 0.5);
 
   // ---------- Muñeca: 5.ª (sube y baja) y 6.ª (gira la pinza) ----------
-  const muneca = grupo(antebrazo, L2, 0, -0.8);
-  lengua(muneca, 1.6, 2.75);
-  barra(muneca, 0.3, 1.6, 2.9, 2.75);
-  rodillo(muneca, 3.0, 1.35, 0.9);
-  // Brida donde se atornilla la pinza
-  t.cilindro(1.55, 0.3, junta, 3.6, 0, 0, "x", 64, 1.55, muneca);
-  corona(muneca, [3.75, 0, 0], 1.12, 6, "x", 1, 0.09);
+  const muneca = grupo(antebrazo, L2, 0, -0.95);
+  lengua(muneca, 1.08, 1.85);
+  barra(muneca, 0.2, 1.2, 1.9, 1.85);
+  rodillo(muneca, 2.15, 0.95, 0.7);
+  t.cilindro(1.15, 0.25, junta, 2.62, 0, 0, "x", 64, 1.15, muneca);
+  corona(muneca, [2.75, 0, 0], 0.82, 6, "x", 1, 0.07);
 
-  // ---------- Pinza de dedos paralelos (abre hacia arriba y abajo, así se ven los dos) ----------
+  // ---------- Pinza grande de dedos paralelos (abre hacia arriba y abajo, así se ven los dos) ----------
   const pinza = new Group();
-  pinza.position.x = 3.75;
+  pinza.position.x = 2.75;
   pinza.rotation.x = Math.PI / 2;
   muneca.add(pinza);
-  // Cuerpo: aloja el servo que abre y cierra
-  t.redonda(2.8, 3.0, 3.4, 0.8, cuerpo, 1.4, 0, 0, pinza);
-  junturaCarcasa(pinza, 3.43, 3.03, 0.8, 1.4, Math.PI / 2);
-  for (const s of [-1, 1]) corona(pinza, [1.4, 0, s * 1.7], 0.0, 1, "z", s, 0.1);
+  // Cuerpo: aloja el servo que abre y cierra (más ancho que la muñeca, como una mano)
+  t.redonda(2.6, 2.6, 3.6, 0.7, cuerpo, 1.3, 0, 0, pinza);
+  junturaCarcasa(pinza, 3.63, 2.63, 0.7, 1.3, Math.PI / 2);
   // Guía con dos raíles por la que se deslizan los dedos
-  t.redonda(0.9, 1.9, 4.2, 0.35, junta, 3.2, 0, 0, pinza);
-  for (const s of [-1, 1]) t.cilindro(0.09, 3.8, tornillo, 3.68, s * 0.55, 0, "z", 16, 0.09, pinza);
+  t.redonda(0.8, 2.2, 3.6, 0.3, junta, 2.95, 0, 0, pinza);
+  for (const s of [-1, 1]) t.cilindro(0.08, 3.4, tornillo, 3.37, s * 0.6, 0, "z", 16, 0.08, pinza);
   for (const s of [-1, 1]) {
     const dedo = new Group();
-    dedo.position.set(3.4, 0, s * 0.9);
+    dedo.position.set(3.1, 0, s * 1.15);
     pinza.add(dedo);
-    // Dedo: más grueso junto a la guía y más fino en la punta
-    t.redonda(2.0, 1.8, 0.75, 0.3, cuerpo, 1.0, 0, 0, dedo);
-    t.redonda(2.6, 1.4, 0.5, 0.22, cuerpo, 2.7, 0, -s * 0.12, dedo);
-    t.cilindro(0.09, 0.06, tornillo, 0.6, 0.45, s * 0.38, "z", 16, 0.09, dedo);
-    t.cilindro(0.09, 0.06, tornillo, 0.6, -0.45, s * 0.38, "z", 16, 0.09, dedo);
+    // Dedo grueso y ancho, con la punta algo más estrecha
+    t.redonda(3.4, 2.2, 1.1, 0.35, cuerpo, 1.7, 0, 0, dedo);
+    t.redonda(1.4, 1.7, 0.9, 0.3, cuerpo, 3.8, 0, -s * 0.08, dedo);
+    t.malla(new RoundedBoxGeometry(2.0, 1.0, 0.04, 2, 0.015), ranura, 1.6, 0, s * 0.56, dedo);
+    t.cilindro(0.08, 0.06, tornillo, 0.5, 0.6, s * 0.56, "z", 16, 0.08, dedo);
+    t.cilindro(0.08, 0.06, tornillo, 0.5, -0.6, s * 0.56, "z", 16, 0.08, dedo);
     // Almohadilla de goma con estrías, por dentro
-    t.redonda(2.3, 1.2, 0.12, 0.05, goma, 2.65, 0, -s * 0.42, dedo);
-    for (let i = 0; i < 6; i++) t.caja(0.05, 1.1, 0.04, ranura, 1.7 + i * 0.38, 0, -s * 0.49, dedo);
+    t.redonda(3.4, 1.7, 0.14, 0.05, goma, 2.6, 0, -s * 0.6, dedo);
+    for (let i = 0; i < 9; i++)
+      t.caja(0.05, 1.55, 0.04, ranura, 1.1 + i * 0.38, 0, -s * 0.68, dedo);
   }
 }
 
