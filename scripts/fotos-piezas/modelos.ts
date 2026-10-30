@@ -1339,7 +1339,8 @@ function placaConHueco(
 
 // ------------------------------------------------------------------------------------
 // Brazo robótico del kit: carcasa impresa en 3D, negra mate, que esconde los servos MG996R.
-// Base (giro), hombro, codo y muñeca con pinza de dedos paralelos. La placa y las pilas van
+// 6 articulaciones (base, hombro, codo, giro del antebrazo, muñeca y giro de la pinza) y pinza
+// de dedos paralelos. La placa y las pilas van
 // dentro de la base; delante, el USB, el interruptor y la luz de encendido. Medidas en cm.
 // ------------------------------------------------------------------------------------
 function brazoImpreso(t: Taller) {
@@ -1358,8 +1359,8 @@ function brazoImpreso(t: Taller) {
   const luz = t.mat({ color: 0x2d4bff, emissive: 0x2d4bff, emissiveIntensity: 0.9 });
 
   /** Pieza con perfil de revolución (de abajo arriba): [radio, altura] */
-  const torneado = (perfil: [number, number][], material: Material, y: number) => {
-    const m = t.malla(
+  const torneado = (perfil: [number, number][], material: Material, y: number) =>
+    t.malla(
       new LatheGeometry(
         perfil.map(([r, h]) => new Vector2(r, h)),
         96,
@@ -1369,8 +1370,6 @@ function brazoImpreso(t: Taller) {
       y,
       0,
     );
-    return m;
-  };
 
   /** Ranura fina entre las dos mitades de una carcasa (en el plano xy, centrada en z = 0) */
   const junturaCarcasa = (
@@ -1381,17 +1380,39 @@ function brazoImpreso(t: Taller) {
     x: number,
     giroY: number,
   ) => {
-    const g = new ExtrudeGeometry(rectanguloRedondo(w, h, r), { depth: 0.05, bevelEnabled: false });
+    const g = new ExtrudeGeometry(rectanguloRedondo(w, h, r), {
+      depth: 0.05,
+      bevelEnabled: false,
+    });
     g.translate(0, 0, -0.025);
     const m = t.malla(g, ranura, x, 0, 0, padre);
     m.rotation.y = giroY;
     return m;
   };
 
-  /** Barra redondeada (como una cápsula aplastada) a lo largo de x, desde x = 0 hasta `largo` */
-  const barra = (padre: Group, largo: number, alto: number, ancho: number, x0 = 0) => {
+  /** Tornillos de cabeza redonda en círculo, sobre una cara perpendicular a `eje` */
+  const corona = (
+    padre: Group,
+    [x, y, z]: [number, number, number],
+    radio: number,
+    n: number,
+    eje: "x" | "z",
+    sentido: number,
+    r = 0.11,
+  ) => {
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + Math.PI / n;
+      const [u, v] = [Math.cos(a) * radio, Math.sin(a) * radio];
+      if (eje === "z")
+        t.cilindro(r, 0.07, tornillo, x + u, y + v, z + sentido * 0.035, "z", 16, r, padre);
+      else t.cilindro(r, 0.07, tornillo, x + sentido * 0.035, y + v, z + u, "x", 16, r, padre);
+    }
+  };
+
+  /** Barra de la carcasa (cápsula aplastada) a lo largo de x, con tapas atornilladas a los lados */
+  const barra = (padre: Group, x0: number, largo: number, alto: number, ancho: number) => {
     const r = Math.min(alto, ancho) / 2 - 0.01;
-    const m = t.malla(
+    t.malla(
       new RoundedBoxGeometry(largo + alto, alto, ancho, 6, r),
       cuerpo,
       x0 + largo / 2,
@@ -1399,35 +1420,87 @@ function brazoImpreso(t: Taller) {
       0,
       padre,
     );
-    // Junta de las dos mitades de la carcasa (una ranura fina alrededor)
     junturaCarcasa(padre, largo + alto + 0.03, alto + 0.03, r, x0 + largo / 2, 0);
-    return m;
-  };
-
-  /** Articulación: cilindro a lo largo de z con tapas, anillo y tornillos */
-  const articulacion = (padre: Group, x: number, y: number, r: number, ancho: number) => {
-    t.cilindro(r, ancho, cuerpo, x, y, 0, "z", 64, r, padre);
+    if (largo < 3) return;
+    // Tapa de servicio a cada lado (se quita para ver el servo), con cuatro tornillos
+    const [w, h] = [largo * 0.62, alto * 0.5];
     for (const s of [-1, 1]) {
-      const z = s * (ancho / 2);
-      t.cilindro(r * 0.96, 0.16, junta, x, y, z + s * 0.08, "z", 64, r * 0.96, padre);
-      t.cilindro(r * 0.7, 0.12, cuerpo, x, y, z + s * 0.2, "z", 64, r * 0.7, padre);
-      t.cilindro(r * 0.2, 0.06, ranura, x, y, z + s * 0.27, "z", 32, r * 0.2, padre);
-      for (let i = 0; i < 4; i++) {
-        const a = Math.PI / 4 + (i * Math.PI) / 2;
+      const z = s * (ancho / 2 + 0.01);
+      t.malla(new RoundedBoxGeometry(w, h, 0.08, 3, 0.03), junta, x0 + largo / 2, 0, z, padre);
+      for (const [dx, dy] of [
+        [-1, -1],
+        [1, -1],
+        [-1, 1],
+        [1, 1],
+      ])
         t.cilindro(
-          0.12,
+          0.09,
           0.06,
           tornillo,
-          x + Math.cos(a) * r * 0.48,
-          y + Math.sin(a) * r * 0.48,
-          z + s * 0.27,
+          x0 + largo / 2 + dx * (w / 2 - 0.3),
+          dy * (h / 2 - 0.25),
+          z + s * 0.05,
           "z",
           16,
-          0.12,
+          0.09,
           padre,
         );
-      }
     }
+  };
+
+  /**
+   * Módulo de articulación que gira sobre z (hombro, codo, muñeca): carcasa cilíndrica con los
+   * cantos achaflanados, ranuras de cierre y una tapa a cada lado con anillo, tornillos y una luz.
+   */
+  const modulo = (padre: Group, x: number, y: number, r: number, ancho: number) => {
+    const c = 0.18; // chaflán
+    const nucleo = ancho - 2 * c;
+    t.cilindro(r, nucleo, cuerpo, x, y, 0, "z", 72, r, padre);
+    for (const s of [-1, 1]) {
+      const zc = s * (nucleo / 2 + c / 2);
+      // radioArriba = lado +z
+      t.cilindro(s > 0 ? r : r - c, c, cuerpo, x, y, zc, "z", 72, s > 0 ? r - c : r, padre);
+      t.cilindro(r + 0.004, 0.05, ranura, x, y, s * (nucleo / 2 - 0.55), "z", 72, r + 0.004, padre);
+      const z0 = s * (ancho / 2);
+      t.cilindro(r - c - 0.05, 0.12, junta, x, y, z0 + s * 0.06, "z", 72, r - c - 0.05, padre);
+      t.cilindro(r * 0.66, 0.1, cuerpo, x, y, z0 + s * 0.17, "z", 72, r * 0.66, padre);
+      t.cilindro(r * 0.26, 0.1, junta, x, y, z0 + s * 0.24, "z", 48, r * 0.26, padre);
+      t.cilindro(r * 0.1, 0.04, ranura, x, y, z0 + s * 0.3, "z", 24, r * 0.1, padre);
+      corona(padre, [x, y, z0 + s * 0.22], r * 0.46, 6, "z", s);
+      // Luz de estado del motor
+      const a = Math.PI * 0.62;
+      t.cilindro(
+        0.07,
+        0.04,
+        luz,
+        x + Math.cos(a) * (r - c - 0.27),
+        y + Math.sin(a) * (r - c - 0.27),
+        z0 + s * 0.13,
+        "z",
+        16,
+        0.07,
+        padre,
+      );
+    }
+  };
+
+  /** Módulo que gira sobre su propio eje (x): un collar con ranuras a cada lado */
+  const rodillo = (padre: Group, x: number, r: number, largo: number) => {
+    t.cilindro(r, largo, cuerpo, x, 0, 0, "x", 64, r, padre);
+    t.cilindro(r + 0.07, 0.3, junta, x, 0, 0, "x", 64, r + 0.07, padre);
+    for (const s of [-1, 1])
+      t.cilindro(
+        r + 0.004,
+        0.05,
+        ranura,
+        x + s * (largo / 2 - 0.12),
+        0,
+        0,
+        "x",
+        64,
+        r + 0.004,
+        padre,
+      );
   };
 
   const grupo = (padre: Group, x: number, y: number, giro: number) => {
@@ -1452,7 +1525,24 @@ function brazoImpreso(t: Taller) {
     cuerpo,
     0,
   );
-  // Anillo de luz azul entre el pie y la plataforma que gira
+  t.cilindro(7.404, 0.05, ranura, 0, 0.75, 0, "y", 96);
+  // Rejilla de ventilación alrededor (menos delante, donde va el panel)
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * Math.PI * 2;
+    if (Math.abs(Math.atan2(Math.sin(a - 0.5), Math.cos(a - 0.5))) < 0.55) continue;
+    const ranuraVent = t.redonda(
+      0.14,
+      1.1,
+      0.12,
+      0.05,
+      ranura,
+      Math.sin(a) * 7.37,
+      1.95,
+      Math.cos(a) * 7.37,
+    );
+    ranuraVent.rotation.y = a;
+  }
+  // Anillo de luz azul entre el pie y la plataforma que gira (1.ª articulación)
   t.cilindro(5.6, 0.18, luz, 0, 3.79, 0, "y", 96);
   torneado(
     [
@@ -1465,6 +1555,10 @@ function brazoImpreso(t: Taller) {
     cuerpo,
     3.88,
   );
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    t.cilindro(0.13, 0.07, tornillo, Math.cos(a) * 4.6, 5.8, Math.sin(a) * 4.6, "y", 16);
+  }
   // Patas de goma
   for (let i = 0; i < 4; i++) {
     const a = Math.PI / 4 + (i * Math.PI) / 2;
@@ -1482,48 +1576,78 @@ function brazoImpreso(t: Taller) {
   tecla.rotation.x = 0.18;
   t.cilindro(0.12, 0.12, luz, 1.65, 1.75, 7.5, "z", 16, 0.12, panel);
 
-  // ---------- Hombro: horquilla sobre la plataforma ----------
-  const yHombro = 9.4;
-  for (const s of [-1, 1]) {
-    // Cada lado de la horquilla es una pieza redondeada que sube hasta el eje
-    t.redonda(4.4, 4.2, 1.1, 0.5, cuerpo, 0, 7.6, s * 2.45);
-  }
-  t.redonda(4.6, 1.6, 6.0, 0.6, cuerpo, 0, 6.3, 0);
-  articulacion(raiz, 0, yHombro, 2.2, 6.0);
+  // ---------- Columna (1.ª articulación: gira toda la parte de arriba) ----------
+  torneado(
+    [
+      [0, 0],
+      [3.5, 0],
+      [3.5, 0.35],
+      [3.3, 0.5],
+      [3.2, 4.2],
+      [0, 4.2],
+    ],
+    cuerpo,
+    5.78,
+  );
+  t.cilindro(3.48, 0.08, junta, 0, 6.2, 0, "y", 96);
+  t.cilindro(3.27, 0.05, ranura, 0, 8.2, 0, "y", 96);
+  // Soporte del hombro: une la columna con el módulo del hombro
+  const yHombro = 12.3;
+  t.redonda(5.2, 2.6, 5.8, 0.9, cuerpo, 0, 10.3, 0);
+
+  // ---------- 2.ª articulación: hombro ----------
+  modulo(raiz, 0, yHombro, 2.7, 6.6);
 
   // ---------- Brazo (hombro → codo) ----------
-  const L1 = 11.5;
-  const brazo = grupo(raiz, 0, yHombro, 1.05);
-  barra(brazo, L1, 3.4, 3.6);
-  articulacion(brazo, L1, 0, 1.95, 4.4);
+  const L1 = 12;
+  const brazo = grupo(raiz, 0, yHombro, 1.12);
+  barra(brazo, 0, L1, 3.7, 4.2);
 
-  // ---------- Antebrazo (codo → muñeca) ----------
-  const L2 = 9.5;
-  const antebrazo = grupo(brazo, L1, 0, -1.55);
-  barra(antebrazo, L2, 2.9, 3.0);
-  articulacion(antebrazo, L2, 0, 1.6, 3.6);
+  // ---------- 3.ª articulación: codo ----------
+  modulo(brazo, L1, 0, 2.3, 5.2);
 
-  // ---------- Muñeca y pinza ----------
-  const muneca = grupo(antebrazo, L2, 0, -0.55);
-  // La pinza abre hacia arriba y hacia abajo (así se ven los dos dedos)
+  // ---------- Antebrazo, con la 4.ª articulación (gira sobre sí mismo) ----------
+  const L2 = 10.5;
+  const antebrazo = grupo(brazo, L1, 0, -1.75);
+  barra(antebrazo, 0, 2.6, 3.3, 3.8);
+  rodillo(antebrazo, 4.0, 1.6, 1.5);
+  barra(antebrazo, 4.9, L2 - 4.9, 2.8, 3.0);
+
+  // ---------- 5.ª articulación: muñeca (sube y baja la pinza) ----------
+  modulo(antebrazo, L2, 0, 1.75, 4.0);
+
+  // ---------- Muñeca, con la 6.ª articulación (gira la pinza) ----------
+  const muneca = grupo(antebrazo, L2, 0, -0.72);
+  barra(muneca, 0, 2.2, 2.7, 3.1);
+  rodillo(muneca, 3.6, 1.3, 1.2);
+  // Brida donde se atornilla la pinza
+  t.cilindro(1.55, 0.3, junta, 4.35, 0, 0, "x", 64, 1.55, muneca);
+  corona(muneca, [4.5, 0, 0], 1.12, 6, "x", 1, 0.09);
+
+  // ---------- Pinza de dedos paralelos (abre hacia arriba y abajo, así se ven los dos) ----------
   const pinza = new Group();
+  pinza.position.x = 4.5;
   pinza.rotation.x = Math.PI / 2;
   muneca.add(pinza);
-  // Cuerpo de la pinza: aloja el servo que la abre y la cierra
-  t.redonda(4.6, 2.9, 3.4, 0.9, cuerpo, 2.4, 0, 0, pinza);
-  junturaCarcasa(muneca, 3.43, 2.93, 0.9, 3.2, Math.PI / 2);
-  // Guía por la que se deslizan los dedos
-  t.redonda(0.9, 1.8, 3.8, 0.35, junta, 4.85, 0, 0, pinza);
+  // Cuerpo: aloja el servo que abre y cierra
+  t.redonda(2.8, 3.0, 3.4, 0.8, cuerpo, 1.4, 0, 0, pinza);
+  junturaCarcasa(pinza, 3.43, 3.03, 0.8, 1.4, Math.PI / 2);
+  for (const s of [-1, 1]) corona(pinza, [1.4, 0, s * 1.7], 0.0, 1, "z", s, 0.1);
+  // Guía con dos raíles por la que se deslizan los dedos
+  t.redonda(0.9, 1.9, 4.2, 0.35, junta, 3.2, 0, 0, pinza);
+  for (const s of [-1, 1]) t.cilindro(0.09, 3.8, tornillo, 3.68, s * 0.55, 0, "z", 16, 0.09, pinza);
   for (const s of [-1, 1]) {
     const dedo = new Group();
-    dedo.position.set(5.0, 0, s * 0.9);
+    dedo.position.set(3.4, 0, s * 0.9);
     pinza.add(dedo);
     // Dedo: más grueso junto a la guía y más fino en la punta
     t.redonda(2.0, 1.8, 0.75, 0.3, cuerpo, 1.0, 0, 0, dedo);
-    t.redonda(2.4, 1.4, 0.5, 0.22, cuerpo, 2.6, 0, -s * 0.12, dedo);
+    t.redonda(2.6, 1.4, 0.5, 0.22, cuerpo, 2.7, 0, -s * 0.12, dedo);
+    t.cilindro(0.09, 0.06, tornillo, 0.6, 0.45, s * 0.38, "z", 16, 0.09, dedo);
+    t.cilindro(0.09, 0.06, tornillo, 0.6, -0.45, s * 0.38, "z", 16, 0.09, dedo);
     // Almohadilla de goma con estrías, por dentro
-    t.redonda(2.2, 1.2, 0.12, 0.05, goma, 2.5, 0, -s * 0.42, dedo);
-    for (let i = 0; i < 6; i++) t.caja(0.05, 1.1, 0.04, ranura, 1.6 + i * 0.36, 0, -s * 0.49, dedo);
+    t.redonda(2.3, 1.2, 0.12, 0.05, goma, 2.65, 0, -s * 0.42, dedo);
+    for (let i = 0; i < 6; i++) t.caja(0.05, 1.1, 0.04, ranura, 1.7 + i * 0.38, 0, -s * 0.49, dedo);
   }
 }
 
