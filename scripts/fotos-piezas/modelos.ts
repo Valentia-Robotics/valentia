@@ -1448,40 +1448,71 @@ function brazoImpreso(t: Taller) {
     }
   };
 
+  /** Tapa redonda de una articulación (por fuera de la horquilla): anillo, tornillos y luz */
+  const tapa = (padre: Group, x: number, z: number, r: number, s: number) => {
+    t.cilindro(r, 0.12, junta, x, 0, z + s * 0.06, "z", 64, r, padre);
+    t.cilindro(r * 0.72, 0.1, cuerpo, x, 0, z + s * 0.16, "z", 64, r * 0.72, padre);
+    t.cilindro(r * 0.3, 0.1, junta, x, 0, z + s * 0.24, "z", 48, r * 0.3, padre);
+    t.cilindro(r * 0.11, 0.04, ranura, x, 0, z + s * 0.3, "z", 24, r * 0.11, padre);
+    corona(padre, [x, 0, z + s * 0.21], r * 0.5, 6, "z", s, r * 0.06);
+    const a = Math.PI * 0.62;
+    t.cilindro(
+      0.07,
+      0.04,
+      luz,
+      x + Math.cos(a) * (r - 0.2),
+      Math.sin(a) * (r - 0.2),
+      z + s * 0.13,
+      "z",
+      16,
+      0.07,
+      padre,
+    );
+  };
+
   /**
-   * Módulo de articulación que gira sobre z (hombro, codo, muñeca): carcasa cilíndrica con los
-   * cantos achaflanados, ranuras de cierre y una tapa a cada lado con anillo, tornillos y una luz.
+   * Horquilla en U al final de una pieza: base y dos mejillas redondeadas que abrazan a la pieza
+   * siguiente (y a su servo, que queda escondido dentro). El eje de giro queda en x = `xEje`, sobre z.
    */
-  const modulo = (padre: Group, x: number, y: number, r: number, ancho: number) => {
-    const c = 0.18; // chaflán
-    const nucleo = ancho - 2 * c;
-    t.cilindro(r, nucleo, cuerpo, x, y, 0, "z", 72, r, padre);
+  const horquilla = (
+    padre: Group,
+    xEje: number,
+    largo: number,
+    R: number,
+    interior: number,
+    grosor: number,
+  ) => {
+    const x0 = xEje - largo;
+    const fuera = interior / 2 + grosor;
+    // Base de la U (une las dos mejillas)
+    t.malla(new RoundedBoxGeometry(1.6, 2 * R, 2 * fuera, 5, 0.45), cuerpo, x0 + 0.8, 0, 0, padre);
     for (const s of [-1, 1]) {
-      const zc = s * (nucleo / 2 + c / 2);
-      // radioArriba = lado +z
-      t.cilindro(s > 0 ? r : r - c, c, cuerpo, x, y, zc, "z", 72, s > 0 ? r - c : r, padre);
-      t.cilindro(r + 0.004, 0.05, ranura, x, y, s * (nucleo / 2 - 0.55), "z", 72, r + 0.004, padre);
-      const z0 = s * (ancho / 2);
-      t.cilindro(r - c - 0.05, 0.12, junta, x, y, z0 + s * 0.06, "z", 72, r - c - 0.05, padre);
-      t.cilindro(r * 0.66, 0.1, cuerpo, x, y, z0 + s * 0.17, "z", 72, r * 0.66, padre);
-      t.cilindro(r * 0.26, 0.1, junta, x, y, z0 + s * 0.24, "z", 48, r * 0.26, padre);
-      t.cilindro(r * 0.1, 0.04, ranura, x, y, z0 + s * 0.3, "z", 24, r * 0.1, padre);
-      corona(padre, [x, y, z0 + s * 0.22], r * 0.46, 6, "z", s);
-      // Luz de estado del motor
-      const a = Math.PI * 0.62;
-      t.cilindro(
-        0.07,
-        0.04,
-        luz,
-        x + Math.cos(a) * (r - c - 0.27),
-        y + Math.sin(a) * (r - c - 0.27),
-        z0 + s * 0.13,
-        "z",
-        16,
-        0.07,
-        padre,
-      );
+      const g = new ExtrudeGeometry(estadio(largo, 2 * R), {
+        depth: grosor - 0.3,
+        bevelEnabled: true,
+        bevelSize: 0.15,
+        bevelThickness: 0.15,
+        bevelSegments: 4,
+        curveSegments: 48,
+      });
+      g.translate(0, 0, s > 0 ? interior / 2 + 0.15 : -fuera + 0.15);
+      t.malla(g, cuerpo, x0, 0, 0, padre);
+      // Hendidura decorativa en la cara de fuera de la mejilla
+      const h = new ExtrudeGeometry(estadio(largo * 0.5, R * 0.5), {
+        depth: 0.04,
+        bevelEnabled: false,
+      });
+      h.translate(0, 0, s * fuera - (s > 0 ? 0.02 : 0.02));
+      t.malla(h, ranura, x0 + R * 0.6, 0, 0, padre);
+      tapa(padre, xEje, s * fuera, R * 0.78, s);
     }
+  };
+
+  /** Comienzo redondeado de una pieza (lo que entra en la horquilla anterior), con el eje en x = 0 */
+  const lengua = (padre: Group, R: number, ancho: number) => {
+    t.cilindro(R, ancho, cuerpo, 0, 0, 0, "z", 64, R, padre);
+    for (const s of [-1, 1])
+      t.cilindro(R + 0.004, 0.05, ranura, 0, 0, s * (ancho / 2 - 0.3), "z", 64, R + 0.004, padre);
   };
 
   /** Módulo que gira sobre su propio eje (x): un collar con ranuras a cada lado */
@@ -1542,7 +1573,7 @@ function brazoImpreso(t: Taller) {
     );
     ranuraVent.rotation.y = a;
   }
-  // Anillo de luz azul entre el pie y la plataforma que gira (1.ª articulación)
+  // Anillo de luz azul entre el pie y la plataforma que gira (1.ª articulación: gira todo el brazo)
   t.cilindro(5.6, 0.18, luz, 0, 3.79, 0, "y", 96);
   torneado(
     [
@@ -1576,57 +1607,38 @@ function brazoImpreso(t: Taller) {
   tecla.rotation.x = 0.18;
   t.cilindro(0.12, 0.12, luz, 1.65, 1.75, 7.5, "z", 16, 0.12, panel);
 
-  // ---------- Columna (1.ª articulación: gira toda la parte de arriba) ----------
-  torneado(
-    [
-      [0, 0],
-      [3.5, 0],
-      [3.5, 0.35],
-      [3.3, 0.5],
-      [3.2, 4.2],
-      [0, 4.2],
-    ],
-    cuerpo,
-    5.78,
-  );
-  t.cilindro(3.48, 0.08, junta, 0, 6.2, 0, "y", 96);
-  t.cilindro(3.27, 0.05, ranura, 0, 8.2, 0, "y", 96);
-  // Soporte del hombro: une la columna con el módulo del hombro
-  const yHombro = 12.3;
-  t.redonda(5.2, 2.6, 5.8, 0.9, cuerpo, 0, 10.3, 0);
+  // ---------- 2.ª articulación: hombro (horquilla sobre la plataforma) ----------
+  const hombro = grupo(raiz, 0, 5.75, Math.PI / 2); // aquí x apunta hacia arriba
+  horquilla(hombro, 5.6, 5.6, 2.6, 4.6, 1.0);
 
-  // ---------- 2.ª articulación: hombro ----------
-  modulo(raiz, 0, yHombro, 2.7, 6.6);
-
-  // ---------- Brazo (hombro → codo) ----------
+  // ---------- Brazo (hombro → codo): entra en la horquilla del hombro y acaba en la del codo ----------
   const L1 = 12;
-  const brazo = grupo(raiz, 0, yHombro, 1.12);
-  barra(brazo, 0, L1, 3.7, 4.2);
+  const brazo = grupo(hombro, 5.6, 0, 1.12 - Math.PI / 2);
+  lengua(brazo, 2.45, 4.45);
+  barra(brazo, 0.6, L1 - 3.6, 3.9, 4.45);
+  horquilla(brazo, L1, 3.0, 2.15, 3.6, 0.85);
 
-  // ---------- 3.ª articulación: codo ----------
-  modulo(brazo, L1, 0, 2.3, 5.2);
+  // ---------- Antebrazo: 3.ª (codo), 4.ª (gira sobre sí mismo) y horquilla de la muñeca ----------
+  const L2 = 10;
+  const antebrazo = grupo(brazo, L1, 0, -1.72);
+  lengua(antebrazo, 2.0, 3.45);
+  barra(antebrazo, 0.4, 2.4, 3.5, 3.45);
+  rodillo(antebrazo, 3.75, 1.65, 1.1);
+  barra(antebrazo, 4.6, L2 - 2.4 - 4.6, 3.0, 3.1);
+  horquilla(antebrazo, L2, 2.4, 1.7, 2.9, 0.7);
 
-  // ---------- Antebrazo, con la 4.ª articulación (gira sobre sí mismo) ----------
-  const L2 = 10.5;
-  const antebrazo = grupo(brazo, L1, 0, -1.75);
-  barra(antebrazo, 0, 2.6, 3.3, 3.8);
-  rodillo(antebrazo, 4.0, 1.6, 1.5);
-  barra(antebrazo, 4.9, L2 - 4.9, 2.8, 3.0);
-
-  // ---------- 5.ª articulación: muñeca (sube y baja la pinza) ----------
-  modulo(antebrazo, L2, 0, 1.75, 4.0);
-
-  // ---------- Muñeca, con la 6.ª articulación (gira la pinza) ----------
-  const muneca = grupo(antebrazo, L2, 0, -0.72);
-  barra(muneca, 0, 2.2, 2.7, 3.1);
-  rodillo(muneca, 3.6, 1.3, 1.2);
+  // ---------- Muñeca: 5.ª (sube y baja) y 6.ª (gira la pinza) ----------
+  const muneca = grupo(antebrazo, L2, 0, -0.8);
+  lengua(muneca, 1.6, 2.75);
+  barra(muneca, 0.3, 1.6, 2.9, 2.75);
+  rodillo(muneca, 3.0, 1.35, 0.9);
   // Brida donde se atornilla la pinza
-  t.cilindro(1.55, 0.3, junta, 4.35, 0, 0, "x", 64, 1.55, muneca);
-  corona(muneca, [4.5, 0, 0], 1.12, 6, "x", 1, 0.09);
+  t.cilindro(1.55, 0.3, junta, 3.6, 0, 0, "x", 64, 1.55, muneca);
+  corona(muneca, [3.75, 0, 0], 1.12, 6, "x", 1, 0.09);
 
   // ---------- Pinza de dedos paralelos (abre hacia arriba y abajo, así se ven los dos) ----------
   const pinza = new Group();
-  pinza.position.x = 4.5;
+  pinza.position.x = 3.75;
   pinza.rotation.x = Math.PI / 2;
   muneca.add(pinza);
   // Cuerpo: aloja el servo que abre y cierra
