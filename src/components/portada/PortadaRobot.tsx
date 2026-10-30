@@ -72,13 +72,16 @@ export function PortadaRobot() {
   useEffect(() => {
     const elemento = seccion.current;
     if (!modoScroll || !elemento) return;
+    // --e solo hace falta con el dibujo SVG: cambiarla en cada fotograma obliga al navegador a
+    // recalcular los estilos de toda la portada, y con el 3D eso era trabajo tirado (tirones en el móvil)
+    const conDibujo = sin3d;
     let pendiente = 0;
     const calcular = () => {
       pendiente = 0;
       const caja = elemento.getBoundingClientRect();
       const recorrido = caja.height - window.innerHeight;
       const progreso = recorrido > 0 ? Math.min(1, Math.max(0, -caja.top / recorrido)) : 0;
-      elemento.style.setProperty("--e", explosionDesdeProgreso(progreso).toFixed(3));
+      if (conDibujo) elemento.style.setProperty("--e", explosionDesdeProgreso(progreso).toFixed(3));
       escena.current?.ponerProgreso(progreso);
       setActiva(piezaActiva(progreso));
       setAlInicio(progreso < 0.04);
@@ -96,7 +99,7 @@ export function PortadaRobot() {
       elemento.style.removeProperty("--e");
       setActiva(null);
     };
-  }, [modoScroll]);
+  }, [modoScroll, sin3d]);
 
   // 3. Carga diferida del 3D (solo en modo scroll y en equipos capaces)
   useEffect(() => {
@@ -121,7 +124,13 @@ export function PortadaRobot() {
         if (cancelado || !lienzo.current) return;
         // En el móvil, sombras más ligeras (gasta menos batería y va fluido)
         const ligero = window.matchMedia("(max-width: 63.99rem)").matches;
-        escena.current = crearEscenaRobot(lienzo.current, undefined, { ligero });
+        // Se prepara a trozos, dejando respirar a la página entre uno y otro
+        const nueva = await crearEscenaRobot(lienzo.current, undefined, { ligero });
+        if (cancelado) {
+          nueva.destruir();
+          return;
+        }
+        escena.current = nueva;
         escena.current.pausar(!visible);
         window.dispatchEvent(new Event("scroll")); // para que reciba el progreso actual
         setTres(true);
@@ -145,7 +154,7 @@ export function PortadaRobot() {
     <section
       ref={seccion}
       aria-labelledby="titulo-portada"
-      data-pieza-activa={tres ? undefined : (activa ?? undefined)}
+      data-pieza-activa={sin3d ? (activa ?? undefined) : undefined}
       // Alta para que cada pieza dure un buen tramo de scroll (antes pasaba de una a otra muy rápido)
       className="portada-robot relative bg-white motion-safe:h-[620vh]"
     >

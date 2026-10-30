@@ -11,6 +11,15 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Fluidez en el móvil (30-10-2026, rama `claude/project-thread-2xc9gb`)
+
+- Coche 3D: `fusionarMallas.ts` junta las mallas de cada pieza que comparten material (475 → 193 órdenes de
+  dibujo por fotograma, mismo aspecto). `crearEscenaRobot` es ASYNC: se prepara a trozos (`ceder`) y compila
+  los shaders con `compileAsync` (el primer fotograma ya no congela la página). Móvil: pixelRatio 1,5.
+- `PortadaRobot`: `--e` y `data-pieza-activa` solo con el dibujo SVG (cambiar `--e` en cada fotograma
+  recalculaba los estilos de toda la portada). El imán del scroll solo con ratón (`pointer: fine`).
+- Barra de navegación: `backdrop-blur-md` + `bg-white/85` en el móvil (xl en ordenador).
+
 ### Guías y fichas de componentes (30-10-2026, rama `claude/project-thread-g3cf1v`)
 
 - `/guias` y `/guias/[slug]`: artículos en `src/config/guias.ts` (`[texto](/ruta)` = enlace; `kits`/`componentes` salen

@@ -39,8 +39,10 @@ export function BarraNavegacion() {
       <nav
         aria-label="Navegación principal"
         className={cn(
-          "border-b border-linea/60 backdrop-blur-xl backdrop-saturate-150 transition-colors",
-          menuAbierto ? "bg-white" : "bg-white/75",
+          // En el móvil, desenfoque más corto (el navegador lo rehace en cada paso del scroll) y
+          // fondo algo más opaco para que se vea igual
+          "border-b border-linea/60 backdrop-blur-md backdrop-saturate-150 transition-colors lg:backdrop-blur-xl",
+          menuAbierto ? "bg-white" : "bg-white/85 lg:bg-white/75",
         )}
       >
         <div className="mx-auto flex h-nav max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">

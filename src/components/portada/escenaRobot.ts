@@ -25,9 +25,13 @@ import {
   WebGLRenderer,
 } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { fusionarMallas } from "./fusionarMallas";
 import { SUELO, crearModeloCoche } from "./modeloCoche";
 import { PIEZAS_ROBOT, explosionDesdeProgreso, piezaActiva } from "./piezasRobot";
 import { texturaSombra } from "./texturasRobot";
+
+/** Deja respirar al navegador entre paso y paso de la preparación (para que el scroll no se trabe) */
+const ceder = () => new Promise<void>((listo) => setTimeout(listo, 0));
 
 /** Altura a la que se dibuja el coche (para que quede centrado en el lienzo) */
 const ALTURA = 0.12;
@@ -45,18 +49,19 @@ export interface EscenaRobot {
  * @param giroFijo ángulo fijo del coche (sin girar solo). Para hacer fotos del robot;
  *                 en la web se deja sin poner y el coche gira despacio.
  */
-export function crearEscenaRobot(
+export async function crearEscenaRobot(
   canvas: HTMLCanvasElement,
   giroFijo?: number,
   { ligero = false }: { ligero?: boolean } = {},
-): EscenaRobot {
+): Promise<EscenaRobot> {
   const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
     alpha: true,
     powerPreference: "low-power",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // En el móvil, 1,5 píxeles por punto: a simple vista igual de nítido y casi la mitad de trabajo
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, ligero ? 1.5 : 2));
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
@@ -68,6 +73,7 @@ export function crearEscenaRobot(
   const entorno = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   escena.environment = entorno;
   escena.environmentIntensity = 0.85;
+  await ceder();
 
   // Teleobjetivo suave (poco ángulo, desde lejos): menos deformación, como una foto de producto
   const camara = new PerspectiveCamera(21, 1, 0.1, 100);
@@ -98,6 +104,12 @@ export function crearEscenaRobot(
 
   // ---------- El coche ----------
   const modelo = crearModeloCoche();
+  await ceder();
+  // Cientos de piececitas → unas pocas mallas por pieza (se ve igual y se dibuja mucho más rápido)
+  const fusionadas = [...modelo.piezas.values(), modelo.cables].flatMap((p) =>
+    fusionarMallas(p.grupo),
+  );
+  await ceder();
   const robot = modelo.raiz;
   robot.position.y = ALTURA;
   escena.add(robot);
@@ -220,6 +232,9 @@ export function crearEscenaRobot(
 
     renderer.render(escena, camara);
   }
+  // Prepara los programas de la tarjeta gráfica sin bloquear la página (si no, el primer
+  // fotograma la congela un momento y el scroll da un tirón)
+  await renderer.compileAsync(escena, camara).catch(() => undefined);
   marco = requestAnimationFrame(dibujar);
 
   return {
@@ -239,6 +254,7 @@ export function crearEscenaRobot(
       cancelAnimationFrame(marco);
       observador.disconnect();
       modelo.liberar();
+      fusionadas.forEach((g) => g.dispose());
       [sueloGeo, difusaGeo].forEach((g) => g.dispose());
       [sueloMat, difusaMat].forEach((m) => m.dispose());
       texturaDifusa.dispose();
