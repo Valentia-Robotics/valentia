@@ -45,7 +45,11 @@ export interface EscenaRobot {
  * @param giroFijo ángulo fijo del coche (sin girar solo). Para hacer fotos del robot;
  *                 en la web se deja sin poner y el coche gira despacio.
  */
-export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): EscenaRobot {
+export function crearEscenaRobot(
+  canvas: HTMLCanvasElement,
+  giroFijo?: number,
+  { ligero = false }: { ligero?: boolean } = {},
+): EscenaRobot {
   const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
@@ -78,8 +82,9 @@ export function crearEscenaRobot(canvas: HTMLCanvasElement, giroFijo?: number): 
   const sol = new DirectionalLight(0xfff8f0, 1.9);
   sol.position.set(3, 7, 4);
   sol.castShadow = true;
-  sol.shadow.mapSize.set(2048, 2048);
-  sol.shadow.blurSamples = 16;
+  // En el móvil (ligero), sombra con menos detalle: casi no se nota y ahorra mucho trabajo
+  sol.shadow.mapSize.setScalar(ligero ? 1024 : 2048);
+  sol.shadow.blurSamples = ligero ? 8 : 16;
   sol.shadow.camera.left = sol.shadow.camera.bottom = -2.4;
   sol.shadow.camera.right = sol.shadow.camera.top = 2.4;
   sol.shadow.camera.near = 1;
