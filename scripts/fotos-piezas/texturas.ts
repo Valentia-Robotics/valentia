@@ -274,6 +274,67 @@ export const texturaOled = () =>
     texto(ctx, "21,4 °C   48 %", w / 2, 230, 26, 700, "center");
   });
 
+/** Pantalla de la estación meteorológica: temperatura grande, humedad, presión y luz */
+export const texturaPantallaEstacion = () =>
+  textura(760, 440, (ctx, w, h) => {
+    ctx.fillStyle = "#05070a";
+    ctx.fillRect(0, 0, w, h);
+    const claro = "#e9f6ff";
+    const azul = "#7fc8ff";
+    // Sol con nube (arriba a la derecha)
+    ctx.fillStyle = "#ffd25e";
+    ctx.beginPath();
+    ctx.arc(612, 92, 34, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffd25e";
+    ctx.lineWidth = 7;
+    ctx.lineCap = "round";
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(612 + Math.cos(a) * 46, 92 + Math.sin(a) * 46);
+      ctx.lineTo(612 + Math.cos(a) * 60, 92 + Math.sin(a) * 60);
+      ctx.stroke();
+    }
+    ctx.fillStyle = claro;
+    for (const [x, y, r] of [
+      [640, 130, 34],
+      [600, 140, 28],
+      [676, 142, 26],
+    ])
+      (ctx.beginPath(), ctx.arc(x, y, r, 0, Math.PI * 2), ctx.fill());
+    ctx.fillRect(580, 140, 120, 30);
+    // Temperatura
+    ctx.fillStyle = claro;
+    texto(ctx, "21,5", 44, 116, 150, 700);
+    texto(ctx, "°C", 360, 82, 56, 600);
+    ctx.fillStyle = azul;
+    texto(ctx, "TEMPERATURA", 50, 228, 24, 600);
+    // Línea y tres datos abajo
+    ctx.fillStyle = "#1f2a36";
+    ctx.fillRect(44, 262, w - 88, 4);
+    const datos = [
+      ["HUMEDAD", "56 %"],
+      ["PRESIÓN", "1013 hPa"],
+      ["LUZ", "640 lx"],
+    ];
+    datos.forEach(([nombre, valor], i) => {
+      const x = 50 + i * 230;
+      ctx.fillStyle = azul;
+      texto(ctx, nombre, x, 306, 24, 600);
+      ctx.fillStyle = claro;
+      texto(ctx, valor, x, 360, 46, 700);
+    });
+    // Wifi conectado
+    ctx.strokeStyle = azul;
+    ctx.lineWidth = 6;
+    for (const r of [14, 26, 38]) {
+      ctx.beginPath();
+      ctx.arc(700, 410, r, 1.25 * Math.PI, 1.75 * Math.PI);
+      ctx.stroke();
+    }
+  });
+
 /** Protoboard de 400 puntos: 30 columnas × 10 filas y dos raíles a cada lado */
 export const texturaProtoboard400 = () =>
   textura(1660, 1100, (ctx, w, h) => {
