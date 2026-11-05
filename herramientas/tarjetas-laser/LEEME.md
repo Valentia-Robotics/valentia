@@ -8,7 +8,8 @@ Cuando descargas desde el panel de admin el ZIP de tarjetas (`tarjetas-laser-*.z
 3. Crea por cada grupo `Proyecto_NN_delantero.lac` y `Proyecto_NN_trasero.lac`
    (en la trasera las columnas van al revés, porque la tarjeta se gira como una página) y un `ORDEN.txt`,
    en `Descargas\Tarjetas_laser_listas\<nombre del zip>\`.
-4. Los abre en Bambu Suite, directamente en **Preparar**, con relleno láser y material
+4. Los abre en Bambu Suite, uno detrás de otro, y en cada pestaña pulsa **Preparar** por ti
+   (solo si reconoce exactamente ese botón: nunca pulsa "Hacer"), con relleno láser y material
    "Aluminium Office Card - Black" para la Bambu Lab H2C 40 W.
 
 El navegador no puede ejecutar programas del ordenador al pulsar un botón de una web (por seguridad),
