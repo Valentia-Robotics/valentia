@@ -6,6 +6,7 @@ import {
   BookOpen,
   Boxes,
   ChartColumn,
+  Clapperboard,
   Cpu,
   ExternalLink,
   LayoutDashboard,
@@ -22,7 +23,7 @@ import { Logo } from "@/components/marca/Logo";
 import { cn } from "@/lib/utils";
 
 /** Secciones del panel. Para añadir una nueva, añádela aquí. */
-const secciones: { href: string; etiqueta: string; icono: LucideIcon }[] = [
+const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin", etiqueta: "Inicio", icono: LayoutDashboard },
   { href: "/admin/visitas", etiqueta: "Visitas", icono: ChartColumn },
   { href: "/admin/pedidos", etiqueta: "Pedidos", icono: ShoppingBag },
@@ -30,9 +31,15 @@ const secciones: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },
   { href: "/admin/codigos", etiqueta: "Códigos", icono: QrCode },
+  { href: "/admin/contenido", etiqueta: "Contenido", icono: Clapperboard },
   { href: "/admin/resenas", etiqueta: "Reseñas", icono: Star },
   { href: "/admin/lista-espera", etiqueta: "Lista de espera", icono: Mail },
   { href: "/admin/usuarios", etiqueta: "Usuarios", icono: Users },
+];
+
+/** El panel de editor usa este mismo menú, pero solo con lo suyo */
+const seccionesEditor: typeof seccionesAdmin = [
+  { href: "/editor", etiqueta: "Mis guiones", icono: Clapperboard },
 ];
 
 /**
@@ -40,18 +47,30 @@ const secciones: { href: string; etiqueta: string; icono: LucideIcon }[] = [
  * En ordenador es una columna fija a la izquierda; en el móvil, una barra arriba
  * con las secciones en una fila que se puede deslizar.
  */
-export function MenuAdmin({ nombre, email }: { nombre: string; email: string }) {
+export function MenuAdmin({
+  nombre,
+  email,
+  zona = "admin",
+}: {
+  nombre: string;
+  email: string;
+  zona?: "admin" | "editor";
+}) {
   const ruta = usePathname();
+  const secciones = zona === "editor" ? seccionesEditor : seccionesAdmin;
+  const inicio = secciones[0].href;
   const activa = (href: string) =>
-    href === "/admin" ? ruta === "/admin" : ruta === href || ruta.startsWith(`${href}/`);
+    zona === "admin" && href === inicio
+      ? ruta === inicio
+      : ruta === href || ruta.startsWith(`${href}/`);
 
   return (
     <aside className="border-b border-linea bg-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:border-r lg:border-b-0 print:hidden">
       <div className="flex items-center justify-between gap-3 px-4 pt-4 lg:block lg:px-5 lg:pt-6">
-        <Link href="/admin" className="inline-flex items-center gap-2">
+        <Link href={inicio} className="inline-flex items-center gap-2">
           <Logo alto={14} />
           <span className="rounded bg-tinta px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">
-            Panel
+            {zona === "editor" ? "Editor" : "Panel"}
           </span>
         </Link>
         {/* En el móvil, la tienda y cerrar sesión van arriba a la derecha */}
