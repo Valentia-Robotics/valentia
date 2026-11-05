@@ -27,12 +27,17 @@ async function crearCuenta(browser: Browser, nombre: string, prefijo: string) {
   return { pagina, email, nombre };
 }
 
+/**
+ * Da el rol ADMIN y vacía los límites de intentos: esta prueba crea 4 cuentas y la web admite
+ * 5 registros por hora desde una IP; sin esto, las pruebas siguientes no podrían registrarse.
+ */
 async function hacerAdmin(email: string) {
   const cliente = new MongoClient(urlBDPruebas());
   try {
     const bd = cliente.db();
     expect(bd.databaseName).toMatch(/_e2e$/); // nunca en otra base de datos
     await bd.collection("Usuario").updateOne({ email }, { $set: { rol: "ADMIN" } });
+    await bd.collection("LimiteIntento").deleteMany({});
   } finally {
     await cliente.close();
   }

@@ -25,7 +25,14 @@ export function correosPara(email: string): CorreoGuardado[] {
   return archivos
     .sort()
     .reverse()
-    .map((a) => JSON.parse(readFileSync(path.join(CARPETA_CORREOS, a), "utf8")) as CorreoGuardado)
+    .flatMap((a) => {
+      // La web borra los correos más antiguos: uno puede desaparecer justo al ir a leerlo
+      try {
+        return [JSON.parse(readFileSync(path.join(CARPETA_CORREOS, a), "utf8")) as CorreoGuardado];
+      } catch {
+        return [];
+      }
+    })
     .filter((c) => c.para === email);
 }
 
