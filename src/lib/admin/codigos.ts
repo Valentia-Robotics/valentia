@@ -21,16 +21,18 @@ const condicionEstado: Record<EstadoCodigo, Prisma.CodigoActivacionWhereInput> =
   desactivado: { desactivadoEn: { not: null } },
 };
 
-/** Códigos que coinciden con los filtros, del más nuevo al más antiguo */
-export async function listarCodigos(filtros: {
+/** Filtros de la lista de códigos (los mismos que van en la dirección de la página) */
+export interface FiltrosCodigos {
   q: string;
   kitId?: string;
   estado?: EstadoCodigo;
   loteId?: string;
-  pagina: number;
-}) {
+}
+
+/** Condición de la base de datos para unos filtros */
+function condicionFiltros(filtros: FiltrosCodigos): Prisma.CodigoActivacionWhereInput {
   const q = filtros.q.trim();
-  const where: Prisma.CodigoActivacionWhereInput = {
+  return {
     // Un id con otra forma (dirección manipulada) se ignora en vez de dar error
     ...(esId(filtros.kitId) && { kitId: filtros.kitId }),
     ...(esId(filtros.loteId) && { loteId: filtros.loteId }),
@@ -43,6 +45,39 @@ export async function listarCodigos(filtros: {
       ],
     }),
   };
+}
+
+/** Condición para los códigos de los filtros que están activos (desactivar) o desactivados (reactivar) */
+function condicionBloque(filtros: FiltrosCodigos, desactivar: boolean) {
+  return {
+    AND: [condicionFiltros(filtros), { desactivadoEn: desactivar ? null : { not: null } }],
+  } satisfies Prisma.CodigoActivacionWhereInput;
+}
+
+/** Cuántos códigos de los filtros se pueden desactivar y cuántos reactivar */
+export async function contarParaBloque(filtros: FiltrosCodigos) {
+  const [activos, desactivados] = await Promise.all([
+    db.codigoActivacion.count({ where: condicionBloque(filtros, true) }),
+    db.codigoActivacion.count({ where: condicionBloque(filtros, false) }),
+  ]);
+  return { activos, desactivados };
+}
+
+/**
+ * Desactivar (o reactivar) de una vez TODOS los códigos que coinciden con los filtros.
+ * Igual que uno a uno: quien ya activó un código conserva su curso. Devuelve cuántos han cambiado.
+ */
+export async function cambiarDesactivacionEnBloque(filtros: FiltrosCodigos, desactivar: boolean) {
+  const { count } = await db.codigoActivacion.updateMany({
+    where: condicionBloque(filtros, desactivar),
+    data: { desactivadoEn: desactivar ? new Date() : null },
+  });
+  return count;
+}
+
+/** Códigos que coinciden con los filtros, del más nuevo al más antiguo */
+export async function listarCodigos(filtros: FiltrosCodigos & { pagina: number }) {
+  const where = condicionFiltros(filtros);
 
   const [total, codigos] = await Promise.all([
     db.codigoActivacion.count({ where }),

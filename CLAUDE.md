@@ -11,6 +11,12 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Desactivar códigos en bloque (05-11-2026, rama `claude/project-thread-df82fa`)
+
+`/admin/codigos`: botones «Desactivar todos» / «Reactivar todos» (con confirmación) encima de la tabla; actúan sobre
+los códigos de los filtros que se ven (kit, lote, estado, búsqueda; sin filtros = todos). Acción
+`cambiarDesactivacionTodos`, lógica `cambiarDesactivacionEnBloque` en `src/lib/admin/codigos.ts` (updateMany).
+
 ### Fluidez en el móvil (30-10-2026, rama `claude/project-thread-2xc9gb`)
 
 - Coche 3D: `fusionarMallas.ts` junta las mallas de cada pieza que comparten material (475 → 193 órdenes de

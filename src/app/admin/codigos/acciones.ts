@@ -8,7 +8,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { conErrores, texto, type EstadoFormulario } from "@/lib/admin/formularios";
-import { crearLote, MAXIMO_LOTE } from "@/lib/admin/codigos";
+import {
+  cambiarDesactivacionEnBloque,
+  crearLote,
+  MAXIMO_LOTE,
+  type EstadoCodigo,
+} from "@/lib/admin/codigos";
 import { db } from "@/lib/db";
 import { exigirAdminEnAccion } from "@/lib/sesion";
 import { entero } from "@/lib/validaciones/admin";
@@ -66,5 +71,41 @@ export async function cambiarDesactivacion(
   return {
     ok: true,
     mensaje: codigo.desactivadoEn ? "Código reactivado." : "Código desactivado.",
+  };
+}
+
+const ESTADOS_VALIDOS: EstadoCodigo[] = ["libre", "usado", "desactivado"];
+
+/**
+ * Desactivar (o reactivar) de una vez todos los códigos que se ven con los filtros de la
+ * página (todos, los de un kit, los de un lote, los de una búsqueda…).
+ * Quien ya activó un código conserva su curso.
+ */
+export async function cambiarDesactivacionTodos(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const modo = texto(formulario, "modo");
+  if (modo !== "desactivar" && modo !== "reactivar")
+    return { ok: false, mensaje: "No sabemos qué quieres hacer. Recarga la página." };
+  const estado = texto(formulario, "estado");
+  const cambiados = await cambiarDesactivacionEnBloque(
+    {
+      q: texto(formulario, "q"),
+      kitId: texto(formulario, "kit") || undefined,
+      loteId: texto(formulario, "lote") || undefined,
+      estado: ESTADOS_VALIDOS.find((e) => e === estado),
+    },
+    modo === "desactivar",
+  );
+  revalidatePath("/admin", "layout");
+  const palabra = cambiados === 1 ? "código" : "códigos";
+  return {
+    ok: true,
+    mensaje:
+      modo === "desactivar"
+        ? `${cambiados} ${palabra} desactivado${cambiados === 1 ? "" : "s"}.`
+        : `${cambiados} ${palabra} reactivado${cambiados === 1 ? "" : "s"}.`,
   };
 }
