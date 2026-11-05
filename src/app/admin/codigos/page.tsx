@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Printer } from "lucide-react";
-import { cambiarDesactivacion } from "@/app/admin/codigos/acciones";
+import { cambiarDesactivacion, cambiarDesactivacionTodos } from "@/app/admin/codigos/acciones";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Buscador } from "@/components/admin/Buscador";
@@ -12,6 +12,7 @@ import { Insignia } from "@/components/admin/Insignia";
 import { leerPagina, Paginacion } from "@/components/admin/Paginacion";
 import { Tabla } from "@/components/admin/Tabla";
 import {
+  contarParaBloque,
   listarCodigos,
   MAXIMO_LOTE,
   resumenCodigos,
@@ -51,11 +52,12 @@ export default async function CodigosAdmin({ searchParams }: Props) {
   const estado = ESTADOS.find((e) => e.id && e.id === p.estado)?.id;
   const pagina = leerPagina(p.pagina);
 
-  const [kits, resumen, lotes, { codigos, total, totalPaginas }] = await Promise.all([
+  const [kits, resumen, lotes, { codigos, total, totalPaginas }, bloque] = await Promise.all([
     db.kit.findMany({ orderBy: { orden: "asc" }, select: { id: true, nombre: true } }),
     resumenCodigos(),
     ultimosLotes(),
     listarCodigos({ q, kitId, estado, loteId, pagina }),
+    contarParaBloque({ q, kitId, estado, loteId }),
   ]);
   const filtros = { q: q || undefined, kit: kitId, estado, lote: loteId };
   const enlace = (cambios: Record<string, string | undefined>) => {
@@ -66,6 +68,12 @@ export default async function CodigosAdmin({ searchParams }: Props) {
     const t = params.toString();
     return `/admin/codigos${t ? `?${t}` : ""}`;
   };
+  // Datos de los botones «Desactivar todos» / «Reactivar todos»: los filtros que se ven ahora
+  const datosBloque = { q, kit: kitId ?? "", lote: loteId ?? "", estado: estado ?? "" };
+  const hayFiltros = Boolean(q || kitId || loteId || estado);
+  const queCodigos = hayFiltros
+    ? "los que ves con estos filtros"
+    : "todos los códigos de la tienda";
   const chip = (activo: boolean) =>
     cn(
       "rounded-md px-2.5 py-1 ring-1",
@@ -153,9 +161,50 @@ export default async function CodigosAdmin({ searchParams }: Props) {
       </div>
 
       <Caja sinRelleno>
-        <p className="border-b border-linea px-4 py-2 text-xs text-gris">
-          {plural(total, "código", "códigos")}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linea px-4 py-2">
+          <p className="text-xs text-gris">{plural(total, "código", "códigos")}</p>
+          {/* Desactivar o reactivar de una vez todos los códigos de los filtros elegidos */}
+          <div className="flex flex-wrap gap-2">
+            {bloque.activos > 0 && (
+              <BotonConfirmar
+                accion={cambiarDesactivacionTodos}
+                datos={{ ...datosBloque, modo: "desactivar" }}
+                titulo={`¿Desactivar ${plural(bloque.activos, "código", "códigos")}?`}
+                texto={
+                  <>
+                    Se desactivarán <strong>{queCodigos}</strong> que aún funcionan (
+                    {plural(bloque.activos, "código", "códigos")}). Dejarán de servir para activar
+                    el curso. Quien ya activó el suyo conserva su curso. Podrás reactivarlos después
+                    con «Reactivar todos».
+                  </>
+                }
+                confirmar={`Sí, desactivar ${bloque.activos}`}
+                variante="peligro"
+                pequeno
+              >
+                {hayFiltros ? "Desactivar estos" : "Desactivar todos"} ({bloque.activos})
+              </BotonConfirmar>
+            )}
+            {bloque.desactivados > 0 && (
+              <BotonConfirmar
+                accion={cambiarDesactivacionTodos}
+                datos={{ ...datosBloque, modo: "reactivar" }}
+                titulo={`¿Reactivar ${plural(bloque.desactivados, "código", "códigos")}?`}
+                texto={
+                  <>
+                    Volverán a servir para activar el curso <strong>{queCodigos}</strong> que están
+                    desactivados ({plural(bloque.desactivados, "código", "códigos")}).
+                  </>
+                }
+                confirmar={`Sí, reactivar ${bloque.desactivados}`}
+                variante="suave"
+                pequeno
+              >
+                {hayFiltros ? "Reactivar estos" : "Reactivar todos"} ({bloque.desactivados})
+              </BotonConfirmar>
+            )}
+          </div>
+        </div>
         <Tabla
           columnas={["Código", "Kit", "Estado", "Usado por", "Origen", ""]}
           vacia={codigos.length === 0 && "No hay códigos con estos filtros."}
