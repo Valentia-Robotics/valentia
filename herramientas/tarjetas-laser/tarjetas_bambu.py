@@ -155,6 +155,34 @@ def crear_lac(ruta_lac, piezas, trasera):
     os.replace(tmp, ruta_lac)
 
 
+def traer_al_frente(espera=60):
+    """Pone la ventana de Bambu Suite delante (minimizar y restaurar maximizada). No pulsa nada."""
+    import ctypes, time
+    from ctypes import wintypes
+    user32 = ctypes.windll.user32
+    fin = time.time() + espera
+    while time.time() < fin:
+        encontradas = []
+        def cb(h, _):
+            n = user32.GetWindowTextLengthW(h)
+            if n and user32.IsWindowVisible(h):
+                b = ctypes.create_unicode_buffer(n + 1)
+                user32.GetWindowTextW(h, b, n + 1)
+                if b.value.endswith("Bambu Suite"):
+                    encontradas.append(h)
+            return True
+        user32.EnumWindows(ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)(cb), 0)
+        if encontradas:
+            h = encontradas[0]
+            user32.ShowWindow(h, 6)   # minimizar
+            time.sleep(0.5)
+            user32.ShowWindow(h, 3)   # restaurar maximizada (queda delante)
+            user32.SetForegroundWindow(h)
+            return True
+        time.sleep(2)
+    return False
+
+
 def procesar(zip_path, abrir=True):
     tarjetas = leer_tarjetas(zip_path)
     if not tarjetas:
@@ -188,6 +216,7 @@ def procesar(zip_path, abrir=True):
         for ruta in creados:
             subprocess.Popen([BAMBU, ruta])
             time.sleep(4)  # de uno en uno, para que las pestañas salgan en orden
+        traer_al_frente()
     return creados
 
 
