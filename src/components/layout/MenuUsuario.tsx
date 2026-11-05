@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, LogOut, QrCode, UserRound } from "lucide-react";
+import { BookOpen,
+  Clapperboard, LayoutDashboard, LogOut, QrCode, UserRound } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { enSeccion } from "@/config/marca";
@@ -90,6 +91,11 @@ export function MenuUsuario() {
           {sesion.user.rol === "ADMIN" && (
             <ElementoMenu href="/admin" icono={LayoutDashboard} alPulsar={cerrar}>
               Panel de administración
+            </ElementoMenu>
+          )}
+          {sesion.user.rol === "EDITOR" && (
+            <ElementoMenu href="/editor" icono={Clapperboard} alPulsar={cerrar}>
+              Panel de editor
             </ElementoMenu>
           )}
           <li>
