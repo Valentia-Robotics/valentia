@@ -63,8 +63,11 @@ export async function GET(_peticion: Request, { params }: { params: Promise<{ id
     });
   const zip = crearZip([{ nombre: "LEEME.txt", contenido: LEEME }, ...archivos]);
 
-  const fecha = lote.creadoEn.toISOString().slice(0, 10);
-  const nombreZip = `tarjetas-laser-${lote.kit.slug}-${fecha}.zip`;
+  // Nombre único en cada descarga (fecha y hora de la descarga): así el programa del láser
+  // del ordenador nunca confunde un ZIP con otro ni el navegador añade "(1)".
+  const ahora = new Date().toISOString(); // 2026-11-05T17:09:45.123Z
+  const marca = `${ahora.slice(0, 10)}_${ahora.slice(11, 19).replaceAll(":", "")}`;
+  const nombreZip = `tarjetas-laser-${lote.kit.slug}-${lote.codigos.filter((c) => !c.desactivadoEn).length}uds-${marca}.zip`;
   return new Response(new Blob([zip as BlobPart]), {
     headers: {
       "Content-Type": "application/zip",
