@@ -166,10 +166,10 @@ def _ventana_bambu():
             b = ctypes.create_unicode_buffer(n + 1)
             user32.GetWindowTextW(h, b, n + 1)
             if b.value.endswith("Bambu Suite"):
-                encontradas.append(h)
+                encontradas.append((h, b.value))
         return True
     user32.EnumWindows(ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)(cb), 0)
-    return encontradas[0] if encontradas else None
+    return encontradas[0] if encontradas else (None, "")
 
 
 def _es_boton_preparar(h, plantilla):
@@ -183,66 +183,92 @@ def _es_boton_preparar(h, plantilla):
     cw, ch, paso = r.right, r.bottom, plantilla["paso"]
     dc = user32.GetDC(0)
     try:
-        iguales = total = 0
+        ambos = alguno = 0
         for fila, y in zip(plantilla["bits"], range(ch - plantilla["arriba"], ch - plantilla["abajo"], paso)):
             for bit, x in zip(fila, range(cw - plantilla["izq"], cw - plantilla["der"], paso)):
                 c = gdi32.GetPixel(dc, o.x + x, o.y + y)
                 if c == -1 or c == 0xFFFFFFFF:
-                    return False, None
+                    return False, None, 0
                 rr, gg, bb = c & 0xFF, (c >> 8) & 0xFF, (c >> 16) & 0xFF
                 oscuro = (rr + gg + bb) / 3 < 110
-                iguales += (oscuro == (bit == "1")); total += 1
-        # el fondo del botón tiene que ser verde
+                t = bit == "1"
+                ambos += oscuro and t
+                alguno += oscuro or t
+        # el fondo del botón tiene que ser verde (normal o con el ratón encima)
         c = gdi32.GetPixel(dc, o.x + cw - plantilla["clic_x"], o.y + ch - 50)
-        verde = ((c >> 8) & 0xFF) > 200 and (c & 0xFF) < 200 and ((c >> 16) & 0xFF) < 150
+        rr, gg, bb = c & 0xFF, (c >> 8) & 0xFF, (c >> 16) & 0xFF
+        verde = gg > 150 and gg > rr + 30 and gg > bb + 60
     finally:
         user32.ReleaseDC(0, dc)
-    return (verde and total and iguales / total > 0.97), (o.x + cw - plantilla["clic_x"], o.y + ch - plantilla["clic_y"])
+    # parecido = letras oscuras en común / letras oscuras en total ("Hacer" da muy poco)
+    parecido = ambos / alguno if alguno else 0
+    return (verde and parecido > 0.8), (o.x + cw - plantilla["clic_x"], o.y + ch - plantilla["clic_y"]), round(parecido, 3)
 
 
-def pulsar_preparar(espera=180):
-    """Espera a que Bambu Suite muestre el proyecto, lo pone delante y pulsa "Preparar".
-    Solo pulsa si Bambu Suite está delante y el botón es exactamente "Preparar"."""
+def abrir_en_preparar(ruta, log=print):
+    """Abre un proyecto en Bambu Suite y pulsa "Preparar" en su pestaña.
+    - Espera a que la ventana muestre ESE proyecto (el título lleva su nombre).
+    - Pone Bambu Suite delante una sola vez (no se pelea con lo que estés haciendo).
+    - Solo pulsa si Bambu Suite está delante y el botón es exactamente "Preparar"."""
     import ctypes, time
     user32 = ctypes.windll.user32
     user32.SetProcessDPIAware()
     with open(os.path.join(PLANTILLA, "boton_preparar.json"), encoding="utf-8") as f:
         plantilla = json.load(f)
-    time.sleep(8)  # que Bambu Suite reciba el archivo y abra la pestaña nueva
-    fin = time.time() + espera
+    nombre = os.path.splitext(os.path.basename(ruta))[0]
+    subprocess.Popen([BAMBU, ruta])
+    # 1) esperar a que la pestaña de este proyecto esté abierta (máx. 90 s)
+    fin = time.time() + 90
+    h = None
     while time.time() < fin:
-        h = _ventana_bambu()
-        if h:
-            if user32.GetForegroundWindow() != h:
-                user32.ShowWindow(h, 6); time.sleep(0.5); user32.ShowWindow(h, 3); time.sleep(1.5)
-            if user32.GetForegroundWindow() == h:
-                ok, punto = _es_boton_preparar(h, plantilla)
-                if ok:
-                    time.sleep(1.5)  # comprobar otra vez, por si aún estaba cargando
-                    ok, punto = _es_boton_preparar(h, plantilla)
-                if ok and user32.GetForegroundWindow() == h:
-                    user32.SetCursorPos(*punto); time.sleep(0.2)
-                    ok2, _ = _es_boton_preparar(h, plantilla)
-                    if ok2 and user32.GetForegroundWindow() == h:
-                        user32.mouse_event(2, 0, 0, 0, 0); time.sleep(0.08); user32.mouse_event(4, 0, 0, 0, 0)
-                        time.sleep(3)
-                        return True
-        time.sleep(2)
+        h, titulo = _ventana_bambu()
+        if h and titulo.startswith(nombre + " "):
+            break
+        h = None
+        time.sleep(1)
+    if not h:
+        log("  %s: no he visto la pestaña abrirse" % nombre)
+        return False
+    time.sleep(3)  # que termine de dibujarse
+    # 2) traer al frente una sola vez
+    if user32.GetForegroundWindow() != h:
+        user32.ShowWindow(h, 6); time.sleep(0.5); user32.ShowWindow(h, 3); time.sleep(1.5)
+    # 3) buscar el botón Preparar durante 20 s como mucho
+    fin = time.time() + 20
+    parecido = 0
+    while time.time() < fin:
+        if user32.GetForegroundWindow() == h:
+            ok, punto, parecido = _es_boton_preparar(h, plantilla)
+            if ok:
+                time.sleep(1)
+                ok, punto, parecido = _es_boton_preparar(h, plantilla)
+            if ok and user32.GetForegroundWindow() == h:
+                user32.SetCursorPos(*punto); time.sleep(0.2)
+                ok2, _, _ = _es_boton_preparar(h, plantilla)
+                if ok2 and user32.GetForegroundWindow() == h:
+                    user32.mouse_event(2, 0, 0, 0, 0); time.sleep(0.08); user32.mouse_event(4, 0, 0, 0, 0)
+                    time.sleep(2)
+                    log("  %s: abierto en Preparar" % nombre)
+                    return True
+        time.sleep(1)
+    log("  %s: abierto, pero no he pulsado Preparar (delante=%s, parecido=%s)"
+        % (nombre, user32.GetForegroundWindow() == h, parecido))
     return False
 
 
-def procesar(zip_path, abrir=True):
+def procesar(zip_path, abrir=True, log=print):
     tarjetas = leer_tarjetas(zip_path)
     if not tarjetas:
         print("No hay tarjetas en", zip_path)
         return []
     nombre = os.path.splitext(os.path.basename(zip_path))[0]
+    corto = re.sub(r"^tarjetas-laser-", "", nombre).replace(" ", "")
     carpeta = os.path.join(SALIDA_BASE, nombre)
     os.makedirs(carpeta, exist_ok=True)
     creados, orden = [], []
     grupos = [tarjetas[i:i + 9] for i in range(0, len(tarjetas), 9)]
     for g, grupo in enumerate(grupos, 1):
-        orden.append("PROYECTO %02d" % g)
+        orden.append("PROYECTO %02d  (%s_P%02d_delantero / _trasero)" % (g, corto, g))
         for hueco, (codigo, _) in enumerate(grupo):
             fila, col = divmod(hueco, 3)
             orden.append("  hueco fila %d, columna %d: %s" % (fila + 1, col + 1, codigo))
@@ -250,7 +276,7 @@ def procesar(zip_path, abrir=True):
             piezas = [(h, c, caras[cara]) for h, (c, caras) in enumerate(grupo) if cara in caras]
             if not piezas:
                 continue
-            ruta = os.path.join(carpeta, "Proyecto_%02d_%s.lac" % (g, cara))
+            ruta = os.path.join(carpeta, "%s_P%02d_%s.lac" % (corto, g, cara))
             crear_lac(ruta, piezas, trasera)
             creados.append(ruta)
     with open(os.path.join(carpeta, "ORDEN.txt"), "w", encoding="utf-8") as f:
@@ -261,9 +287,7 @@ def procesar(zip_path, abrir=True):
     print("Creados %d proyectos en %s" % (len(creados), carpeta))
     if abrir:
         for ruta in creados:
-            subprocess.Popen([BAMBU, ruta])
-            # espera a que cargue, la pone delante y pulsa "Preparar" (solo si lo reconoce)
-            pulsar_preparar()
+            abrir_en_preparar(ruta, log)
     return creados
 
 

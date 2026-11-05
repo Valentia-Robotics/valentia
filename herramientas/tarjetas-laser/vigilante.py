@@ -44,17 +44,24 @@ def main():
     tamanos = {}
     while True:
         try:
-            for z in glob.glob(os.path.join(DESCARGAS, PATRON)):
-                k = clave(z)
+            for z in sorted(glob.glob(os.path.join(DESCARGAS, PATRON)), key=lambda r: os.path.getmtime(r) if os.path.exists(r) else 0):
+                try:
+                    k = clave(z)
+                except OSError:
+                    continue  # el archivo ya no está
                 if k in hechos:
                     continue
                 # esperar a que la descarga termine (tamaño estable)
-                if tamanos.get(z) != os.path.getsize(z):
-                    tamanos[z] = os.path.getsize(z)
+                try:
+                    tam = os.path.getsize(z)
+                except OSError:
+                    continue
+                if tamanos.get(z) != tam:
+                    tamanos[z] = tam
                     continue
                 hechos.add(k); guardar(hechos)
                 log("nuevo ZIP: " + z)
-                creados = tarjetas_bambu.procesar(z, abrir=True)
+                creados = tarjetas_bambu.procesar(z, abrir=True, log=log)
                 log("proyectos creados: %d" % len(creados))
         except Exception:
             log(traceback.format_exc())
