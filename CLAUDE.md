@@ -11,6 +11,27 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Editores y guiones de marketing (05-11-2026, rama `feature/editores-guiones`)
+
+Rol `EDITOR` y sección «Contenido». Decisiones del usuario: **el editor se registra como cualquier usuario y el admin
+le da el rol** desde `/admin/usuarios` (no hay alta de editores); el guion solo lo corrige el admin y antes de asignarlo.
+
+- Flujo y permisos como datos en `src/config/estadosGuion.ts`; base de datos en `src/lib/contenido/guiones.ts` (todo cambio
+  de estado va con su `CambioEstadoGuion` en una transacción). `crearGuion` es la única entrada: la fase 2 («Generar
+  borrador con IA», NO hecha) la llamará con origen `IA`.
+- Corregir: `APROBADO`/`PENDIENTE_APROBACION` → `BORRADOR`; el texto solo se edita en borrador o pendiente. Reasignar: mientras
+  esté asignado o en progreso. No se quita el rol con guiones activos (`ESTADOS_ACTIVOS`).
+- Permisos: `exigirEditor` / `exigirEditorEnAccion` (`sesion.ts`), con el mismo patrón que admin: en layout, cada página y
+  cada acción; el rol sale de la BD. `proxy.ts` solo exige sesión en `/editor`. Las lecturas del editor siempre filtran por su
+  id. `/editor` es solo para EDITOR (un ADMIN recibe 404: lo ve todo en `/admin/contenido`).
+- Métricas: `src/lib/contenido/metricas.ts` (puro; `editorId` del historial: al reasignar cada uno conserva lo suyo). Solo en
+  `/admin/contenido/metricas`.
+- Categorías: `CategoriaGuion`; la lista inicial se crea sola la primera vez que se piden (`categoriasGuion`). Nunca se
+  borran, se desactivan. Sin variables nuevas en Render; `db push` del Pre-Deploy crea las colecciones.
+- `MenuAdmin` sirve para las dos zonas (`zona="editor"`). Formularios con `guionId`, no `id` (aviso de Playwright).
+- Pruebas: `estadosGuion.test.ts`, `guion.test.ts`, `metricas.test.ts`, `guiones.test.ts` (reglas del servidor, BD simulada)
+  y `e2e/editores-guiones.spec.ts`.
+
 ### Kit gratis de bienvenida (05-11-2026, rama `valentiarobotics/kit-bienvenida`)
 
 Decisión del usuario: un kit de 0 € sin piezas, con un curso de un solo vídeo de bienvenida (`bienvenida-valentia`,
