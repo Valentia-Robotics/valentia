@@ -55,6 +55,20 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "sesionCerradaEn" },
   ],
   ProgresoEjercicio: [{ campo: "respuesta" }],
+  Guion: [
+    { campo: "plataformaOtra" },
+    { campo: "kitId", relacion: "kit" },
+    { campo: "editorId", relacion: "editor" },
+    { campo: "creadoPorId", relacion: "creadoPor" },
+    { campo: "notasEditor" },
+    { campo: "enlaceVideo" },
+  ],
+  CambioEstadoGuion: [
+    { campo: "estadoAnterior" },
+    { campo: "usuarioId", relacion: "usuario" },
+    { campo: "editorId" },
+    { campo: "comentario" },
+  ],
 };
 
 /** Devuelve los datos con null en los campos opcionales que no vengan */

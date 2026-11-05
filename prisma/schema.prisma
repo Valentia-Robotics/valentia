@@ -89,6 +89,7 @@ model Kit {
   codigos     CodigoActivacion[]
   lotes       LoteCodigos[]
   resenas     Resena[]
+  guiones     Guion[]
 }
 
 /// Qué componentes (y cuántos) lleva cada kit
@@ -307,6 +308,8 @@ model LoteCodigos {
 enum Rol {
   CLIENTE
   ADMIN
+  /// Edita los vídeos de marketing: solo ve /editor y los guiones que tiene asignados
+  EDITOR
 }
 
 /// Una persona con cuenta en Valentia
@@ -333,6 +336,10 @@ model Usuario {
   videosVistos   VideoVisto[]
   resultadosTest ResultadoTest[]
   resenas        Resena[]
+
+  guionesAsignados Guion[]             @relation("GuionEditor")
+  guionesCreados   Guion[]             @relation("GuionAutor")
+  cambiosGuion     CambioEstadoGuion[]
 }
 
 /// Para qué se ha enviado un código por email
@@ -572,4 +579,98 @@ model CatalogoAplicado {
   /// sha256 del contenido del JSON la última vez que se aplicó
   hash       String
   aplicadoEn DateTime
+}
+
+/// Estados de un guion de marketing. Las reglas para pasar de uno a otro: src/config/estadosGuion.ts
+enum EstadoGuion {
+  BORRADOR
+  PENDIENTE_APROBACION
+  APROBADO
+  ASIGNADO
+  EN_PROGRESO
+  ENTREGADO
+  COMPLETADO
+}
+
+/// Dónde se publicará el vídeo
+enum PlataformaGuion {
+  VIDEO_CORTO
+  YOUTUBE_LARGO
+  OTRA
+}
+
+/// Quién escribió el guion (IA: reservado para la fase 2, «Generar borrador con IA»)
+enum OrigenGuion {
+  MANUAL
+  IA
+}
+
+/// Temas de los guiones: lista cerrada que el admin puede ampliar (siempre tecnología y robótica)
+model CategoriaGuion {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  nombre  String  @unique
+  orden   Int     @default(0)
+  /// false = ya no se puede elegir en guiones nuevos (los que la usan la conservan)
+  activa  Boolean @default(true)
+  guiones Guion[]
+}
+
+/// Un guion de un vídeo de marketing
+model Guion {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  titulo           String
+  categoria        CategoriaGuion  @relation(fields: [categoriaId], references: [id])
+  categoriaId      String          @db.ObjectId
+  plataforma       PlataformaGuion
+  /// Solo con plataforma OTRA
+  plataformaOtra   String?
+  duracionObjetivo String
+  /// Los primeros 3 segundos
+  gancho           String
+  desarrollo       String
+  llamadaAccion    String
+  notasVisuales    String
+  kit              Kit?            @relation(fields: [kitId], references: [id], onDelete: SetNull)
+  kitId            String?         @db.ObjectId
+  /// A las 12:00 UTC del día elegido (así se lee el mismo día en cualquier zona horaria)
+  fechaLimite      DateTime
+  editor           Usuario?        @relation("GuionEditor", fields: [editorId], references: [id], onDelete: SetNull)
+  editorId         String?         @db.ObjectId
+  creadoPor        Usuario?        @relation("GuionAutor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  creadoPorId      String?         @db.ObjectId
+  estado           EstadoGuion     @default(BORRADOR)
+  origen           OrigenGuion     @default(MANUAL)
+  /// Zona de trabajo del editor: sus notas o su versión adaptada (el texto aprobado no se toca)
+  notasEditor      String?
+  /// Enlace al vídeo terminado (Drive, YouTube…)
+  enlaceVideo      String?
+  creadoEn         DateTime        @default(now())
+  actualizadoEn    DateTime        @updatedAt
+
+  historial CambioEstadoGuion[]
+
+  @@index([estado])
+  @@index([editorId])
+}
+
+/// Cada cambio de estado de un guion. Las métricas por editor salen de aquí.
+model CambioEstadoGuion {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  guion          Guion        @relation(fields: [guionId], references: [id], onDelete: Cascade)
+  guionId        String       @db.ObjectId
+  /// null = al crear el guion
+  estadoAnterior EstadoGuion?
+  estadoNuevo    EstadoGuion
+  /// Quién hizo el cambio. Se copia su nombre para no perderlo si la cuenta desaparece.
+  usuario        Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  usuarioId      String?      @db.ObjectId
+  usuarioNombre  String
+  /// Editor del guion en ese momento: si se reasigna, cada editor conserva lo suyo en las métricas
+  editorId       String?      @db.ObjectId
+  /// Comentario de cambios del admin, o nota del sistema (reasignación)
+  comentario     String?
+  fecha          DateTime     @default(now())
+
+  @@index([guionId])
+  @@index([editorId])
 }

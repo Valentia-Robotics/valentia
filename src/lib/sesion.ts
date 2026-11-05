@@ -47,6 +47,16 @@ export async function exigirAdmin(volver = "/admin"): Promise<UsuarioActual> {
   return usuario;
 }
 
+/**
+ * Solo para el panel /editor. Igual que exigirAdmin: se llama en CADA página.
+ * Con sesión pero sin ser EDITOR → 404: para un cliente o un admin, esa zona no existe.
+ */
+export async function exigirEditor(volver = "/editor"): Promise<UsuarioActual> {
+  const usuario = await exigirUsuario(volver);
+  if (usuario.rol !== "EDITOR") notFound();
+  return usuario;
+}
+
 /** Error que lanzan las acciones del panel cuando quien las llama no es ADMIN */
 export class SinPermiso extends Error {
   constructor() {
@@ -62,5 +72,12 @@ export class SinPermiso extends Error {
 export async function exigirAdminEnAccion(): Promise<UsuarioActual> {
   const usuario = await obtenerUsuario();
   if (usuario?.rol !== "ADMIN") throw new SinPermiso();
+  return usuario;
+}
+
+/** Lo mismo para las acciones del panel de editor */
+export async function exigirEditorEnAccion(): Promise<UsuarioActual> {
+  const usuario = await obtenerUsuario();
+  if (usuario?.rol !== "EDITOR") throw new SinPermiso();
   return usuario;
 }
