@@ -21,6 +21,11 @@ export function formatearPrecio(centimos: number): string {
   return formatoEuros.format(centimos / 100);
 }
 
+/** Precio de un kit: los de 0 € se anuncian como «Gratis» */
+export function precioDeKit(centimos: number): string {
+  return centimos === 0 ? "Gratis" : formatearPrecio(centimos);
+}
+
 const formatoNumero = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 });
 
 /** Escribe un número a la española. Ejemplo: 3.3 → "3,3"; 1500 → "1500" */

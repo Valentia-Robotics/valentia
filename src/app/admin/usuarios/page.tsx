@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Buscador } from "@/components/admin/Buscador";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
@@ -8,6 +9,7 @@ import { Tabla } from "@/components/admin/Tabla";
 import { fecha } from "@/lib/admin/formato";
 import { buscarUsuarios } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
+import { cambiarRolEditor } from "./acciones";
 import { plural } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Usuarios" };
@@ -40,7 +42,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
 
       <Caja sinRelleno>
         <Tabla
-          columnas={["Usuario", "Registro", "Cursos activados", "Pedidos"]}
+          columnas={["Usuario", "Registro", "Cursos activados", "Pedidos", ""]}
           vacia={usuarios.length === 0 && "No hay ninguna cuenta que coincida con la búsqueda."}
         >
           {usuarios.map((u) => (
@@ -48,6 +50,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
               <td>
                 <p className="font-medium">
                   {u.nombre} {u.rol === "ADMIN" && <Insignia tono="acento">Admin</Insignia>}
+                  {u.rol === "EDITOR" && <Insignia tono="aviso">Editor</Insignia>}
                 </p>
                 <p className="text-xs text-gris">{u.email}</p>
               </td>
@@ -66,6 +69,25 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                 )}
               </td>
               <td className="tabular-nums">{u.pedidos}</td>
+              <td className="text-right">
+                {u.rol !== "ADMIN" && (
+                  <BotonConfirmar
+                    accion={cambiarRolEditor}
+                    datos={{ usuarioId: u.id, hacerEditor: u.rol === "EDITOR" ? "no" : "si" }}
+                    titulo={u.rol === "EDITOR" ? "Quitar el rol de editor" : "Hacer editor"}
+                    texto={
+                      u.rol === "EDITOR"
+                        ? `${u.nombre} dejará de ver el panel de editor y volverá a ser cliente.`
+                        : `${u.nombre} podrá entrar en el panel de editor y ver los guiones que le asignes. Sigue siendo cliente de la tienda.`
+                    }
+                    confirmar={u.rol === "EDITOR" ? "Sí, quitar" : "Sí, hacer editor"}
+                    variante="secundario"
+                    pequeno
+                  >
+                    {u.rol === "EDITOR" ? "Quitar editor" : "Hacer editor"}
+                  </BotonConfirmar>
+                )}
+              </td>
             </tr>
           ))}
         </Tabla>

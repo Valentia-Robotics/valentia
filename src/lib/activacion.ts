@@ -4,6 +4,7 @@
  * para el usuario que lo activa. Cada código solo se puede usar una vez.
  */
 import "server-only";
+import { Prisma } from "@/generated/prisma/client";
 import { db, transaccion } from "@/lib/db";
 
 /** Datos de un código para enseñarlo en /activar (o null si no existe) */
@@ -75,4 +76,33 @@ export async function activarCodigo(
     await tx.cursoUsuario.create({ data: { usuarioId, cursoId } });
     return { estado: "activado", cursoSlug: curso.slug };
   });
+}
+
+/**
+ * Da el curso de un kit gratis (0 €) a un usuario, sin código ni pedido. Devuelve null si el kit no existe,
+ * está oculto o no es gratis: el precio se comprueba aquí, nunca se confía en lo que llega del navegador.
+ * Repetirlo no hace nada: quien ya tiene el curso simplemente va a él.
+ */
+export async function activarKitGratis(usuarioId: string, slug: string) {
+  const kit = await db.kit.findFirst({
+    where: { slug, visible: true, precioCentimos: 0 },
+    select: { cursoId: true, curso: { select: { slug: true } } },
+  });
+  if (!kit) return null;
+
+  const { cursoId } = kit;
+  const yaTiene = await db.cursoUsuario.findUnique({
+    where: { usuarioId_cursoId: { usuarioId, cursoId } },
+  });
+  if (!yaTiene) {
+    try {
+      await db.cursoUsuario.create({ data: { usuarioId, cursoId } });
+    } catch (error) {
+      // Dos clics a la vez: el segundo choca con el primero, y el curso ya está dado
+      const repetido =
+        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+      if (!repetido) throw error;
+    }
+  }
+  return { cursoSlug: kit.curso.slug };
 }

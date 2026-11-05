@@ -32,7 +32,7 @@ export function obtenerKits() {
 /** Cifras de la portada: kits y componentes a la venta y lecciones de sus cursos */
 export async function obtenerCifras() {
   const [kits, componentes, lecciones] = await Promise.all([
-    db.kit.count({ where: { visible: true } }),
+    db.kit.count({ where: { visible: true, precioCentimos: { gt: 0 } } }),
     db.componente.count({ where: { visible: true } }),
     db.leccion.count({ where: { curso: { kit: { visible: true } } } }),
   ]);
@@ -142,12 +142,15 @@ export async function obtenerKitsParaConfigurador(): Promise<KitParaConfigurador
       },
     },
   });
-  return kits.map((kit) => ({
-    slug: kit.slug,
-    nombre: kit.nombre,
-    eslogan: kit.eslogan,
-    imagen: kit.imagen,
-    precioCentimos: kit.precioCentimos,
-    piezas: kit.componentes.map((c) => ({ slug: c.componente.slug, cantidad: c.cantidad })),
-  }));
+  // Un kit sin piezas (los gratis) no sirve de punto de partida para montar un robot
+  return kits
+    .filter((kit) => kit.componentes.length > 0)
+    .map((kit) => ({
+      slug: kit.slug,
+      nombre: kit.nombre,
+      eslogan: kit.eslogan,
+      imagen: kit.imagen,
+      precioCentimos: kit.precioCentimos,
+      piezas: kit.componentes.map((c) => ({ slug: c.componente.slug, cantidad: c.cantidad })),
+    }));
 }

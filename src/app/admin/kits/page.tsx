@@ -12,7 +12,7 @@ import { Insignia } from "@/components/admin/Insignia";
 import { Tabla } from "@/components/admin/Tabla";
 import { listarKitsAdmin } from "@/lib/admin/kits";
 import { exigirAdmin } from "@/lib/sesion";
-import { formatearPrecio, plural } from "@/lib/utils";
+import { plural, precioDeKit } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Kits" };
 
@@ -78,7 +78,7 @@ export default async function KitsAdmin({ searchParams }: Props) {
                 </div>
               </td>
               <td className="whitespace-nowrap tabular-nums">
-                {formatearPrecio(k.precioCentimos)}
+                {precioDeKit(k.precioCentimos)}
               </td>
               <td className="tabular-nums">{k.vendidos}</td>
               <td>

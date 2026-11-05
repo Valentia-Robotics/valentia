@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
+import { BotonKitGratis } from "@/components/tienda/BotonKitGratis";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { Etiqueta } from "@/components/ui/Etiqueta";
@@ -27,8 +28,9 @@ import { listaDeTextos, obtenerKitPorSlug, obtenerKits } from "@/lib/catalogo";
 import { datosKit, datosMigas } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 import { resenasDelKit } from "@/lib/resenas";
+import { conseguirKitGratis } from "./acciones";
 import { formatearMedia } from "@/lib/resenas/formato";
-import { formatearPrecio } from "@/lib/utils";
+import { precioDeKit } from "@/lib/utils";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -54,8 +56,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!kit) return { title: "Kit no encontrado" };
   // La imagen para redes la dibuja ./opengraph-image.tsx (nombre, precio y foto del kit)
   return metadatosPagina({
-    titulo: `${kit.nombre}: kit de robótica con curso`,
-    descripcion: `${kit.eslogan} Kit para montar con todas las piezas, pilas y cable USB, y un curso en vídeo paso a paso. Sin saber programar, desde ${kit.edadMinima} años.`,
+    titulo: kit.precioCentimos === 0 ? kit.nombre : `${kit.nombre}: kit de robótica con curso`,
+    descripcion:
+      kit.precioCentimos === 0
+        ? `${kit.eslogan} Gratis y sin piezas: se activa al momento en tu cuenta.`
+        : `${kit.eslogan} Kit para montar con todas las piezas, pilas y cable USB, y un curso en vídeo paso a paso. Sin saber programar, desde ${kit.edadMinima} años.`,
     ruta: `/kits/${kit.slug}`,
   });
 }
@@ -68,6 +73,8 @@ export default async function PaginaKit({ params }: Props) {
 
   const resenas = await resenasDelKit(kit.id);
   const abierta = compraAbierta();
+  // Un kit gratis es solo un curso en vídeo: sin piezas, envío, pago, reseñas ni código QR
+  const gratis = kit.precioCentimos === 0;
   const puntosFuertes = listaDeTextos(kit.puntosFuertes);
   const lecciones = kit.curso.lecciones;
   const minutosCurso = lecciones.reduce((total, l) => total + l.duracionMin, 0);
@@ -75,7 +82,7 @@ export default async function PaginaKit({ params }: Props) {
 
   return (
     <>
-      <DatosEstructurados datos={datosKit(kit, abierta, resenas)} />
+      <DatosEstructurados datos={datosKit(kit, abierta || gratis, resenas)} />
       <DatosEstructurados
         datos={datosMigas([
           { nombre: "Inicio", ruta: "/" },
@@ -99,7 +106,7 @@ export default async function PaginaKit({ params }: Props) {
             <div className="rounded-tarjeta bg-niebla p-6 sm:p-10">
               <Image
                 src={kit.imagen}
-                alt={`Foto del kit ${kit.nombre} montado`}
+                alt={gratis ? kit.nombre : `Foto del kit ${kit.nombre} montado`}
                 width={800}
                 height={600}
                 priority
@@ -112,10 +119,12 @@ export default async function PaginaKit({ params }: Props) {
               <div className="flex flex-wrap gap-2">
                 <Etiqueta tono="acento">{kit.nivel}</Etiqueta>
                 <Etiqueta>+{kit.edadMinima} años</Etiqueta>
-                <Etiqueta>
-                  <Wrench aria-hidden="true" className="size-3.5" />
-                  {kit.tiempoMontaje} de montaje
-                </Etiqueta>
+                {!gratis && (
+                  <Etiqueta>
+                    <Wrench aria-hidden="true" className="size-3.5" />
+                    {kit.tiempoMontaje} de montaje
+                  </Etiqueta>
+                )}
               </div>
               <h1 className="mt-5 text-4xl font-medium sm:text-5xl">{kit.nombre}</h1>
               <p className="mt-3 text-lg text-gris">{kit.eslogan}</p>
@@ -130,8 +139,10 @@ export default async function PaginaKit({ params }: Props) {
                 </a>
               )}
 
-              <p className="mt-6 text-3xl font-medium">{formatearPrecio(kit.precioCentimos)}</p>
-              <p className="mt-1 text-sm text-gris">IVA incluido · Curso de regalo</p>
+              <p className="mt-6 text-3xl font-medium">{precioDeKit(kit.precioCentimos)}</p>
+              <p className="mt-1 text-sm text-gris">
+                {gratis ? "Sin pago · Se activa al momento" : "IVA incluido · Curso de regalo"}
+              </p>
 
               <ul className="mt-6 space-y-2.5">
                 {puntosFuertes.map((punto) => (
@@ -142,7 +153,11 @@ export default async function PaginaKit({ params }: Props) {
                 ))}
               </ul>
 
-              {abierta ? (
+              {gratis ? (
+                <form action={conseguirKitGratis.bind(null, kit.slug)} className="mt-8">
+                  <BotonKitGratis />
+                </form>
+              ) : abierta ? (
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <BotonAnadirCarrito
                     articulo={{
@@ -184,7 +199,7 @@ export default async function PaginaKit({ params }: Props) {
       <section aria-labelledby="titulo-descripcion" className="bg-tinta py-20 text-white sm:py-28">
         <Contenedor className="aparecer max-w-3xl text-center">
           <h2 id="titulo-descripcion" className="text-3xl font-medium sm:text-5xl">
-            Lo que vas a construir.
+            {gratis ? "Lo que vas a ver." : "Lo que vas a construir."}
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-gris-claro sm:text-xl">
             {kit.descripcion}
@@ -193,50 +208,55 @@ export default async function PaginaKit({ params }: Props) {
       </section>
 
       {/* ---------- Componentes incluidos ---------- */}
-      <section aria-labelledby="titulo-caja" className="py-20 sm:py-28">
-        <Contenedor>
-          <div className="aparecer max-w-2xl">
-            <h2 id="titulo-caja" className="text-3xl font-medium sm:text-5xl">
-              Qué hay en la caja.
-            </h2>
-            <p className="mt-3 text-lg text-gris">
-              {totalPiezas} piezas, todo lo necesario para montarlo. Sin soldar.
-            </p>
-          </div>
+      {kit.componentes.length > 0 && (
+        <section aria-labelledby="titulo-caja" className="py-20 sm:py-28">
+          <Contenedor>
+            <div className="aparecer max-w-2xl">
+              <h2 id="titulo-caja" className="text-3xl font-medium sm:text-5xl">
+                Qué hay en la caja.
+              </h2>
+              <p className="mt-3 text-lg text-gris">
+                {totalPiezas} piezas, todo lo necesario para montarlo. Sin soldar.
+              </p>
+            </div>
 
-          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {kit.componentes.map(({ componente, cantidad }) => (
-              <li
-                key={componente.id}
-                className="aparecer flex items-center gap-4 rounded-tarjeta bg-niebla p-4"
-              >
-                <Image
-                  src={componente.imagen}
-                  alt=""
-                  width={80}
-                  height={80}
-                  unoptimized
-                  className="size-20 shrink-0 rounded-control bg-white p-1"
-                />
-                <div className="min-w-0">
-                  <p className="text-xs text-gris">{nombreCategoria(componente.categoria)}</p>
-                  <h3 className="font-sans text-base font-medium">
-                    {cantidad > 1 && <span className="text-acento">{cantidad} × </span>}
-                    {componente.visible ? (
-                      <Link href={`/componentes/${componente.slug}`} className="hover:text-acento">
-                        {componente.nombre}
-                      </Link>
-                    ) : (
-                      componente.nombre
-                    )}
-                  </h3>
-                  <p className="mt-0.5 text-sm text-gris">{componente.resumen}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Contenedor>
-      </section>
+            <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {kit.componentes.map(({ componente, cantidad }) => (
+                <li
+                  key={componente.id}
+                  className="aparecer flex items-center gap-4 rounded-tarjeta bg-niebla p-4"
+                >
+                  <Image
+                    src={componente.imagen}
+                    alt=""
+                    width={80}
+                    height={80}
+                    unoptimized
+                    className="size-20 shrink-0 rounded-control bg-white p-1"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs text-gris">{nombreCategoria(componente.categoria)}</p>
+                    <h3 className="font-sans text-base font-medium">
+                      {cantidad > 1 && <span className="text-acento">{cantidad} × </span>}
+                      {componente.visible ? (
+                        <Link
+                          href={`/componentes/${componente.slug}`}
+                          className="hover:text-acento"
+                        >
+                          {componente.nombre}
+                        </Link>
+                      ) : (
+                        componente.nombre
+                      )}
+                    </h3>
+                    <p className="mt-0.5 text-sm text-gris">{componente.resumen}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Contenedor>
+        </section>
+      )}
 
       {/* ---------- Temario del curso ---------- */}
       <section aria-labelledby="titulo-curso" className="bg-niebla py-20 sm:py-28">
@@ -251,11 +271,14 @@ export default async function PaginaKit({ params }: Props) {
             <p className="mt-4 text-lg text-gris">{kit.curso.descripcion}</p>
             <p className="mt-6 flex items-center gap-2 text-sm text-gris">
               <Clock aria-hidden="true" className="size-4" />
-              {lecciones.length} lecciones · {minutosCurso} minutos de vídeo
+              {lecciones.length} {lecciones.length === 1 ? "lección" : "lecciones"} · {minutosCurso}{" "}
+              minutos de vídeo
             </p>
             <p className="mt-2 flex items-center gap-2 text-sm text-gris">
               <QrCode aria-hidden="true" className="size-4" />
-              Se activa con el código QR de la caja
+              {gratis
+                ? "Se activa con un clic, sin código"
+                : "Se activa con el código QR de la caja"}
             </p>
           </div>
 
@@ -277,7 +300,7 @@ export default async function PaginaKit({ params }: Props) {
       </section>
 
       {/* ---------- Opiniones de los clientes ---------- */}
-      <SeccionResenas slug={kit.slug} resumen={resenas} />
+      {!gratis && <SeccionResenas slug={kit.slug} resumen={resenas} />}
 
       {/* ---------- Guías que hablan de este kit ---------- */}
       {guiasRelacionadas("kits", kit.slug).length > 0 && (

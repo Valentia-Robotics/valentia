@@ -188,7 +188,15 @@ npm run admin                            # dice quién es ADMIN ahora
 | **Cursos**      | Lecciones (ordenables), vídeo, tests y retos, y progreso de los alumnos                                                                                                                                              |
 | **Códigos**     | Generar códigos en lote, imprimir sus tarjetas QR o descargarlas para láser (.zip de SVG), desactivarlos                                                                                                             |
 | **Usuarios**    | Lista con buscador: email, registro, cursos activados y pedidos                                                                                                                                                      |
+| **Contenido**   | Guiones de marketing: crear, aprobar, asignar a un editor, revisar entregas y ver métricas por editor                                                                                                                |
 | **Reseñas**     | Opiniones de los kits (estrellas y comentario): ocultar, volver a publicar o borrar                                                                                                                                  |
+
+**Editores.** Quien edita los vídeos se registra como cualquier usuario. Después, en **Usuarios**, pulsa
+«Hacer editor» en su cuenta: verá `/editor`, solo con los guiones que le asignes. Allí lee el guion
+aprobado (sin poder cambiarlo), escribe sus notas, pulsa «Empezar» y entrega con el enlace del vídeo.
+Un guion pasa por borrador → pendiente de aprobación → aprobado → asignado → en progreso → entregado →
+completado. Puedes corregirlo hasta que lo asignas («Corregir» lo devuelve a borrador) y devolver una
+entrega con un comentario. Las métricas por editor solo las ve el administrador.
 
 Algunas reglas: un pedido solo pasa a «Pagado» con el pago confirmado (nunca desde el panel). Si
 cancelas un pedido ya cobrado con Stripe, **devuelve el dinero desde el panel de Stripe** (la ficha del

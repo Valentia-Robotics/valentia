@@ -1,9 +1,11 @@
 "use server";
 
 /**
- * ACCIONES DE LAS RESEÑAS (ficha de kit)
- * Cada una comprueba la sesión y, con las reglas de src/config/resenas.ts, si la persona puede opinar.
+ * ACCIONES DE LA FICHA DE KIT: conseguir un kit gratis y las reseñas
+ * Las reseñas comprueban la sesión y, con las reglas de src/config/resenas.ts, si la persona puede opinar.
  */
+import { redirect } from "next/navigation";
+import { activarKitGratis } from "@/lib/activacion";
 import { conErrores, texto, type EstadoFormulario } from "@/lib/admin/formularios";
 import { refrescarTienda } from "@/lib/admin/refrescar";
 import { configResenas } from "@/config/resenas";
@@ -19,6 +21,20 @@ export interface MiResena {
   puede: boolean;
   /** Su reseña, si ya escribió una */
   resena: { estrellas: number; texto: string; estado: "PENDIENTE" | "PUBLICADA" | "OCULTA" } | null;
+}
+
+/**
+ * «Conseguir gratis»: sin sesión, manda a iniciarla y vuelve a la ficha; con sesión, da el curso y lleva a él.
+ * Es la «compra» de un kit de 0 €: no crea pedido ni pasa por ningún pago.
+ */
+export async function conseguirKitGratis(slug: string) {
+  if (typeof slug !== "string" || slug.length > 200) redirect("/kits");
+  const ficha = `/kits/${slug}`;
+  const usuario = await obtenerUsuario();
+  if (!usuario) redirect(`/login?callbackUrl=${encodeURIComponent(ficha)}`);
+
+  const kit = await activarKitGratis(usuario.id, slug);
+  redirect(kit ? `/cursos/${kit.cursoSlug}` : ficha);
 }
 
 async function kitVisible(slug: string) {

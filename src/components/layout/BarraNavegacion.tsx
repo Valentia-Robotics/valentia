@@ -134,6 +134,9 @@ export function BarraNavegacion() {
                     ...(sesion.user.rol === "ADMIN"
                       ? [{ href: "/admin", etiqueta: "Panel de administración" }]
                       : []),
+                    ...(sesion.user.rol === "EDITOR"
+                      ? [{ href: "/editor", etiqueta: "Panel de editor" }]
+                      : []),
                   ].map((enlace) => (
                     <Link
                       key={enlace.href}

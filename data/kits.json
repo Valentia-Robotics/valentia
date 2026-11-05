@@ -83,5 +83,25 @@
       { "slug": "pantalla-oled-096", "cantidad": 1 },
       { "slug": "protoboard-cables", "cantidad": 1 }
     ]
+  },
+  {
+    "slug": "bienvenida-valentia",
+    "nombre": "Kit de bienvenida",
+    "eslogan": "Conócenos y empieza tu aventura con Valentia.",
+    "descripcion": "Un vídeo en el que te damos la bienvenida al proyecto: quiénes somos, por qué creamos Valentia y qué vas a poder construir con nosotros. No lleva piezas ni hay nada que pagar: lo consigues con un clic y lo ves cuando quieras en Mis cursos.",
+    "precio": 0,
+    "imagen": "/images/kits/bienvenida-valentia.svg",
+    "nivel": "Principiante",
+    "edadMinima": 6,
+    "tiempoMontaje": "Sin montaje",
+    "destacado": false,
+    "orden": 4,
+    "puntosFuertes": [
+      "Un vídeo de bienvenida del equipo",
+      "Sin piezas y sin pagar nada",
+      "Se activa al momento en Mis cursos"
+    ],
+    "curso": "bienvenida-a-valentia",
+    "componentes": []
   }
 ]
