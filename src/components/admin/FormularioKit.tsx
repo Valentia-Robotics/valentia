@@ -99,6 +99,7 @@ export function FormularioKit({
             inputMode="decimal"
             defaultValue={k ? (k.precioCentimos / 100).toFixed(2).replace(".", ",") : ""}
             placeholder="79,90"
+            ayuda="Con 0 el kit es gratis: no lleva piezas y se activa con un botón, sin pago"
             error={error("precio")}
           />
           <SelectorAdmin

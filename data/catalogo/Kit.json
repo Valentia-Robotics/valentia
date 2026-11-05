@@ -94,5 +94,36 @@
     "cursoId": {
       "$oid": "6ad5f9b906cf870884abee12"
     }
+  },
+  {
+    "_id": {
+      "$oid": "de664871ff9874b5a7e790ac"
+    },
+    "slug": "bienvenida-valentia",
+    "nombre": "Kit de bienvenida",
+    "eslogan": "Conócenos y empieza tu aventura con Valentia.",
+    "descripcion": "Un vídeo en el que te damos la bienvenida al proyecto: quiénes somos, por qué creamos Valentia y qué vas a poder construir con nosotros. No lleva piezas ni hay nada que pagar: lo consigues con un clic y lo ves cuando quieras en Mis cursos.",
+    "precioCentimos": {
+      "$numberLong": "0"
+    },
+    "imagen": "/images/kits/bienvenida-valentia.svg",
+    "nivel": "Principiante",
+    "edadMinima": {
+      "$numberLong": "6"
+    },
+    "tiempoMontaje": "Sin montaje",
+    "destacado": false,
+    "orden": {
+      "$numberLong": "4"
+    },
+    "puntosFuertes": [
+      "Un vídeo de bienvenida del equipo",
+      "Sin piezas y sin pagar nada",
+      "Se activa al momento en Mis cursos"
+    ],
+    "visible": true,
+    "cursoId": {
+      "$oid": "3e1a611743e12647a3c6e4a7"
+    }
   }
 ]

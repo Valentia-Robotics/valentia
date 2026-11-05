@@ -97,8 +97,13 @@ export function datosKit(kit: KitParaGoogle, aLaVenta: boolean, resenas?: Resena
       availability: aLaVenta ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@id": `${urlAbsoluta("/")}#tienda` },
-      shippingDetails: datosEnvio(kit.precioCentimos),
-      hasMerchantReturnPolicy: datosDevolucion(),
+      // Un kit gratis es solo un curso en vídeo: no hay nada que enviar ni devolver
+      ...(kit.precioCentimos > 0
+        ? {
+            shippingDetails: datosEnvio(kit.precioCentimos),
+            hasMerchantReturnPolicy: datosDevolucion(),
+          }
+        : {}),
     },
     // Las estrellas solo si hay opiniones publicadas (Google no admite una nota sin reseñas)
     ...(resenas && resenas.total > 0

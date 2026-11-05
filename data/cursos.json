@@ -306,5 +306,21 @@
         ]
       }
     ]
+  },
+  {
+    "slug": "bienvenida-a-valentia",
+    "titulo": "Bienvenida a Valentia",
+    "descripcion": "Te contamos quiénes somos y qué vamos a construir juntos.",
+    "nivel": "Principiante",
+    "lecciones": [
+      {
+        "slug": "bienvenida",
+        "titulo": "Te damos la bienvenida",
+        "descripcion": "El equipo de Valentia te da la bienvenida al proyecto.",
+        "videoUrl": "PENDIENTE",
+        "duracionMin": 3,
+        "ejercicios": []
+      }
+    ]
   }
 ]

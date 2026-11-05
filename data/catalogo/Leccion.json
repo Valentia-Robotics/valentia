@@ -250,5 +250,23 @@
     "duracionMin": {
       "$numberLong": "18"
     }
+  },
+  {
+    "_id": {
+      "$oid": "8a79993e6199b156d167156a"
+    },
+    "cursoId": {
+      "$oid": "3e1a611743e12647a3c6e4a7"
+    },
+    "slug": "bienvenida",
+    "orden": {
+      "$numberLong": "1"
+    },
+    "titulo": "Te damos la bienvenida",
+    "descripcion": "El equipo de Valentia te da la bienvenida al proyecto.",
+    "videoUrl": "PENDIENTE",
+    "duracionMin": {
+      "$numberLong": "3"
+    }
   }
 ]

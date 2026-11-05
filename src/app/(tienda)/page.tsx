@@ -39,7 +39,8 @@ export const metadata: Metadata = metadatosPagina({
 export default async function Inicio() {
   const [kits, cifras] = await Promise.all([obtenerKits(), obtenerCifras()]);
   const estrella = kits.find((k) => k.destacado) ?? kits[0];
-  const resto = kits.filter((k) => k.id !== estrella?.id);
+  // Los kits gratis (sin piezas) solo salen en /kits: la portada enseña lo que se monta
+  const resto = kits.filter((k) => k.id !== estrella?.id && k.precioCentimos > 0);
   const abierta = compraAbierta();
 
   return (

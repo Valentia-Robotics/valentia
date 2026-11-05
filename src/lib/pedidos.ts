@@ -91,6 +91,12 @@ async function calcularLineas(tx: Tx, articulos: ArticuloPedido[]) {
     if (articulo.tipo === "kit") {
       const kit = kitPorSlug.get(articulo.slug);
       if (!kit) throw new ErrorPedido("Uno de los kits de tu carrito ya no está disponible.");
+      // Los kits gratis no pasan por caja: se activan con el botón de su ficha
+      if (kit.precioCentimos === 0) {
+        throw new ErrorPedido(
+          `«${kit.nombre}» es gratis: consíguelo desde su ficha, sin pasar por caja.`,
+        );
+      }
       return {
         tipo: "KIT",
         nombre: kit.nombre,

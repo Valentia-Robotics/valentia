@@ -40,25 +40,28 @@ export const esquemaComponente = z.object({
   especificaciones: z.array(z.object({ nombre: z.string(), valor: z.string() })),
 });
 
-export const esquemaKit = z.object({
-  slug,
-  nombre: z.string().min(1),
-  eslogan: z.string().min(1),
-  descripcion: z.string().min(1),
-  precio,
-  imagen: rutaImagen,
-  nivel: z.string().min(1),
-  edadMinima: z.number().int().positive(),
-  tiempoMontaje: z.string().min(1),
-  destacado: z.boolean(),
-  orden: z.number().int(),
-  puntosFuertes: z.array(z.string()),
-  /** slug del curso que incluye el kit */
-  curso: slug,
-  componentes: z
-    .array(z.object({ slug, cantidad: z.number().int().positive() }))
-    .min(1, "Un kit necesita al menos un componente"),
-});
+export const esquemaKit = z
+  .object({
+    slug,
+    nombre: z.string().min(1),
+    eslogan: z.string().min(1),
+    descripcion: z.string().min(1),
+    /** 0 = kit gratis */
+    precio: z.number().min(0, "El precio no puede ser negativo"),
+    imagen: rutaImagen,
+    nivel: z.string().min(1),
+    edadMinima: z.number().int().positive(),
+    tiempoMontaje: z.string().min(1),
+    destacado: z.boolean(),
+    orden: z.number().int(),
+    puntosFuertes: z.array(z.string()),
+    /** slug del curso que incluye el kit */
+    curso: slug,
+    componentes: z.array(z.object({ slug, cantidad: z.number().int().positive() })),
+  })
+  .refine((kit) => (kit.precio === 0) === (kit.componentes.length === 0), {
+    message: "Un kit de pago necesita componentes, y uno gratis (precio 0) no lleva ninguno",
+  });
 
 const esquemaEjercicio = z.discriminatedUnion("tipo", [
   z.object({

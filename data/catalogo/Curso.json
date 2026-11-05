@@ -25,5 +25,14 @@
     "titulo": "Crea tu estación meteorológica",
     "descripcion": "Mide el tiempo con sensores reales y muestra los datos en una pantalla.",
     "nivel": "Principiante"
+  },
+  {
+    "_id": {
+      "$oid": "3e1a611743e12647a3c6e4a7"
+    },
+    "slug": "bienvenida-a-valentia",
+    "titulo": "Bienvenida a Valentia",
+    "descripcion": "Te contamos quiénes somos y qué vamos a construir juntos.",
+    "nivel": "Principiante"
   }
 ]

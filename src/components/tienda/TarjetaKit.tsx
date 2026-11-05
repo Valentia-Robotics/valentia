@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Etiqueta } from "@/components/ui/Etiqueta";
-import { formatearPrecio } from "@/lib/utils";
+import { precioDeKit } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
 
 /** Tarjeta de un kit para el listado /kits. Toda la tarjeta es un enlace a su ficha. */
@@ -31,10 +31,11 @@ export function TarjetaKit({ kit }: { kit: KitResumen }) {
         </h2>
         <p className="mt-2 flex-1 text-gris">{kit.eslogan}</p>
         <p className="mt-4 text-sm text-gris">
-          Incluye el curso «{kit.curso.titulo}» ({kit.curso._count.lecciones} lecciones)
+          Incluye el curso «{kit.curso.titulo}» ({kit.curso._count.lecciones}{" "}
+          {kit.curso._count.lecciones === 1 ? "lección" : "lecciones"})
         </p>
         <div className="mt-5 flex items-center justify-between">
-          <span className="text-xl font-medium">{formatearPrecio(kit.precioCentimos)}</span>
+          <span className="text-xl font-medium">{precioDeKit(kit.precioCentimos)}</span>
           <span aria-hidden="true" className="text-sm text-acento group-hover:underline">
             Ver kit ›
           </span>

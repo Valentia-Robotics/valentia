@@ -11,6 +11,22 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Kit gratis de bienvenida (05-11-2026, rama `valentiarobotics/kit-bienvenida`)
+
+Decisión del usuario: un kit de 0 € sin piezas, con un curso de un solo vídeo de bienvenida (`bienvenida-valentia`,
+curso `bienvenida-a-valentia`; vídeo `PENDIENTE`: ponerlo en `/admin/cursos`). Sale en `/kits` con el precio «Gratis»
+(`precioDeKit`) y funciona aunque la compra esté cerrada.
+
+- Gratis = `precioCentimos === 0` y sin piezas (las validaciones del panel y del catálogo exigen las dos cosas juntas).
+- Botón «Conseguir gratis» → `conseguirKitGratis` (`kits/[slug]/acciones.ts`) → `activarKitGratis` (`activacion.ts`):
+  sin sesión manda al login y vuelve a la ficha; con sesión crea el `CursoUsuario` y lleva al curso. Sin pedido, código
+  ni pago; el precio se comprueba en el servidor y repetir no duplica nada.
+- Un kit gratis no sale en la portada, en sus cifras ni en el configurador; `crearPedido` lo rechaza; su ficha no lleva
+  caja, reseñas (`puedeOpinar` exige código) ni envío en los datos para Google.
+- Llega a producción con `data/catalogo/` (seed:prod solo crea: kit, curso y lección). Imágenes hechas a mano:
+  `public/images/kits/bienvenida-valentia.svg` y `public/images/redes/kits/bienvenida-valentia.png` (sin modelo 3D).
+- Pruebas: `src/lib/validaciones/kitGratis.test.ts` y `e2e/kit-gratis.spec.ts`.
+
 ### Desactivar códigos en bloque (05-11-2026, rama `claude/project-thread-df82fa`)
 
 `/admin/codigos`: botones «Desactivar todos» / «Reactivar todos» (con confirmación) encima de la tabla; actúan sobre
@@ -414,7 +430,7 @@ Notas técnicas de la fase de lanzamiento:
 - Tras `prisma generate` con tablas nuevas hay que reiniciar `npm run dev` (el cliente de la BD queda en memoria).
 - `npm audit`: 8 avisos "altos": braces/micromatch vía eslint-config-next y deepmerge-ts vía la CLI de Prisma 6 (solo
   desarrollo); el arreglo bajaría a Next 14 o cambiaría Prisma. Esperar.
-- `graphify-out/` (salida de la herramienta graphify del usuario) no está en git ni en .gitignore: no tocarla sin preguntar.
+- `graphify-out/` (salida de la herramienta graphify del usuario) no está en git ni en .gitignore: solo la actualiza graphify (regla 11); no tocarla a mano.
 - npm avisa de "install scripts not yet covered by allowScripts" (prisma, @prisma/engines,
   esbuild, unrs-resolver). Por ahora solo es un aviso y los scripts se ejecutan; no se ha cambiado ninguna configuración.
 - Vídeos de los cursos: `PENDIENTE` en la BD, a la espera de las URL reales (se ponen desde `/admin/cursos`).
@@ -470,6 +486,12 @@ Requisitos completos: `PROMPT.md`.
 7. Secretos solo en `.env` (nunca en git). `.env.example` sin secretos.
 8. **No borrar ni modificar `imagenes/`** (originales del usuario). Sí se guarda en git.
 9. Sin logos, nombres, textos, imágenes ni tipografías de Apple o McDonald's: solo la inspiración de estilo.
+10. **Antes de hacer cualquier cambio, actualizar desde GitHub**: `git fetch origin` y traer lo nuevo de `main`
+    (`git merge --ff-only origin/main`; en una rama de trabajo, unir `origin/main`). Hay más gente subiendo cambios.
+    Si hay cambios sin guardar o conflictos, no descartar nada: avisar al usuario antes de seguir. Si llegan cambios en
+    `package.json` o `prisma/schema.prisma`, hacer `npm install` o `npm run db:push` y reiniciar `npm run dev`.
+11. **Después de cada cambio, actualizar el grafo**: `graphify update .` (solo código, sin IA). Si el cambio toca
+    documentos (`.md`) o imágenes, usar `/graphify . --update`.
 
 ## Marca y sistema de diseño
 

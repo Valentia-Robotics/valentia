@@ -50,15 +50,18 @@ export const entero = (minimo = 0, maximo = 1_000_000) =>
 const decimal = numero.pipe(z.number().min(0, "No puede ser negativo").max(100_000));
 
 /** Precio en euros ("24,90") → céntimos (2490) */
-export const precioEnCentimos = numero
-  .pipe(
-    z
-      .number()
-      .positive("El precio tiene que ser mayor que 0")
-      .max(100_000, "Precio demasiado alto"),
-  )
-  .refine((euros) => Math.abs(euros * 100 - Math.round(euros * 100)) < 1e-6, "Máximo 2 decimales")
-  .transform((euros) => Math.round(euros * 100));
+const eurosACentimos = (euros: z.ZodNumber) =>
+  numero
+    .pipe(euros.max(100_000, "Precio demasiado alto"))
+    .refine((e) => Math.abs(e * 100 - Math.round(e * 100)) < 1e-6, "Máximo 2 decimales")
+    .transform((e) => Math.round(e * 100));
+
+export const precioEnCentimos = eurosACentimos(
+  z.number().positive("El precio tiene que ser mayor que 0"),
+);
+
+/** Un kit sí puede valer 0: es un kit gratis */
+const precioDeKitEnCentimos = eurosACentimos(z.number().min(0, "No puede ser negativo"));
 
 /** Identificador para la dirección web: solo minúsculas, números y guiones */
 export const slug = z
@@ -122,30 +125,39 @@ export type DatosComponenteAdmin = z.infer<typeof esquemaComponenteAdmin>;
 
 export const NIVELES = ["Principiante", "Intermedio", "Avanzado"] as const;
 
-export const esquemaKitAdmin = z.object({
-  nombre: textoObligatorio(80),
-  eslogan: textoObligatorio(140),
-  descripcion: textoObligatorio(3000),
-  precio: precioEnCentimos,
-  nivel: z.enum(NIVELES, { error: "Elige un nivel" }),
-  edadMinima: entero(3, 99),
-  tiempoMontaje: textoObligatorio(40),
-  orden: entero(0, 999),
-  destacado: z.boolean(),
-  visible: z.boolean(),
-  puntosFuertes: z
-    .array(textoObligatorio(120))
-    .min(1, "Añade al menos un punto fuerte")
-    .max(8, "Máximo 8 puntos fuertes"),
-  cursoId: z.string().min(1, "Elige el curso que incluye el kit").pipe(esquemaId),
-  componentes: z
-    .array(z.object({ id: esquemaId, cantidad: entero(1, 50) }))
-    .min(1, "Un kit necesita al menos un componente")
-    .refine(
-      (piezas) => new Set(piezas.map((p) => p.id)).size === piezas.length,
-      "Hay un componente repetido",
-    ),
-});
+export const esquemaKitAdmin = z
+  .object({
+    nombre: textoObligatorio(80),
+    eslogan: textoObligatorio(140),
+    descripcion: textoObligatorio(3000),
+    precio: precioDeKitEnCentimos,
+    nivel: z.enum(NIVELES, { error: "Elige un nivel" }),
+    edadMinima: entero(3, 99),
+    tiempoMontaje: textoObligatorio(40),
+    orden: entero(0, 999),
+    destacado: z.boolean(),
+    visible: z.boolean(),
+    puntosFuertes: z
+      .array(textoObligatorio(120))
+      .min(1, "Añade al menos un punto fuerte")
+      .max(8, "Máximo 8 puntos fuertes"),
+    cursoId: z.string().min(1, "Elige el curso que incluye el kit").pipe(esquemaId),
+    componentes: z
+      .array(z.object({ id: esquemaId, cantidad: entero(1, 50) }))
+      .refine(
+        (piezas) => new Set(piezas.map((p) => p.id)).size === piezas.length,
+        "Hay un componente repetido",
+      ),
+  })
+  // Gratis = sin piezas (no hay nada que enviar); de pago = con piezas
+  .refine((kit) => kit.precio === 0 || kit.componentes.length > 0, {
+    path: ["componentes"],
+    message: "Un kit de pago necesita al menos un componente",
+  })
+  .refine((kit) => kit.precio > 0 || kit.componentes.length === 0, {
+    path: ["componentes"],
+    message: "Un kit gratis no lleva piezas: quítalas o ponle precio",
+  });
 
 export type DatosKitAdmin = z.infer<typeof esquemaKitAdmin>;
 

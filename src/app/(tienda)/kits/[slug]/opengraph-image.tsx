@@ -22,7 +22,11 @@ export default async function ImagenKit({ params }: { params: Promise<{ slug: st
       titulo={kit?.nombre ?? "Kits de robótica"}
       subtitulo={kit?.eslogan ?? "Construye tu propio robot paso a paso."}
       pie={
-        kit ? `${formatearPrecio(kit.precioCentimos)} · Todas las piezas y el curso` : "Valentia"
+        kit
+          ? kit.precioCentimos === 0
+            ? "Gratis · Curso en vídeo"
+            : `${formatearPrecio(kit.precioCentimos)} · Todas las piezas y el curso`
+          : "Valentia"
       }
       foto={await fotoRedes(`images/redes/kits/${slug}.png`)}
     />,
