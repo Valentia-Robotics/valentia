@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
+import { Insignia } from "@/components/admin/Insignia";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
 import { SelectorAdmin } from "@/components/admin/campos";
@@ -141,7 +142,9 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
                         href={`/admin/contenido/${g.id}`}
                         className="block rounded-md bg-niebla p-2.5 text-sm hover:ring-1 hover:ring-tinta/30"
                       >
-                        <span className="block font-medium">{g.titulo}</span>
+                        <span className="block font-medium">
+                          {g.titulo} {g.origen === "IA" && <Insignia tono="acento">IA</Insignia>}
+                        </span>
                         <span className="mt-1 block text-xs text-gris">
                           {g.categoria.nombre} · {fecha(g.fechaLimite)}
                         </span>
@@ -167,7 +170,8 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
                 <td>
                   <Link href={`/admin/contenido/${g.id}`} className="font-medium hover:text-acento">
                     {g.titulo}
-                  </Link>
+                  </Link>{" "}
+                  {g.origen === "IA" && <Insignia tono="acento">IA</Insignia>}
                 </td>
                 <td className="text-gris">{g.categoria.nombre}</td>
                 <td>

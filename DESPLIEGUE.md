@@ -273,6 +273,29 @@ Si prefieres preparar algo nuevo (por ejemplo, un kit completo con su curso) en 
 2. Rama nueva, commit de `data/catalogo/` y `public/images/`, pull request y únelo a `main`.
 3. Render despliega y el Pre-Deploy crea **solo lo nuevo**. Lo que ya existía en producción no cambia.
 
+## 6 ter. El backend (API para n8n)
+
+Es un **segundo servicio de Render**, separado de la web. La web actual sigue exactamente igual.
+
+1. En Render: **New → Web Service** → el mismo repositorio.
+2. Rellena: Name `valentia-backend`, Region **Frankfurt**, Branch `main`, Runtime Node.
+
+   | Campo             | Valor                                              |
+   | ----------------- | -------------------------------------------------- |
+   | Build Command     | `npm ci && npx prisma generate`                    |
+   | Start Command     | `npm run backend:start`                            |
+   | Health Check Path | `/health`                                          |
+   | Pre-Deploy        | (vacío: las colecciones las crea el servicio web)  |
+
+3. Variables: `DATABASE_URL` (la misma que la web), `NEXT_PUBLIC_SITE_URL` (la misma), `N8N_API_TOKEN` (nueva, ver
+   `backend/README.md`) y `NODE_VERSION` si la web la tiene.
+4. Comprueba en **Connect → Outbound** que sus IP están en Network Access de Atlas (§4).
+5. Abre `https://<tu-servicio>.onrender.com/health`: debe decir `{"estado":"ok"}`.
+
+En n8n, un nodo **HTTP Request** con `POST https://<tu-servicio>.onrender.com/v1/guiones`, la cabecera
+`Authorization: Bearer <token>` y el JSON que explica `backend/README.md`. El guion aparece en `/admin/contenido`
+como borrador, con la etiqueta IA.
+
 ## 7. Copias de seguridad
 
 El plan **M0 no hace copias automáticas**. Desde tu ordenador, con tu IP añadida temporalmente (§4):

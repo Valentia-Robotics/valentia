@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
+import { Insignia } from "@/components/admin/Insignia";
 import { FormularioGuion } from "@/components/contenido/FormularioGuion";
 import { FormularioAsignar, FormularioDevolver } from "@/components/contenido/FormulariosRevision";
 import { InsigniaEstadoGuion, TextoGuion } from "@/components/contenido/TextoGuion";
@@ -49,7 +50,8 @@ export default async function GuionAdmin({ params }: Props) {
         titulo={guion.titulo}
         descripcion={
           <>
-            <InsigniaEstadoGuion estado={guion.estado} />
+            <InsigniaEstadoGuion estado={guion.estado} />{" "}
+            {guion.origen === "IA" && <Insignia tono="acento">Generado con IA</Insignia>}
             {guion.editor && ` · Editor: ${guion.editor.nombre}`}
           </>
         }
