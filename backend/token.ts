@@ -15,8 +15,7 @@ export const exigirToken: MiddlewareHandler = async (c, siguiente) => {
   if (esperado.length < LONGITUD_MINIMA) {
     return c.json({ error: "La API no está configurada." }, 503);
   }
-  const recibido =
-    c.req.header("authorization")?.match(/^Bearer (.+)$/)?.[1] ?? "";
+  const recibido = c.req.header("authorization")?.match(/^Bearer (.+)$/)?.[1] ?? "";
   // Se comparan las huellas, en tiempo constante: el tiempo de respuesta no da pistas del token
   if (!timingSafeEqual(huella(recibido), huella(esperado))) {
     return c.json({ error: "Token no válido." }, 401);

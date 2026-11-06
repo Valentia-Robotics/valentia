@@ -48,9 +48,7 @@ const enviar = (cuerpo: unknown, token: string | null = TOKEN) =>
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubEnv("N8N_API_TOKEN", TOKEN);
-  simulado.categoriasGuion.mockResolvedValue([
-    { id: CATEGORIA, nombre: "Robótica" },
-  ]);
+  simulado.categoriasGuion.mockResolvedValue([{ id: CATEGORIA, nombre: "Robótica" }]);
   simulado.guion.findFirst.mockResolvedValue(null);
   simulado.kit.findUnique.mockResolvedValue(null);
   simulado.crearGuion.mockResolvedValue({ id: "6ad5f9ba06cf870884abee1d" });
@@ -87,9 +85,7 @@ describe("crear guion", () => {
   });
 
   it("la categoría no distingue mayúsculas", async () => {
-    expect((await enviar({ ...guion, categoria: "robótica" })).status).toBe(
-      201,
-    );
+    expect((await enviar({ ...guion, categoria: "robótica" })).status).toBe(201);
   });
 
   it("una categoría fuera de la lista se rechaza y dice cuáles valen", async () => {
@@ -129,9 +125,7 @@ describe("crear guion", () => {
   it("un kit que no existe se rechaza; uno que existe se enlaza", async () => {
     expect((await enviar({ ...guion, kit: "no-existe" })).status).toBe(422);
     simulado.kit.findUnique.mockResolvedValue({ id: CATEGORIA });
-    expect((await enviar({ ...guion, kit: "brazo-robotico" })).status).toBe(
-      201,
-    );
+    expect((await enviar({ ...guion, kit: "brazo-robotico" })).status).toBe(201);
     expect(simulado.crearGuion.mock.calls[0][0].kitId).toBe(CATEGORIA);
   });
 
@@ -146,8 +140,6 @@ describe("crear guion", () => {
   it("rechaza lo que no es un objeto JSON o es demasiado grande", async () => {
     expect((await enviar("esto no es json")).status).toBe(400);
     expect((await enviar([guion])).status).toBe(422);
-    expect(
-      (await enviar({ ...guion, desarrollo: "x".repeat(70_000) })).status,
-    ).toBe(413);
+    expect((await enviar({ ...guion, desarrollo: "x".repeat(70_000) })).status).toBe(413);
   });
 });
