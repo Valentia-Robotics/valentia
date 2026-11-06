@@ -195,27 +195,28 @@ export const texturaDibujoNeumatico = () => {
   return t;
 };
 
-/** Envoltorio de una pila AA: cuerpo oscuro, franja cobre en el polo positivo y el texto */
+/** Envoltorio de una batería recargable 18650: cuerpo azul, franja clara en el polo positivo y el texto */
 export const texturaPila = () => {
   const t = textura(256, 512, (ctx, w, h) => {
     const degradado = ctx.createLinearGradient(0, 0, w, 0);
-    degradado.addColorStop(0, "#1d1f23");
-    degradado.addColorStop(0.5, "#2c2f35");
-    degradado.addColorStop(1, "#1d1f23");
+    // Batería recargable 18650: envoltorio azul con franja clara
+    degradado.addColorStop(0, "#1b3a7a");
+    degradado.addColorStop(0.5, "#2a55a8");
+    degradado.addColorStop(1, "#1b3a7a");
     ctx.fillStyle = degradado;
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "#c47a36";
+    ctx.fillStyle = "#d9dde6";
     ctx.fillRect(0, 0, w, h * 0.2);
     ctx.fillStyle = "#e8e8e8";
     ctx.save();
     ctx.translate(w * 0.25, h * 0.6);
     ctx.rotate(-Math.PI / 2);
-    texto(ctx, "AA  1.5V", 0, 0, 34, 700, "center");
+    texto(ctx, "18650  3.7V", 0, 0, 34, 700, "center");
     ctx.restore();
     ctx.save();
     ctx.translate(w * 0.75, h * 0.6);
     ctx.rotate(-Math.PI / 2);
-    texto(ctx, "ALCALINA", 0, 0, 24, 600, "center");
+    texto(ctx, "RECARGABLE", 0, 0, 24, 600, "center");
     ctx.restore();
   });
   return t;

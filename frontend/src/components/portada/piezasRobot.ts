@@ -46,7 +46,7 @@ export const PIEZAS_ROBOT: PiezaRobot[] = [
   {
     id: "bateria",
     titulo: "La batería",
-    texto: "La energía para que funcione solo, sin cables, durante horas.",
+    texto: "Dos baterías recargables: la energía para que funcione solo, sin cables, durante horas.",
     direccion3d: [-0.7, 0.8, -0.4],
     direccion2d: [-110, -70],
   },

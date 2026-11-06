@@ -2,7 +2,7 @@
  * MODELO 3D DEL COCHE SEGUIDOR DE LÍNEAS (portada)
  * Las piezas reales del kit, hechas con formas sencillas y texturas dibujadas en canvas:
  * chasis de metacrilato, placa UNO, protoboard, driver L298N, dos motores TT amarillos con
- * sus ruedas, sensor de ultrasonidos HC-SR04, dos sensores de línea, portapilas 4×AA y cables.
+ * sus ruedas, sensor de ultrasonidos HC-SR04, dos sensores de línea, portabaterías con dos baterías 18650 y cables.
  *
  * Medidas: 1 unidad ≈ 8,5 cm. El eje x apunta hacia delante (donde están los sensores),
  * y hacia arriba y z hacia los lados. El suelo está en y = SUELO.
@@ -549,36 +549,37 @@ export function crearModeloCoche(): ModeloCoche {
   }
 
   // ------------------------------------------------------------------
-  // BATERÍA: portapilas negro con cuatro pilas AA, atrás a la izquierda
+  // BATERÍA: portabaterías negro con dos baterías recargables 18650, atrás a la izquierda
+  // (Jesse, 06-11-2026: los kits van con baterías recargables, no con pilas AA)
   // ------------------------------------------------------------------
   {
     const { mat, malla } = crear("bateria");
     const bx = -0.62;
     const bz = -0.3;
     const negro = mat({ color: 0x141414, roughness: 0.55 });
-    malla(g(new BoxGeometry(0.72, 0.02, 0.64)), negro, bx, 0.01, bz);
-    const pared = g(new BoxGeometry(0.72, 0.1, 0.02));
-    malla(pared, negro, bx, 0.06, bz - 0.31);
-    malla(pared, negro, bx, 0.06, bz + 0.31);
-    const testa = g(new BoxGeometry(0.03, 0.12, 0.64));
-    malla(testa, negro, bx - 0.345, 0.07, bz);
-    malla(testa, negro, bx + 0.345, 0.07, bz);
-    // Pilas: envoltorio impreso (cuerpo oscuro, franja cobre y texto) y extremos metálicos
+    malla(g(new BoxGeometry(0.76, 0.02, 0.44)), negro, bx, 0.01, bz);
+    const pared = g(new BoxGeometry(0.76, 0.12, 0.02));
+    malla(pared, negro, bx, 0.07, bz - 0.21);
+    malla(pared, negro, bx, 0.07, bz + 0.21);
+    const testa = g(new BoxGeometry(0.03, 0.16, 0.44));
+    malla(testa, negro, bx - 0.365, 0.09, bz);
+    malla(testa, negro, bx + 0.365, 0.09, bz);
+    // Baterías 18650 (18 × 65 mm): envoltorio impreso y extremos metálicos
     const envoltorio = mat({ map: tx(texturaPila()), metalness: 0.3, roughness: 0.32 });
     const acero = mat({ color: 0xcfd2d6, metalness: 1, roughness: 0.2 });
-    const cuerpo = g(new CylinderGeometry(0.072, 0.072, 0.58, 40, 1, true));
-    const tapa = g(new CylinderGeometry(0.07, 0.07, 0.01, 28));
-    const polo = g(new CylinderGeometry(0.025, 0.025, 0.03, 16));
-    for (let i = 0; i < 4; i++) {
-      const z = bz - 0.225 + i * 0.15;
-      const sentido = i % 2 === 0 ? 1 : -1; // alternadas, como en un portapilas de verdad
-      // rotation.z = -π/2 lleva la parte de arriba del cilindro (la franja cobre) hacia +x
-      const pila = malla(cuerpo, envoltorio, bx, 0.095, z);
-      pila.rotation.z = -sentido * (Math.PI / 2);
-      pila.rotation.x = 0.6;
-      malla(tapa, acero, bx + sentido * 0.29, 0.095, z).rotation.z = Math.PI / 2;
-      malla(tapa, acero, bx - sentido * 0.29, 0.095, z).rotation.z = Math.PI / 2;
-      malla(polo, acero, bx + sentido * 0.305, 0.095, z).rotation.z = Math.PI / 2;
+    const cuerpo = g(new CylinderGeometry(0.09, 0.09, 0.62, 40, 1, true));
+    const tapa = g(new CylinderGeometry(0.088, 0.088, 0.01, 28));
+    const polo = g(new CylinderGeometry(0.03, 0.03, 0.02, 16));
+    for (let i = 0; i < 2; i++) {
+      const z = bz - 0.095 + i * 0.19;
+      const sentido = i % 2 === 0 ? 1 : -1; // alternadas, como en un portabaterías de verdad
+      // rotation.z = -π/2 lleva la parte de arriba del cilindro (la franja de color) hacia +x
+      const bateria = malla(cuerpo, envoltorio, bx, 0.115, z);
+      bateria.rotation.z = -sentido * (Math.PI / 2);
+      bateria.rotation.x = 0.6;
+      malla(tapa, acero, bx + sentido * 0.31, 0.115, z).rotation.z = Math.PI / 2;
+      malla(tapa, acero, bx - sentido * 0.31, 0.115, z).rotation.z = Math.PI / 2;
+      malla(polo, acero, bx + sentido * 0.325, 0.115, z).rotation.z = Math.PI / 2;
     }
   }
 
@@ -674,7 +675,7 @@ export function crearModeloCoche(): ModeloCoche {
           false,
         );
     }
-    // Portapilas → borne de alimentación del driver
+    // Portabaterías → borne de alimentación del driver
     cable(
       R,
       [

@@ -154,9 +154,9 @@ function coche(): Forma[] {
   g.push(relleno(rect(-1.2, -5.6, 4.8, 1.6)));
   g.push(relleno(rect(-7, -6.6, 2.2, 2.4)));
   g.push(relleno(rect(-4.2, -3.6, 1.6, 1.3)));
-  // Portapilas con las 4 pilas
+  // Portabaterías con las 2 baterías recargables 18650
   g.push(sil(caja(-4.6, 0.4, 9.2, 9, 0.6), 0.32));
-  for (const x of [-3.3, -1.1, 1.1, 3.3]) g.push(sil(capsula([x, 2.2], [x, 7.6], 0.75), 0.25));
+  for (const x of [-2.2, 2.2]) g.push(sil(capsula([x, 2.4], [x, 7.4], 1.45), 0.25));
   // Motores con reductora y ruedas con el dibujo de la goma
   for (const lado of [-1, 1]) {
     const xm = lado < 0 ? -8 : 5.2;
