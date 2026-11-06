@@ -6,7 +6,8 @@ importantes; consulta `frontend/node_modules/next/dist/docs/` antes de usar APIs
 **El repositorio tiene dos carpetas: `frontend/` (la web Next.js: `src/`, `public/`, `prisma/`, `data/`, `scripts/`, `e2e/`,
 `.env`) y `backend/` (la API).** Todas las rutas de este documento son relativas a `frontend/`, salvo `backend/`, `imagenes/`,
 `documentos/` y los `.md`, que están en la raíz. Los comandos `npm` se ejecutan dentro de `frontend/`; la raíz solo tiene un
-`package.json` que redirige (`dev`, `backend`, `test`, y los que usa Render: `build`, `start`, `predeploy:prod`, `build:backend`).
+`package.json` que redirige (`dev`, `backend`, `test`, y los que usa Render: `db:push`, `build`, `start`, `predeploy:prod`). El Build
+Command real de Render incluye `db:push`, que va antes de `build`: por eso instala `frontend` primero.
 **No quitarlo: gracias a él Render publica la web sin cambiar su configuración.**
 
 ## Estado del proyecto

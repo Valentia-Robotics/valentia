@@ -14,6 +14,14 @@
     "predeploy:prod": "npm run predeploy:prod --prefix frontend",
     "build:backend": "npm ci --prefix frontend && npm run db:generate --prefix frontend && npm ci --prefix backend",
     "backend:start": "npm start --prefix backend",
-    "test": "npm test --prefix frontend && npm test --prefix backend"
+    "test": "npm test --prefix frontend && npm test --prefix backend",
+    "db:push": "npm ci --prefix frontend && npm run db:push --prefix frontend",
+    "seed:prod": "npm run seed:prod --prefix frontend",
+    "prod:admin": "npm run prod:admin --prefix frontend",
+    "db:check": "npm run db:check --prefix frontend",
+    "db:catalogo": "npm run db:catalogo --prefix frontend",
+    "db:copia": "npm run db:copia --prefix frontend",
+    "admin": "npm run admin --prefix frontend",
+    "lint": "npm run lint --prefix frontend"
   }
 }
