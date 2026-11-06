@@ -37,6 +37,14 @@ hasta que todo esté probado.
 - n8n (cron diario + ChatGPT que analiza noticias y genera el guion) es para iterar: cuando funcione bien, pasará a un
   módulo del backend, llamando a `recibirGuion`.
 
+### Revisión antes de abrir la tienda (06-11-2026, rama `claude/project-thread-tdljxs`)
+
+- Recorridas 45 páginas públicas (móvil y ordenador): sin enlaces rotos, errores ni desbordes.
+- La tarjeta de muestra de la portada (`TarjetaQRMuestra`) ya no va dentro del HTML: son imágenes
+  `/tarjeta-muestra/<cara>.svg` (`src/app/tarjeta-muestra`, `src/lib/tarjetaLaser/muestra.ts`), generadas al compilar.
+  La portada pasaba de 1,4 MB de HTML por los trazados del láser (salían dos veces).
+- Con la tienda cerrada, los botones «Comprar» de la portada dicen «Avísame cuando abra».
+
 ### Editores y guiones de marketing (05-11-2026, rama `feature/editores-guiones`)
 
 Rol `EDITOR` y sección «Contenido». Decisiones del usuario: **el editor se registra como cualquier usuario y el admin
