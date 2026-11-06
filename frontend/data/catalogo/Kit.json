@@ -6,7 +6,7 @@
     "slug": "coche-seguidor-de-lineas",
     "nombre": "Coche seguidor de líneas",
     "eslogan": "Tu primer robot. Sigue el camino que tú le marques.",
-    "descripcion": "Monta un coche robot desde cero y enséñale a seguir una línea negra en el suelo y a frenar antes de chocar. Es el kit perfecto para empezar: todo encaja con tornillos, no hace falta soldar, y el curso te guía paso a paso desde encender un LED hasta tener tu coche recorriendo el circuito.",
+    "descripcion": "Monta un coche robot desde cero y enséñale a seguir una línea negra en el suelo y a frenar antes de chocar. Es el kit perfecto para empezar: las piezas se unen con imanes, no hace falta soldar, y el curso te guía paso a paso desde encender un LED hasta tener tu coche recorriendo el circuito.",
     "precioCentimos": {
       "$numberLong": "6990"
     },
@@ -23,7 +23,7 @@
     "puntosFuertes": [
       "Sigue líneas con dos sensores infrarrojos",
       "Esquiva obstáculos con ultrasonidos",
-      "Sin soldar: todo con tornillos y cables",
+      "Sin soldar: las piezas se unen con imanes",
       "Curso de 5 lecciones incluido"
     ],
     "visible": true,

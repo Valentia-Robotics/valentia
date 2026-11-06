@@ -50,7 +50,7 @@ export function preguntasFrecuentes({
         {
           pregunta: "¿Hay que soldar?",
           respuesta: [
-            "No. Todo se monta con tornillos y con cables que se enchufan en la placa de pruebas. Si algo queda mal, se desconecta y se vuelve a probar.",
+            "No. Las piezas se unen con imanes y pines de contacto: las acercas y encajan solas. Solo los servos, los motores y el portapilas llevan un cable con un conector pequeño que se enchufa. Si algo queda mal, se separa y se vuelve a probar.",
           ],
         },
         {
