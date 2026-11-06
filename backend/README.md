@@ -1,20 +1,21 @@
 # Backend de Valentia
 
-La API, separada de la web. Se publica en Render como un servicio propio. De momento la lógica sigue en
-`frontend/src/lib`, así que el panel y la API siguen las mismas reglas; irá pasando aquí a medida que avance la separación.
+La API, separada de la web. **Todavía no se publica:** para pagar un solo servicio en Render, en producción n8n llama a la
+ruta equivalente de la web, `POST https://valentiarobotics.com/api/v1/guiones`. Este servidor será el de Render cuando la
+web pase a Vercel. Las dos entradas comparten la lógica de `frontend/src/lib/contenido`: mismas reglas y mismas respuestas.
 
 ```
 npm run backend         # desde la raíz: en tu ordenador, puerto 4000
 npm run backend:start   # desde la raíz: en Render
 ```
 
-Necesita `DATABASE_URL` y `N8N_API_TOKEN` (al menos 32 caracteres). Sin token, la API queda cerrada. Genera uno con:
+Necesitan `DATABASE_URL` y `N8N_API_TOKEN` (al menos 32 caracteres). Sin token, la API queda cerrada. Genera uno con:
 
 ```
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-## POST /v1/guiones
+## POST /api/v1/guiones (web) y POST /v1/guiones (este servidor)
 
 Crea un guion en **borrador**, con origen IA, y aparece en `/admin/contenido` para revisarlo. Nunca llega a un editor
 sin que el admin lo apruebe. No se puede elegir el estado ni el editor.

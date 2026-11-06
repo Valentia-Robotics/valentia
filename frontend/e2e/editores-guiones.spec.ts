@@ -212,6 +212,39 @@ test("flujo completo de un guion, con permisos de cada rol", async ({ browser })
     expect(celdas[7]).toBe("100 %");
   });
 
+  await test.step("n8n crea un guion por la API y aparece en el panel como borrador de IA", async () => {
+    const guion = {
+      titulo: "Guion enviado por n8n",
+      categoria: "Robótica",
+      plataforma: "VIDEO_CORTO",
+      duracionObjetivo: "45 segundos",
+      gancho: "Gancho",
+      desarrollo: "Desarrollo",
+      llamadaAccion: "Sigue a Valentia",
+      notasVisuales: "Plano del robot",
+      fechaLimite: "2030-01-15",
+      estado: "APROBADO", // se ignora: siempre entra en borrador
+    };
+    const ruta = "/api/v1/guiones";
+    const pagina = admin.pagina;
+    expect((await pagina.request.post(ruta, { data: guion })).status()).toBe(401);
+    const cabeceras = { authorization: "Bearer token-de-pruebas-e2e-con-mas-de-32-caracteres" };
+    const creado = await pagina.request.post(ruta, { data: guion, headers: cabeceras });
+    expect(creado.status()).toBe(201);
+    expect((await pagina.request.post(ruta, { data: guion, headers: cabeceras })).status()).toBe(
+      409,
+    );
+
+    await pagina.goto("/admin/contenido?estado=BORRADOR");
+    await expect(pagina.getByRole("link", { name: guion.titulo })).toBeVisible();
+    await expect(pagina.getByText("IA", { exact: true }).first()).toBeVisible();
+    await pagina.getByRole("link", { name: guion.titulo }).click();
+    await expect(pagina.getByText("Generado con IA")).toBeVisible();
+
+    // El tablero de abajo busca una lista sin borradores: este se envía a aprobación
+    await confirmar(pagina, "Enviar a aprobación", "Sí, enviar");
+  });
+
   await test.step("el tablero y los filtros funcionan", async () => {
     const pagina = admin.pagina;
     await pagina.goto("/admin/contenido?vista=tablero");

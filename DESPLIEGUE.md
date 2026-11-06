@@ -273,28 +273,18 @@ Si prefieres preparar algo nuevo (por ejemplo, un kit completo con su curso) en 
 2. Rama nueva, commit de `data/catalogo/` y `public/images/`, pull request y únelo a `main`.
 3. Render despliega y el Pre-Deploy crea **solo lo nuevo**. Lo que ya existía en producción no cambia.
 
-## 6 ter. El backend (API para n8n)
+## 6 ter. La API para n8n
 
-Es un **segundo servicio de Render**, separado de la web. La web actual sigue exactamente igual.
+No hace falta ningún servicio nuevo: la API va dentro de la web, en el **mismo servicio de Render**.
 
-1. En Render: **New → Web Service** → el mismo repositorio.
-2. Rellena: Name `valentia-backend`, Region **Frankfurt**, Branch `main`, Runtime Node. Deja **Root Directory** vacío.
+1. Genera un token (ver `backend/README.md`) y añádelo en Render → tu servicio → **Environment** como `N8N_API_TOKEN`.
+   Sin él la API queda cerrada y responde 503.
+2. En n8n, un nodo **HTTP Request** con `POST https://valentiarobotics.com/api/v1/guiones`, la cabecera
+   `Authorization: Bearer <token>` y el JSON que explica `backend/README.md`.
+3. El guion aparece en `/admin/contenido` como borrador, con la etiqueta IA.
 
-   | Campo             | Valor                                              |
-   | ----------------- | -------------------------------------------------- |
-   | Build Command     | `npm run build:backend`                            |
-   | Start Command     | `npm run backend:start`                            |
-   | Health Check Path | `/health`                                          |
-   | Pre-Deploy        | (vacío: las colecciones las crea el servicio web)  |
-
-3. Variables: `DATABASE_URL` (la misma que la web), `NEXT_PUBLIC_SITE_URL` (la misma), `N8N_API_TOKEN` (nueva, ver
-   `backend/README.md`) y `NODE_VERSION` si la web la tiene.
-4. Comprueba en **Connect → Outbound** que sus IP están en Network Access de Atlas (§4).
-5. Abre `https://<tu-servicio>.onrender.com/health`: debe decir `{"estado":"ok"}`.
-
-En n8n, un nodo **HTTP Request** con `POST https://<tu-servicio>.onrender.com/v1/guiones`, la cabecera
-`Authorization: Bearer <token>` y el JSON que explica `backend/README.md`. El guion aparece en `/admin/contenido`
-como borrador, con la etiqueta IA.
+La carpeta `backend/` no se publica todavía: será el servicio de Render cuando la web pase a Vercel. Entonces solo
+cambiará la dirección a la que llama n8n, y seguirá habiendo un único servicio en Render.
 
 ## 7. Copias de seguridad
 

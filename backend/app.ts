@@ -1,20 +1,13 @@
 /**
- * BACKEND DE VALENTIA (Render): la API, separada de la web.
- * Se irá ampliando módulo a módulo; de momento recibe los guiones que genera n8n.
+ * BACKEND DE VALENTIA: la API, separada de la web.
+ * Todavía NO se publica: para pagar un solo servicio en Render, n8n llama a la ruta de la web
+ * (frontend/src/app/api/v1/guiones). Este servidor será el de Render cuando la web pase a Vercel.
  * Las rutas viven aquí y la lógica en src/lib, para que panel y API sigan exactamente las mismas reglas.
  */
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { recibirGuion } from "@/lib/contenido/recibirGuion";
+import { responderGuion, TAMANO_MAXIMO } from "@/lib/contenido/apiGuiones";
 import { exigirToken } from "./token";
-
-/** Un guion es texto: 64 KB sobran */
-const TAMANO_MAXIMO = 64 * 1024;
-
-const urlPanel = (id: string) => {
-  const web = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  return `${web}/admin/contenido/${id}`;
-};
 
 export const app = new Hono();
 
@@ -32,28 +25,8 @@ app.post(
     const entrada = await c.req.json().catch(() => undefined);
     if (entrada === undefined) return c.json({ error: "El cuerpo no es JSON válido." }, 400);
 
-    const resultado = await recibirGuion(entrada, "n8n");
-    switch (resultado.estado) {
-      case "creado":
-        return c.json(
-          {
-            id: resultado.id,
-            estado: "BORRADOR",
-            panel: urlPanel(resultado.id),
-          },
-          201,
-        );
-      case "repetido":
-        return c.json(
-          {
-            error: "Ya se creó un guion con este título en las últimas 24 horas.",
-            id: resultado.id,
-          },
-          409,
-        );
-      case "invalido":
-        return c.json({ error: "El guion no es válido.", errores: resultado.errores }, 422);
-    }
+    const { status, cuerpo } = await responderGuion(entrada);
+    return c.json(cuerpo, status as 201 | 409 | 422);
   },
 );
 

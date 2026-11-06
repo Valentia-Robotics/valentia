@@ -44,3 +44,4 @@ npm-debug.log*
 
 # Fotos de prueba de npm run fotos:piezas -- --prueba
 /frontend/.fotos-prueba
+frontend/AGENTS.md
