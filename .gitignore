@@ -9,7 +9,7 @@ next-env.d.ts
 *.tsbuildinfo
 
 # Cliente de Prisma generado (se crea con "npm install" o "npm run db:generate")
-src/generated/
+frontend/src/generated/
 
 # Secretos: el archivo .env NUNCA se sube a git (sí .env.example)
 .env
@@ -19,13 +19,13 @@ src/generated/
 # Base de datos local de pruebas (SQLite)
 *.db
 *.db-journal
-prisma/dev.db*
+frontend/prisma/dev.db*
 
 # Fotos subidas desde el panel (almacén local; ver src/lib/almacenamiento)
-/subidas/
+/frontend/subidas/
 
 # Correos de prueba guardados en desarrollo (ver src/lib/correo/consola.ts y /dev/correos)
-/.correos-dev/
+/frontend/.correos-dev/
 
 # Sistema operativo y editores
 .DS_Store
@@ -36,11 +36,12 @@ npm-debug.log*
 # Nota: la carpeta imagenes/ (originales de la marca) SÍ se guarda en git.
 
 # Resultados de las pruebas con navegador (npm run test:e2e)
-/test-results/
-/playwright-report/
+**/test-results/
+**/playwright-report/
 
 # Copias de seguridad de la base de datos (npm run db:copia): tienen datos personales
-/copias/
+/frontend/copias/
 
 # Fotos de prueba de npm run fotos:piezas -- --prueba
-/.fotos-prueba
+/frontend/.fotos-prueba
+frontend/AGENTS.md

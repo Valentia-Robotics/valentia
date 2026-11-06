@@ -1,7 +1,13 @@
 # Valentia — contexto para Claude
 
 Lee también `AGENTS.md` (lo genera Next.js): esta versión de Next.js (16) tiene cambios
-importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no conozcas.
+importantes; consulta `frontend/node_modules/next/dist/docs/` antes de usar APIs que no conozcas.
+
+**El repositorio tiene dos carpetas: `frontend/` (la web Next.js: `src/`, `public/`, `prisma/`, `data/`, `scripts/`, `e2e/`,
+`.env`) y `backend/` (la API).** Todas las rutas de este documento son relativas a `frontend/`, salvo `backend/`, `imagenes/`,
+`documentos/` y los `.md`, que están en la raíz. Los comandos `npm` se ejecutan dentro de `frontend/`; la raíz solo tiene un
+`package.json` que redirige (`dev`, `backend`, `test`, y los que usa Render: `build`, `start`, `predeploy:prod`, `build:backend`).
+**No quitarlo: gracias a él Render publica la web sin cambiar su configuración.**
 
 ## Estado del proyecto
 
@@ -10,6 +16,25 @@ importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no c
 **Las 6 fases, el panel de administración, la verificación por email y la FASE DE LANZAMIENTO (10 bloques) están
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
+
+### Separación backend (Render) y frontend (Vercel) (06-11-2026, rama `feature/backend-render`) — EN CURSO
+
+Decisión del usuario: **separación total**, sabiendo que es una migración grande. Se hace por fases; la web real no se mueve
+hasta que todo esté probado.
+
+- [x] Fase 1: `backend/` (Hono, puerto 4000, `npm run backend`) con `POST /v1/guiones` para n8n, token `N8N_API_TOKEN`
+      (`backend/README.md`, DESPLIEGUE.md §6 ter). Lógica en `src/lib/contenido/recibirGuion.ts`: borrador + origen IA, nunca
+      llega a un editor sin aprobar. tsx con `--conditions=react-server` para que `server-only` no falle fuera de Next.
+- Decisión del usuario: **un solo servicio de pago en Render**. Hoy n8n llama a la web: `POST /api/v1/guiones`
+      (`src/app/api/v1/guiones/route.ts`). `backend/` no se publica aún; comparte `src/lib/contenido/apiGuiones.ts`.
+      Al pasar la web a Vercel, Render ejecutará solo `backend/` y n8n cambiará de dirección. No crear un segundo servicio.
+- [x] Carpetas: `frontend/` y `backend/`, cada una con su `package.json`. El backend aún importa la lógica de
+      `frontend/src` (alias `@/`), por eso su build instala también `frontend`. Prisma fijado a 6.19.3 sin `^`.
+- [ ] Siguientes fases: mover a `backend/`, módulo a módulo, las lecturas y las 55 acciones (72 páginas leen la BD), y al
+      final la web a Vercel sin Prisma. Antes hace falta fotos en la nube (R2), y Vercel Pro por ser comercial. La web
+      hablará con el backend desde su servidor (la cookie de sesión sigue en su dominio).
+- n8n (cron diario + ChatGPT que analiza noticias y genera el guion) es para iterar: cuando funcione bien, pasará a un
+  módulo del backend, llamando a `recibirGuion`.
 
 ### Editores y guiones de marketing (05-11-2026, rama `feature/editores-guiones`)
 

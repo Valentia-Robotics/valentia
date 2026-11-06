@@ -273,6 +273,19 @@ Si prefieres preparar algo nuevo (por ejemplo, un kit completo con su curso) en 
 2. Rama nueva, commit de `data/catalogo/` y `public/images/`, pull request y únelo a `main`.
 3. Render despliega y el Pre-Deploy crea **solo lo nuevo**. Lo que ya existía en producción no cambia.
 
+## 6 ter. La API para n8n
+
+No hace falta ningún servicio nuevo: la API va dentro de la web, en el **mismo servicio de Render**.
+
+1. Genera un token (ver `backend/README.md`) y añádelo en Render → tu servicio → **Environment** como `N8N_API_TOKEN`.
+   Sin él la API queda cerrada y responde 503.
+2. En n8n, un nodo **HTTP Request** con `POST https://valentiarobotics.com/api/v1/guiones`, la cabecera
+   `Authorization: Bearer <token>` y el JSON que explica `backend/README.md`.
+3. El guion aparece en `/admin/contenido` como borrador, con la etiqueta IA.
+
+La carpeta `backend/` no se publica todavía: será el servicio de Render cuando la web pase a Vercel. Entonces solo
+cambiará la dirección a la que llama n8n, y seguirá habiendo un único servicio en Render.
+
 ## 7. Copias de seguridad
 
 El plan **M0 no hace copias automáticas**. Desde tu ordenador, con tu IP añadida temporalmente (§4):

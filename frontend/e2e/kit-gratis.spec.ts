@@ -24,7 +24,7 @@ test("el kit gratis se activa con un clic y no crea ningún pedido", async ({ pa
 
   await test.step("sin sesión, pide iniciarla", async () => {
     await page.getByRole("button", { name: "Conseguir gratis" }).click();
-    await page.waitForURL(/\/login\?callbackUrl=/);
+    await expect(page).toHaveURL(/\/login\?callbackUrl=/);
   });
 
   const email = emailNuevo("gratis");
@@ -33,20 +33,21 @@ test("el kit gratis se activa con un clic y no crea ningún pedido", async ({ pa
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Contraseña").fill(CONTRASENA);
   await page.getByRole("button", { name: "Crear mi cuenta" }).click();
+  await page.waitForURL(/\/verificar/);
   await escribirCodigo(page, await esperarCodigo(email));
   await page.waitForURL((url) => !url.pathname.startsWith("/verificar"));
 
   await test.step("con sesión, lleva al curso", async () => {
     await page.goto(FICHA);
     await page.getByRole("button", { name: "Conseguir gratis" }).click();
-    await page.waitForURL(/\/cursos\/bienvenida-a-valentia/);
+    await expect(page).toHaveURL(/\/cursos\/bienvenida-a-valentia/);
     await expect(page.getByRole("heading", { name: "Te damos la bienvenida" })).toBeVisible();
   });
 
   await test.step("repetirlo lleva al mismo curso, y no hay ningún pedido", async () => {
     await page.goto(FICHA);
     await page.getByRole("button", { name: "Conseguir gratis" }).click();
-    await page.waitForURL(/\/cursos\/bienvenida-a-valentia/);
+    await expect(page).toHaveURL(/\/cursos\/bienvenida-a-valentia/);
 
     await page.goto("/cursos");
     await expect(page.getByRole("heading", { name: "Bienvenida a Valentia" })).toHaveCount(1);

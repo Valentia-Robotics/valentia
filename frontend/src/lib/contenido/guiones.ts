@@ -20,13 +20,13 @@ import {
   type ActorGuion,
 } from "@/config/estadosGuion";
 import { db, transaccion } from "@/lib/db";
-import type { UsuarioActual } from "@/lib/sesion";
 import type { DatosGuion } from "@/lib/validaciones/guion";
 
 /** Un cambio que las reglas no permiten: el mensaje se puede enseñar tal cual */
 export class ErrorGuion extends Error {}
 
-type Autor = Pick<UsuarioActual, "id" | "nombre">;
+/** id null = no es una persona (n8n): su nombre queda en el historial */
+type Autor = { id: string | null; nombre: string };
 
 /** Las categorías. La primera vez que se piden, crea la lista inicial. */
 export async function categoriasGuion(soloActivas = false) {
@@ -92,7 +92,7 @@ interface Cambio {
 
 /** Cambia el estado si las reglas lo permiten. Un editor solo puede mover sus propios guiones. */
 export function cambiarEstado({ guionId, a, actor, autor, comentario, datos }: Cambio) {
-  const soloSuyo = actor === "EDITOR" ? { editorId: autor.id } : {};
+  const soloSuyo = actor === "EDITOR" ? { editorId: autor.id ?? "" } : {};
   return transaccion(async (tx) => {
     const guion = await tx.guion.findFirst({
       where: { id: guionId, ...soloSuyo },
@@ -181,6 +181,7 @@ export function buscarGuiones(filtros: {
       id: true,
       titulo: true,
       estado: true,
+      origen: true,
       fechaLimite: true,
       categoria: { select: { nombre: true } },
       editor: { select: { nombre: true } },
