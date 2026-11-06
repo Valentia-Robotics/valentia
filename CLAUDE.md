@@ -44,6 +44,10 @@ hasta que todo esté probado.
   `/tarjeta-muestra/<cara>.svg` (`src/app/tarjeta-muestra`, `src/lib/tarjetaLaser/muestra.ts`), generadas al compilar.
   La portada pasaba de 1,4 MB de HTML por los trazados del láser (salían dos veces).
 - Con la tienda cerrada, los botones «Comprar» de la portada dicen «Avísame cuando abra».
+- Jesse: montaje «plug & play» (se enchufa, encaja o va con imanes). Coche y brazo van con **portabaterías de dos
+  baterías recargables 18650** (incluidas), no con pilas AA: cambiado en el coche 3D (`modeloCoche.ts`, a petición
+  suya), su foto (`fotos:piezas -- --kits`), la trasera láser del coche y las preguntas frecuentes. El brazo usa
+  servos de alto par (MG996R). Las piezas de cada kit se cambian en el panel (la BD manda).
 
 ### Editores y guiones de marketing (05-11-2026, rama `feature/editores-guiones`)
 

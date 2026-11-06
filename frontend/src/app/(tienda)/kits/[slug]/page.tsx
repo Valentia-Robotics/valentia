@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     descripcion:
       kit.precioCentimos === 0
         ? `${kit.eslogan} Gratis y sin piezas: se activa al momento en tu cuenta.`
-        : `${kit.eslogan} Kit para montar con todas las piezas, pilas y cable USB, y un curso en vídeo paso a paso. Sin saber programar, desde ${kit.edadMinima} años.`,
+        : `${kit.eslogan} Kit para montar con todas las piezas, baterías y cable USB, y un curso en vídeo paso a paso. Sin saber programar, desde ${kit.edadMinima} años.`,
     ruta: `/kits/${kit.slug}`,
   });
 }
