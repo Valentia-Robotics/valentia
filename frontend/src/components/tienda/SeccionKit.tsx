@@ -7,7 +7,16 @@ import type { KitResumen } from "@/lib/catalogo";
  * Sección de la portada dedicada a un kit. Se alternan fondos claros y oscuros
  * con el parámetro "tema". El contenido aparece suavemente al hacer scroll.
  */
-export function SeccionKit({ kit, tema }: { kit: KitResumen; tema: "claro" | "oscuro" }) {
+export function SeccionKit({
+  kit,
+  tema,
+  compraAbierta,
+}: {
+  kit: KitResumen;
+  tema: "claro" | "oscuro";
+  /** Con la tienda cerrada el botón lleva al «Avísame» de la ficha, y lo dice */
+  compraAbierta: boolean;
+}) {
   const oscuro = tema === "oscuro";
 
   return (
@@ -39,7 +48,7 @@ export function SeccionKit({ kit, tema }: { kit: KitResumen; tema: "claro" | "os
         </p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
           <Boton href={`/kits/${kit.slug}#comprar`} variante={oscuro ? "claro" : "primario"}>
-            Comprar
+            {compraAbierta ? "Comprar" : "Avísame cuando abra"}
           </Boton>
           <Boton href={`/kits/${kit.slug}`} variante={oscuro ? "enlace-claro" : "enlace"}>
             Más información ›

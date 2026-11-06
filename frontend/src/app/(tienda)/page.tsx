@@ -49,9 +49,14 @@ export default async function Inicio() {
       <PortadaRobot />
       {!abierta && <AvisoApertura />}
       <BloqueComoFunciona cifras={cifras} />
-      {estrella && <HeroKit kit={estrella} />}
+      {estrella && <HeroKit kit={estrella} compraAbierta={abierta} />}
       {resto.map((kit, i) => (
-        <SeccionKit key={kit.id} kit={kit} tema={i % 2 === 0 ? "oscuro" : "claro"} />
+        <SeccionKit
+          key={kit.id}
+          kit={kit}
+          tema={i % 2 === 0 ? "oscuro" : "claro"}
+          compraAbierta={abierta}
+        />
       ))}
       <BloqueConfigurador />
       <BloqueCursoQR />

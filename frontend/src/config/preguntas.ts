@@ -50,14 +50,14 @@ export function preguntasFrecuentes({
         {
           pregunta: "¿Hay que soldar?",
           respuesta: [
-            "No. Todo se monta con tornillos y con cables que se enchufan en la placa de pruebas. Si algo queda mal, se desconecta y se vuelve a probar.",
+            "No. Es plug & play: las piezas se enchufan, encajan entre sí o se unen con imanes. No hace falta soldar ni herramientas especiales. Si algo queda mal, se suelta y se vuelve a probar.",
           ],
         },
         {
           pregunta: "¿Qué necesito además del kit?",
           respuesta: [
             "Un ordenador (Windows, Mac o Linux) para programar la placa. El programa que se usa, Arduino, es gratuito y en el curso te enseñamos a instalarlo paso a paso. El cable USB para conectar la placa al ordenador va en la caja.",
-            "El coche y el brazo funcionan con 4 pilas AA, y ya vienen en la caja. La estación meteorológica no necesita pilas: va conectada por USB.",
+            "El coche funciona con 4 pilas AA y el brazo, que tiene servos de mucha fuerza, con dos baterías recargables. Las pilas y las baterías ya vienen en la caja. La estación meteorológica no necesita pilas: va conectada por USB.",
           ],
         },
         {

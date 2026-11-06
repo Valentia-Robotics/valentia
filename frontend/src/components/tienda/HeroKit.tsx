@@ -7,7 +7,7 @@ import type { KitResumen } from "@/lib/catalogo";
  * Bloque de la portada con el kit estrella (estilo web de Apple):
  * titular grande, subtítulo corto, dos enlaces y una imagen grande centrada.
  */
-export function HeroKit({ kit }: { kit: KitResumen }) {
+export function HeroKit({ kit, compraAbierta }: { kit: KitResumen; compraAbierta: boolean }) {
   return (
     <section
       aria-labelledby="titulo-hero"
@@ -26,7 +26,8 @@ export function HeroKit({ kit }: { kit: KitResumen }) {
 
       <div className="aparecer mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
         <Boton href={`/kits/${kit.slug}#comprar`} variante="acento" tamano="lg">
-          Comprar
+          {/* Con la tienda cerrada, la ficha enseña ahí el «Avísame»: el botón no promete una compra */}
+          {compraAbierta ? "Comprar" : "Avísame cuando abra"}
         </Boton>
         <Boton href={`/kits/${kit.slug}`} variante="enlace" tamano="lg">
           Más información ›

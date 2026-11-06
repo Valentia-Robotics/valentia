@@ -45,7 +45,7 @@ export function BloqueComoFunciona({ cifras }: Props) {
             De la caja a tu primer robot.
           </h2>
           <p className="mt-4 text-lg text-gris sm:text-xl">
-            Tengas 15 años o 70, puedes construir tu propio robot. Solo hacen falta ganas.
+            Tengas 10 años o 70, puedes construir tu propio robot. Solo hacen falta ganas.
           </p>
         </div>
 
