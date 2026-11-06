@@ -25,7 +25,8 @@ import sharp from "sharp";
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ruta = (...partes) => path.join(raiz, ...partes);
 
-const ORIGINAL = ruta("imagenes", "logo.png");
+// Tu logo original vive en la raíz del repositorio, fuera de frontend/
+const ORIGINAL = ruta("..", "imagenes", "logo.png");
 const MONOGRAMA = ruta("public", "images", "brand", "monograma.svg");
 const BRAND = ruta("public", "images", "brand");
 const APP = ruta("src", "app");

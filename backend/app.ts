@@ -12,7 +12,9 @@ import { exigirToken } from "./token";
 const TAMANO_MAXIMO = 64 * 1024;
 
 const urlPanel = (id: string) => {
-  const web = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const web = (
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+  ).replace(/\/$/, "");
   return `${web}/admin/contenido/${id}`;
 };
 
@@ -30,22 +32,34 @@ app.post(
   }),
   async (c) => {
     const entrada = await c.req.json().catch(() => undefined);
-    if (entrada === undefined) return c.json({ error: "El cuerpo no es JSON válido." }, 400);
+    if (entrada === undefined)
+      return c.json({ error: "El cuerpo no es JSON válido." }, 400);
 
     const resultado = await recibirGuion(entrada, "n8n");
     switch (resultado.estado) {
       case "creado":
-        return c.json({ id: resultado.id, estado: "BORRADOR", panel: urlPanel(resultado.id) }, 201);
+        return c.json(
+          {
+            id: resultado.id,
+            estado: "BORRADOR",
+            panel: urlPanel(resultado.id),
+          },
+          201,
+        );
       case "repetido":
         return c.json(
           {
-            error: "Ya se creó un guion con este título en las últimas 24 horas.",
+            error:
+              "Ya se creó un guion con este título en las últimas 24 horas.",
             id: resultado.id,
           },
           409,
         );
       case "invalido":
-        return c.json({ error: "El guion no es válido.", errores: resultado.errores }, 422);
+        return c.json(
+          { error: "El guion no es válido.", errores: resultado.errores },
+          422,
+        );
     }
   },
 );

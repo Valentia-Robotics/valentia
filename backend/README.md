@@ -1,11 +1,11 @@
 # Backend de Valentia
 
-La API, separada de la web. Se publica en Render como un servicio propio. La lógica vive en `src/lib`, así que el
-panel y la API siguen exactamente las mismas reglas.
+La API, separada de la web. Se publica en Render como un servicio propio. De momento la lógica sigue en
+`frontend/src/lib`, así que el panel y la API siguen las mismas reglas; irá pasando aquí a medida que avance la separación.
 
 ```
-npm run backend         # en tu ordenador, puerto 4000
-npm run backend:start   # en Render
+npm run backend         # desde la raíz: en tu ordenador, puerto 4000
+npm run backend:start   # desde la raíz: en Render
 ```
 
 Necesita `DATABASE_URL` y `N8N_API_TOKEN` (al menos 32 caracteres). Sin token, la API queda cerrada. Genera uno con:

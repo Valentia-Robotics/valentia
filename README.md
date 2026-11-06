@@ -1,5 +1,10 @@
 # Valentia
 
+El proyecto está en dos carpetas: **`frontend/`** (la web y el panel) y **`backend/`** (la API, ver
+[backend/README.md](backend/README.md)). Desde la raíz, `npm run dev` arranca la web y `npm run backend` la API.
+Los demás comandos de este documento se ejecutan dentro de `frontend/`.
+
+
 Web de **Valentia**: kits de robótica y componentes, con cursos que se desbloquean con el QR de cada caja.
 
 > Estado: **preparada para el lanzamiento** (fase de lanzamiento terminada, ver `INFORME.md`).

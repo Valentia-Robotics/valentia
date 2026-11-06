@@ -278,11 +278,11 @@ Si prefieres preparar algo nuevo (por ejemplo, un kit completo con su curso) en 
 Es un **segundo servicio de Render**, separado de la web. La web actual sigue exactamente igual.
 
 1. En Render: **New → Web Service** → el mismo repositorio.
-2. Rellena: Name `valentia-backend`, Region **Frankfurt**, Branch `main`, Runtime Node.
+2. Rellena: Name `valentia-backend`, Region **Frankfurt**, Branch `main`, Runtime Node. Deja **Root Directory** vacío.
 
    | Campo             | Valor                                              |
    | ----------------- | -------------------------------------------------- |
-   | Build Command     | `npm ci && npx prisma generate`                    |
+   | Build Command     | `npm run build:backend`                            |
    | Start Command     | `npm run backend:start`                            |
    | Health Check Path | `/health`                                          |
    | Pre-Deploy        | (vacío: las colecciones las crea el servicio web)  |

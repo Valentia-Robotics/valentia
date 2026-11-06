@@ -1,0 +1,25 @@
+{
+  "name": "valentia-backend",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "tsx watch --conditions=react-server index.ts",
+    "start": "tsx --conditions=react-server index.ts",
+    "test": "vitest run",
+    "tipos": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.6",
+    "dotenv": "18.0.8",
+    "hono": "4.13.16",
+    "tsx": "4.23.15"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,7 +1,13 @@
 # Valentia — contexto para Claude
 
 Lee también `AGENTS.md` (lo genera Next.js): esta versión de Next.js (16) tiene cambios
-importantes; consulta `node_modules/next/dist/docs/` antes de usar APIs que no conozcas.
+importantes; consulta `frontend/node_modules/next/dist/docs/` antes de usar APIs que no conozcas.
+
+**El repositorio tiene dos carpetas: `frontend/` (la web Next.js: `src/`, `public/`, `prisma/`, `data/`, `scripts/`, `e2e/`,
+`.env`) y `backend/` (la API).** Todas las rutas de este documento son relativas a `frontend/`, salvo `backend/`, `imagenes/`,
+`documentos/` y los `.md`, que están en la raíz. Los comandos `npm` se ejecutan dentro de `frontend/`; la raíz solo tiene un
+`package.json` que redirige (`dev`, `backend`, `test`, y los que usa Render: `build`, `start`, `predeploy:prod`, `build:backend`).
+**No quitarlo: gracias a él Render publica la web sin cambiar su configuración.**
 
 ## Estado del proyecto
 
@@ -19,6 +25,8 @@ hasta que todo esté probado.
 - [x] Fase 1: `backend/` (Hono, puerto 4000, `npm run backend`) con `POST /v1/guiones` para n8n, token `N8N_API_TOKEN`
       (`backend/README.md`, DESPLIEGUE.md §6 ter). Lógica en `src/lib/contenido/recibirGuion.ts`: borrador + origen IA, nunca
       llega a un editor sin aprobar. tsx con `--conditions=react-server` para que `server-only` no falle fuera de Next.
+- [x] Carpetas: `frontend/` y `backend/`, cada una con su `package.json`. El backend aún importa la lógica de
+      `frontend/src` (alias `@/`), por eso su build instala también `frontend`. Prisma fijado a 6.19.3 sin `^`.
 - [ ] Siguientes fases: mover a `backend/`, módulo a módulo, las lecturas y las 55 acciones (72 páginas leen la BD), y al
       final la web a Vercel sin Prisma. Antes hace falta fotos en la nube (R2), y Vercel Pro por ser comercial. La web
       hablará con el backend desde su servidor (la cookie de sesión sigue en su dominio).
