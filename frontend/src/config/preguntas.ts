@@ -50,7 +50,7 @@ export function preguntasFrecuentes({
         {
           pregunta: "¿Hay que soldar?",
           respuesta: [
-            "No. Las piezas se unen con imanes y pines de contacto: las acercas y encajan solas. Solo los servos, los motores y el portapilas llevan un cable con un conector pequeño que se enchufa. Si algo queda mal, se separa y se vuelve a probar.",
+            "No. Es plug & play: las piezas se enchufan, encajan entre sí o se unen con imanes. No hace falta soldar ni herramientas especiales. Si algo queda mal, se suelta y se vuelve a probar.",
           ],
         },
         {
