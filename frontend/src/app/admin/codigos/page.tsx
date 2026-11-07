@@ -139,6 +139,16 @@ export default async function CodigosAdmin({ searchParams }: Props) {
                 vídeo de bienvenida; con ese código no se abre ningún otro curso.
               </p>
               <DescargaBienvenida maximo={MAXIMO_TARJETAS_BIENVENIDA} />
+              <p className="text-sm text-gris">
+                ¿Cortas tú las tarjetas?{" "}
+                <a
+                  href="/tarjeta-contorno.svg"
+                  download="contorno-tarjeta.svg"
+                  className="font-medium text-acento underline"
+                >
+                  Descargar el contorno para cortar (SVG)
+                </a>
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3 text-center lg:w-72">
               <div className="rounded-lg bg-niebla p-3">

@@ -55,6 +55,7 @@ tarjeta (para contar personas) y solo abren ese curso.
 - `/admin/codigos/personas` (enlace «Ver lista» de la caja): quién se registró con tarjeta y botón «Borrar» con
   confirmación (`src/lib/admin/bienvenida.ts`). Solo clientes sin pedidos ni códigos de otros kits (`motivoNoBorrar`);
   al borrar, su tarjeta queda libre otra vez y deja de contar.
+- Contorno para cortar: `public/tarjeta-contorno.svg` (85,6 × 54 mm, esquinas de 3 mm, línea roja), enlace en la caja.
 
 ### Revisión antes de abrir la tienda (06-11-2026, rama `claude/project-thread-tdljxs`)
 
