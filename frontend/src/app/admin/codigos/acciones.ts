@@ -7,11 +7,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { conErrores, texto, type EstadoFormulario } from "@/lib/admin/formularios";
+import { conErrores, texto, textos, type EstadoFormulario } from "@/lib/admin/formularios";
 import {
+  cambiarDesactivacionDeIds,
   cambiarDesactivacionEnBloque,
   crearLote,
   MAXIMO_LOTE,
+  MAXIMO_SELECCION,
   type EstadoCodigo,
 } from "@/lib/admin/codigos";
 import { db } from "@/lib/db";
@@ -107,5 +109,41 @@ export async function cambiarDesactivacionTodos(
       modo === "desactivar"
         ? `${cambiados} ${palabra} desactivado${cambiados === 1 ? "" : "s"}.`
         : `${cambiados} ${palabra} reactivado${cambiados === 1 ? "" : "s"}.`,
+  };
+}
+
+const esquemaSeleccion = z.object({
+  ids: z
+    .array(esquemaId)
+    .min(1, "Marca al menos un código.")
+    .max(MAXIMO_SELECCION, `Marca como mucho ${MAXIMO_SELECCION} códigos.`),
+  modo: z.enum(["desactivar", "reactivar"]),
+});
+
+/** Desactivar (o reactivar) los códigos marcados con las casillas de la lista */
+export async function cambiarDesactivacionSeleccionados(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const datos = esquemaSeleccion.safeParse({
+    ids: [...new Set(textos(formulario, "ids"))],
+    modo: texto(formulario, "modo"),
+  });
+  if (!datos.success) return conErrores(datos.error);
+  const { ids, modo } = datos.data;
+
+  const cambiados = await cambiarDesactivacionDeIds(ids, modo === "desactivar");
+  revalidatePath("/admin", "layout");
+  const palabra = cambiados === 1 ? "código" : "códigos";
+  const hecho = modo === "desactivar" ? "desactivado" : "reactivado";
+  const saltados = ids.length - cambiados;
+  return {
+    ok: true,
+    mensaje:
+      `${cambiados} ${palabra} ${hecho}${cambiados === 1 ? "" : "s"}.` +
+      (saltados
+        ? ` ${saltados} ya ${saltados === 1 ? "estaba" : "estaban"} ${hecho === "desactivado" ? "desactivado" : "activo"}${saltados === 1 ? "" : "s"}.`
+        : ""),
   };
 }

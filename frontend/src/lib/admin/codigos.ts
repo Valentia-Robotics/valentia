@@ -194,3 +194,18 @@ export async function resumenBienvenida() {
   ]);
   return { kitId: kit.id, generadas, usadas };
 }
+
+/** Como mucho, cuántos códigos marcados se cambian de una vez (una página tiene 50) */
+export const MAXIMO_SELECCION = 200;
+
+/**
+ * Desactivar (o reactivar) los códigos marcados con las casillas de la lista.
+ * Solo cambian los que lo necesitan; quien ya activó un código conserva su curso.
+ */
+export async function cambiarDesactivacionDeIds(ids: string[], desactivar: boolean) {
+  const { count } = await db.codigoActivacion.updateMany({
+    where: { id: { in: ids }, desactivadoEn: desactivar ? null : { not: null } },
+    data: { desactivadoEn: desactivar ? new Date() : null },
+  });
+  return count;
+}
