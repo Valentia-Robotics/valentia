@@ -311,24 +311,34 @@ const CB = CX + ANCHO_TEXTO / 2;
 
 /**
  * Delante (igual en todas): el cuadrado de la V de Valentia (como el icono de la web: cuadrado grabado y
- * la V sin grabar), unido a dos pistas de circuito
- * con su pad al final, y debajo «BIENVENIDOS A» + el logo. El QR va aparte (cambia con cada código).
+ * la V sin grabar) dentro de un marco fino con patitas de chip arriba y abajo, unido a dos pistas de
+ * circuito con su pad al final, y debajo «BIENVENIDOS A» + el logo. El QR va aparte (cambia con cada código).
  */
 function bienvenidaDelanteraComun({ dominio }: DatosTarjeta): Forma[] {
   const cy = QY + 7.2;
-  const r = 6.2;
-  const lado = 2 * r;
+  const r = 6.6; // mitad del marco
+  const ri = 5.1; // mitad del cuadrado de la V
+  const w = 0.35; // grosor del marco
+  const marco = (m: number, radio: number, horario: boolean) =>
+    trazado(rectRedondeado(CB - m, cy - m, 2 * m, 2 * m, radio, horario));
   const g: Forma[] = [
     {
-      d: trazado(rectRedondeado(CB - r, cy - r, lado, lado, lado * 0.22, true)),
-      menos: uve(CB - r, cy - r, lado),
+      d: marco(ri, ri * 0.44, true),
+      menos: uve(CB - ri, cy - ri, 2 * ri),
     },
+    marco(r + w / 2, 2.9 + w / 2, true) + marco(r - w / 2, 2.9 - w / 2, false),
   ];
+  // Patitas de chip: tres arriba y tres abajo
+  for (const dx of [-3, 0, 3])
+    for (const arriba of [true, false]) {
+      const y0 = arriba ? cy - r - 1.3 : cy + r;
+      g.push(trazado(rect(CB + dx - w / 2, y0, w, 1.3)));
+    }
   // Pistas a cada lado del sello, como en una placa de circuito
   for (const lado of [-1, 1]) {
-    const x0 = CB + lado * (r + 0.2);
-    const x1 = CB + lado * (r + 4.2);
-    const x2 = CB + lado * (r + 6.4);
+    const x0 = CB + lado * r;
+    const x1 = CB + lado * (r + 3.6);
+    const x2 = CB + lado * (r + 5.8);
     g.push(
       trazado(
         contorno(
