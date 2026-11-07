@@ -47,7 +47,7 @@ tarjeta (para contar personas) y solo abren ese curso.
   `POST /admin/codigos/bienvenida`: crea el lote y devuelve el ZIP; solo ADMIN y misma web). Cifras: tarjetas hechas
   y personas registradas (`resumenBienvenida`). ZIP con el mismo formato y nombre (`tarjetas-laser-<slug>-…`) que los
   de los kits: `src/lib/tarjetaLaser/zipLote.ts` (lo usan las dos descargas).
-- Diseño (`tarjeta.ts`, si `slugKit` es el de bienvenida): delante QR + sello con la V y pistas de circuito,
+- Diseño (`tarjeta.ts`, si `slugKit` es el de bienvenida): delante QR + el cuadrado de la V (como el icono) con pistas de circuito,
   «BIENVENIDOS A» + logo; detrás pasos, caja con el código (cambia en cada tarjeta) y dirección.
 - `/activar` con código de bienvenida y sesión: se activa solo y redirige a `/cursos/bienvenida-a-valentia`.
   Kit gratis: si ya tenía el curso, el código se gasta igual para contarle (salvo que ya usara otra tarjeta).
