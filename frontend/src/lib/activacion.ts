@@ -19,6 +19,7 @@ export function buscarCodigo(codigo: string) {
       kit: {
         select: {
           nombre: true,
+          slug: true,
           imagen: true,
           curso: { select: { id: true, slug: true, titulo: true, descripcion: true } },
         },
@@ -48,7 +49,8 @@ export async function activarCodigo(
         usadoEn: true,
         usuarioId: true,
         desactivadoEn: true,
-        kit: { select: { cursoId: true, curso: { select: { slug: true } } } },
+        kitId: true,
+        kit: { select: { cursoId: true, precioCentimos: true, curso: { select: { slug: true } } } },
       },
     });
     if (!encontrado) return { estado: "no-existe" };
@@ -64,7 +66,22 @@ export async function activarCodigo(
     const yaTiene = await tx.cursoUsuario.findUnique({
       where: { usuarioId_cursoId: { usuarioId, cursoId } },
     });
-    if (yaTiene) return { estado: "ya-tienes", cursoSlug: curso.slug };
+    if (yaTiene) {
+      // Kit gratis (tarjetas de bienvenida): no hay nada que regalar, así que el código se gasta igual
+      // para contar a la persona… salvo que ya hubiera usado otro código de este kit (no cuenta dos veces)
+      if (encontrado.kit.precioCentimos === 0) {
+        const otro = await tx.codigoActivacion.findFirst({
+          where: { kitId: encontrado.kitId, usuarioId },
+          select: { id: true },
+        });
+        if (!otro)
+          await tx.codigoActivacion.updateMany({
+            where: { codigo, usadoEn: null, desactivadoEn: null },
+            data: { usadoEn: new Date(), usuarioId },
+          });
+      }
+      return { estado: "ya-tienes", cursoSlug: curso.slug };
+    }
 
     // Marcamos el código como usado SOLO si nadie lo ha usado mientras tanto
     const marcado = await tx.codigoActivacion.updateMany({

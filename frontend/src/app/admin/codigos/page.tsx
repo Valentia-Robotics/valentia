@@ -7,6 +7,7 @@ import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Buscador } from "@/components/admin/Buscador";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
+import { DescargaBienvenida } from "@/components/admin/DescargaBienvenida";
 import { FormularioLote } from "@/components/admin/FormularioLote";
 import { Insignia } from "@/components/admin/Insignia";
 import { leerPagina, Paginacion } from "@/components/admin/Paginacion";
@@ -15,6 +16,7 @@ import {
   contarParaBloque,
   listarCodigos,
   MAXIMO_LOTE,
+  resumenBienvenida,
   resumenCodigos,
   ultimosLotes,
   type EstadoCodigo,
@@ -22,6 +24,7 @@ import {
 import { fecha, fechaHora } from "@/lib/admin/formato";
 import { db } from "@/lib/db";
 import { exigirAdmin } from "@/lib/sesion";
+import { MAXIMO_TARJETAS_BIENVENIDA } from "@/config/bienvenida";
 import { cn, plural } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Códigos" };
@@ -52,13 +55,15 @@ export default async function CodigosAdmin({ searchParams }: Props) {
   const estado = ESTADOS.find((e) => e.id && e.id === p.estado)?.id;
   const pagina = leerPagina(p.pagina);
 
-  const [kits, resumen, lotes, { codigos, total, totalPaginas }, bloque] = await Promise.all([
-    db.kit.findMany({ orderBy: { orden: "asc" }, select: { id: true, nombre: true } }),
-    resumenCodigos(),
-    ultimosLotes(),
-    listarCodigos({ q, kitId, estado, loteId, pagina }),
-    contarParaBloque({ q, kitId, estado, loteId }),
-  ]);
+  const [kits, resumen, lotes, { codigos, total, totalPaginas }, bloque, bienvenida] =
+    await Promise.all([
+      db.kit.findMany({ orderBy: { orden: "asc" }, select: { id: true, nombre: true } }),
+      resumenCodigos(),
+      ultimosLotes(),
+      listarCodigos({ q, kitId, estado, loteId, pagina }),
+      contarParaBloque({ q, kitId, estado, loteId }),
+      resumenBienvenida(),
+    ]);
   const filtros = { q: q || undefined, kit: kitId, estado, lote: loteId };
   const enlace = (cambios: Record<string, string | undefined>) => {
     const params = new URLSearchParams();
@@ -123,6 +128,40 @@ export default async function CodigosAdmin({ searchParams }: Props) {
           </ul>
         </Caja>
       </div>
+
+      {/* ---------- Tarjetas de bienvenida (presentaciones, eventos…) ---------- */}
+      {bienvenida && (
+        <Caja titulo="Tarjetas de bienvenida" className="mb-6">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="space-y-3">
+              <p className="text-sm text-gris">
+                Cada tarjeta lleva su propio código. Quien la escanea crea su cuenta y va directo al
+                vídeo de bienvenida; con ese código no se abre ningún otro curso.
+              </p>
+              <DescargaBienvenida maximo={MAXIMO_TARJETAS_BIENVENIDA} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-center lg:w-72">
+              <div className="rounded-lg bg-niebla p-3">
+                <p className="text-xs text-gris">Tarjetas hechas</p>
+                <p className="font-titulo text-2xl">{bienvenida.generadas}</p>
+              </div>
+              <Link
+                href={enlace({
+                  kit: bienvenida.kitId,
+                  estado: "usado",
+                  lote: undefined,
+                  q: undefined,
+                  pagina: undefined,
+                })}
+                className="rounded-lg bg-niebla p-3 ring-linea hover:ring-1"
+              >
+                <p className="text-xs text-gris">Personas registradas</p>
+                <p className="font-titulo text-2xl text-acento">{bienvenida.usadas}</p>
+              </Link>
+            </div>
+          </div>
+        </Caja>
+      )}
 
       {/* ---------- Filtros ---------- */}
       <div className="mb-4 space-y-3">

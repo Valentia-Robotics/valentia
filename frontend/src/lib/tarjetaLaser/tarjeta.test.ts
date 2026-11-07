@@ -12,7 +12,13 @@ const datos = (codigo: string, nombreKit = "Coche seguidor de líneas") => ({
   dominio: "valentia.test",
 });
 
-const KITS = ["coche-seguidor-de-lineas", "brazo-robotico", "estacion-meteorologica", "otro"];
+const KITS = [
+  "coche-seguidor-de-lineas",
+  "brazo-robotico",
+  "estacion-meteorologica",
+  "bienvenida-valentia",
+  "otro",
+];
 const W = 85.6;
 const H = 54;
 
@@ -53,6 +59,17 @@ describe("tarjeta para láser", () => {
     const a = tarjetaLaserSvg(datos("VAL-AAAA-BBBB"), "delantera");
     const b = tarjetaLaserSvg(datos("VAL-CCCC-DDDD"), "delantera");
     expect(a).not.toBe(b);
+  });
+
+  it("tarjeta de bienvenida: cada código tiene su QR delante y su código detrás", () => {
+    const tarjeta = (codigo: string, cara: "delantera" | "trasera") =>
+      tarjetaLaserSvg({ ...datos(codigo), slugKit: "bienvenida-valentia" }, cara);
+    expect(tarjeta("VAL-AAAA-BBBB", "delantera")).not.toBe(tarjeta("VAL-CCCC-DDDD", "delantera"));
+    expect(tarjeta("VAL-AAAA-BBBB", "trasera")).not.toBe(tarjeta("VAL-CCCC-DDDD", "trasera"));
+    // Y no se parece a la de un kit
+    expect(tarjeta("VAL-AAAA-BBBB", "trasera")).not.toBe(
+      tarjetaLaserSvg({ ...datos("VAL-AAAA-BBBB"), slugKit: "otro" }, "trasera"),
+    );
   });
 
   it("los nombres de kit largos no rompen la tarjeta", () => {

@@ -7,6 +7,7 @@ import { generarCodigoActivacion } from "@/lib/codigos";
 import { textoContiene } from "@/lib/busqueda";
 import { db, transaccion } from "@/lib/db";
 import { esId } from "@/lib/ids";
+import { SLUG_KIT_BIENVENIDA } from "@/config/bienvenida";
 
 export const CODIGOS_POR_PAGINA = 50;
 /** Máximo de códigos que se pueden generar de una vez */
@@ -175,4 +176,21 @@ export async function crearLote(kitId: string, cantidad: number) {
     });
     return lote.id;
   });
+}
+
+/**
+ * Cifras de las tarjetas de bienvenida: cuántas se han generado (sin contar las desactivadas) y cuántas
+ * se han usado, es decir, cuántas personas se han registrado con una. null si no existe el kit.
+ */
+export async function resumenBienvenida() {
+  const kit = await db.kit.findUnique({
+    where: { slug: SLUG_KIT_BIENVENIDA },
+    select: { id: true },
+  });
+  if (!kit) return null;
+  const [generadas, usadas] = await Promise.all([
+    db.codigoActivacion.count({ where: { kitId: kit.id, desactivadoEn: null } }),
+    db.codigoActivacion.count({ where: { kitId: kit.id, usadoEn: { not: null } } }),
+  ]);
+  return { kitId: kit.id, generadas, usadas };
 }

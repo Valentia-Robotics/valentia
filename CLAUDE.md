@@ -37,6 +37,22 @@ hasta que todo esté probado.
 - n8n (cron diario + ChatGPT que analiza noticias y genera el guion) es para iterar: cuando funcione bien, pasará a un
   módulo del backend, llamando a `recibirGuion`.
 
+### Tarjetas de bienvenida (07-11-2026, rama `claude/project-thread-ez0n8b`)
+
+Para la presentación de Jesse: tarjetas láser con QR que llevan a registrarse y ver el vídeo de bienvenida. Son códigos
+normales del kit gratis `bienvenida-valentia` (`SLUG_KIT_BIENVENIDA` en `src/config/bienvenida.ts`): uno distinto por
+tarjeta (para contar personas) y solo abren ese curso.
+
+- `/admin/codigos` → caja «Tarjetas de bienvenida»: número + «Descargar ZIP de bienvenida» (`DescargaBienvenida` →
+  `POST /admin/codigos/bienvenida`: crea el lote y devuelve el ZIP; solo ADMIN y misma web). Cifras: tarjetas hechas
+  y personas registradas (`resumenBienvenida`). ZIP con el mismo formato y nombre (`tarjetas-laser-<slug>-…`) que los
+  de los kits: `src/lib/tarjetaLaser/zipLote.ts` (lo usan las dos descargas).
+- Diseño (`tarjeta.ts`, si `slugKit` es el de bienvenida): delante QR + sello con la V y pistas de circuito,
+  «BIENVENIDOS A» + logo; detrás pasos, caja con el código (cambia en cada tarjeta) y dirección.
+- `/activar` con código de bienvenida y sesión: se activa solo y redirige a `/cursos/bienvenida-a-valentia`.
+  Kit gratis: si ya tenía el curso, el código se gasta igual para contarle (salvo que ya usara otra tarjeta).
+- Vídeo: sigue `PENDIENTE`; se pone en `/admin/cursos` (lección «Te damos la bienvenida»).
+
 ### Revisión antes de abrir la tienda (06-11-2026, rama `claude/project-thread-tdljxs`)
 
 - Recorridas 45 páginas públicas (móvil y ordenador): sin enlaces rotos, errores ni desbordes.
