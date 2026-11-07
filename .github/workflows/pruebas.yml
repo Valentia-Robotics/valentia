@@ -1,0 +1,29 @@
+# Se ejecuta en cada pull request: si algo falla, se ve en GitHub antes de unirlo a main.
+# No usa la base de datos ni ningún secreto: comprueba el código con datos simulados.
+name: Pruebas
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Instalar
+        run: npm ci --prefix frontend && npm ci --prefix backend
+      - name: Estilo del código
+        run: npm run lint --prefix frontend
+      - name: Tipos
+        run: npx --prefix frontend tsc --noEmit -p frontend
+      - name: Pruebas
+        run: npm test --prefix frontend && npm test --prefix backend

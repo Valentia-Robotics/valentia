@@ -3,6 +3,34 @@
 Revisión hecha el **17 de octubre de 2026** antes de publicar la web. Explica qué se ha revisado,
 qué se ha corregido y qué queda pendiente para producción.
 
+## Segunda revisión (6 de noviembre de 2026)
+
+Revisadas de nuevo las rutas públicas, el inicio de sesión, los pedidos, los paneles y la API de n8n. No se ha encontrado
+ninguna forma de entrar sin permiso ni de saltarse un pago. Sí se han corregido estos puntos:
+
+| Problema                                                                  | Arreglo                                                   |
+| ------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `/api/visitas` y el webhook de Stripe leían cuerpos de cualquier tamaño   | `leerCuerpo` corta la lectura al pasar el máximo          |
+| El límite de login era por IP + email: repartido entre IP no frenaba      | Nuevo `loginCuenta`: 50 intentos por hora y cuenta        |
+| Cada reseña regenera la tienda y no tenía límite                          | Nuevo `resena`: 10 por hora y usuario                     |
+| n8n descontrolado podía llenar el panel                                   | Nuevo `guionApi`: 30 peticiones por hora                  |
+| `/api/visitas` tenía una clave de reserva escrita en el código            | Sin `AUTH_SECRET` no se cuenta la visita                  |
+| Emails sin largo máximo en el login y el registro                         | Máximo 254 caracteres                                     |
+| Next.js 16.4.2                                                            | 16.4.5                                                    |
+
+Añadidos `.github/workflows/pruebas.yml` (lint, tipos y Vitest en cada PR) y `.github/dependabot.yml`.
+
+**API de guiones automáticos** (`/api/guiones/automaticos`): sin sesión, con `x-api-key` comparada en tiempo constante;
+cerrada (503) si `N8N_API_KEY` falta o tiene menos de 32 caracteres; 200 KB como máximo; el texto se guarda sin etiquetas
+HTML y React lo escapa al pintarlo; `fuente.url` solo `http(s)`, y el enlace del panel lleva `noopener noreferrer nofollow`.
+Nunca asigna editor ni aprueba: todo pasa por el admin.
+
+**Riesgo aceptado:** `loginCuenta` permite que alguien agote los intentos de una cuenta ajena durante una hora. Es a propósito:
+la contraseña no basta para entrar desde un navegador nuevo, y `/recuperar` sigue funcionando.
+`/api/health?db=1` sigue siendo público: solo dice el tipo de fallo de la base de datos, sin detalles.
+
+**Sin comprobar:** qué cabecera de IP llega de verdad en Render detrás de Cloudflare (§3). No se ha probado contra la web publicada.
+
 ## Resumen
 
 | Área                                              | Estado                                                                    |
@@ -56,7 +84,7 @@ clave solo se guarda una huella SHA-256 (ni IP ni email en claro).
 
 | Acción                         | Límite                                                        |
 | ------------------------------ | ------------------------------------------------------------- |
-| Iniciar sesión                 | 10 / 15 min por IP + email                                    |
+| Iniciar sesión                 | 10 / 15 min por IP + email, y 50 / hora por cuenta            |
 | Registro                       | 5 / hora por IP                                               |
 | Escribir el código de 6 cifras | 30 / 15 min por IP, y 5 intentos por código                   |
 | Pedir otro código              | 10 / 15 min por IP, y 5 códigos / hora por email              |

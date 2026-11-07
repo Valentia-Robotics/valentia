@@ -7,6 +7,7 @@ const email = z
   .string()
   .trim()
   .toLowerCase()
+  .max(254, "Ese email es demasiado largo")
   .pipe(z.email("Revisa el email: parece que falta algo"));
 
 export const esquemaLogin = z.object({

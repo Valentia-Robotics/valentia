@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
 import { Boton } from "@/components/ui/Boton";
 import { formatearPrecio } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
@@ -11,7 +12,7 @@ export function HeroKit({ kit, compraAbierta }: { kit: KitResumen; compraAbierta
   return (
     <section
       aria-labelledby="titulo-hero"
-      className="flex flex-col items-center overflow-hidden bg-niebla px-4 pt-20 pb-12 text-center diferido sm:pt-28"
+      className="flex flex-col items-center overflow-x-clip bg-niebla px-4 pt-6 pb-12 text-center diferido sm:pt-10"
     >
       <p className="aparecer text-sm font-medium tracking-wide text-acento uppercase">
         Kit estrella · {kit.nivel}
@@ -34,16 +35,18 @@ export function HeroKit({ kit, compraAbierta }: { kit: KitResumen; compraAbierta
         </Boton>
       </div>
 
-      <div className="aparecer mt-10 flex w-full max-w-4xl items-center justify-center">
-        <Image
-          src={kit.imagen}
-          alt={`Foto del kit ${kit.nombre} montado`}
-          width={800}
-          height={600}
-          unoptimized
-          // Altura limitada para que la imagen quepa en la primera pantalla
-          className="h-auto max-h-[min(52dvh,560px)] w-auto max-w-full"
-        />
+      <div className="acercar mt-10 flex w-full max-w-4xl items-center justify-center">
+        <FotoKitViaje slug={kit.slug}>
+          <Image
+            src={kit.imagen}
+            alt={`Foto del kit ${kit.nombre} montado`}
+            width={800}
+            height={600}
+            unoptimized
+            // Altura limitada para que la imagen quepa en la primera pantalla
+            className="h-auto max-h-[min(52dvh,560px)] w-auto max-w-full"
+          />
+        </FotoKitViaje>
       </div>
     </section>
   );

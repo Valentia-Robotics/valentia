@@ -1,0 +1,14 @@
+# Avisa con un pull request cuando hay arreglos de seguridad en las librerías.
+# Prisma se queda en la 6: las versiones 7 y 8 no admiten MongoDB.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: prisma
+        update-types: [version-update:semver-major]
+      - dependency-name: "@prisma/client"
+        update-types: [version-update:semver-major]

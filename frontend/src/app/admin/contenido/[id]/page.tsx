@@ -8,9 +8,12 @@ import { FormularioGuion } from "@/components/contenido/FormularioGuion";
 import { FormularioAsignar, FormularioDevolver } from "@/components/contenido/FormulariosRevision";
 import { InsigniaEstadoGuion, TextoGuion } from "@/components/contenido/TextoGuion";
 import { ESTADOS_ASIGNABLES, ESTADOS_EDITABLES, estadosGuion } from "@/config/estadosGuion";
-import { cambiarEstadoDeGuion } from "@/app/admin/contenido/acciones";
+import { cambiarEstadoDeGuion, descartarGuionAutomatico } from "@/app/admin/contenido/acciones";
+import { CajasAutomatico } from "@/components/contenido/CajasAutomatico";
+import { InsigniaAutomatico } from "@/components/contenido/DatosAutomaticos";
 import { fechaHora } from "@/lib/admin/formato";
 import {
+  ESTADOS_DESCARTABLES,
   categoriasGuion,
   editores as listaEditores,
   guionParaAdmin,
@@ -42,6 +45,9 @@ export default async function GuionAdmin({ params }: Props) {
   const elegibles = categorias.filter((c) => c.activa || c.id === guion.categoriaId);
   const editable = ESTADOS_EDITABLES.includes(guion.estado);
   const asignable = ESTADOS_ASIGNABLES.includes(guion.estado);
+  // Solo los automáticos sin editor: un guion manual se corrige, no se tira
+  const descartable =
+    guion.origen === "IA" && !guion.editorId && ESTADOS_DESCARTABLES.includes(guion.estado);
   const datos = { guionId: guion.id };
 
   return (
@@ -51,7 +57,14 @@ export default async function GuionAdmin({ params }: Props) {
         descripcion={
           <>
             <InsigniaEstadoGuion estado={guion.estado} />{" "}
-            {guion.origen === "IA" && <Insignia tono="acento">Generado con IA</Insignia>}
+            {guion.automatico ? (
+              <InsigniaAutomatico
+                relevancia={guion.automatico.relevancia}
+                medio={guion.automatico.fuente.medio}
+              />
+            ) : (
+              guion.origen === "IA" && <Insignia tono="acento">Generado con IA</Insignia>
+            )}
             {guion.editor && ` · Editor: ${guion.editor.nombre}`}
           </>
         }
@@ -60,6 +73,7 @@ export default async function GuionAdmin({ params }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem] lg:items-start">
         <div className="min-w-0 space-y-4">
+          {guion.automatico && <CajasAutomatico automatico={guion.automatico} />}
           <Caja titulo={editable ? "Editar guion" : "Guion"}>
             {editable ? (
               <FormularioGuion guion={guion} categorias={elegibles} kits={kits} />
@@ -137,6 +151,18 @@ export default async function GuionAdmin({ params }: Props) {
                     variante="secundario"
                   >
                     Corregir (volver a borrador)
+                  </BotonConfirmar>
+                )}
+                {descartable && (
+                  <BotonConfirmar
+                    accion={descartarGuionAutomatico}
+                    datos={datos}
+                    titulo="Descartar guion"
+                    texto="Se borra el guion. Si n8n vuelve a mandar esta misma noticia, no se creará otra vez."
+                    confirmar="Sí, descartar"
+                    variante="peligro"
+                  >
+                    Descartar
                   </BotonConfirmar>
                 )}
                 {guion.estado === "ENTREGADO" && (

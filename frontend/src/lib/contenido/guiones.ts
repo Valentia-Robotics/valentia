@@ -46,21 +46,44 @@ export async function categoriasGuion(soloActivas = false) {
   });
 }
 
+/** Lo que añade un guion automático (n8n) al crearse */
+interface Automatico {
+  estado: "BORRADOR" | "PENDIENTE_APROBACION";
+  automatico: Prisma.DatosAutomaticosCreateInput;
+  /** Normalizada: se apunta como usada en la misma transacción (índice único = sin duplicados) */
+  urlNoticia: string;
+}
+
 /**
- * Crea un guion en borrador. Es la única puerta de entrada: la fase 2 («Generar borrador con IA»)
- * llamará aquí con origen "IA", y sus guiones seguirán pasando por la aprobación del admin.
+ * Crea un guion. Es la única puerta de entrada: el panel (borrador, MANUAL) y n8n (pendiente de
+ * aprobación, IA, con sus escenas). Ninguno llega a un editor sin que el admin lo apruebe.
  */
-export function crearGuion(datos: DatosGuion, autor: Autor, origen: OrigenGuion = "MANUAL") {
+export function crearGuion(
+  datos: DatosGuion,
+  autor: Autor,
+  origen: OrigenGuion = "MANUAL",
+  extra?: Automatico,
+) {
+  const estado = extra?.estado ?? "BORRADOR";
   return transaccion(async (tx) => {
     const guion = await tx.guion.create({
-      data: { ...datos, creadoPorId: autor.id, origen, estado: "BORRADOR" },
+      data: {
+        ...datos,
+        creadoPorId: autor.id,
+        origen,
+        estado,
+        automatico: extra?.automatico ?? null,
+      },
       select: { id: true },
     });
+    if (extra) {
+      await tx.noticiaUsada.create({ data: { url: extra.urlNoticia, guionId: guion.id } });
+    }
     await tx.cambioEstadoGuion.create({
       data: {
         guionId: guion.id,
         estadoAnterior: null,
-        estadoNuevo: "BORRADOR",
+        estadoNuevo: estado,
         usuarioId: autor.id,
         usuarioNombre: autor.nombre,
         editorId: null,
@@ -166,12 +189,37 @@ export function asignarGuion(guionId: string, editorId: string, autor: Autor) {
   });
 }
 
+/** Un guion automático todavía sin editor se puede descartar */
+export const ESTADOS_DESCARTABLES: EstadoGuion[] = ["BORRADOR", "PENDIENTE_APROBACION", "APROBADO"];
+
+/**
+ * Descarta un guion automático: se borra con su historial (nunca tuvo editor, así que las métricas
+ * no pierden nada). La noticia queda apuntada como usada: n8n no puede volver a mandarla.
+ * Devuelve false si ya no se puede (lo han asignado, no es automático…).
+ */
+export function descartarGuion(id: string) {
+  return transaccion(async (tx) => {
+    const guion = await tx.guion.findFirst({
+      where: { id, origen: "IA", editorId: null, estado: { in: ESTADOS_DESCARTABLES } },
+      select: { id: true },
+    });
+    if (!guion) return false;
+    await tx.cambioEstadoGuion.deleteMany({ where: { guionId: id } });
+    const { count } = await tx.guion.deleteMany({
+      where: { id, editorId: null, estado: { in: ESTADOS_DESCARTABLES } },
+    });
+    if (count === 0) throw new ErrorGuion("Otra persona acaba de cambiar este guion.");
+    return true;
+  });
+}
+
 /* ---------- Panel de admin ---------- */
 
 export function buscarGuiones(filtros: {
   estado?: EstadoGuion;
   categoriaId?: string;
   editorId?: string;
+  origen?: OrigenGuion;
 }) {
   return db.guion.findMany({
     where: filtros,
@@ -185,6 +233,8 @@ export function buscarGuiones(filtros: {
       fechaLimite: true,
       categoria: { select: { nombre: true } },
       editor: { select: { nombre: true } },
+      // Solo lo que sale en la lista (las escenas pueden ser largas)
+      automatico: { select: { relevancia: true, fuente: { select: { medio: true } } } },
     },
   });
 }

@@ -62,7 +62,9 @@ export function Boton({
 }: PropsEnlace | PropsBoton) {
   const clases = cn(
     "inline-flex items-center justify-center gap-2 rounded-boton font-medium whitespace-nowrap",
-    "transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50",
+    // Al pulsar se hunde un poco: la respuesta se nota antes de que cargue nada
+    "transition-[background-color,border-color,color,scale] active:scale-[0.97]",
+    "disabled:pointer-events-none disabled:opacity-50",
     estilosTamano[tamano],
     estilosVariante[variante],
     className,

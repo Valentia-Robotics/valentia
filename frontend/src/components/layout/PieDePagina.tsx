@@ -10,7 +10,8 @@ export function PieDePagina() {
   const anio = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-linea bg-niebla text-sm print:hidden">
+    // Sin línea de corte: el fondo pasa poco a poco del blanco de la página a la niebla del pie
+    <footer className="bg-linear-to-b from-white to-niebla to-[9rem] text-sm print:hidden">
       <Contenedor className="py-14">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div className="max-w-xs">

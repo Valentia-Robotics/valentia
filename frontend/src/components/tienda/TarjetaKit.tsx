@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { precioDeKit } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
@@ -7,16 +8,18 @@ import type { KitResumen } from "@/lib/catalogo";
 /** Tarjeta de un kit para el listado /kits. Toda la tarjeta es un enlace a su ficha. */
 export function TarjetaKit({ kit }: { kit: KitResumen }) {
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-tarjeta bg-white shadow-tarjeta ring-1 ring-linea transition-shadow hover:shadow-flotante">
+    <article className="group relative flex flex-col overflow-hidden rounded-tarjeta bg-white shadow-tarjeta ring-1 ring-linea transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-flotante active:translate-y-0">
       <div className="bg-niebla px-6 pt-8 pb-4">
-        <Image
-          src={kit.imagen}
-          alt=""
-          width={800}
-          height={600}
-          unoptimized
-          className="mx-auto h-auto w-full transition-transform duration-500 group-hover:scale-[1.03]"
-        />
+        <FotoKitViaje slug={kit.slug}>
+          <Image
+            src={kit.imagen}
+            alt=""
+            width={800}
+            height={600}
+            unoptimized
+            className="mx-auto h-auto w-full transition-[scale] duration-500 group-hover:scale-[1.03]"
+          />
+        </FotoKitViaje>
       </div>
       <div className="flex flex-1 flex-col p-6">
         <div className="flex flex-wrap gap-2">

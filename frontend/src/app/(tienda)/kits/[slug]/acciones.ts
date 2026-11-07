@@ -10,6 +10,7 @@ import { conErrores, texto, type EstadoFormulario } from "@/lib/admin/formulario
 import { refrescarTienda } from "@/lib/admin/refrescar";
 import { configResenas } from "@/config/resenas";
 import { db } from "@/lib/db";
+import { registrarIntento } from "@/lib/limite";
 import { puedeOpinar } from "@/lib/resenas";
 import { esquemaResena } from "@/lib/resenas/formato";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -74,6 +75,13 @@ export async function guardarResena(
       ok: false,
       mensaje:
         "Solo pueden opinar quienes han activado el curso de este kit con el código de la caja.",
+    };
+  }
+
+  if (!(await registrarIntento("resena", usuario.id))) {
+    return {
+      ok: false,
+      mensaje: "Has cambiado tu opinión muchas veces. Prueba dentro de un rato.",
     };
   }
 

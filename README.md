@@ -42,7 +42,7 @@ Zod (validación) · qrcode · lucide-react (iconos) · Vitest y Playwright (pru
 
 ## Cómo arrancar el proyecto
 
-Necesitas tener instalado [Node.js](https://nodejs.org) 22 o superior (y Google Chrome para las pruebas),
+Necesitas tener instalado [Node.js](https://nodejs.org) 24 (y Google Chrome para las pruebas),
 y una base de datos de desarrollo en **MongoDB Atlas** (ver «Base de datos»): su dirección va en
 `DATABASE_URL` del archivo `.env`.
 
@@ -219,7 +219,7 @@ si la base de datos está vacía. `npm run db:reset` **lo borra todo** (también
 
 - **Banner de cookies**: «Rechazar» y «Aceptar» con el mismo peso; «Configurar» por categorías. Solo hay
   cookies necesarias (sesión, carrito, pago) y, con permiso, las de los vídeos de YouTube/Vimeo. No hay
-  analítica ni publicidad. Se puede cambiar en «Configurar cookies» (pie de página).
+  analítica de terceros ni publicidad (las estadísticas de visitas son propias y sin cookies). Se puede cambiar en «Configurar cookies» (pie de página).
 - **Páginas legales** en `src/app/(tienda)/legal/`: aviso legal, privacidad (RGPD), cookies, condiciones
   de venta y devoluciones (desistimiento de 14 días, con formulario). Todas llevan el aviso
   **«BORRADOR — pendiente de revisión por un profesional»** y marcadores `[REVISAR…]`. Cuando un abogado

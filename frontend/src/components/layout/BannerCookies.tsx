@@ -27,6 +27,8 @@ export function BannerCookies() {
       {mostrarBanner && (
         <section
           aria-label="Aviso de cookies"
+          // Con nombre propio se queda quieto y encima mientras cambia la página (globals.css)
+          style={{ viewTransitionName: "aviso-cookies" }}
           className="fixed inset-x-3 bottom-3 z-[55] mx-auto max-w-3xl rounded-tarjeta bg-white p-5 shadow-flotante ring-1 ring-linea sm:p-6 print:hidden"
         >
           <div className="flex items-start gap-3">

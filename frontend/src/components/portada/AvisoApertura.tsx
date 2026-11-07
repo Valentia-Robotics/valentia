@@ -7,7 +7,7 @@ import { Contenedor } from "@/components/ui/Contenedor";
  */
 export function AvisoApertura() {
   return (
-    <section aria-labelledby="titulo-aviso-apertura" className="border-y border-linea bg-niebla">
+    <section aria-labelledby="titulo-aviso-apertura" className="bg-niebla">
       <Contenedor className="flex flex-col gap-5 py-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
         <div className="max-w-md">
           <h2 id="titulo-aviso-apertura" className="font-sans text-lg font-semibold">

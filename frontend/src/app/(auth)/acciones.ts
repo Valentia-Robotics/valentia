@@ -108,7 +108,13 @@ export async function iniciarSesion(formulario: FormData): Promise<EstadoCuenta>
   const { email, contrasena } = datos.data;
 
   // Máximo de intentos por IP y email (ver src/lib/limite.ts)
-  if (!(await registrarIntento("login", `${await ipDelCliente()}:${email}`))) {
+  // y por cuenta, aunque lleguen desde muchas IP. Cuentan también los emails sin cuenta: si no, el
+  // límite desvelaría cuáles existen
+  const [porIp, porCuenta] = await Promise.all([
+    registrarIntento("login", `${await ipDelCliente()}:${email}`),
+    registrarIntento("loginCuenta", email),
+  ]);
+  if (!porIp || !porCuenta) {
     return {
       ok: false,
       mensaje: "Demasiados intentos seguidos. Espera unos minutos y vuelve a probar.",

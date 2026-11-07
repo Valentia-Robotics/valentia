@@ -4,13 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { cn } from "@/lib/utils";
 import type { EscenaRobot } from "./escenaRobot";
-import {
-  PIEZAS_ROBOT,
-  centroDePieza,
-  explosionDesdeProgreso,
-  piezaActiva,
-  type PiezaRobot,
-} from "./piezasRobot";
+import { PIEZAS_ROBOT, explosionDesdeProgreso, piezaActiva, type PiezaRobot } from "./piezasRobot";
 import { RobotEstatico } from "./RobotEstatico";
 
 /** ¿Puede este equipo con el 3D sin ir a tirones ni gastar mucha batería? */
@@ -158,16 +152,6 @@ export function PortadaRobot() {
       // Alta para que cada pieza dure un buen tramo de scroll (antes pasaba de una a otra muy rápido)
       className="portada-robot relative bg-white motion-safe:h-[620vh]"
     >
-      {/* Puntos de imán: al dejar de hacer scroll cerca de una pieza, la página se para justo en ella */}
-      {modoScroll &&
-        PIEZAS_ROBOT.map((pieza, i) => (
-          <span
-            key={pieza.id}
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 h-px snap-start"
-            style={{ top: `calc((100% - 100vh) * ${centroDePieza(i)})` }}
-          />
-        ))}
       {/* En el móvil, svh (alto con la barra del navegador visible): así el lienzo no cambia de
           tamaño cuando la barra se esconde al hacer scroll */}
       <div className="overflow-hidden motion-safe:sticky motion-safe:top-nav motion-safe:h-[calc(100svh-var(--spacing-nav))] lg:motion-safe:h-[calc(100dvh-var(--spacing-nav))]">

@@ -6,6 +6,7 @@ import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
 import { SelectorAdmin } from "@/components/admin/campos";
 import { Tabla } from "@/components/admin/Tabla";
+import { InsigniaAutomatico } from "@/components/contenido/DatosAutomaticos";
 import { InsigniaEstadoGuion } from "@/components/contenido/TextoGuion";
 import { estadosGuion, ORDEN_ESTADOS } from "@/config/estadosGuion";
 import type { EstadoGuion } from "@/generated/prisma/enums";
@@ -31,19 +32,29 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
   const categoria = leer(parametros.categoria);
   const editor = leer(parametros.editor);
   const tablero = leer(parametros.vista) === "tablero";
+  // «Automáticos pendientes»: los que ha mandado n8n y esperan tu revisión
+  const automaticos = leer(parametros.mostrar) === "automaticos";
+  const descartado = leer(parametros.descartado) === "1";
 
   const [guiones, categorias, editores] = await Promise.all([
     buscarGuiones({
       ...(ORDEN_ESTADOS.includes(estado as EstadoGuion) ? { estado: estado as EstadoGuion } : {}),
       ...(esId(categoria) ? { categoriaId: categoria } : {}),
       ...(esId(editor) ? { editorId: editor } : {}),
+      ...(automaticos ? { origen: "IA" as const, estado: "PENDIENTE_APROBACION" as const } : {}),
     }),
     categoriasGuion(),
     listaEditores(),
   ]);
 
   const enlaceVista = (vista: string) => {
-    const filtros = new URLSearchParams({ estado, categoria, editor, vista });
+    const filtros = new URLSearchParams({
+      estado,
+      categoria,
+      editor,
+      mostrar: automaticos ? "automaticos" : "",
+      vista,
+    });
     return `/admin/contenido?${filtros}`;
   };
 
@@ -65,8 +76,23 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
         }
       />
 
-      <form className="mb-4 grid gap-3 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-end">
+      {descartado && (
+        <p role="status" className="mb-4 rounded-lg bg-white p-3 text-sm ring-1 ring-linea">
+          Guion descartado. Si n8n vuelve a mandar esa noticia, no se creará otra vez.
+        </p>
+      )}
+
+      <form className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto] lg:items-end">
         {tablero && <input type="hidden" name="vista" value="tablero" />}
+        <SelectorAdmin
+          etiqueta="Mostrar"
+          name="mostrar"
+          defaultValue={automaticos ? "automaticos" : ""}
+          opciones={[
+            { valor: "", texto: "Todos los guiones" },
+            { valor: "automaticos", texto: "🤖 Automáticos pendientes" },
+          ]}
+        />
         <SelectorAdmin
           etiqueta="Estado"
           name="estado"
@@ -143,7 +169,7 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
                         className="block rounded-md bg-niebla p-2.5 text-sm hover:ring-1 hover:ring-tinta/30"
                       >
                         <span className="block font-medium">
-                          {g.titulo} {g.origen === "IA" && <Insignia tono="acento">IA</Insignia>}
+                          {g.titulo} <EtiquetaOrigen guion={g} />
                         </span>
                         <span className="mt-1 block text-xs text-gris">
                           {g.categoria.nombre} · {fecha(g.fechaLimite)}
@@ -171,7 +197,7 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
                   <Link href={`/admin/contenido/${g.id}`} className="font-medium hover:text-acento">
                     {g.titulo}
                   </Link>{" "}
-                  {g.origen === "IA" && <Insignia tono="acento">IA</Insignia>}
+                  <EtiquetaOrigen guion={g} />
                 </td>
                 <td className="text-gris">{g.categoria.nombre}</td>
                 <td>
@@ -186,4 +212,24 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
       )}
     </>
   );
+}
+
+/** 🤖 Automático (n8n) con su relevancia y medio; «IA» si es otro guion generado con IA */
+function EtiquetaOrigen({
+  guion,
+}: {
+  guion: {
+    origen: string;
+    automatico: { relevancia: number | null; fuente: { medio: string | null } } | null;
+  };
+}) {
+  if (guion.automatico) {
+    return (
+      <InsigniaAutomatico
+        relevancia={guion.automatico.relevancia}
+        medio={guion.automatico.fuente.medio}
+      />
+    );
+  }
+  return guion.origen === "IA" ? <Insignia tono="acento">IA</Insignia> : null;
 }

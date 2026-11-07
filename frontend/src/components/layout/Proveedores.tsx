@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react";
 import type { ReactNode } from "react";
 import { BannerCookies } from "./BannerCookies";
+import { BarraCarga } from "./BarraCarga";
 import { ContadorVisitas } from "./ContadorVisitas";
 
 /**
@@ -13,6 +14,7 @@ import { ContadorVisitas } from "./ContadorVisitas";
 export function Proveedores({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
+      <BarraCarga />
       {children}
       <BannerCookies />
       <ContadorVisitas />

@@ -40,7 +40,32 @@
   --shadow-tarjeta: 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px rgb(11 11 11 / 0.06);
   --shadow-flotante: 0 12px 40px rgb(11 11 11 / 0.14);
 
+  /* ---------- Movimiento: toda la web frena igual, con una salida rápida y una llegada suave ---------- */
+  --ease-suave: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --default-transition-duration: 220ms;
+  --default-transition-timing-function: var(--ease-suave);
+
   /* ---------- Animaciones ---------- */
+  --animate-dialogo: dialogo 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both; /* Ventana que se abre */
+  --animate-carga: carga 8s cubic-bezier(0.1, 0.7, 0.2, 1) 150ms both; /* Raya de BarraCarga */
+
+  @keyframes dialogo {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+      scale: 0.98;
+    }
+  }
+
+  @keyframes carga {
+    from {
+      scale: 0 1;
+    }
+    to {
+      scale: 0.92 1;
+    }
+  }
+
   --animate-entrada: entrada 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; /* → "animate-entrada" */
   --animate-latido: latido 0.4s ease-out; /* Pequeño rebote al añadir al carrito */
 
@@ -99,6 +124,11 @@
   html {
     color-scheme: light;
     -webkit-tap-highlight-color: transparent;
+    /* Los enlaces a una parte de la página llegan deslizando y sin quedar bajo la barra fija */
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--spacing-nav);
+    /* Reserva el hueco de la barra de desplazamiento: al abrir una ventana, la página no da un salto */
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -116,15 +146,6 @@
     outline: 2px solid var(--color-acento);
     outline-offset: 3px;
     border-radius: 4px;
-  }
-
-  /* Portada: imán suave en cada pieza del robot (solo se para si sueltas el scroll cerca de una).
-     Solo con ratón: en las pantallas táctiles el imán peleaba con el deslizamiento del dedo
-     y la página daba saltos al soltar */
-  @media (prefers-reduced-motion: no-preference) and (pointer: fine) {
-    html:has(.portada-robot) {
-      scroll-snap-type: y proximity;
-    }
   }
 
   /* Con una ventana emergente abierta, la página de detrás no se mueve */
@@ -228,6 +249,100 @@
   }
 }
 
+/*
+ * Fotos que se acercan un poco al entrar en pantalla, siguiendo el scroll.
+ * Ojo: dentro de un padre con overflow-hidden estas animaciones no funcionan (cuenta como zona de
+ * scroll propia y nunca se mueve). Por eso las secciones usan overflow-x-clip.
+ */
+@keyframes acercar {
+  from {
+    scale: 0.86;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .acercar {
+      animation: acercar linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 50%;
+    }
+  }
+}
+
+/*
+ * Fundido entre secciones (src/components/ui/Fundido.tsx). Se mezcla en oklab, que no pasa por grises
+ * sucios, y con puntos intermedios para que empiece y acabe despacio: sin línea visible en los extremos.
+ */
+.fundido {
+  background-image: linear-gradient(
+    to bottom in oklab,
+    var(--fundido-desde),
+    color-mix(in oklab, var(--fundido-desde) 88%, var(--fundido-hasta)) 22%,
+    color-mix(in oklab, var(--fundido-desde) 50%, var(--fundido-hasta)) 50%,
+    color-mix(in oklab, var(--fundido-desde) 12%, var(--fundido-hasta)) 78%,
+    var(--fundido-hasta)
+  );
+}
+
+/* Fondo de las ventanas emergentes: aparece poco a poco */
+dialog[open]::backdrop {
+  animation: desvanecer 0.28s ease reverse both;
+}
+
+/*
+ * PASO ENTRE PÁGINAS (src/components/layout/TransicionPagina.tsx)
+ * La página anterior se va deprisa y la nueva llega con calma. La barra de arriba no se mueve: es el
+ * punto fijo que deja claro que lo que cambia es el contenido.
+ */
+::view-transition {
+  pointer-events: none; /* los clics pasan a la página mientras dura la animación */
+}
+
+::view-transition-old(.pagina-sale) {
+  animation: desvanecer 130ms ease-in both;
+}
+
+::view-transition-new(.pagina-entra) {
+  animation: llegar 320ms var(--ease-suave) 60ms both;
+}
+
+::view-transition-group(barra),
+::view-transition-group(aviso-cookies) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(barra),
+::view-transition-old(aviso-cookies) {
+  display: none;
+}
+
+::view-transition-new(barra),
+::view-transition-new(aviso-cookies) {
+  animation: none;
+}
+
+/* La foto de un kit que viaja de la tarjeta a la ficha */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: var(--ease-suave);
+  z-index: 50;
+}
+
+@keyframes desvanecer {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes llegar {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
 /* Si la persona ha pedido "reducir movimiento" en su sistema, desactivamos animaciones. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -237,5 +352,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

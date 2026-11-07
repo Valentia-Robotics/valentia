@@ -277,11 +277,15 @@ Si prefieres preparar algo nuevo (por ejemplo, un kit completo con su curso) en 
 
 No hace falta ningún servicio nuevo: la API va dentro de la web, en el **mismo servicio de Render**.
 
-1. Genera un token (ver `backend/README.md`) y añádelo en Render → tu servicio → **Environment** como `N8N_API_TOKEN`.
-   Sin él la API queda cerrada y responde 503.
-2. En n8n, un nodo **HTTP Request** con `POST https://valentiarobotics.com/api/v1/guiones`, la cabecera
-   `Authorization: Bearer <token>` y el JSON que explica `backend/README.md`.
-3. El guion aparece en `/admin/contenido` como borrador, con la etiqueta IA.
+1. Genera una clave y añádela en Render → tu servicio → **Environment** → **Environment Variables** como `N8N_API_KEY`.
+   Sin ella la API queda cerrada y responde 503.
+2. Comprueba la conexión con `npm run n8n:probar -- https://valentiarobotics.com`.
+3. En n8n, el flujo llama a `POST https://valentiarobotics.com/api/guiones/automaticos` con la cabecera `x-api-key`.
+   Pasos, formato del JSON y flujo para importar: `backend/n8n/README.md`.
+4. El guion aparece en `/admin/contenido` como «Pendiente de aprobación», con la etiqueta 🤖 Automático.
+
+Al desplegar, `db:push` crea la colección `NoticiaUsada` (una URL de noticia no da dos guiones). Los guiones que ya
+existen no cambian.
 
 La carpeta `backend/` no se publica todavía: será el servicio de Render cuando la web pase a Vercel. Entonces solo
 cambiará la dirección a la que llama n8n, y seguirá habiendo un único servicio en Render.

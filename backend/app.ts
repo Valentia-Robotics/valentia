@@ -1,34 +1,20 @@
 /**
  * BACKEND DE VALENTIA: la API, separada de la web.
- * Todavía NO se publica: para pagar un solo servicio en Render, n8n llama a la ruta de la web
- * (frontend/src/app/api/v1/guiones). Este servidor será el de Render cuando la web pase a Vercel.
- * Las rutas viven aquí y la lógica en src/lib, para que panel y API sigan exactamente las mismas reglas.
+ * Todavía NO se publica: para pagar un solo servicio en Render, n8n llama a la web
+ * (frontend/src/app/api/guiones/automaticos). Este servidor sería el de Render si la web pasara a Vercel.
+ * Las dos entradas usan el mismo código (src/lib/contenido/guionesAutomaticos.ts) y las mismas rutas:
+ * cambiar de una a otra solo cambia la dirección a la que llama n8n.
  */
 import { Hono } from "hono";
-import { bodyLimit } from "hono/body-limit";
-import { responderGuion, TAMANO_MAXIMO } from "@/lib/contenido/apiGuiones";
-import { exigirToken } from "./token";
+import { crearDesdeN8n, ping } from "@/lib/contenido/guionesAutomaticos";
 
 export const app = new Hono();
 
-/** Para el Health Check de Render: no toca la base de datos ni pide token */
+/** Para el Health Check de Render: no toca la base de datos ni pide clave */
 app.get("/health", (c) => c.json({ estado: "ok" }));
 
-app.post(
-  "/v1/guiones",
-  exigirToken,
-  bodyLimit({
-    maxSize: TAMANO_MAXIMO,
-    onError: (c) => c.json({ error: "El guion es demasiado grande." }, 413),
-  }),
-  async (c) => {
-    const entrada = await c.req.json().catch(() => undefined);
-    if (entrada === undefined) return c.json({ error: "El cuerpo no es JSON válido." }, 400);
-
-    const { status, cuerpo } = await responderGuion(entrada);
-    return c.json(cuerpo, status as 201 | 409 | 422);
-  },
-);
+app.get("/api/guiones/automaticos/ping", (c) => ping(c.req.raw));
+app.post("/api/guiones/automaticos", (c) => crearDesdeN8n(c.req.raw));
 
 app.notFound((c) => c.json({ error: "No existe esa ruta." }, 404));
 

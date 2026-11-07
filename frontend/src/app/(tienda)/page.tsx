@@ -7,6 +7,7 @@ import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { HeroKit } from "@/components/tienda/HeroKit";
 import { SeccionKit } from "@/components/tienda/SeccionKit";
+import { Fundido, type ColorFundido } from "@/components/ui/Fundido";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
 import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
@@ -42,25 +43,40 @@ export default async function Inicio() {
   // Los kits gratis (sin piezas) solo salen en /kits: la portada enseña lo que se monta
   const resto = kits.filter((k) => k.id !== estrella?.id && k.precioCentimos > 0);
   const abierta = compraAbierta();
+  // Cada Fundido tiene que empezar en el color exacto de la sección de arriba
+  const colorTrasKits: ColorFundido = resto.length > 0 ? "tinta" : estrella ? "niebla" : "blanco";
 
   return (
     <>
       <DatosEstructurados datos={datosTienda()} />
       <PortadaRobot />
-      {!abierta && <AvisoApertura />}
+      {!abierta && (
+        <>
+          <Fundido desde="blanco" hasta="niebla" corto />
+          <AvisoApertura />
+          <Fundido desde="niebla" hasta="blanco" corto />
+        </>
+      )}
       <BloqueComoFunciona cifras={cifras} />
-      {estrella && <HeroKit kit={estrella} compraAbierta={abierta} />}
-      {resto.map((kit, i) => (
-        <SeccionKit
-          key={kit.id}
-          kit={kit}
-          tema={i % 2 === 0 ? "oscuro" : "claro"}
-          compraAbierta={abierta}
-        />
+      {estrella && (
+        <>
+          <Fundido desde="blanco" hasta="niebla" corto />
+          <HeroKit kit={estrella} compraAbierta={abierta} />
+        </>
+      )}
+      {/* Un solo tramo oscuro para todos los kits y el configurador: la página va de claro a oscuro
+          y vuelve, como un recorrido, en vez de cambiar de color en cada sección */}
+      {resto.length > 0 && <Fundido desde="niebla" hasta="tinta" />}
+      {resto.map((kit) => (
+        <SeccionKit key={kit.id} kit={kit} tema="oscuro" compraAbierta={abierta} />
       ))}
+      <Fundido desde={colorTrasKits} hasta="grafito" corto={resto.length > 0} />
       <BloqueConfigurador />
+      <Fundido desde="grafito" hasta="blanco" />
       <BloqueCursoQR />
+      <Fundido desde="blanco" hasta="tinta" />
       <BloqueFinal compraAbierta={abierta} />
+      <Fundido desde="tinta" hasta="blanco" />
     </>
   );
 }

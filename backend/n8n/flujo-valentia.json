@@ -1,0 +1,61 @@
+{
+  "name": "Valentia: enviar guion",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b1000000-0000-4000-8000-000000000001",
+      "name": "Probar a mano",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://valentiarobotics.com/api/guiones/automaticos/ping",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "b1000000-0000-4000-8000-000000000002",
+      "name": "Ping Valentia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SUSTITUYE ESTE NODO por tu parte del flujo (noticias + IA). Tiene que dejar el guion en el JSON\n// con este formato (backend/n8n/README.md). Este ejemplo sirve para probar la conexión.\nreturn [{ json: {\n  titulo: 'Prueba desde n8n',\n  gancho: '¿Y si tu robot doblara la ropa?',\n  duracionSegundos: 20,\n  escenas: [\n    { orden: 1, duracionSegundos: 10, voz: 'Mira esto.', visual: 'Primer plano del robot', textoPantalla: '¿Magia?' },\n    { orden: 2, duracionSegundos: 10, voz: 'Lo puedes montar tú.', visual: 'Kit abierto', textoPantalla: 'valentiarobotics.com' }\n  ],\n  cierreCta: 'Monta el tuyo con Valentia.',\n  hashtags: ['robotica'],\n  datosAVerificar: ['Esto es una prueba: descártalo en el panel'],\n  relevancia: 1,\n  fuente: { titulo: 'Prueba', url: 'https://valentiarobotics.com/?prueba=' + Date.now(), medio: 'prueba' },\n  origen: 'n8n'\n} }];"
+      },
+      "id": "b1000000-0000-4000-8000-000000000003",
+      "name": "Guion (tu IA)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://valentiarobotics.com/api/guiones/automaticos",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "response": { "response": { "fullResponse": true, "neverError": true } }
+        }
+      },
+      "id": "b1000000-0000-4000-8000-000000000004",
+      "name": "Enviar a Valentia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 0]
+    }
+  ],
+  "connections": {
+    "Probar a mano": { "main": [[{ "node": "Ping Valentia", "type": "main", "index": 0 }]] },
+    "Ping Valentia": { "main": [[{ "node": "Guion (tu IA)", "type": "main", "index": 0 }]] },
+    "Guion (tu IA)": { "main": [[{ "node": "Enviar a Valentia", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
