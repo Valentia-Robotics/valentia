@@ -310,15 +310,20 @@ function caraTrasera({ dominio, slugKit }: DatosTarjeta): Forma[] {
 const CB = CX + ANCHO_TEXTO / 2;
 
 /**
- * Delante (igual en todas): sello con la V de Valentia dentro de dos aros, unido a dos pistas de circuito
+ * Delante (igual en todas): el cuadrado de la V de Valentia (como el icono de la web: cuadrado grabado y
+ * la V sin grabar), unido a dos pistas de circuito
  * con su pad al final, y debajo «BIENVENIDOS A» + el logo. El QR va aparte (cambia con cada código).
  */
 function bienvenidaDelanteraComun({ dominio }: DatosTarjeta): Forma[] {
   const cy = QY + 7.2;
   const r = 6.2;
-  const aro = (radio: number, w: number) =>
-    trazado(circulo(CB, cy, radio + w / 2, true)) + trazado(circulo(CB, cy, radio - w / 2, false));
-  const g: Forma[] = [aro(r, 0.4), aro(r - 1.3, 0.16), uve(CB - 6.6, cy - 6.4, 13.2)];
+  const lado = 2 * r;
+  const g: Forma[] = [
+    {
+      d: trazado(rectRedondeado(CB - r, cy - r, lado, lado, lado * 0.22, true)),
+      menos: uve(CB - r, cy - r, lado),
+    },
+  ];
   // Pistas a cada lado del sello, como en una placa de circuito
   for (const lado of [-1, 1]) {
     const x0 = CB + lado * (r + 0.2);
@@ -375,7 +380,7 @@ function bienvenidaTraseraComun({ dominio }: DatosTarjeta): Forma[] {
   g.push(textoComoTrazado("titulo", titulo, 6, 19, tamanoQueCabe("titulo", titulo, 4.2, 46, 3)));
   const pasos = [
     "Escanea el QR de la otra cara",
-    "Crea tu cuenta gratis (o entra)",
+    "Crea tu cuenta gratis",
     "Y te llevamos directo al vídeo",
   ];
   pasos.forEach((paso, i) => {
