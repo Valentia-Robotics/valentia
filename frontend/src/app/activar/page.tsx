@@ -5,7 +5,9 @@ import { BookOpen, CircleAlert, CircleCheck, QrCode } from "lucide-react";
 import { BotonActivar } from "@/components/cursos/BotonActivar";
 import { FormularioCodigo } from "@/components/cursos/FormularioCodigo";
 import { Boton } from "@/components/ui/Boton";
-import { buscarCodigo } from "@/lib/activacion";
+import { redirect } from "next/navigation";
+import { SLUG_KIT_BIENVENIDA } from "@/config/bienvenida";
+import { activarCodigo, buscarCodigo } from "@/lib/activacion";
 import { FORMATO_CODIGO, normalizarCodigo } from "@/lib/codigos";
 import { db } from "@/lib/db";
 import { ipDelCliente, registrarIntento } from "@/lib/limite";
@@ -76,6 +78,8 @@ export default async function PaginaActivar({ searchParams }: Props) {
   }
 
   const { kit } = encontrado;
+  // Tarjeta de bienvenida: solo abre el vídeo de bienvenida (el curso de su kit gratis)
+  const bienvenida = kit.slug === SLUG_KIT_BIENVENIDA;
   const volverAqui = `/activar?codigo=${encodeURIComponent(codigo)}`;
   const tarjetaKit = (
     <div className="mt-8 flex items-center gap-4 rounded-tarjeta bg-niebla p-4 text-left">
@@ -126,8 +130,12 @@ export default async function PaginaActivar({ searchParams }: Props) {
     return (
       <Marco
         icono={<CircleCheck aria-hidden="true" className="size-10 text-exito" strokeWidth={1.5} />}
-        titulo="¡Tu curso te espera!"
-        texto="El código es válido. Inicia sesión o crea una cuenta gratis para guardarlo en «Mis cursos»."
+        titulo={bienvenida ? "¡Bienvenido a Valentia!" : "¡Tu curso te espera!"}
+        texto={
+          bienvenida
+            ? "Crea tu cuenta gratis (o entra si ya tienes una) y te llevamos directo al vídeo de bienvenida."
+            : "El código es válido. Inicia sesión o crea una cuenta gratis para guardarlo en «Mis cursos»."
+        }
       >
         {tarjetaKit}
         <div className="mt-8 flex flex-col gap-3">
@@ -140,6 +148,15 @@ export default async function PaginaActivar({ searchParams }: Props) {
         </div>
       </Marco>
     );
+  }
+
+  // ---------- Bienvenida con sesión: se activa sola y va directa al vídeo ----------
+  if (bienvenida) {
+    const resultado = await activarCodigo(usuario.id, codigo);
+    if (resultado.estado === "activado" || resultado.estado === "ya-tienes")
+      redirect(`/cursos/${resultado.cursoSlug}`);
+    // Si alguien lo gastó justo ahora, se recarga y sale el aviso de «ya se ha usado»
+    redirect(volverAqui);
   }
 
   // ---------- Con sesión: ¿ya tiene el curso? ----------

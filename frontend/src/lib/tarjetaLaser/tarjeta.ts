@@ -8,6 +8,8 @@
  *   - todo se funde en una sola superficie sin solapes (fusion.ts)
  * Delante: QR + logo + nombre del kit + código. Detrás: los tres pasos para activar el curso y un
  * dibujo del kit.
+ * Las tarjetas de bienvenida (kit `SLUG_KIT_BIENVENIDA`) tienen su propio diseño: delante, el QR y un
+ * sello de «Bienvenidos a Valentia»; detrás, los pasos para ver el vídeo, el código y la dirección.
  * Todo son formas (también el texto): no depende de las tipografías del ordenador del láser.
  */
 import QRCode from "qrcode";
@@ -21,6 +23,7 @@ import {
   trazado,
   type Punto,
 } from "./geometria";
+import { SLUG_KIT_BIENVENIDA } from "@/config/bienvenida";
 import { dibujoKit } from "./dibujosKit";
 import { fusionarFormas, type Forma } from "./fusion";
 import { medirTexto, textoComoTrazado, type NombreFuente } from "./texto";
@@ -301,6 +304,133 @@ function caraTrasera({ dominio, slugKit }: DatosTarjeta): Forma[] {
   return g;
 }
 
+// ── Tarjeta de bienvenida ───────────────────────────────────────────────────
+
+/** Centro de la columna derecha de la cara delantera */
+const CB = CX + ANCHO_TEXTO / 2;
+
+/**
+ * Delante (igual en todas): sello con la V de Valentia dentro de dos aros, unido a dos pistas de circuito
+ * con su pad al final, y debajo «BIENVENIDOS A» + el logo. El QR va aparte (cambia con cada código).
+ */
+function bienvenidaDelanteraComun({ dominio }: DatosTarjeta): Forma[] {
+  const cy = QY + 7.2;
+  const r = 6.2;
+  const aro = (radio: number, w: number) =>
+    trazado(circulo(CB, cy, radio + w / 2, true)) + trazado(circulo(CB, cy, radio - w / 2, false));
+  const g: Forma[] = [aro(r, 0.4), aro(r - 1.3, 0.16), uve(CB - 6.6, cy - 6.4, 13.2)];
+  // Pistas a cada lado del sello, como en una placa de circuito
+  for (const lado of [-1, 1]) {
+    const x0 = CB + lado * (r + 0.2);
+    const x1 = CB + lado * (r + 4.2);
+    const x2 = CB + lado * (r + 6.4);
+    g.push(
+      trazado(
+        contorno(
+          [
+            [x0, cy],
+            [x1, cy],
+            [x2, cy - 2.2],
+          ],
+          0.32,
+        ),
+      ),
+    );
+    g.push(trazado(circulo(x2, cy - 2.2, 0.75, true)) + trazado(circulo(x2, cy - 2.2, 0.3, false)));
+  }
+  g.push(
+    textoComoTrazado("textoMedio", "BIENVENIDOS A", CB, QY + 19.6, 1.7, {
+      espaciado: 0.32,
+      alinear: "centro",
+    }),
+  );
+  g.push(...logo(CB - 14, QY + 21.4, 28, 0.32));
+  g.push(trazado(rect(CB - 4, QY + 27.4, 8, 0.16)));
+  ["Escanea el QR y mira", "tu vídeo de bienvenida"].forEach((l, i) =>
+    g.push(textoComoTrazado("texto", l, CB, QY + 31.6 + i * 2.4, 1.65, { alinear: "centro" })),
+  );
+  g.push(
+    textoComoTrazado(
+      "textoMedio",
+      dominio,
+      CB,
+      QY + 39.4,
+      tamanoQueCabe("textoMedio", dominio, 1.6, ANCHO_TEXTO, 1.1),
+      {
+        alinear: "centro",
+      },
+    ),
+  );
+  return g;
+}
+
+/** Caja del código en la trasera de bienvenida */
+const CAJA_CODIGO = { x: 55.6, y: 8.5, w: 25, h: 31 };
+const CC = CAJA_CODIGO.x + CAJA_CODIGO.w / 2;
+
+/** Detrás (igual en todas): logo, pasos, la caja del código (vacía) y el pie */
+function bienvenidaTraseraComun({ dominio }: DatosTarjeta): Forma[] {
+  const g: Forma[] = [...logo(6, 7, 40, 0.3)];
+  const titulo = "Tu vídeo de bienvenida";
+  g.push(textoComoTrazado("titulo", titulo, 6, 19, tamanoQueCabe("titulo", titulo, 4.2, 46, 3)));
+  const pasos = [
+    "Escanea el QR de la otra cara",
+    "Crea tu cuenta gratis (o entra)",
+    "Y te llevamos directo al vídeo",
+  ];
+  pasos.forEach((paso, i) => {
+    const y = 25.5 + i * 6.2;
+    const numero = textoComoTrazado("textoMedio", String(i + 1), 8.2, y + 0.82, 2.3, {
+      alinear: "centro",
+    });
+    g.push({ d: trazado(circulo(8.2, y, 2.1, true)), menos: numero });
+    g.push(
+      textoComoTrazado("texto", paso, 12.3, y + 0.8, tamanoQueCabe("texto", paso, 2.2, 39, 1.6)),
+    );
+  });
+  // Caja del código: marco fino; el código se añade aparte (cambia con cada tarjeta)
+  const { x, y, w, h } = CAJA_CODIGO;
+  g.push(
+    trazado(rectRedondeado(x, y, w, h, 2, true)) +
+      trazado(rectRedondeado(x + 0.3, y + 0.3, w - 0.6, h - 0.6, 1.7, false)),
+  );
+  g.push(
+    textoComoTrazado("textoMedio", "TU CÓDIGO", CC, y + 6, 1.45, {
+      espaciado: 0.2,
+      alinear: "centro",
+    }),
+  );
+  g.push(trazado(rect(CC - 5, y + 15.2, 10, 0.16)));
+  const direccion = `${dominio}/activar`;
+  [
+    { t: "¿Sin cámara? Entra en", f: "texto" as const },
+    { t: direccion, f: "textoMedio" as const },
+    { t: "y escribe el código", f: "texto" as const },
+  ].forEach(({ t, f }, i) =>
+    g.push(
+      textoComoTrazado(f, t, CC, y + 20 + i * 2.6, tamanoQueCabe(f, t, 1.5, w - 3, 1), {
+        alinear: "centro",
+      }),
+    ),
+  );
+  // Pie igual que en las tarjetas de los kits
+  g.push(trazado(rect(6, 44.2, W - 12, 0.16)));
+  const tamDominio = tamanoQueCabe("textoMedio", dominio, 1.75, 30, 1.1);
+  g.push(textoComoTrazado("textoMedio", dominio, W - 6, 48.6, tamDominio, { alinear: "der" }));
+  const lema = "Cualquiera puede construir su propio robot.";
+  const anchoLema = W - 12 - medirTexto("textoMedio", dominio, tamDominio) - 3;
+  g.push(
+    textoComoTrazado("texto", lema, 6, 48.6, tamanoQueCabe("texto", lema, 1.75, anchoLema, 1.1)),
+  );
+  return g;
+}
+
+/** Lo que cambia con cada código en la trasera de bienvenida: el código dentro de su caja */
+function bienvenidaTraseraPropia({ codigo }: DatosTarjeta): Forma[] {
+  const tam = tamanoQueCabe("mono", codigo, 2.9, CAJA_CODIGO.w - 3, 1.8);
+  return [textoComoTrazado("mono", codigo, CC, CAJA_CODIGO.y + 11.2, tam, { alinear: "centro" })];
+}
+
 export type CaraTarjeta = "delantera" | "trasera";
 
 /** Escuadras finas en las 4 esquinas: marcan el centro y hacen que todas las caras midan lo mismo */
@@ -349,14 +479,20 @@ const ZONA_DIBUJO = rect(ZONA, ZONA, W - 2 * ZONA, H - 2 * ZONA);
 /** SVG de una cara de la tarjeta, del tamaño exacto de la tarjeta (en mm) y sin líneas de corte */
 export function tarjetaLaserSvg(datos: DatosTarjeta, cara: CaraTarjeta): string {
   const clave = JSON.stringify([cara, datos.nombreKit, datos.slugKit, datos.dominio]);
+  const bienvenida = datos.slugKit === SLUG_KIT_BIENVENIDA;
   // La parte común y la propia de cada código no se tocan entre sí: basta con juntarlas
-  const d =
-    cara === "delantera"
+  const d = bienvenida
+    ? cara === "delantera"
+      ? fusionarComun(clave, () => bienvenidaDelanteraComun(datos), true) +
+        fusionarFormas([qr(5, QY, LADO_QR, datos.url)], ZONA_DIBUJO)
+      : fusionarComun(clave, () => bienvenidaTraseraComun(datos), true) +
+        fusionarFormas(bienvenidaTraseraPropia(datos), ZONA_DIBUJO)
+    : cara === "delantera"
       ? fusionarComun(clave, () => delanteraComun(datos), true) +
         fusionarFormas(delanteraPropia(datos), ZONA_DIBUJO)
       : fusionarComun(clave, () => caraTrasera(datos), true);
   return `<?xml version="1.0" encoding="UTF-8"?>
-<!-- Valentia · tarjeta de activación ${datos.codigo} (${escaparComentario(datos.nombreKit)}) · cara ${cara}
+<!-- Valentia · tarjeta ${bienvenida ? "de bienvenida" : "de activación"} ${datos.codigo} (${escaparComentario(datos.nombreKit)}) · cara ${cara}
      Tamaño real: ${W} × ${H} mm (la tarjeta ya viene cortada). Material: cartulina negra.
      NEGRO = GRABAR (queda claro). Sin líneas de corte. El texto ya está convertido a formas. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
