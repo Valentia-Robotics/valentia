@@ -146,17 +146,12 @@ export default async function CodigosAdmin({ searchParams }: Props) {
                 <p className="font-titulo text-2xl">{bienvenida.generadas}</p>
               </div>
               <Link
-                href={enlace({
-                  kit: bienvenida.kitId,
-                  estado: "usado",
-                  lote: undefined,
-                  q: undefined,
-                  pagina: undefined,
-                })}
+                href="/admin/codigos/personas"
                 className="rounded-lg bg-niebla p-3 ring-linea hover:ring-1"
               >
                 <p className="text-xs text-gris">Personas registradas</p>
                 <p className="font-titulo text-2xl text-acento">{bienvenida.usadas}</p>
+                <p className="text-xs text-acento underline">Ver lista</p>
               </Link>
             </div>
           </div>
