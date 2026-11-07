@@ -52,6 +52,9 @@ tarjeta (para contar personas) y solo abren ese curso.
 - `/activar` con código de bienvenida y sesión: se activa solo y redirige a `/cursos/bienvenida-a-valentia`.
   Kit gratis: si ya tenía el curso, el código se gasta igual para contarle (salvo que ya usara otra tarjeta).
 - Vídeo: sigue `PENDIENTE`; se pone en `/admin/cursos` (lección «Te damos la bienvenida»).
+- `/admin/codigos/personas` (enlace «Ver lista» de la caja): quién se registró con tarjeta y botón «Borrar» con
+  confirmación (`src/lib/admin/bienvenida.ts`). Solo clientes sin pedidos ni códigos de otros kits (`motivoNoBorrar`);
+  al borrar, su tarjeta queda libre otra vez y deja de contar.
 
 ### Revisión antes de abrir la tienda (06-11-2026, rama `claude/project-thread-tdljxs`)
 
