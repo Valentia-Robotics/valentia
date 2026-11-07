@@ -18,6 +18,8 @@ import { Prisma } from "@/generated/prisma/client";
 export const LIMITES = {
   /** Iniciar sesión (por IP + email) */
   login: { maximo: 10, minutos: 15 },
+  /** Iniciar sesión en una misma cuenta desde cualquier IP: frena los ataques repartidos entre muchas */
+  loginCuenta: { maximo: 50, minutos: 60 },
   /** Crear cuenta (por IP) */
   registro: { maximo: 5, minutos: 60 },
   /** Escribir el código de 6 cifras (por IP; además, 5 intentos por código) */
@@ -38,6 +40,10 @@ export const LIMITES = {
   listaEspera: { maximo: 10, minutos: 60 },
   /** Páginas vistas que se cuentan en las estadísticas (por IP) */
   visita: { maximo: 120, minutos: 10 },
+  /** Escribir o cambiar una reseña (por usuario): cada una vuelve a generar las páginas de la tienda */
+  resena: { maximo: 10, minutos: 60 },
+  /** Peticiones de n8n para crear guiones: si el flujo entra en bucle, no llena el panel */
+  guionApi: { maximo: 30, minutos: 60 },
 } as const;
 
 export type AccionLimitada = keyof typeof LIMITES;

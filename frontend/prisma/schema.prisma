@@ -644,6 +644,8 @@ model Guion {
   notasEditor      String?
   /// Enlace al vídeo terminado (Drive, YouTube…)
   enlaceVideo      String?
+  /// Solo en los guiones que llegan de n8n: escenas, noticia de origen y lo que hay que comprobar
+  automatico       DatosAutomaticos?
   creadoEn         DateTime        @default(now())
   actualizadoEn    DateTime        @updatedAt
 
@@ -654,6 +656,47 @@ model Guion {
 }
 
 /// Cada cambio de estado de un guion. Las métricas por editor salen de aquí.
+/// Lo que trae un guion automático además del texto (va dentro del propio guion)
+type DatosAutomaticos {
+  escenas          EscenaGuion[]
+  fuente           FuenteNoticia
+  /// 1 a 10, según la IA
+  relevancia       Int?
+  datosAVerificar  String[]
+  hashtags         String[]
+  descripcionRedes String?
+  nivel            String?
+  conexionValentia String?
+  /// Modelo de IA que lo escribió
+  modelo           String?
+  generadoEn       DateTime?
+}
+
+type EscenaGuion {
+  orden            Int
+  duracionSegundos Int?
+  voz              String
+  visual           String
+  textoPantalla    String?
+}
+
+type FuenteNoticia {
+  url    String
+  titulo String?
+  medio  String?
+  fecha  DateTime?
+}
+
+/// Noticias que ya han dado un guion: la misma URL no crea otro, ni aunque se descarte el primero.
+/// Colección aparte para tener un índice único de verdad (los guiones manuales no tienen URL).
+model NoticiaUsada {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// Normalizada: sin #ancla ni parámetros utm_
+  url      String   @unique
+  guionId  String   @db.ObjectId
+  creadoEn DateTime @default(now())
+}
+
 model CambioEstadoGuion {
   id             String       @id @default(auto()) @map("_id") @db.ObjectId
   guion          Guion        @relation(fields: [guionId], references: [id], onDelete: Cascade)

@@ -36,7 +36,7 @@ export function BloqueComoFunciona({ cifras }: Props) {
   return (
     <section
       aria-labelledby="titulo-como-funciona"
-      className="overflow-x-clip bg-white py-24 sm:py-32"
+      className="overflow-x-clip bg-white pt-16 pb-10 sm:pt-20 sm:pb-12"
     >
       <Contenedor>
         <div className="aparecer mx-auto max-w-2xl text-center">

@@ -35,7 +35,11 @@ export function BarraNavegacion() {
   const cerrarMenu = () => setMenuAbierto(false);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 print:hidden">
+    // El nombre la deja quieta mientras cambia la página (globals.css)
+    <header
+      className="fixed inset-x-0 top-0 z-50 print:hidden"
+      style={{ viewTransitionName: "barra" }}
+    >
       <nav
         aria-label="Navegación principal"
         className={cn(
@@ -98,9 +102,22 @@ export function BarraNavegacion() {
           </div>
         </div>
 
-        {/* Menú desplegable en móvil */}
-        <div id="menu-movil" hidden={!menuAbierto} className="border-t border-linea/60 md:hidden">
-          <ul className="mx-auto flex max-w-6xl flex-col px-4 py-4 sm:px-6">
+        {/* Menú desplegable en móvil: se abre deslizando (de 0 a su alto real); cerrado, «inert» lo
+            saca del teclado y de los lectores de pantalla */}
+        <div
+          id="menu-movil"
+          inert={!menuAbierto}
+          className={cn(
+            "grid transition-[grid-template-rows] duration-300 md:hidden",
+            menuAbierto ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          )}
+        >
+          <ul
+            className={cn(
+              "mx-auto flex min-h-0 w-full max-w-6xl flex-col overflow-hidden px-4 transition-opacity duration-300 sm:px-6",
+              menuAbierto ? "max-h-[calc(100dvh-var(--spacing-nav))] overflow-y-auto" : "opacity-0",
+            )}
+          >
             {enlacesNavegacion.map((enlace) => (
               <li key={enlace.href}>
                 <Link
@@ -124,7 +141,7 @@ export function BarraNavegacion() {
                 </Link>
               </li>
             ))}
-            <li className="mt-4 border-t border-linea pt-4">
+            <li className="mt-4 mb-4 border-t border-linea pt-4">
               {sesion?.user ? (
                 <>
                   <p className="py-2 text-sm text-gris">Hola, {sesion.user.name}</p>

@@ -13,16 +13,17 @@
  */
 import type Stripe from "stripe";
 import { enviarConfirmacionPedido } from "@/lib/avisosPedido";
+import { leerCuerpo } from "@/lib/cuerpoLimitado";
 import { db } from "@/lib/db";
 import { cancelarPedido, marcarPedidoPagado } from "@/lib/pedidos";
 import { verificarEvento } from "@/lib/pagos/stripe";
 
 export async function POST(peticion: Request) {
   const firma = peticion.headers.get("stripe-signature");
-  const cuerpo = await peticion.text(); // el cuerpo TAL CUAL: la firma se calcula sobre él
-  if (!firma || cuerpo.length > 1_000_000) {
-    return new Response("Petición no válida", { status: 400 });
-  }
+  if (!firma) return new Response("Petición no válida", { status: 400 });
+  // El cuerpo TAL CUAL: la firma se calcula sobre él. Con tope, porque aún no se sabe quién llama
+  const cuerpo = await leerCuerpo(peticion, 1_000_000);
+  if (cuerpo === null) return new Response("Petición no válida", { status: 400 });
 
   let evento: Stripe.Event;
   try {

@@ -5,6 +5,12 @@ import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
 import { FormularioEntrega, FormularioNotas } from "@/components/contenido/FormulariosEditor";
 import { InsigniaEstadoGuion, TextoGuion } from "@/components/contenido/TextoGuion";
+import {
+  DatosAVerificar,
+  FuenteDelGuion,
+  TablaEscenas,
+  TextoRedes,
+} from "@/components/contenido/DatosAutomaticos";
 import { ESTADOS_DE_TRABAJO } from "@/config/estadosGuion";
 import { empezarGuion } from "@/app/editor/acciones";
 import { fechaHora } from "@/lib/admin/formato";
@@ -38,9 +44,25 @@ export default async function GuionEditor({ params }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem] lg:items-start">
         <div className="min-w-0 space-y-4">
+          {guion.automatico && <DatosAVerificar datos={guion.automatico.datosAVerificar} />}
           <Caja titulo="Guion aprobado">
             <TextoGuion guion={guion} />
           </Caja>
+          {guion.automatico && (
+            <>
+              <Caja titulo="Escenas" sinRelleno>
+                <TablaEscenas escenas={guion.automatico.escenas} />
+              </Caja>
+              <Caja titulo="Noticia de origen">
+                <FuenteDelGuion automatico={guion.automatico} />
+              </Caja>
+              {(guion.automatico.descripcionRedes || guion.automatico.hashtags.length > 0) && (
+                <Caja titulo="Para publicar en redes">
+                  <TextoRedes automatico={guion.automatico} />
+                </Caja>
+              )}
+            </>
+          )}
           <Caja titulo="Tu zona de trabajo">
             {ESTADOS_DE_TRABAJO.includes(guion.estado) ? (
               <FormularioNotas guionId={guion.id} notas={guion.notasEditor} />

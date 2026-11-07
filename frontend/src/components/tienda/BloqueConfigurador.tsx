@@ -7,7 +7,7 @@ export function BloqueConfigurador() {
   return (
     <section
       aria-labelledby="titulo-configurador"
-      className="bg-grafito py-24 text-white diferido sm:py-32"
+      className="bg-grafito pt-6 pb-12 text-white diferido sm:pt-10 sm:pb-16"
     >
       <Contenedor className="text-center">
         <div className="aparecer">

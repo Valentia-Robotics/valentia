@@ -7,6 +7,7 @@
  * pase lo que pase: una estadística que falla nunca debe molestar a quien navega.
  */
 import { createHmac } from "node:crypto";
+import { leerCuerpo } from "@/lib/cuerpoLimitado";
 import { db } from "@/lib/db";
 import { ipDeCabeceras, registrarIntento } from "@/lib/limite";
 import {
@@ -21,6 +22,9 @@ export const dynamic = "force-dynamic";
 
 /** Las visitas se borran pasados estos días (13 meses) */
 const DIAS_GUARDADAS = 400;
+
+/** Una visita son cuatro textos cortos: es una ruta pública y no se lee nada más grande */
+const TAMANO_MAXIMO = 8 * 1024;
 
 const dominioPropio = (() => {
   try {
@@ -37,7 +41,17 @@ export async function POST(request: Request) {
     const navegador = request.headers.get("user-agent");
     if (esRobot(navegador)) return nada();
 
-    const datos: unknown = await request.json().catch(() => null);
+    const secreto = process.env.AUTH_SECRET;
+    if (!secreto) return nada();
+
+    const texto = await leerCuerpo(request, TAMANO_MAXIMO);
+    if (!texto) return nada();
+    let datos: unknown;
+    try {
+      datos = JSON.parse(texto);
+    } catch {
+      return nada();
+    }
     if (!datos || typeof datos !== "object") return nada();
     const { ruta, entrada, referente, utm } = datos as Record<string, unknown>;
 
@@ -49,7 +63,7 @@ export async function POST(request: Request) {
     if (!(await registrarIntento("visita", ip))) return nada();
 
     const dia = diaEnEspana();
-    const visitante = createHmac("sha256", process.env.AUTH_SECRET ?? "valentia")
+    const visitante = createHmac("sha256", secreto)
       .update(`${dia}|${ip}|${navegador}`)
       .digest("base64url")
       .slice(0, 22);

@@ -49,7 +49,7 @@ export function Dialogo({
         "overflow-y-auto overscroll-contain bg-white p-0 text-tinta shadow-flotante",
         "backdrop:bg-tinta/50 lg:backdrop:backdrop-blur-sm",
         posicion === "centro"
-          ? "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-3xl rounded-tarjeta open:animate-entrada"
+          ? "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-3xl rounded-tarjeta open:animate-dialogo"
           : "mx-0 mt-auto mb-0 max-h-[88dvh] w-full max-w-none rounded-t-tarjeta open:animate-subir",
         className,
       )}

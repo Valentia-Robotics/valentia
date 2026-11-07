@@ -15,9 +15,11 @@ import {
 import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { BotonKitGratis } from "@/components/tienda/BotonKitGratis";
+import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Fundido } from "@/components/ui/Fundido";
 import { Estrellas } from "@/components/resenas/Estrellas";
 import { SeccionResenas } from "@/components/resenas/SeccionResenas";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
@@ -93,7 +95,7 @@ export default async function PaginaKit({ params }: Props) {
 
       {/* ---------- Cabecera: imagen + compra ---------- */}
       <section id="comprar" className="scroll-mt-nav">
-        <Contenedor className="pt-6 pb-16 sm:pb-24">
+        <Contenedor className="pt-6 pb-4 sm:pb-8">
           <Link
             href="/kits"
             className="inline-flex items-center gap-1 text-sm text-gris transition-colors hover:text-tinta"
@@ -104,15 +106,17 @@ export default async function PaginaKit({ params }: Props) {
 
           <div className="mt-6 grid items-center gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
             <div className="rounded-tarjeta bg-niebla p-6 sm:p-10">
-              <Image
-                src={kit.imagen}
-                alt={gratis ? kit.nombre : `Foto del kit ${kit.nombre} montado`}
-                width={800}
-                height={600}
-                priority
-                unoptimized
-                className="mx-auto h-auto w-full animate-entrada"
-              />
+              <FotoKitViaje slug={kit.slug}>
+                <Image
+                  src={kit.imagen}
+                  alt={gratis ? kit.nombre : `Foto del kit ${kit.nombre} montado`}
+                  width={800}
+                  height={600}
+                  priority
+                  unoptimized
+                  className="mx-auto h-auto w-full"
+                />
+              </FotoKitViaje>
             </div>
 
             <div>
@@ -196,7 +200,8 @@ export default async function PaginaKit({ params }: Props) {
       </section>
 
       {/* ---------- Descripción ---------- */}
-      <section aria-labelledby="titulo-descripcion" className="bg-tinta py-20 text-white sm:py-28">
+      <Fundido desde="blanco" hasta="tinta" />
+      <section aria-labelledby="titulo-descripcion" className="bg-tinta py-6 text-white sm:py-10">
         <Contenedor className="aparecer max-w-3xl text-center">
           <h2 id="titulo-descripcion" className="text-3xl font-medium sm:text-5xl">
             {gratis ? "Lo que vas a ver." : "Lo que vas a construir."}
@@ -207,9 +212,11 @@ export default async function PaginaKit({ params }: Props) {
         </Contenedor>
       </section>
 
+      <Fundido desde="tinta" hasta={kit.componentes.length > 0 ? "blanco" : "niebla"} />
+
       {/* ---------- Componentes incluidos ---------- */}
       {kit.componentes.length > 0 && (
-        <section aria-labelledby="titulo-caja" className="py-20 sm:py-28">
+        <section aria-labelledby="titulo-caja" className="pt-6 pb-8 sm:pt-10 sm:pb-12">
           <Contenedor>
             <div className="aparecer max-w-2xl">
               <h2 id="titulo-caja" className="text-3xl font-medium sm:text-5xl">
@@ -259,7 +266,8 @@ export default async function PaginaKit({ params }: Props) {
       )}
 
       {/* ---------- Temario del curso ---------- */}
-      <section aria-labelledby="titulo-curso" className="bg-niebla py-20 sm:py-28">
+      {kit.componentes.length > 0 && <Fundido desde="blanco" hasta="niebla" corto />}
+      <section aria-labelledby="titulo-curso" className="bg-niebla pt-6 pb-8 sm:pt-10 sm:pb-12">
         <Contenedor className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
           <div className="aparecer">
             <p className="text-sm font-medium tracking-wide text-acento uppercase">
@@ -298,6 +306,8 @@ export default async function PaginaKit({ params }: Props) {
           </ol>
         </Contenedor>
       </section>
+
+      <Fundido desde="niebla" hasta="blanco" corto />
 
       {/* ---------- Opiniones de los clientes ---------- */}
       {!gratis && <SeccionResenas slug={kit.slug} resumen={resenas} />}

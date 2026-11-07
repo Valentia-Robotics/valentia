@@ -18,24 +18,48 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
-### Separación backend (Render) y frontend (Vercel) (06-11-2026, rama `feature/backend-render`) — EN CURSO
+### Fluidez, seguridad y n8n (06-11-2026, rama `mejoras/fluidez-seguridad-n8n`)
+
+Decisión del usuario: **se queda en Render y con MongoDB**; la separación de abajo queda parada, no continuarla sin que la pida.
+
+- Portada sin imán de scroll: daba sensación de bloques (decisión tomada para que fluya; antes `scroll-snap` y `centroDePieza`).
+  Kits y configurador forman un solo tramo oscuro. `ui/Fundido` une secciones de distinto color: su `desde` tiene que ser el color
+  exacto de la sección de arriba.
+- `TransicionPagina` (`ViewTransition` con `key` por ruta, en `MarcoWeb` y paneles): cambio suave de página. `FotoKitViaje`: la
+  foto del kit viaja de la tarjeta a la ficha; el nombre `kit-<slug>` solo puede salir una vez por página. `BarraCarga`: raya azul.
+- `.aparecer`, `.acercar` (`animation-timeline: view()`) NO funcionan dentro de `overflow-hidden`: usar `overflow-x-clip`.
+- Rutas públicas: leer el cuerpo con `leerCuerpo` (`src/lib/cuerpoLimitado.ts`), nunca `request.text()`/`json()`. Revisión en SEGURIDAD.md.
+
+### Guiones automáticos de n8n (07-11-2026, misma rama; especificación del usuario)
+
+- `POST /api/guiones/automaticos` y `GET …/ping` (sin sesión; cabecera `x-api-key` = `N8N_API_KEY`, tiempo constante; sin clave
+  en el servidor → 503). Lógica en `src/lib/contenido/guionesAutomaticos.ts` (Request/Response normales: la usan la ruta de la
+  web y `backend/app.ts`, mismas rutas). Validación y limpieza de HTML en `src/lib/validaciones/guionAutomatico.ts`.
+  200 KB, 30 peticiones/hora (`guionApi`). Guía para el usuario: `backend/n8n/README.md`. Sustituye a `/api/v1/guiones`.
+- Mismo modelo `Guion`: entra en `PENDIENTE_APROBACION`, sin editor, origen `IA`. Los campos de siempre se rellenan desde las
+  escenas (`camposDelPanel`); lo nuevo va en el tipo compuesto `automatico` (escenas, fuente, relevancia, datos a verificar…).
+- Duplicados: colección `NoticiaUsada` (`url @unique`, normalizada sin #ancla ni `utm_`). Colección aparte porque MongoDB no
+  admite un único opcional (los guiones manuales no tienen URL). Se crea en la misma transacción que el guion.
+- Panel: etiqueta 🤖 (relevancia y medio), filtro `?mostrar=automaticos`, `CajasAutomatico` (datos a verificar, noticia,
+  escenas, redes; el editor ve lo mismo). «Descartar» (`descartarGuion`): solo automáticos sin editor; borra guion e
+  historial pero la noticia sigue apuntada (no vuelve). Métricas sin cambios.
+
+### Separación backend (Render) y frontend (Vercel) (06-11-2026, rama `feature/backend-render`) — PARADA
 
 Decisión del usuario: **separación total**, sabiendo que es una migración grande. Se hace por fases; la web real no se mueve
 hasta que todo esté probado.
 
-- [x] Fase 1: `backend/` (Hono, puerto 4000, `npm run backend`) con `POST /v1/guiones` para n8n, token `N8N_API_TOKEN`
-      (`backend/README.md`, DESPLIEGUE.md §6 ter). Lógica en `src/lib/contenido/recibirGuion.ts`: borrador + origen IA, nunca
-      llega a un editor sin aprobar. tsx con `--conditions=react-server` para que `server-only` no falle fuera de Next.
-- Decisión del usuario: **un solo servicio de pago en Render**. Hoy n8n llama a la web: `POST /api/v1/guiones`
-      (`src/app/api/v1/guiones/route.ts`). `backend/` no se publica aún; comparte `src/lib/contenido/apiGuiones.ts`.
-      Al pasar la web a Vercel, Render ejecutará solo `backend/` y n8n cambiará de dirección. No crear un segundo servicio.
+- [x] Fase 1: `backend/` (Hono, puerto 4000, `npm run backend`) con la API de n8n (hoy: guiones automáticos, arriba).
+      tsx con `--conditions=react-server` para que `server-only` no falle fuera de Next.
+- Decisión del usuario: **un solo servicio de pago en Render**. Hoy n8n llama a la web; `backend/` no se publica y tiene
+      las mismas rutas. Al pasar la web a Vercel, Render ejecutaría solo `backend/`. No crear un segundo servicio.
 - [x] Carpetas: `frontend/` y `backend/`, cada una con su `package.json`. El backend aún importa la lógica de
       `frontend/src` (alias `@/`), por eso su build instala también `frontend`. Prisma fijado a 6.19.3 sin `^`.
 - [ ] Siguientes fases: mover a `backend/`, módulo a módulo, las lecturas y las 55 acciones (72 páginas leen la BD), y al
       final la web a Vercel sin Prisma. Antes hace falta fotos en la nube (R2), y Vercel Pro por ser comercial. La web
       hablará con el backend desde su servidor (la cookie de sesión sigue en su dominio).
-- n8n (cron diario + ChatGPT que analiza noticias y genera el guion) es para iterar: cuando funcione bien, pasará a un
-  módulo del backend, llamando a `recibirGuion`.
+- n8n (cron diario + IA que analiza noticias y genera el guion) es para iterar: cuando funcione bien, pasará a un
+  módulo del backend, con la misma lógica de `guionesAutomaticos.ts`.
 
 ### Tarjetas de bienvenida (07-11-2026, rama `claude/project-thread-ez0n8b`)
 
@@ -568,6 +592,8 @@ Requisitos completos: `PROMPT.md`.
     (`git merge --ff-only origin/main`; en una rama de trabajo, unir `origin/main`). Hay más gente subiendo cambios.
     Si hay cambios sin guardar o conflictos, no descartar nada: avisar al usuario antes de seguir. Si llegan cambios en
     `package.json` o `prisma/schema.prisma`, hacer `npm install` o `npm run db:push` y reiniciar `npm run dev`.
+    Es obligatorio: un hook (`.claude/hooks/comprobar-github.mjs`) bloquea editar, `git commit` y `git push` si la copia va
+    por detrás de `origin/main`. No saltárselo: actualizar y repetir.
 11. **Después de cada cambio, actualizar el grafo**: `graphify update .` (solo código, sin IA). Si el cambio toca
     documentos (`.md`) o imágenes, usar `/graphify . --update`.
 

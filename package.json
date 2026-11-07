@@ -14,6 +14,7 @@
     "predeploy:prod": "npm run predeploy:prod --prefix frontend",
     "build:backend": "npm ci --prefix frontend && npm run db:generate --prefix frontend && npm ci --prefix backend",
     "backend:start": "npm start --prefix backend",
+    "n8n:probar": "node backend/n8n/probar.mjs",
     "test": "npm test --prefix frontend && npm test --prefix backend",
     "db:push": "npm ci --prefix frontend && npm run db:push --prefix frontend",
     "seed:prod": "npm run seed:prod --prefix frontend",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { MenuAdmin } from "@/components/admin/MenuAdmin";
+import { TransicionPagina } from "@/components/layout/TransicionPagina";
 import { exigirAdmin } from "@/lib/sesion";
 
 export const metadata: Metadata = {
@@ -21,7 +22,9 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
     <div className="flex flex-1 flex-col bg-niebla lg:flex-row print:bg-white">
       <MenuAdmin nombre={admin.nombre} email={admin.email} />
       <main id="contenido" className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-10 print:p-0">
-        <div className="mx-auto max-w-6xl">{children}</div>
+        <div className="mx-auto max-w-6xl">
+          <TransicionPagina>{children}</TransicionPagina>
+        </div>
       </main>
     </div>
   );

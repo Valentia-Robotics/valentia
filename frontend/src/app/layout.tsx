@@ -57,7 +57,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es-ES" className={`${jost.variable} ${inter.variable}`}>
+    // data-scroll-behavior: el desplazamiento suave de globals.css no se aplica al cambiar de página
+    <html
+      lang="es-ES"
+      data-scroll-behavior="smooth"
+      className={`${jost.variable} ${inter.variable}`}
+    >
       <body className="flex min-h-dvh flex-col">
         {/* Enlace oculto para quien navega con teclado: salta directamente al contenido */}
         <a

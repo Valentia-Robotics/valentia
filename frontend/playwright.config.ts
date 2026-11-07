@@ -44,7 +44,7 @@ export default defineConfig({
       DATABASE_URL: BD_PRUEBAS,
       NEXT_PUBLIC_SITE_URL: `http://localhost:${PUERTO}`,
       CORREO_PROVEEDOR: "consola",
-      N8N_API_TOKEN: "token-de-pruebas-e2e-con-mas-de-32-caracteres",
+      N8N_API_KEY: "clave-de-pruebas-e2e-con-mas-de-32-caracteres",
       // Sin Stripe: el checkout usa el pago de prueba (permitido también con "next start")
       STRIPE_SECRET_KEY: "",
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "",

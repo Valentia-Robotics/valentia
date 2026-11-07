@@ -67,7 +67,17 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/:ruta*", headers: cabecerasSeguridad }];
+    return [
+      { source: "/:ruta*", headers: cabecerasSeguridad },
+      // Fotos y dibujos: antes el navegador los volvía a pedir en cada visita. Un día de caché y otra
+      // semana sirviendo la copia mientras se actualiza (al regenerarlas conservan el nombre)
+      {
+        source: "/images/:ruta*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" },
+        ],
+      },
+    ];
   },
 };
 

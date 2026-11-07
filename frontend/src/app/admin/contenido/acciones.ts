@@ -14,6 +14,7 @@ import {
   asignarGuion,
   cambiarEstado,
   crearGuion,
+  descartarGuion,
   ErrorGuion,
 } from "@/lib/contenido/guiones";
 import { db } from "@/lib/db";
@@ -125,6 +126,27 @@ export async function cambiarEstadoDeGuion(
   }
   revalidatePath("/admin/contenido", "layout");
   return { ok: true, mensaje: "Hecho." };
+}
+
+/** Descartar un guion automático que no sirve (sin editor todavía) */
+export async function descartarGuionAutomatico(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const guionId = texto(formulario, "guionId");
+  if (!esId(guionId)) return NO_ENCONTRADO;
+  let descartado: boolean;
+  try {
+    descartado = await descartarGuion(guionId);
+  } catch (error) {
+    return mensajeDeError(error);
+  }
+  if (!descartado) {
+    return { ok: false, mensaje: "Este guion ya no se puede descartar. Recarga la página." };
+  }
+  revalidatePath("/admin/contenido", "layout");
+  redirect("/admin/contenido?descartado=1");
 }
 
 export async function asignarEditor(

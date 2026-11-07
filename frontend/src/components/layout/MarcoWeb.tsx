@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { BarraNavegacion } from "@/components/layout/BarraNavegacion";
 import { PieDePagina } from "@/components/layout/PieDePagina";
+import { TransicionPagina } from "@/components/layout/TransicionPagina";
 
 /**
  * Marco de la web pública: barra de navegación arriba, contenido y pie de página.
@@ -12,7 +13,7 @@ export function MarcoWeb({ children }: { children: ReactNode }) {
       <BarraNavegacion />
       {/* pt-nav deja hueco para la barra de navegación fija */}
       <main id="contenido" className="flex-1 pt-nav print:pt-0">
-        {children}
+        <TransicionPagina>{children}</TransicionPagina>
       </main>
       <PieDePagina />
     </>

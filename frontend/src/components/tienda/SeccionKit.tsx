@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
 import { Boton } from "@/components/ui/Boton";
 import { formatearPrecio, cn } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
@@ -23,7 +24,7 @@ export function SeccionKit({
     <section
       aria-labelledby={`titulo-${kit.slug}`}
       className={cn(
-        "overflow-hidden px-4 pt-20 pb-10 text-center diferido sm:pt-28",
+        "overflow-x-clip px-4 pt-6 pb-10 text-center diferido sm:pt-10",
         oscuro ? "bg-tinta text-white" : "bg-niebla text-tinta",
       )}
     >
@@ -56,15 +57,17 @@ export function SeccionKit({
         </div>
       </div>
 
-      <div className="aparecer mx-auto mt-10 max-w-3xl">
-        <Image
-          src={kit.imagen}
-          alt={`Foto del kit ${kit.nombre} montado`}
-          width={800}
-          height={600}
-          unoptimized
-          className="mx-auto h-auto w-full"
-        />
+      <div className="acercar mx-auto mt-10 max-w-3xl">
+        <FotoKitViaje slug={kit.slug}>
+          <Image
+            src={kit.imagen}
+            alt={`Foto del kit ${kit.nombre} montado`}
+            width={800}
+            height={600}
+            unoptimized
+            className="mx-auto h-auto w-full"
+          />
+        </FotoKitViaje>
       </div>
     </section>
   );

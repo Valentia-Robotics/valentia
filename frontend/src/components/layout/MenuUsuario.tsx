@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen,
-  Clapperboard, LayoutDashboard, LogOut, QrCode, UserRound } from "lucide-react";
+import { BookOpen, Clapperboard, LayoutDashboard, LogOut, QrCode, UserRound } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { enSeccion } from "@/config/marca";
@@ -71,8 +70,11 @@ export function MenuUsuario() {
 
       <div
         id="menu-usuario"
-        hidden={!abierto}
-        className="absolute top-11 right-0 w-60 rounded-control bg-white p-2 shadow-flotante ring-1 ring-linea"
+        inert={!abierto}
+        className={cn(
+          "absolute top-11 right-0 w-60 origin-top-right rounded-control bg-white p-2 shadow-flotante ring-1 ring-linea transition-[opacity,scale,translate,visibility] duration-180",
+          !abierto && "invisible -translate-y-1 scale-95 opacity-0",
+        )}
       >
         <p className="px-3 pt-2 pb-3 text-sm">
           <span className="block font-medium">{nombre}</span>
