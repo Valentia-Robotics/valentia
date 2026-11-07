@@ -13,7 +13,11 @@ function Cara({ cara, className }: { cara: "delantera" | "trasera"; className?: 
     // eslint-disable-next-line @next/next/no-img-element -- SVG propio: next/image no aporta nada
     <img
       src={`/tarjeta-muestra/${cara}.svg`}
-      alt=""
+      alt={
+        cara === "delantera"
+          ? "Tarjeta de activación de Valentia con el código QR"
+          : "Trasera de la tarjeta de activación con los pasos para empezar el curso"
+      }
       width={856}
       height={540}
       loading="lazy"

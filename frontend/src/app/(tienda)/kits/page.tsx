@@ -19,7 +19,7 @@ export const revalidate = 300;
 export const metadata: Metadata = metadatosPagina({
   titulo: "Kits de robótica para montar con curso",
   descripcion:
-    "Coche seguidor de líneas, brazo robótico y estación meteorológica con Arduino y ESP32. Cada kit trae todas las piezas y un curso en vídeo para montarlo sin saber programar.",
+    "Coche seguidor de líneas, brazo robótico y estación meteorológica con Arduino y ESP32. Todas las piezas y curso en vídeo, sin saber programar.",
   ruta: "/kits",
 });
 
