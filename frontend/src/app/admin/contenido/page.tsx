@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  AccionesLoteGuiones,
+  FORMULARIO_LOTE_GUIONES,
+} from "@/components/admin/AccionesLoteGuiones";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { Insignia } from "@/components/admin/Insignia";
 import { Cabecera } from "@/components/admin/Cabecera";
@@ -11,7 +15,12 @@ import { InsigniaEstadoGuion } from "@/components/contenido/TextoGuion";
 import { estadosGuion, ORDEN_ESTADOS } from "@/config/estadosGuion";
 import type { EstadoGuion } from "@/generated/prisma/enums";
 import { fecha } from "@/lib/admin/formato";
-import { buscarGuiones, categoriasGuion, editores as listaEditores } from "@/lib/contenido/guiones";
+import {
+  buscarGuiones,
+  categoriasGuion,
+  ESTADOS_DESCARTABLES,
+  editores as listaEditores,
+} from "@/lib/contenido/guiones";
 import { esId } from "@/lib/ids";
 import { exigirAdmin } from "@/lib/sesion";
 import { cn, plural } from "@/lib/utils";
@@ -46,6 +55,12 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
     categoriasGuion(),
     listaEditores(),
   ]);
+
+  // Con casilla: los que se pueden aprobar o descartar desde la barra de arriba
+  const seleccionable = (g: (typeof guiones)[number]) =>
+    g.estado === "PENDIENTE_APROBACION" ||
+    (g.origen === "IA" && !g.editor && ESTADOS_DESCARTABLES.includes(g.estado));
+  const conCasillas = guiones.some(seleccionable);
 
   const enlaceVista = (vista: string) => {
     const filtros = new URLSearchParams({
@@ -186,29 +201,56 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
           })}
         </div>
       ) : (
-        <Caja sinRelleno>
-          <Tabla
-            columnas={["Guion", "Categoría", "Estado", "Editor", "Fecha límite"]}
-            vacia={guiones.length === 0 && "No hay ningún guion con estos filtros."}
-          >
-            {guiones.map((g) => (
-              <tr key={g.id}>
-                <td>
-                  <Link href={`/admin/contenido/${g.id}`} className="font-medium hover:text-acento">
-                    {g.titulo}
-                  </Link>{" "}
-                  <EtiquetaOrigen guion={g} />
-                </td>
-                <td className="text-gris">{g.categoria.nombre}</td>
-                <td>
-                  <InsigniaEstadoGuion estado={g.estado} />
-                </td>
-                <td className="text-gris">{g.editor?.nombre ?? "—"}</td>
-                <td className="whitespace-nowrap text-gris">{fecha(g.fechaLimite)}</td>
-              </tr>
-            ))}
-          </Tabla>
-        </Caja>
+        <>
+          {conCasillas && <AccionesLoteGuiones />}
+          <Caja sinRelleno>
+            <Tabla
+              columnas={[
+                ...(conCasillas ? [""] : []),
+                "Guion",
+                "Categoría",
+                "Estado",
+                "Editor",
+                "Fecha límite",
+              ]}
+              vacia={guiones.length === 0 && "No hay ningún guion con estos filtros."}
+            >
+              {guiones.map((g) => (
+                <tr key={g.id}>
+                  {conCasillas && (
+                    <td className="w-0">
+                      {seleccionable(g) && (
+                        <input
+                          type="checkbox"
+                          name="ids"
+                          value={g.id}
+                          form={FORMULARIO_LOTE_GUIONES}
+                          aria-label={`Seleccionar el guion «${g.titulo}»`}
+                          className="size-4 accent-acento"
+                        />
+                      )}
+                    </td>
+                  )}
+                  <td>
+                    <Link
+                      href={`/admin/contenido/${g.id}`}
+                      className="font-medium hover:text-acento"
+                    >
+                      {g.titulo}
+                    </Link>{" "}
+                    <EtiquetaOrigen guion={g} />
+                  </td>
+                  <td className="text-gris">{g.categoria.nombre}</td>
+                  <td>
+                    <InsigniaEstadoGuion estado={g.estado} />
+                  </td>
+                  <td className="text-gris">{g.editor?.nombre ?? "—"}</td>
+                  <td className="whitespace-nowrap text-gris">{fecha(g.fechaLimite)}</td>
+                </tr>
+              ))}
+            </Tabla>
+          </Caja>
+        </>
       )}
     </>
   );

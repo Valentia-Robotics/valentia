@@ -6,9 +6,10 @@
  */
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import type { EstadoGuion } from "@/generated/prisma/enums";
-import { conErrores, texto, type EstadoFormulario } from "@/lib/admin/formularios";
+import { conErrores, texto, textos, type EstadoFormulario } from "@/lib/admin/formularios";
 import {
   actualizarGuion,
   asignarGuion,
@@ -18,8 +19,9 @@ import {
   ErrorGuion,
 } from "@/lib/contenido/guiones";
 import { db } from "@/lib/db";
-import { esId, idsValidos } from "@/lib/ids";
+import { esId, esquemaId, idsValidos } from "@/lib/ids";
 import { exigirAdminEnAccion } from "@/lib/sesion";
+import { plural } from "@/lib/utils";
 import { esquemaCategoria, esquemaComentario, esquemaGuion } from "@/lib/validaciones/guion";
 
 const NO_ENCONTRADO: EstadoFormulario = { ok: false, mensaje: "No encontramos ese guion." };
@@ -147,6 +149,61 @@ export async function descartarGuionAutomatico(
   }
   revalidatePath("/admin/contenido", "layout");
   redirect("/admin/contenido?descartado=1");
+}
+
+const esquemaVarios = z.object({
+  ids: z.array(esquemaId).min(1, "Marca al menos un guion.").max(300),
+  accion: z.enum(["aprobar", "descartar"]),
+});
+
+/**
+ * Varios guiones a la vez (casillas de la lista): aprobarlos o descartarlos.
+ * Cada uno pasa por las mismas reglas que con su botón; los que no pueden, se saltan.
+ */
+export async function cambiarVariosGuiones(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  const admin = await exigirAdminEnAccion();
+  const datos = esquemaVarios.safeParse({
+    ids: [...new Set(textos(formulario, "ids"))],
+    accion: texto(formulario, "accion"),
+  });
+  if (!datos.success) return conErrores(datos.error);
+  const { ids, accion } = datos.data;
+
+  let hechos = 0;
+  for (const guionId of ids) {
+    try {
+      if (accion === "aprobar") {
+        await cambiarEstado({ guionId, a: "APROBADO", actor: "ADMIN", autor: admin });
+        hechos++;
+      } else if (await descartarGuion(guionId)) {
+        hechos++;
+      }
+    } catch (error) {
+      // Una regla que no deja (ya aprobado, otra persona lo ha cambiado…): se salta
+      if (!(error instanceof ErrorGuion)) throw error;
+    }
+  }
+  revalidatePath("/admin/contenido", "layout");
+
+  const hecho = accion === "aprobar" ? ["aprobado", "aprobados"] : ["descartado", "descartados"];
+  const saltados = ids.length - hechos;
+  const motivo =
+    accion === "aprobar"
+      ? "solo se aprueban los que están «Pendiente de aprobación»"
+      : "solo se descartan los automáticos que aún no tienen editor";
+  return {
+    ok: hechos > 0,
+    mensaje:
+      (hechos
+        ? `${plural(hechos, `guion ${hecho[0]}`, `guiones ${hecho[1]}`)}.`
+        : `No se ha ${hecho[0]} ningún guion.`) +
+      (saltados
+        ? ` ${plural(saltados, "no se ha cambiado", "no se han cambiado")}: ${motivo}.`
+        : ""),
+  };
 }
 
 export async function asignarEditor(
