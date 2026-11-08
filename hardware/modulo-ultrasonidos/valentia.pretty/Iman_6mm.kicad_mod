@@ -1,0 +1,17 @@
+(footprint "Iman_6mm" (version 20221018) (generator pcbnew)
+  (layer "F.Cu")
+  (descr "Agujero sin metalizar de 6.2 mm para pegar un imán de neodimio de 6 mm de diámetro.")
+  (fp_text reference "REF**" (at 0 -4.4) (layer "F.SilkS") hide
+      (effects (font (size 1.27 1.27) (thickness 0.15)))
+    (tstamp 5bce4412-e4fc-47f2-941a-e89d9591eb2e)
+  )
+  (fp_text value "Iman_6mm" (at 0 0) (layer "F.Fab") hide
+      (effects (font (size 1.27 1.27) (thickness 0.15)))
+    (tstamp 015ed388-131b-4381-95bc-f3a806ecb3de)
+  )
+  (fp_circle (center 0 0) (end 3.5 0)
+    (stroke (width 0.12) (type default)) (fill none) (layer "F.SilkS") (tstamp b0ff4e2e-0b62-4ad7-b956-42a066aa3763))
+  (fp_circle (center 0 0) (end 3.6 0)
+    (stroke (width 0.05) (type default)) (fill none) (layer "F.CrtYd") (tstamp 42030036-516b-4e09-8a3f-b5aa3bc64c2b))
+  (pad "" np_thru_hole circle (at 0 0) (size 6.2 6.2) (drill 6.2) (layers "F&B.Cu" "*.Mask") (tstamp b56f27a5-9ece-4fe7-9b0c-a3bd3b2b0fa2))
+)
