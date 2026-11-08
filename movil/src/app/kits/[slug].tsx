@@ -3,7 +3,7 @@
  * Las funciones que aún no están hechas salen como «Muy pronto».
  */
 import { Image } from "expo-image";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { FuncionKit } from "@/lib/api";
@@ -35,16 +35,17 @@ export default function Kit() {
   function abrir(funcion: FuncionKit) {
     if (!kit || !funcion.disponible) return;
     if (funcion.id === "curso") WebBrowser.openBrowserAsync(kit.curso.url);
+    if (funcion.id === "control-remoto")
+      router.push({ pathname: "/mando", params: { kit: kit.slug } });
   }
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: espacio.xl }}>
       <Stack.Screen options={{ title: kit.nombre }} />
-      <Image
-        source={kit.foto}
-        style={{ width: "100%", aspectRatio: 1.6 }}
-        contentFit="cover"
-      />
+      {/* La foto entera dentro del marco: el coche es más ancho que alto y con «cover» se cortaba */}
+      <View style={estilos.marcoFoto}>
+        <Image source={kit.foto} style={{ flex: 1 }} contentFit="contain" />
+      </View>
       <View style={{ padding: espacio.l, gap: espacio.m }}>
         <View style={{ gap: espacio.xs }}>
           <Text style={estilos.nombre}>{kit.nombre}</Text>
@@ -94,6 +95,12 @@ export default function Kit() {
 }
 
 const estilos = StyleSheet.create({
+  marcoFoto: {
+    width: "100%",
+    aspectRatio: 1.6,
+    padding: espacio.l,
+    backgroundColor: color.blanco,
+  },
   nombre: { fontSize: 26, fontWeight: "700", color: color.tinta },
   eslogan: { fontSize: 16, color: color.gris, lineHeight: 22 },
   funcion: {

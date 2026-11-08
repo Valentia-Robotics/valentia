@@ -28,8 +28,8 @@ export const FUNCIONES_POR_KIT: Record<string, FuncionApp[]> = {
     {
       id: "control-remoto",
       titulo: "Control remoto",
-      descripcion: "Conduce tu coche desde el móvil por Bluetooth.",
-      disponible: false,
+      descripcion: "Conduce tu coche desde el móvil por Bluetooth o wifi.",
+      disponible: true,
     },
     CURSO,
   ],

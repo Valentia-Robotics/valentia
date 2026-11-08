@@ -35,6 +35,11 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `Componente.voltajeLogicoMin` («también acepta señales desde»): L298N, TCRT5000 y HC-SR04P = 3,3, así la regla
   `logica-5v-en-placa-3v3` no avisa con la ESP32. Modelo 3D del coche: ESP32 sobre su base de expansión.
   En producción hay que cambiarlo a mano en el panel (seed:prod no modifica lo que existe).
+- Mando del coche (2.ª parte, petición de Jesse): `movil/src/app/mando.tsx` + `src/control/` (wifi = WebSocket a la
+  ESP32 en modo punto de acceso `Valentia-Coche-XXXX`/`valentia`, `ws://192.168.4.1:81/`; Bluetooth = BLE Nordic UART con
+  react-native-ble-plx, solo en development build). Protocolo de texto por líneas: app → `M izq der` (cada 150 ms),
+  `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
+  500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
 ### Fluidez, seguridad y n8n (06-11-2026, rama `mejoras/fluidez-seguridad-n8n`)
 
