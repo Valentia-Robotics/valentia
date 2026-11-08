@@ -66,6 +66,8 @@ Decisión del usuario: **se queda en Render y con MongoDB**; la separación de a
 - Panel: etiqueta 🤖 (relevancia y medio), filtro `?mostrar=automaticos`, `CajasAutomatico` (datos a verificar, noticia,
   escenas, redes; el editor ve lo mismo). «Descartar» (`descartarGuion`): solo automáticos sin editor; borra guion e
   historial pero la noticia sigue apuntada (no vuelve). Métricas sin cambios.
+- Aprobar/descartar en bloque (08-11-2026, Jesse): casillas en la lista de `/admin/contenido` (solo en los que se pueden),
+  `AccionesLoteGuiones` → `cambiarVariosGuiones`: cada uno pasa por `cambiarEstado`/`descartarGuion`; los demás se saltan.
 
 ### Separación backend (Render) y frontend (Vercel) (06-11-2026, rama `feature/backend-render`) — PARADA
 
