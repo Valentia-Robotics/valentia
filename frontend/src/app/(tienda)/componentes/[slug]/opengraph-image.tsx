@@ -19,7 +19,7 @@ export default async function ImagenComponente({ params }: { params: Promise<{ s
     <TarjetaRedes
       antetitulo="Componente"
       titulo={componente?.nombre ?? "Componentes de robótica"}
-      subtitulo={componente?.resumen ?? "Las piezas de tus ideas."}
+      subtitulo={componente?.resumen ?? "Piezas sueltas para ampliar tu robot."}
       pie={componente ? `${formatearPrecio(componente.precioCentimos)} · IVA incluido` : "Valentia"}
       foto={await fotoRedes(`images/redes/componentes/${slug}.jpg`)}
     />,

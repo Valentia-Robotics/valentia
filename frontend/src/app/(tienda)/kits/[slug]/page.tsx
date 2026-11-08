@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     descripcion:
       kit.precioCentimos === 0
         ? `${kit.eslogan} Gratis y sin piezas: se activa al momento en tu cuenta.`
-        : `${kit.eslogan} Con todas las piezas, baterías y curso en vídeo. Sin saber programar, desde ${kit.edadMinima} años.`,
+        : `${kit.eslogan} Con todas las piezas y un curso en vídeo. No hace falta saber programar. Desde ${kit.edadMinima} años.`,
     ruta: `/kits/${kit.slug}`,
   });
 }
@@ -145,7 +145,7 @@ export default async function PaginaKit({ params }: Props) {
 
               <p className="mt-6 text-3xl font-medium">{precioDeKit(kit.precioCentimos)}</p>
               <p className="mt-1 text-sm text-gris">
-                {gratis ? "Sin pago · Se activa al momento" : "IVA incluido · Curso de regalo"}
+                {gratis ? "Sin pago · Se activa al momento" : "IVA incluido · Con curso en vídeo"}
               </p>
 
               <ul className="mt-6 space-y-2.5">
@@ -223,7 +223,8 @@ export default async function PaginaKit({ params }: Props) {
                 Qué hay en la caja.
               </h2>
               <p className="mt-3 text-lg text-gris">
-                {totalPiezas} piezas, todo lo necesario para montarlo. Sin soldar.
+                {totalPiezas} piezas y nada más que comprar. No hay que soldar: todo se enchufa,
+                encaja o va con imanes.
               </p>
             </div>
 

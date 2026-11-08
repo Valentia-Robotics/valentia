@@ -8,7 +8,7 @@ import { emailNuevo, escribirCodigo, esperarCodigo } from "./ayudantes";
 import { urlBDPruebas } from "./recorrer";
 
 const TITULO = "Cómo sigue la línea un robot";
-const NO_EXISTE = "Aquí todavía no hay nada";
+const NO_EXISTE = "Esta página no existe";
 const ENLACE = "https://youtu.be/video-de-prueba";
 
 /** Cada persona, en su propio navegador */

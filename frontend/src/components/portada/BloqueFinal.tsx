@@ -37,7 +37,7 @@ export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
     >
       <Contenedor className="aparecer text-center">
         <h2 id="titulo-final" className="text-4xl font-medium sm:text-6xl">
-          Tu primer robot te está esperando.
+          ¿Te animas?
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-gris-claro">
           Envío a toda la {tienda.envio.nombreZona} en {tienda.envio.plazo}. Gratis a partir de{" "}
@@ -48,7 +48,7 @@ export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
             Elegir mi kit
           </Boton>
           <Boton href="/configurador" variante="enlace-claro" tamano="lg">
-            O créalo pieza a pieza ›
+            O elige tú las piezas ›
           </Boton>
         </div>
       </Contenedor>

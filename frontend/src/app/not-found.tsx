@@ -13,10 +13,10 @@ export default function NoEncontrada() {
     <MarcoWeb>
       <Contenedor className="flex min-h-[70vh] flex-col items-center justify-center py-24 text-center">
         <p className="text-sm font-medium text-acento">Error 404</p>
-        <h1 className="mt-3 text-4xl font-medium sm:text-5xl">Aquí todavía no hay nada</h1>
+        <h1 className="mt-3 text-4xl font-medium sm:text-5xl">Esta página no existe</h1>
         <p className="mt-4 max-w-md text-lg text-gris">
-          Puede que la dirección esté mal escrita o que esta sección aún esté en construcción. ¡Muy
-          pronto estará lista!
+          Puede que la dirección esté mal escrita o que la página ya no esté. Desde el inicio llegas
+          a todo lo demás.
         </p>
         <Boton href="/" tamano="lg" className="mt-8">
           Volver al inicio

@@ -28,8 +28,8 @@ export default function PaginaGuias() {
         <p className="text-sm font-medium tracking-wide text-acento uppercase">Guías</p>
         <h1 className="mt-3 text-4xl font-medium sm:text-5xl">Aprende robótica desde cero.</h1>
         <p className="mt-4 text-lg text-gris">
-          Explicaciones cortas y sin tecnicismos para entender cómo funcionan las piezas de un robot
-          antes (o después) de montarlo.
+          Textos cortos y sin tecnicismos sobre cómo funcionan las piezas de un robot. Sirven para
+          antes de montarlo y para después.
         </p>
       </header>
 

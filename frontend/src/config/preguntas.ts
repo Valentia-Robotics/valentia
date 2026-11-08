@@ -43,14 +43,14 @@ export function preguntasFrecuentes({
           pregunta: "¿Para qué edad son?",
           respuesta: [
             "En la ficha de cada kit pone la edad recomendada y el nivel. Los de nivel principiante los puede hacer solo un chaval de unos 10 años; más pequeños, mejor con un adulto al lado.",
-            "Y no hay edad máxima: hay muchos adultos que se compran uno porque siempre habían querido entender cómo funciona un robot.",
+            "Tampoco hay edad máxima. También son para adultos que siempre han querido entender cómo funciona un robot.",
           ],
           enlace: { href: "/kits", texto: "Ver los kits" },
         },
         {
           pregunta: "¿Hay que soldar?",
           respuesta: [
-            "No. Es plug & play: las piezas se enchufan, encajan entre sí o se unen con imanes. No hace falta soldar ni herramientas especiales. Si algo queda mal, se suelta y se vuelve a probar.",
+            "No. Es plug & play: las piezas se enchufan, encajan entre sí o se unen con imanes, sin herramientas especiales. Si algo queda mal, se suelta y se vuelve a probar.",
           ],
         },
         {
@@ -63,7 +63,7 @@ export function preguntasFrecuentes({
         {
           pregunta: "¿Qué trae la caja?",
           respuesta: [
-            "Todas las piezas para montar el robot y una tarjeta con un código QR para desbloquear el curso. En la ficha de cada kit tienes la lista completa de piezas.",
+            "Todas las piezas para montar el robot, el cable USB, las baterías (en los kits que las usan) y una tarjeta con un código QR para abrir el curso. La lista completa de piezas está en la ficha de cada kit.",
           ],
         },
         {

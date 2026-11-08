@@ -108,7 +108,7 @@ export function TestLeccion({ leccionId, preguntas, urlVideo, siguiente }: Props
           </p>
           <p className="mt-2 text-gris">
             {todo
-              ? "Has acertado todas. Lo has entendido de maravilla."
+              ? "Las has acertado todas."
               : aprobado
                 ? "Has superado el test y la lección queda completada."
                 : "Repasa el vídeo y vuelve a intentarlo: necesitas acertar la mitad."}

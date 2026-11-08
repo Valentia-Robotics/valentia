@@ -83,7 +83,9 @@ export default async function PaginaMiCuenta() {
           <MapPin aria-hidden="true" className="size-6 text-acento" />
           Mis direcciones
         </h2>
-        <p className="mt-2 mb-6 text-gris">Las usamos para rellenar el checkout más rápido.</p>
+        <p className="mt-2 mb-6 text-gris">
+          Así no tienes que escribirlas otra vez en tu próximo pedido.
+        </p>
         <MisDirecciones
           direcciones={direcciones.map((d) => ({
             id: d.id,

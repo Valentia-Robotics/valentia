@@ -130,11 +130,11 @@ export default async function PaginaActivar({ searchParams }: Props) {
     return (
       <Marco
         icono={<CircleCheck aria-hidden="true" className="size-10 text-exito" strokeWidth={1.5} />}
-        titulo={bienvenida ? "¡Bienvenido a Valentia!" : "¡Tu curso te espera!"}
+        titulo={bienvenida ? "¡Bienvenido a Valentia!" : "El código es válido."}
         texto={
           bienvenida
             ? "Crea tu cuenta gratis (o entra si ya tienes una) y te llevamos directo al vídeo de bienvenida."
-            : "El código es válido. Inicia sesión o crea una cuenta gratis para guardarlo en «Mis cursos»."
+            : "Inicia sesión o crea una cuenta gratis y el curso se guardará en «Mis cursos»."
         }
       >
         {tarjetaKit}
@@ -190,7 +190,7 @@ export default async function PaginaActivar({ searchParams }: Props) {
   return (
     <Marco
       icono={<CircleCheck aria-hidden="true" className="size-10 text-exito" strokeWidth={1.5} />}
-      titulo={`¡Hola, ${usuario.nombre.split(" ")[0]}! Tu curso te espera.`}
+      titulo={`¡Hola, ${usuario.nombre.split(" ")[0]}! Ya casi está.`}
       texto="Pulsa el botón y el curso quedará guardado para siempre en «Mis cursos»."
     >
       {tarjetaKit}

@@ -193,7 +193,8 @@ export function PanelRobot({
 
         {diagnostico.errores > 0 && (
           <p className="mt-2 text-xs text-error">
-            Revisa los avisos: tal y como está, tu robot no funcionará. Puedes comprarlo igualmente.
+            Así como está, el robot no va a funcionar: mira los avisos. Si aun así lo quieres,
+            puedes comprarlo.
           </p>
         )}
 
@@ -235,9 +236,9 @@ function EstadoVacio({
   return (
     <div className="py-4 text-center">
       <Bot aria-hidden="true" className="mx-auto size-12 text-gris-claro" strokeWidth={1.2} />
-      <p className="mt-3 font-medium">Tu robot está esperando su primera pieza</p>
+      <p className="mt-3 font-medium">Todavía no has elegido ninguna pieza</p>
       <p className="mt-1 text-sm text-gris">
-        Elige piezas en las categorías o parte de uno de nuestros kits:
+        Empieza por una categoría o coge uno de nuestros kits:
       </p>
       <ul className="mt-4 space-y-2 text-left">
         {kits.map((kit) => (

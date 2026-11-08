@@ -31,7 +31,9 @@ export function VistaCarrito() {
           strokeWidth={1.2}
         />
         <p className="mt-4 text-xl font-medium">Tu carrito está vacío</p>
-        <p className="mt-1 text-gris">Elige un kit para empezar o crea tu propio robot.</p>
+        <p className="mt-1 text-gris">
+          Elige un kit o monta un robot a tu manera en el configurador.
+        </p>
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <Boton href="/kits" variante="acento" tamano="lg">
             Ver los kits

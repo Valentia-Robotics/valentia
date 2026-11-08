@@ -19,7 +19,7 @@ export function InicioConfigurador({ kits, alEmpezarDesdeCero, alEmpezarDesdeKit
         ¿Cómo quieres empezar?
       </h2>
       <p className="mt-1 text-gris">
-        Elige pieza a pieza o parte de uno de nuestros kits y cámbialo a tu gusto.
+        Puedes empezar desde cero o coger uno de nuestros kits y cambiarle lo que quieras.
       </p>
 
       <ul className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -62,8 +62,8 @@ export function InicioConfigurador({ kits, alEmpezarDesdeCero, alEmpezarDesdeKit
         <Link href="/kits" className="text-tinta underline underline-offset-2 hover:text-acento">
           kit
         </Link>
-        : trae todas las piezas y un curso en vídeo para montarlo paso a paso. Un robot hecho aquí
-        no lleva curso.
+        : trae todas las piezas y un curso en vídeo para montarlo. Los robots que se hacen aquí no
+        llevan curso.
       </p>
     </section>
   );
