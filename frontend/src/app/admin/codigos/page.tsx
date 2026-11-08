@@ -11,6 +11,7 @@ import { DescargaBienvenida } from "@/components/admin/DescargaBienvenida";
 import { FormularioLote } from "@/components/admin/FormularioLote";
 import { Insignia } from "@/components/admin/Insignia";
 import { leerPagina, Paginacion } from "@/components/admin/Paginacion";
+import { FORMULARIO_CODIGOS, SeleccionCodigos } from "@/components/admin/SeleccionCodigos";
 import { Tabla } from "@/components/admin/Tabla";
 import {
   contarParaBloque,
@@ -239,12 +240,24 @@ export default async function CodigosAdmin({ searchParams }: Props) {
             )}
           </div>
         </div>
+        {/* Marcar varios con las casillas y desactivarlos (o reactivarlos) de una vez */}
+        {codigos.length > 0 && <SeleccionCodigos />}
         <Tabla
-          columnas={["Código", "Kit", "Estado", "Usado por", "Origen", ""]}
+          columnas={["", "Código", "Kit", "Estado", "Usado por", "Origen", ""]}
           vacia={codigos.length === 0 && "No hay códigos con estos filtros."}
         >
           {codigos.map((c) => (
             <tr key={c.id}>
+              <td className="w-0">
+                <input
+                  type="checkbox"
+                  name="ids"
+                  value={c.id}
+                  form={FORMULARIO_CODIGOS}
+                  aria-label={`Seleccionar el código ${c.codigo}`}
+                  className="size-4 accent-acento"
+                />
+              </td>
               <td className="font-mono text-[13px] font-medium whitespace-nowrap">{c.codigo}</td>
               <td className="whitespace-nowrap">{c.kit.nombre}</td>
               <td>

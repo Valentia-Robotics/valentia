@@ -157,6 +157,9 @@ curso `bienvenida-a-valentia`; vídeo `PENDIENTE`: ponerlo en `/admin/cursos`). 
 `/admin/codigos`: botones «Desactivar todos» / «Reactivar todos» (con confirmación) encima de la tabla; actúan sobre
 los códigos de los filtros que se ven (kit, lote, estado, búsqueda; sin filtros = todos). Acción
 `cambiarDesactivacionTodos`, lógica `cambiarDesactivacionEnBloque` en `src/lib/admin/codigos.ts` (updateMany).
+También casillas en cada fila (07-11-2026, rama `claude/project-thread-k1gipq`): «Marcar todos» (la página), Mayúsculas + clic
+marca un tramo, «Desactivar/Reactivar seleccionados» con confirmación (`SeleccionCodigos`, igual que `AccionesLotePedidos`;
+acción `cambiarDesactivacionSeleccionados` → `cambiarDesactivacionDeIds`, máx. 200).
 
 ### Fluidez en el móvil (30-10-2026, rama `claude/project-thread-2xc9gb`)
 
