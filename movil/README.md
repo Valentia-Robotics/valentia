@@ -24,7 +24,8 @@ Está hecha con **Expo** (React Native): el mismo código sirve para Android y p
   (contraseña `valentia`; si Android avisa de «sin internet», elige «Mantener conexión») y pulsa «Wifi» en el mando.
 - **Por Bluetooth**: Expo Go no trae Bluetooth. Hace falta una «development build»:
   `npx eas-cli@latest build --profile development --platform android` (cuenta gratis en expo.dev) e instalar el APK.
-- Sin coche: `EXPO_PUBLIC_COCHE_WS=ws://IP-del-ordenador:8181 npm start` con un simulador de WebSocket.
+- **Sin coche**: botón «Probar sin coche». Sale una pista con un coche de mentira (`src/control/cocheSimulado.ts`)
+  que entiende las mismas órdenes que la ESP32: se conduce, sigue la línea y esquiva las cajas.
 
 Qué desbloquea cada kit se decide en la web: `frontend/src/config/app.ts`.
 

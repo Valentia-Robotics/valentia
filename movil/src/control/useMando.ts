@@ -3,7 +3,9 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Conexion, EstadoConexion, Via } from "./conexion";
+import type { CocheSimulado } from "./cocheSimulado";
 import { conectarBluetooth } from "./conexionBluetooth";
+import { conectarSimulado } from "./conexionSimulada";
 import { conectarWifi } from "./conexionWifi";
 import { mezclar, type Modo, orden } from "./protocolo";
 
@@ -18,6 +20,8 @@ export function useMando() {
   const [distancia, setDistancia] = useState<number | null>(null);
   const [modo, setModo] = useState<Modo>("manual");
   const [velocidad, setVelocidad] = useState(70);
+  /** Solo en la simulación: el coche de mentira, para dibujarlo en la pantalla */
+  const [simulado, setSimulado] = useState<CocheSimulado | null>(null);
 
   const conexion = useRef<Conexion | null>(null);
   const joystick = useRef({ x: 0, y: 0 });
@@ -34,6 +38,7 @@ export function useMando() {
     conexion.current = null;
     setVia(null);
     setDistancia(null);
+    setSimulado(null);
   }, []);
 
   const conectar = useCallback(
@@ -59,8 +64,14 @@ export function useMando() {
           if (m.tipo === "hola") setNombre(m.nombre);
         },
       };
-      conexion.current =
-        nueva === "wifi" ? conectarWifi(avisos) : conectarBluetooth(avisos);
+      if (nueva === "simulacion") {
+        const sim = conectarSimulado(avisos);
+        setSimulado(sim.coche);
+        conexion.current = sim;
+      } else {
+        conexion.current =
+          nueva === "wifi" ? conectarWifi(avisos) : conectarBluetooth(avisos);
+      }
     },
     [desconectar],
   );
@@ -92,6 +103,7 @@ export function useMando() {
     via,
     nombre,
     distancia,
+    simulado,
     modo,
     velocidad,
     conectar,

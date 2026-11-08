@@ -24,12 +24,14 @@ export function TarjetaKit({
       onPress={onPress}
       style={({ pressed }) => [estilos.tarjeta, pressed && { opacity: 0.85 }]}
     >
-      <Image
-        source={kit.foto}
-        style={estilos.foto}
-        contentFit="cover"
-        transition={200}
-      />
+      <View style={estilos.marcoFoto}>
+        <Image
+          source={kit.foto}
+          style={estilos.foto}
+          contentFit="contain"
+          transition={200}
+        />
+      </View>
       <View style={{ padding: espacio.m, gap: espacio.xs }}>
         <Text style={estilos.nombre}>{kit.nombre}</Text>
         <Text style={estilos.texto}>

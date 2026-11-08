@@ -4,7 +4,7 @@
  */
 import type { MensajeCoche } from "./protocolo";
 
-export type Via = "wifi" | "bluetooth";
+export type Via = "wifi" | "bluetooth" | "simulacion";
 
 export type EstadoConexion =
   | "desconectado"
