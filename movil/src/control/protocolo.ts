@@ -105,3 +105,30 @@ export function partirLineas(
     resto: resto.slice(-200),
   };
 }
+
+export type OrdenMando =
+  | { tipo: "mover"; izq: number; der: number }
+  | { tipo: "parar" }
+  | { tipo: "latido" }
+  | { tipo: "modo"; modo: Modo };
+
+/** Lee una orden del mando (lo que hace el coche al recibirla; lo usa el coche simulado) */
+export function leerOrden(linea: string): OrdenMando | null {
+  const [clave, ...resto] = linea.trim().split(/\s+/);
+  if (clave === "M" && resto.length === 2) {
+    const izq = Number(resto[0]);
+    const der = Number(resto[1]);
+    if (!Number.isFinite(izq) || !Number.isFinite(der)) return null;
+    return {
+      tipo: "mover",
+      izq: limitar(izq, -100, 100),
+      der: limitar(der, -100, 100),
+    };
+  }
+  if (clave === "P") return { tipo: "parar" };
+  if (clave === "L") return { tipo: "latido" };
+  if (clave === "O" && MODOS.includes(resto[0] as Modo)) {
+    return { tipo: "modo", modo: resto[0] as Modo };
+  }
+  return null;
+}

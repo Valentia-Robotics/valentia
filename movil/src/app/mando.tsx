@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Joystick } from "@/componentes/Joystick";
+import { PistaSimulada } from "@/componentes/PistaSimulada";
 import type { EstadoConexion } from "@/control/conexion";
 import { bluetoothDisponible } from "@/control/conexionBluetooth";
 import type { Modo } from "@/control/protocolo";
@@ -71,7 +72,11 @@ export default function Mando() {
 
   const conectado = mando.estado === "conectado";
   const ocupado = mando.estado === "buscando" || mando.estado === "conectando";
-  const tamanoJoystick = Math.min(width - espacio.xl * 2, 280);
+  // Con la pista en pantalla, el joystick algo más pequeño para que quepa todo
+  const tamanoJoystick = Math.min(
+    width - espacio.xl * 2,
+    mando.simulado ? 220 : 280,
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: OSCURO.fondo }}>
@@ -129,6 +134,14 @@ export default function Mando() {
           <Conectar mando={mando} ocupado={ocupado} />
         ) : (
           <>
+            {/* Simulación: el coche de mentira en su pista */}
+            {mando.simulado ? (
+              <PistaSimulada
+                coche={mando.simulado}
+                ancho={width - espacio.l * 2}
+              />
+            ) : null}
+
             {/* Distancia al obstáculo (sensor de ultrasonidos) */}
             <Distancia cm={mando.distancia} />
 
@@ -229,7 +242,15 @@ export default function Mando() {
               <Text
                 style={[estilos.ayuda, { textDecorationLine: "underline" }]}
               >
-                Desconectar ({mando.via === "wifi" ? "wifi" : "Bluetooth"}
+                {mando.via === "simulacion"
+                  ? "Salir de la simulación"
+                  : "Desconectar"}{" "}
+                (
+                {mando.via === "wifi"
+                  ? "wifi"
+                  : mando.via === "simulacion"
+                    ? "sin coche"
+                    : "Bluetooth"}
                 {mando.nombre ? ` · ${mando.nombre}` : ""})
               </Text>
             </Pressable>
@@ -303,6 +324,27 @@ function Conectar({
           <Text style={estilos.textoOpcion}>
             En los ajustes del móvil, conéctate a la red «Valentia-Coche-…»
             (contraseña: valentia) y pulsa aquí.
+          </Text>
+        </View>
+      </Pressable>
+
+      <Pressable
+        onPress={() => mando.conectar("simulacion")}
+        disabled={ocupado}
+        accessibilityRole="button"
+        style={({ pressed }) => [
+          estilos.opcion,
+          estilos.opcionSimulacion,
+          pressed && { opacity: 0.85 },
+          ocupado && { opacity: 0.5 },
+        ]}
+      >
+        <Text style={{ fontSize: 30 }}>🕹️</Text>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={estilos.tituloOpcion}>Probar sin coche</Text>
+          <Text style={estilos.textoOpcion}>
+            Un coche de mentira en la pantalla: condúcelo, que siga la línea o
+            que esquive las cajas.
           </Text>
         </View>
       </Pressable>
@@ -409,6 +451,7 @@ const estilos = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radio.l,
   },
+  opcionSimulacion: { borderStyle: "dashed", borderColor: "#3A4466" },
   tituloOpcion: { color: OSCURO.texto, fontSize: 18, fontWeight: "700" },
   textoOpcion: { color: OSCURO.suave, fontSize: 14, lineHeight: 20 },
   tarjeta: {
