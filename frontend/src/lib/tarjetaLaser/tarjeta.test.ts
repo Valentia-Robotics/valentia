@@ -16,7 +16,7 @@ const datos = (
 });
 
 const KITS = [
-  "coche-seguidor-de-lineas",
+  "vr1-starter-kit",
   "brazo-robotico",
   "estacion-meteorologica",
   "bienvenida-valentia",

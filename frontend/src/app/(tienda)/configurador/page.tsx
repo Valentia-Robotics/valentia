@@ -1,4 +1,5 @@
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
+import { slugKitActual } from "@/config/kitsRenombrados";
 import { datosMigas } from "@/lib/datosEstructurados";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
@@ -39,7 +40,7 @@ export default async function PaginaConfigurador({ searchParams }: Props) {
       <Configurador
         componentes={componentes}
         kits={kits}
-        kitInicial={typeof kit === "string" ? kit : null}
+        kitInicial={typeof kit === "string" ? slugKitActual(kit) : null}
       />
     </>
   );

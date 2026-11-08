@@ -21,8 +21,13 @@ que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empe
 ### Nombre del coche (08-11-2026, rama `claude/project-thread-4lji9k`)
 
 Decisión de Jesse: el kit del coche se llama **«Kit de coche robótico multifunción VR1 - Starter Kit»** (con guion, no dos
-puntos). El slug `coche-seguidor-de-lineas` NO cambia (enlaces, QR y fotos siguen igual). En producción el nombre se
-cambia a mano en `/admin/kits` (seed:prod no modifica lo que existe). En textos corridos: «coche robótico multifunción VR1».
+puntos). En producción el nombre se cambia a mano en `/admin/kits` (seed:prod no modifica lo que existe). En textos
+corridos: «coche robótico multifunción VR1».
+Dirección nueva (Jesse, mismo día): slug **`vr1-starter-kit`** (antes `coche-seguidor-de-lineas`). Parejas viejo → nuevo en
+`src/config/kitsRenombrados.ts`: `next.config.ts` redirige (308) la ficha, sus subrutas y las fotos viejas; carrito y
+configurador del navegador se actualizan solos (versión nueva de su `persist`); `slugKitActual` en pedidos, configurador y
+guiones de n8n. La BD la cambia el pre-despliegue de Render (`scripts/renombrar-kits.ts`, antes del catálogo; también
+`npm run kits:renombrar` en local): slug, foto de siempre, `LineaPedido.slug` y `ListaEspera.kitSlug`.
 
 ### App del móvil y coche con ESP32 (08-11-2026, rama `claude/project-thread-r9yhy3`)
 

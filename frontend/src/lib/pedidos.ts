@@ -15,6 +15,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { DIAS_HASTA_ENTREGADO } from "@/config/estadosPedido";
+import { slugKitActual } from "@/config/kitsRenombrados";
 import type { Prisma } from "@/generated/prisma/client";
 import type { EstadoPedido } from "@/generated/prisma/enums";
 import { generarCodigoActivacion, generarNumeroPedido } from "@/lib/codigos";
@@ -54,7 +55,11 @@ interface LineaCalculada {
  * Convierte los artículos del carrito en líneas de pedido con precios del servidor.
  * También devuelve cuántas unidades de cada componente salen del almacén.
  */
-async function calcularLineas(tx: Tx, articulos: ArticuloPedido[]) {
+async function calcularLineas(tx: Tx, articulosCarrito: ArticuloPedido[]) {
+  // Un carrito viejo puede traer el slug anterior de un kit renombrado
+  const articulos = articulosCarrito.map((a) =>
+    a.tipo === "kit" ? { ...a, slug: slugKitActual(a.slug) } : a,
+  );
   const slugsKits = articulos.flatMap((a) => (a.tipo === "kit" ? [a.slug] : []));
   const slugsComponentes = articulos.flatMap((a) =>
     a.tipo === "componente"
@@ -328,7 +333,7 @@ export async function marcarPedidoPagado(
 
     const lineasKit = pedido.lineas.filter((l) => l.tipo === "KIT" && l.slug);
     const kits = await tx.kit.findMany({
-      where: { slug: { in: lineasKit.map((l) => l.slug!) } },
+      where: { slug: { in: lineasKit.map((l) => slugKitActual(l.slug!)) } },
       select: { id: true, slug: true },
     });
     const idKit = new Map(kits.map((k) => [k.slug, k.id]));
@@ -336,7 +341,8 @@ export async function marcarPedidoPagado(
     const reservados = new Set<string>();
     const codigos: { codigo: string; kitId: string; pedidoId: string }[] = [];
     for (const linea of lineasKit) {
-      const kitId = idKit.get(linea.slug!);
+      // Un pedido hecho antes de renombrar el kit guarda su slug viejo
+      const kitId = idKit.get(slugKitActual(linea.slug!));
       if (!kitId) continue;
       for (let i = 0; i < linea.cantidad; i++) {
         const codigo = await codigoLibre(tx, reservados);

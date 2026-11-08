@@ -9,7 +9,7 @@ describe("sección activa del menú", () => {
   });
 
   it("incluye las subpáginas", () => {
-    expect(enSeccion("/kits/coche-seguidor-de-lineas", { href: "/kits" })).toBe(true);
+    expect(enSeccion("/kits/vr1-starter-kit", { href: "/kits" })).toBe(true);
     expect(enSeccion("/cursos/curso/leccion/test", { href: "/cursos" })).toBe(true);
   });
 

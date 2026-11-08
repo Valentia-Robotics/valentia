@@ -6,6 +6,7 @@
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { slugKitActual } from "@/config/kitsRenombrados";
 import type { PiezaRobot } from "@/types/catalogo";
 
 const CANTIDAD_MAXIMA = 99;
@@ -66,8 +67,14 @@ export const useConfigurador = create<EstadoConfigurador>()(
     }),
     {
       name: "valentia-configurador",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      // Versión 2: el kit de partida puede tener un slug viejo (src/config/kitsRenombrados.ts)
+      migrate: (guardado) => {
+        const estado = guardado as Pick<EstadoConfigurador, "piezas" | "kitOrigen">;
+        if (estado.kitOrigen) estado.kitOrigen = slugKitActual(estado.kitOrigen);
+        return estado as EstadoConfigurador;
+      },
       // La animación no se guarda: solo las piezas y el kit de partida
       partialize: (estado) => ({ piezas: estado.piezas, kitOrigen: estado.kitOrigen }),
     },

@@ -35,7 +35,7 @@ async function preparar() {
     execSync("npx prisma db push --skip-generate", { env, stdio: "ignore" });
     execSync("npx prisma db seed", { env, stdio: "inherit" });
 
-    const kit = await bd.collection("Kit").findOne({ slug: "coche-seguidor-de-lineas" });
+    const kit = await bd.collection("Kit").findOne({ slug: "vr1-starter-kit" });
     await bd
       .collection("Leccion")
       .updateOne(

@@ -18,6 +18,7 @@
     "catalogo:exportar": "tsx scripts/exportar-catalogo.ts",
     "seed:prod": "tsx scripts/seed-prod.ts",
     "predeploy:prod": "tsx scripts/predeploy.ts",
+    "kits:renombrar": "tsx scripts/renombrar-kits.ts",
     "prod:admin": "tsx scripts/prod-admin.ts",
     "db:check": "tsx scripts/comprobar-bd.ts",
     "db:copia": "tsx scripts/copia-seguridad.ts",

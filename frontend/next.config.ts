@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { redireccionesKitsRenombrados } from "./src/config/kitsRenombrados";
 
 const desarrollo = process.env.NODE_ENV === "development";
 
@@ -65,6 +66,10 @@ const nextConfig: NextConfig = {
       // Dejamos un poco más de margen para el resto de los datos del formulario.
       bodySizeLimit: "6mb",
     },
+  },
+  // Kits que cambiaron de dirección: la vieja lleva a la nueva (src/config/kitsRenombrados.ts)
+  async redirects() {
+    return redireccionesKitsRenombrados();
   },
   async headers() {
     return [

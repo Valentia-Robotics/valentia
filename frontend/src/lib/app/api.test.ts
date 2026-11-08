@@ -165,10 +165,10 @@ describe("con sesión", () => {
     sesionValida();
     bd.kit.findMany.mockResolvedValue([
       {
-        slug: "coche-seguidor-de-lineas",
+        slug: "vr1-starter-kit",
         nombre: "Coche",
         eslogan: "",
-        imagen: "/images/kits/coche-seguidor-de-lineas.svg",
+        imagen: "/images/kits/vr1-starter-kit.svg",
         curso: {
           id: "c1",
           slug: "programa-tu-coche-robot",
@@ -202,7 +202,7 @@ describe("con sesión", () => {
       estado: "activado",
       cursoSlug: "programa-tu-coche-robot",
     });
-    bd.kit.findFirst.mockResolvedValue({ slug: "coche-seguidor-de-lineas" });
+    bd.kit.findFirst.mockResolvedValue({ slug: "vr1-starter-kit" });
     const r = await activarApp(
       post(
         "activar",
@@ -212,7 +212,7 @@ describe("con sesión", () => {
     );
     expect(r.status).toBe(200);
     expect(activacion.activarCodigo).toHaveBeenCalledWith("u1", "VAL-7KQ2-M9XD");
-    expect((await r.json()).kit).toBe("coche-seguidor-de-lineas");
+    expect((await r.json()).kit).toBe("vr1-starter-kit");
   });
 
   it("código usado por otra cuenta → 400 con su mensaje", async () => {

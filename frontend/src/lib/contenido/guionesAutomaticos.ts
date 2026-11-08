@@ -8,6 +8,7 @@
  */
 import "server-only";
 import { createHash, timingSafeEqual } from "node:crypto";
+import { slugKitActual } from "@/config/kitsRenombrados";
 import { Prisma } from "@/generated/prisma/client";
 import { categoriasGuion, crearGuion } from "@/lib/contenido/guiones";
 import { leerCuerpo } from "@/lib/cuerpoLimitado";
@@ -130,7 +131,7 @@ async function recibir(entrada: unknown): Promise<Resultado> {
   if (!categoria)
     return { estado: "invalido", errores: { categoria: "No hay categorías activas." } };
   const kit = g.kit
-    ? await db.kit.findUnique({ where: { slug: g.kit }, select: { id: true } })
+    ? await db.kit.findUnique({ where: { slug: slugKitActual(g.kit) }, select: { id: true } })
     : null;
 
   // Los campos de siempre, con las mismas reglas que el formulario del panel
