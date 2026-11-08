@@ -59,9 +59,12 @@ export async function borrarCookieVerificacion() {
   (await cookies()).delete(COOKIES.verificacion);
 }
 
-/** La verificación en curso de este navegador (o null) */
-async function verificacionActual() {
-  const token = (await cookies()).get(COOKIES.verificacion)?.value;
+/**
+ * La verificación en curso (o null). En la web, el token va en la cookie del navegador;
+ * la app del móvil no usa cookies y lo manda ella misma (parámetro `token`).
+ */
+async function verificacionActual(tokenApp?: string) {
+  const token = tokenApp ?? (await cookies()).get(COOKIES.verificacion)?.value;
   if (!token) return null;
   return db.verificacion.findUnique({
     where: { tokenHash: hashToken(token) },
@@ -134,7 +137,9 @@ export async function empezarVerificacion(opciones: {
   motivo: MotivoVerificacion;
   usuario: { id: string; nombre: string } | null;
   correoSenuelo?: Correo;
-}): Promise<{ ok: true } | NoEnviado> {
+  /** App del móvil: no se guarda cookie; el token se devuelve para que la app lo guarde */
+  sinCookie?: boolean;
+}): Promise<{ ok: true; token: string } | NoEnviado> {
   const { email, motivo, usuario } = opciones;
   const ahora = new Date();
   const token = generarToken();
@@ -181,8 +186,8 @@ export async function empezarVerificacion(opciones: {
       ...datosCodigo,
     },
   });
-  await guardarCookie(token);
-  return { ok: true };
+  if (!opciones.sinCookie) await guardarCookie(token);
+  return { ok: true, token };
 }
 
 /** Lo que necesita la pantalla /verificar (o null si no hay ninguna verificación en curso) */
@@ -209,9 +214,9 @@ export type ResultadoCodigo =
   | { estado: "agotado" }
   | { estado: "sin-verificacion" };
 
-/** Comprueba el código escrito para la verificación en curso de este navegador */
-export async function comprobarCodigo(codigo: string): Promise<ResultadoCodigo> {
-  const v = await verificacionActual();
+/** Comprueba el código escrito para la verificación en curso de este navegador (o de la app) */
+export async function comprobarCodigo(codigo: string, tokenApp?: string): Promise<ResultadoCodigo> {
+  const v = await verificacionActual(tokenApp);
   if (!v || v.usadoEn) return { estado: "sin-verificacion" };
 
   // Si ya se confirmó (por ejemplo, al pulsar dos veces), no hace falta volver a comprobarlo
@@ -246,11 +251,11 @@ export async function comprobarCodigo(codigo: string): Promise<ResultadoCodigo> 
   };
 }
 
-/** Envía un código nuevo para la verificación en curso de este navegador */
-export async function reenviarCodigo(): Promise<
-  { ok: true; espera: number } | (NoEnviado & { espera?: number })
-> {
-  const v = await verificacionActual();
+/** Envía un código nuevo para la verificación en curso de este navegador (o de la app) */
+export async function reenviarCodigo(
+  tokenApp?: string,
+): Promise<{ ok: true; espera: number } | (NoEnviado & { espera?: number })> {
+  const v = await verificacionActual(tokenApp);
   if (!v || v.usadoEn || v.confirmadoEn) {
     return { ok: false, mensaje: "Esta verificación ya no está activa. Vuelve a empezar." };
   }
@@ -276,12 +281,12 @@ export async function reenviarCodigo(): Promise<
  * Da por terminada una verificación (ya no se puede volver a usar) y borra su cookie.
  * Devuelve false si otra petición la había terminado antes.
  */
-export async function terminarVerificacion(id: string): Promise<boolean> {
+export async function terminarVerificacion(id: string, sinCookie = false): Promise<boolean> {
   const marcada = await db.verificacion.updateMany({
     where: { id, usadoEn: null, confirmadoEn: { not: null } },
     data: { usadoEn: new Date() },
   });
-  await borrarCookieVerificacion();
+  if (!sinCookie) await borrarCookieVerificacion();
   return marcada.count === 1;
 }
 

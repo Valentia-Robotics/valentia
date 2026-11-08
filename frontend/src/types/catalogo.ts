@@ -27,6 +27,8 @@ export interface ComponenteCatalogo {
   voltaje: number;
   /** Voltios de las señales (3,3 o 5), o null si no tiene señales */
   voltajeLogico: number | null;
+  /** Señales más bajas que también acepta (una pieza de 5 V que funciona con una placa de 3,3 V), o null */
+  voltajeLogicoMin: number | null;
   /** Miliamperios que consume (en una batería: los que puede dar como máximo) */
   consumoMa: number;
   conector: string;

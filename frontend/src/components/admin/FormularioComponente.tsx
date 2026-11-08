@@ -24,6 +24,7 @@ export interface ComponenteFormulario {
   imagen: string;
   voltaje: number;
   voltajeLogico: number | null;
+  voltajeLogicoMin: number | null;
   consumoMa: number;
   conector: string;
   pines: number;
@@ -167,6 +168,14 @@ export function FormularioComponente({
             defaultValue={aTexto(c?.voltajeLogico)}
             error={error("voltajeLogico")}
             ayuda="3,3 o 5. Vacío si no tiene señales."
+          />
+          <CampoAdmin
+            etiqueta="También acepta señales desde (V)"
+            name="voltajeLogicoMin"
+            inputMode="decimal"
+            defaultValue={aTexto(c?.voltajeLogicoMin)}
+            error={error("voltajeLogicoMin")}
+            ayuda="Solo si funciona con placas de menos voltios (por ejemplo 3,3 en una pieza de 5 V). Si no, vacío."
           />
           <CampoAdmin
             etiqueta="Consumo (mA)"

@@ -17,6 +17,7 @@ const catalogo = new Map<string, ComponenteCatalogo>(
       ...c,
       precioCentimos: Math.round(c.precio * 100),
       voltajeLogico: c.voltajeLogico ?? null,
+      voltajeLogicoMin: ("voltajeLogicoMin" in c ? c.voltajeLogicoMin : null) ?? null,
     } as unknown as ComponenteCatalogo,
   ]),
 );
@@ -38,12 +39,23 @@ describe("motor de compatibilidad", () => {
     const d = comprobarRobot([]);
     expect(d.avisos).toEqual([]);
     expect(d.errores).toBe(0);
+    expect(d.avisos.map((a) => a.id)).not.toContain("logica-5v-en-placa-3v3");
   });
 
-  it("el kit del coche seguidor de líneas no tiene errores", () => {
+  it("una pieza que solo va a 5 V sí avisa con la ESP32", () => {
+    expect(ids({ "esp32-devkit": 1, "zumbador-activo": 1 })).toContain("logica-5v-en-placa-3v3");
+  });
+
+  it("las piezas de 3,3 a 5 V tampoco avisan con Arduino", () => {
+    expect(ids({ "arduino-uno-r3": 1, "sensor-ultrasonidos-hc-sr04": 1 })).not.toContain(
+      "logica-3v3-en-placa-5v",
+    );
+  });
+
+  it("el kit del coche seguidor de líneas (con ESP32) no tiene errores ni avisos de voltios", () => {
     const d = comprobarRobot(
       robot({
-        "arduino-uno-r3": 1,
+        "esp32-devkit": 1,
         "driver-motores-l298n": 1,
         "motor-dc-reductora": 2,
         "sensor-linea-tcrt5000": 2,

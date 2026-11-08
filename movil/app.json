@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Valentia",
+    "slug": "valentia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.valentiarobotics.app"
+    },
+    "android": {
+      "package": "com.valentiarobotics.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B0B",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-image",
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Valentia usa la cámara para leer el QR de la tarjeta de tu kit.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "backgroundColor": "#0B0B0B"
+        }
+      ]
+    ],
+    "scheme": "valentia",
+    "backgroundColor": "#F4F4F2",
+    "extra": {
+      "web": "https://valentiarobotics.com"
+    }
+  }
+}

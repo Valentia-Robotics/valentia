@@ -50,6 +50,8 @@ model Componente {
   voltaje          Float
   /// Tensión lógica de las señales (3,3 V o 5 V), si aplica
   voltajeLogico    Float?
+  /// Señales más bajas que acepta (por ejemplo 3,3 en una pieza de 5 V que también va con ESP32), si aplica
+  voltajeLogicoMin Float?
   /// Consumo típico en miliamperios (en una batería: la corriente máxima que puede dar)
   consumoMa        Int
   conector         String

@@ -1,7 +1,7 @@
 /**
  * MODELO 3D DEL COCHE SEGUIDOR DE LÍNEAS (portada)
  * Las piezas reales del kit, hechas con formas sencillas y texturas dibujadas en canvas:
- * chasis de metacrilato, placa UNO, protoboard, driver L298N, dos motores TT amarillos con
+ * chasis de metacrilato, placa ESP32 sobre su base, protoboard, driver L298N, dos motores TT amarillos con
  * sus ruedas, sensor de ultrasonidos HC-SR04, dos sensores de línea, portabaterías con dos baterías 18650 y cables.
  *
  * Medidas: 1 unidad ≈ 8,5 cm. El eje x apunta hacia delante (donde están los sensores),
@@ -33,12 +33,12 @@ import {
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import type { PiezaRobot } from "./piezasRobot";
 import {
-  texturaChip,
   texturaConector,
   texturaDibujoNeumatico,
   texturaDriver,
   texturaPila,
-  texturaPlacaUno,
+  texturaBaseEsp32,
+  texturaEsp32,
   texturaProtoboard,
   texturaRejilla,
   texturaSonar,
@@ -241,15 +241,16 @@ export function crearModeloCoche(): ModeloCoche {
   }
 
   // ------------------------------------------------------------------
-  // PLACA: el «cerebro» (placa UNO sobre separadores) y la protoboard
+  // PLACA: el «cerebro» (ESP32 sobre su base de expansión, con separadores) y la protoboard
   // ------------------------------------------------------------------
   {
     const { mat, malla, tuerca } = crear("placa");
     const cx = 0.38;
     const cz = -0.26;
     const y = 0.085; // cara de arriba de la placa
-    const pcbLado = mat({ color: 0x0c5d77, roughness: 0.6 });
-    const pcbArriba = mat({ map: tx(texturaPlacaUno()), roughness: 0.55 });
+    // Base de expansión negra (con filas de pines G V S) y la ESP32 enchufada encima
+    const pcbLado = mat({ color: 0x15171a, roughness: 0.6 });
+    const pcbArriba = mat({ map: tx(texturaBaseEsp32()), roughness: 0.55 });
     malla(g(new BoxGeometry(0.81, 0.016, 0.63)), caras(pcbLado, pcbArriba), cx, y - 0.008, cz);
     const laton = mat({ color: 0xc9a24a, metalness: 0.9, roughness: 0.3 });
     const sep = g(new CylinderGeometry(0.018, 0.018, 0.07, 10));
@@ -258,92 +259,97 @@ export function crearModeloCoche(): ModeloCoche {
       [0.34, -0.25],
       [-0.34, 0.25],
       [0.34, 0.25],
-    ])
+    ]) {
       malla(sep, laton, cx + dx, 0.04, cz + dz);
-    for (const [dx, dz] of [
-      [-0.34, -0.25],
-      [0.34, -0.25],
-      [-0.34, 0.25],
-      [0.34, 0.25],
-    ])
       tuerca(cx + dx, y - 0.004, cz + dz);
+    }
 
-    // Conector USB (metálico) y conector de alimentación (negro), en el borde de atrás
     const metal = mat({ color: 0xc8ccd2, metalness: 0.95, roughness: 0.22 });
-    malla(g(new BoxGeometry(0.2, 0.12, 0.15)), metal, cx - 0.37, y + 0.06, cz + 0.17);
     const plastico = mat({ color: 0x141414, roughness: 0.5 });
+    // Conector de alimentación (negro) en el borde de atrás
     malla(g(new BoxGeometry(0.18, 0.12, 0.11)), plastico, cx - 0.36, y + 0.06, cz - 0.2);
 
-    // Tiras de conectores hembra a lo largo de los dos bordes
+    // Filas de pines G V S (negro, rojo y amarillo) a lo largo de los dos bordes largos
+    const pin = g(new BoxGeometry(0.014, 0.07, 0.014));
+    const zocalo = g(new BoxGeometry(0.62, 0.025, 0.09));
+    const colores = [0x1b1b1b, 0xc62828, 0xe0b416].map((c) => mat({ color: c, roughness: 0.5 }));
+    for (const lado of [-1, 1]) {
+      malla(zocalo, plastico, cx + 0.06, y + 0.0125, cz + lado * 0.255);
+      for (let i = 0; i < 16; i++)
+        for (let j = 0; j < 3; j++)
+          malla(
+            pin,
+            colores[j],
+            cx + 0.06 - 0.29 + i * 0.039,
+            y + 0.06,
+            cz + lado * (0.255 + (j - 1) * 0.03),
+          );
+    }
+
+    // Zócalos hembra donde se enchufa la ESP32
     const agujeros = tx(texturaConector());
-    agujeros.repeat.set(16, 1);
+    agujeros.repeat.set(15, 1);
     const tiraArriba = mat({ map: agujeros, roughness: 0.6 });
     const tiraLado = mat({ color: 0x151515, roughness: 0.6 });
-    malla(
-      g(new BoxGeometry(0.62, 0.09, 0.03)),
-      caras(tiraLado, tiraArriba),
-      cx + 0.06,
-      y + 0.045,
-      cz + 0.29,
-    );
-    const agujeros2 = tx(texturaConector());
-    agujeros2.repeat.set(14, 1);
-    malla(
-      g(new BoxGeometry(0.52, 0.09, 0.03)),
-      caras(tiraLado, mat({ map: agujeros2, roughness: 0.6 })),
-      cx + 0.1,
-      y + 0.045,
-      cz - 0.29,
-    );
+    for (const lado of [-1, 1])
+      malla(
+        g(new BoxGeometry(0.46, 0.08, 0.035)),
+        caras(tiraLado, tiraArriba),
+        cx + 0.04,
+        y + 0.04,
+        cz + lado * 0.13,
+      );
 
-    // Microcontrolador en su zócalo, con sus patas
-    const chip = mat({ map: tx(texturaChip("ATMEGA328P")), roughness: 0.45 });
+    // La ESP32 DevKit: placa negra, módulo con blindaje metálico y antena, USB y dos botones
+    const yE = y + 0.09;
+    const placaE = mat({ map: tx(texturaEsp32()), roughness: 0.5 });
+    const ladoE = mat({ color: 0x101214, roughness: 0.55 });
+    malla(g(new BoxGeometry(0.65, 0.016, 0.33)), caras(ladoE, placaE), cx + 0.04, yE, cz);
+    malla(g(new BoxGeometry(0.3, 0.012, 0.21)), ladoE, cx + 0.22, yE + 0.012, cz);
     malla(
-      g(new BoxGeometry(0.42, 0.045, 0.1)),
-      caras(mat({ color: 0x141414, roughness: 0.45 }), chip),
-      cx + 0.14,
-      y + 0.04,
-      cz - 0.12,
+      g(new BoxGeometry(0.21, 0.035, 0.19)),
+      mat({ color: 0xc4c8cd, metalness: 0.9, roughness: 0.3 }),
+      cx + 0.18,
+      yE + 0.03,
+      cz,
     );
-    malla(g(new BoxGeometry(0.44, 0.015, 0.13)), plastico, cx + 0.14, y + 0.01, cz - 0.12);
-    const pata = g(new BoxGeometry(0.012, 0.03, 0.018));
-    for (let i = 0; i < 14; i++) {
-      const px = cx + 0.14 - 0.19 + i * 0.029;
-      malla(pata, metal, px, y + 0.025, cz - 0.12 + 0.058);
-      malla(pata, metal, px, y + 0.025, cz - 0.12 - 0.058);
+    // Antena impresa (zigzag dorado sobre la placa del módulo)
+    malla(
+      g(new BoxGeometry(0.06, 0.004, 0.17)),
+      mat({ color: 0xc9a24a, metalness: 0.8, roughness: 0.35 }),
+      cx + 0.33,
+      yE + 0.02,
+      cz,
+    );
+    malla(g(new BoxGeometry(0.08, 0.035, 0.09)), metal, cx - 0.27, yE + 0.025, cz);
+    for (const dz of [-0.08, 0.08]) {
+      malla(g(new BoxGeometry(0.05, 0.02, 0.04)), metal, cx - 0.2, yE + 0.015, cz + dz);
+      malla(
+        g(new CylinderGeometry(0.012, 0.012, 0.02, 12)),
+        plastico,
+        cx - 0.2,
+        yE + 0.03,
+        cz + dz,
+      );
     }
-    // Cristal, condensadores, botón de reinicio, chip USB y pines ICSP
-    malla(
-      g(new RoundedBoxGeometry(0.08, 0.03, 0.035, 2, 0.012)),
-      metal,
-      cx - 0.08,
-      y + 0.015,
-      cz - 0.03,
-    );
-    const condensador = g(new CylinderGeometry(0.03, 0.03, 0.07, 18));
-    malla(condensador, metal, cx - 0.22, y + 0.035, cz - 0.04);
-    malla(condensador, metal, cx - 0.22, y + 0.035, cz - 0.11);
-    malla(g(new BoxGeometry(0.05, 0.03, 0.05)), metal, cx - 0.3, y + 0.015, cz + 0.02);
-    malla(
-      g(new CylinderGeometry(0.015, 0.015, 0.02, 12)),
-      mat({ color: 0xd8c9a8 }),
-      cx - 0.3,
-      y + 0.035,
-      cz + 0.02,
-    );
-    malla(g(new BoxGeometry(0.07, 0.015, 0.07)), plastico, cx - 0.18, y + 0.008, cz + 0.12);
-    const pin = g(new BoxGeometry(0.012, 0.07, 0.012));
-    const dorado = mat({ color: 0xd8b65a, metalness: 0.9, roughness: 0.3 });
-    for (let i = 0; i < 3; i++)
-      for (let j = 0; j < 2; j++)
-        malla(pin, dorado, cx + 0.36 - j * 0.03, y + 0.035, cz + i * 0.03 - 0.03);
-    // Luz de encendido (verde)
+    // Chip USB y regulador
+    malla(g(new BoxGeometry(0.06, 0.015, 0.06)), plastico, cx - 0.08, yE + 0.012, cz - 0.07);
+    malla(g(new BoxGeometry(0.07, 0.018, 0.04)), plastico, cx - 0.1, yE + 0.012, cz + 0.08);
+
+    // Luces: encendido (roja) y la azul de la ESP32
     malla(
       g(new BoxGeometry(0.02, 0.012, 0.012)),
-      mat({ color: 0x5dff7a, emissive: 0x2bff55, emissiveIntensity: 1.5 }),
-      cx + 0.27,
-      y + 0.006,
-      cz - 0.04,
+      mat({ color: 0xff5a4f, emissive: 0xff2b20, emissiveIntensity: 1.5 }),
+      cx - 0.02,
+      yE + 0.014,
+      cz - 0.12,
+    );
+    malla(
+      g(new BoxGeometry(0.02, 0.012, 0.012)),
+      mat({ color: 0x6f9bff, emissive: 0x3d7bff, emissiveIntensity: 1.5 }),
+      cx - 0.02,
+      yE + 0.014,
+      cz + 0.12,
     );
 
     // Protoboard pequeña, delante a la derecha
@@ -619,7 +625,7 @@ export function crearModeloCoche(): ModeloCoche {
     };
     const R = 0xd8262b;
     const N = 0x1b1b1b;
-    // Placa UNO → protoboard (5 V y GND)
+    // Base de la ESP32 → protoboard (5 V y GND)
     cable(R, [
       [0.3, 0.18, -0.55],
       [0.45, 0.24, -0.2],
@@ -642,7 +648,7 @@ export function crearModeloCoche(): ModeloCoche {
         [0.92, 0.11, 0.3 + i * 0.04],
       ]);
     });
-    // Pines digitales de la placa UNO → entradas del driver
+    // Pines de la base de la ESP32 → entradas del driver
     [0xff8a1f, 0xf2c218, 0x26a65b, 0x3166ff].forEach((color, i) => {
       const x = 0.32 + i * 0.03;
       cable(color, [
@@ -696,7 +702,7 @@ export function crearModeloCoche(): ModeloCoche {
       ],
       false,
     );
-    // Sensores de línea → placa UNO: van por debajo y suben por una ranura del chasis
+    // Sensores de línea → base de la ESP32: van por debajo y suben por una ranura del chasis
     [0x8e44ad, 0xe8e8e8].forEach((color, i) => {
       const z = -0.16 + i * 0.32;
       cable(color, [

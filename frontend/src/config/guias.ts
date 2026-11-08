@@ -102,7 +102,7 @@ export const guias: Guia[] = [
     descripcion:
       "Diferencias entre Arduino UNO y ESP32 explicadas sin tecnicismos: potencia, voltaje, wifi, precio y para qué proyectos conviene cada una.",
     publicada: "2026-10-30",
-    actualizada: "2026-10-30",
+    actualizada: "2026-11-08",
     minutos: 5,
     entradilla:
       "Arduino UNO y ESP32 son las dos placas más populares para aprender electrónica y programación. Se programan casi igual, con el mismo programa (el IDE de Arduino), pero no son iguales. Esta es la diferencia que de verdad importa.",
@@ -118,7 +118,7 @@ export const guias: Guia[] = [
         titulo: "ESP32: más potencia y wifi",
         parrafos: [
           "La ESP32 tiene dos núcleos a 240 MHz, mucha más memoria y, sobre todo, wifi y Bluetooth integrados. Con ella puedes ver los datos de un sensor en el móvil o controlar algo desde casa sin cables.",
-          "La diferencia que hay que tener en cuenta es que trabaja a 3,3 V. La mayoría de sensores modernos lo aceptan, pero algunos módulos antiguos de 5 V necesitan un adaptador. Es la placa de nuestra [estación meteorológica](/kits/estacion-meteorologica), que lee temperatura, humedad, presión y luz.",
+          "La diferencia que hay que tener en cuenta es que trabaja a 3,3 V. La mayoría de sensores modernos lo aceptan, pero algunos módulos antiguos de 5 V necesitan un adaptador. Es la placa de nuestro [coche seguidor de líneas](/kits/coche-seguidor-de-lineas), que gracias al Bluetooth se puede conectar con el móvil, y de nuestra [estación meteorológica](/kits/estacion-meteorologica), que lee temperatura, humedad, presión y luz.",
         ],
       },
       {
@@ -149,7 +149,7 @@ export const guias: Guia[] = [
     descripcion:
       "Qué piezas lleva un coche seguidor de líneas, cómo detecta la línea negra con sensores infrarrojos y cómo decide hacia dónde girar.",
     publicada: "2026-10-30",
-    actualizada: "2026-10-30",
+    actualizada: "2026-11-08",
     minutos: 6,
     entradilla:
       "Un robot seguidor de líneas es un pequeño coche que recorre un camino dibujado en el suelo, normalmente una línea negra sobre fondo blanco. Es el proyecto clásico para empezar en robótica porque junta todo lo básico: sensores, motores y un programa que toma decisiones.",
@@ -162,7 +162,7 @@ export const guias: Guia[] = [
           "Dos motores de corriente continua con reductora (los típicos motores amarillos).",
           "Un driver de motores, como el L298N, porque la placa no puede dar la corriente que piden los motores.",
           "Dos o más sensores de línea infrarrojos, como el TCRT5000, mirando al suelo.",
-          "Una placa, como Arduino UNO, que lee los sensores y manda a los motores.",
+          "Una placa, como Arduino UNO o ESP32, que lee los sensores y manda a los motores.",
           "Pilas o batería para que funcione sin cables.",
         ],
       },
@@ -210,7 +210,7 @@ export const guias: Guia[] = [
     descripcion:
       "Cómo funciona el sensor HC-SR04, cómo calcula la distancia con el eco y para qué se usa en robótica: esquivar obstáculos, medir niveles y más.",
     publicada: "2026-10-30",
-    actualizada: "2026-10-30",
+    actualizada: "2026-11-08",
     minutos: 4,
     entradilla:
       "El HC-SR04 es ese sensor con dos «ojos» redondos que aparece en casi todos los robots caseros. No ve como una cámara: mide distancias igual que un murciélago, con sonido.",
@@ -231,7 +231,7 @@ export const guias: Guia[] = [
       {
         titulo: "Cómo se conecta",
         parrafos: [
-          "Tiene cuatro pines: VCC (alimentación a 5 V), GND (tierra), TRIG (la placa le pide que dispare el pitido) y ECHO (el sensor avisa de cuánto ha tardado el eco). Con una Arduino UNO se conecta directamente. Con una ESP32, que trabaja a 3,3 V, conviene bajar la tensión de la señal ECHO con dos resistencias.",
+          "Tiene cuatro pines: VCC (alimentación a 5 V), GND (tierra), TRIG (la placa le pide que dispare el pitido) y ECHO (el sensor avisa de cuánto ha tardado el eco). Con una Arduino UNO se conecta directamente. Con una ESP32, que trabaja a 3,3 V, conviene bajar la tensión de la señal ECHO con dos resistencias, o usar la versión HC-SR04P, que funciona a 3,3 V y a 5 V. Es la que lleva nuestro [coche seguidor de líneas](/kits/coche-seguidor-de-lineas).",
         ],
       },
       {

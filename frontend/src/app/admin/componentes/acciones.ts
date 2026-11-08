@@ -40,6 +40,7 @@ export async function guardarComponente(
     stock: texto(formulario, "stock"),
     voltaje: texto(formulario, "voltaje"),
     voltajeLogico: texto(formulario, "voltajeLogico"),
+    voltajeLogicoMin: texto(formulario, "voltajeLogicoMin"),
     consumoMa: texto(formulario, "consumoMa"),
     conector: texto(formulario, "conector"),
     pines: texto(formulario, "pines"),

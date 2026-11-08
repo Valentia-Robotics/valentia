@@ -99,6 +99,7 @@ function componenteDeFila(fila: FilaComponente): ComponenteCatalogo {
     imagen: fila.imagen,
     voltaje: fila.voltaje,
     voltajeLogico: fila.voltajeLogico,
+    voltajeLogicoMin: fila.voltajeLogicoMin,
     consumoMa: fila.consumoMa,
     conector: fila.conector,
     pines: fila.pines,

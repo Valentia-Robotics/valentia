@@ -84,9 +84,15 @@ function comprobarVoltaje(regla: ReglaVoltaje, piezas: PiezaConDatos[]): Aviso |
   });
   const voltajeFuente = fuente.componente[regla.campo] ?? 0;
 
+  // Una pieza de 5 V que también acepta señales de 3,3 V (voltajeLogicoMin) no avisa con una placa de 3,3 V
+  const voltajeDe = (c: PiezaConDatos["componente"]) =>
+    regla.campo === "voltajeLogico" && regla.caso === "defecto"
+      ? (c.voltajeLogicoMin ?? c.voltajeLogico)
+      : c[regla.campo];
+
   const afectadas = piezas.filter((p) => {
     if (p === fuente || !coincide(p.componente, regla.piezas)) return false;
-    const voltajePieza = p.componente[regla.campo];
+    const voltajePieza = voltajeDe(p.componente);
     if (voltajePieza == null || voltajePieza === 0) return false;
     return regla.caso === "exceso"
       ? voltajeFuente > voltajePieza * (1 + regla.margen)
@@ -98,7 +104,7 @@ function comprobarVoltaje(regla: ReglaVoltaje, piezas: PiezaConDatos[]): Aviso |
     piezas: listaNombres(afectadas),
     fuente: fuente.componente.nombre,
     voltajeFuente: formatearNumero(voltajeFuente),
-    voltajePieza: formatearNumero(afectadas[0].componente[regla.campo] ?? 0),
+    voltajePieza: formatearNumero(voltajeDe(afectadas[0].componente) ?? 0),
   });
 }
 

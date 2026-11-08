@@ -34,6 +34,7 @@ export const esquemaComponente = z.object({
   imagen: rutaImagen,
   voltaje: z.number().min(0),
   voltajeLogico: z.number().positive().nullable(),
+  voltajeLogicoMin: z.number().positive().nullable().default(null),
   consumoMa: z.number().int().min(0),
   conector: z.string().min(1),
   pines: z.number().int().min(0),

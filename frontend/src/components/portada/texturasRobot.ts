@@ -53,6 +53,36 @@ function texto(
   ctx.fillText(cadena, x, y);
 }
 
+/** Base de expansión de la ESP32: placa negra con las filas de pines G V S rotuladas */
+export const texturaBaseEsp32 = () =>
+  textura(640, 500, (ctx, w, h) => {
+    ctx.fillStyle = "#141619";
+    ctx.fillRect(0, 0, w, h);
+    pistas(ctx, w, h, "rgba(140,150,165,0.2)");
+    ctx.fillStyle = "#eef1f4";
+    ctx.strokeStyle = "#eef1f4";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(10, 10, w - 20, h - 20);
+    texto(ctx, "G V S", 40, 70, 18);
+    texto(ctx, "G V S", 40, h - 70, 18);
+    texto(ctx, "ESP32 IO", w * 0.5, h * 0.5, 30, 800, "center");
+    texto(ctx, "5V  3V3  GND", w * 0.2, h * 0.5, 16, 600, "center");
+  });
+
+/** ESP32 DevKit: placa negra con los nombres de los pines en los bordes */
+export const texturaEsp32 = () =>
+  textura(560, 290, (ctx, w, h) => {
+    ctx.fillStyle = "#101214";
+    ctx.fillRect(0, 0, w, h);
+    pistas(ctx, w, h, "rgba(120,130,140,0.18)");
+    ctx.fillStyle = "#e9ecef";
+    const arriba = ["3V3", "GND", "15", "2", "4", "16", "17", "5", "18", "19", "21", "22"];
+    const abajo = ["VIN", "GND", "13", "12", "14", "27", "26", "25", "33", "32", "35", "34"];
+    arriba.forEach((t, i) => texto(ctx, t, 40 + i * 30, 28, 11, 600, "center"));
+    abajo.forEach((t, i) => texto(ctx, t, 40 + i * 30, h - 28, 11, 600, "center"));
+    texto(ctx, "ESP32 DEVKIT", 150, h / 2, 22, 700, "center");
+  });
+
 /** Placa tipo «UNO»: azul, con serigrafía blanca (sin logotipos de marcas) */
 export const texturaPlacaUno = () =>
   textura(640, 500, (ctx, w, h) => {
@@ -100,7 +130,7 @@ export const texturaSonar = () =>
     ctx.fillRect(0, 0, w, h);
     pistas(ctx, w, h, "rgba(140,180,255,0.22)");
     ctx.fillStyle = "#f3f6ff";
-    texto(ctx, "HC-SR04", w * 0.5, h * 0.18, 30, 800, "center");
+    texto(ctx, "HC-SR04P", w * 0.5, h * 0.18, 30, 800, "center");
     texto(ctx, "T", w * 0.14, h * 0.86, 22, 700, "center");
     texto(ctx, "R", w * 0.86, h * 0.86, 22, 700, "center");
     texto(ctx, "VCC  TRIG  ECHO  GND", w * 0.5, h * 0.88, 15, 600, "center");
