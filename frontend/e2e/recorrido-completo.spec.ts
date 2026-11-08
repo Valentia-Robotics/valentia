@@ -41,7 +41,9 @@ test("recorrido completo: de la cuenta nueva al test de la primera lección", as
       .first()
       .click();
     await page.goto("/carrito");
-    await expect(page.getByText("Coche seguidor de líneas").first()).toBeVisible();
+    await expect(
+      page.getByText("Kit de coche robótico multifunción VR1 - Starter Kit").first(),
+    ).toBeVisible();
     await expect(page.getByText(/IVA incluido \(21 %\)/)).toBeVisible();
     await page.getByRole("link", { name: "Tramitar pedido" }).click();
   });

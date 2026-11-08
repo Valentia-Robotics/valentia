@@ -65,7 +65,7 @@ model Componente {
   enKits KitComponente[]
 }
 
-/// Un kit cerrado de Valentia (por ejemplo, el coche seguidor de líneas)
+/// Un kit cerrado de Valentia (por ejemplo, el coche robótico VR1)
 model Kit {
   id             String  @id @default(auto()) @map("_id") @db.ObjectId
   slug           String  @unique

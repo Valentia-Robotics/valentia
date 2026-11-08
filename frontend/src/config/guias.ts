@@ -111,14 +111,14 @@ export const guias: Guia[] = [
         titulo: "Arduino UNO: la clásica",
         parrafos: [
           "La Arduino UNO lleva un microcontrolador ATmega328P a 16 MHz. Es poco potente comparada con un móvil, pero de sobra para mover motores, leer sensores y encender luces. Su gran ventaja es que funciona a 5 V, igual que la mayoría de módulos para principiantes, así que casi todo se conecta directamente.",
-          "Es robusta, aguanta bastante bien los errores de conexión y tiene la mayor cantidad de ejemplos y tutoriales de internet. Por eso la usamos en el [coche seguidor de líneas](/kits/coche-seguidor-de-lineas) y en el [brazo robótico](/kits/brazo-robotico).",
+          "Es robusta, aguanta bastante bien los errores de conexión y tiene la mayor cantidad de ejemplos y tutoriales de internet. Por eso la usamos en el [brazo robótico](/kits/brazo-robotico).",
         ],
       },
       {
         titulo: "ESP32: más potencia y wifi",
         parrafos: [
           "La ESP32 tiene dos núcleos a 240 MHz, mucha más memoria y, sobre todo, wifi y Bluetooth integrados. Con ella puedes ver los datos de un sensor en el móvil o controlar algo desde casa sin cables.",
-          "La diferencia que hay que tener en cuenta es que trabaja a 3,3 V. La mayoría de sensores modernos lo aceptan, pero algunos módulos antiguos de 5 V necesitan un adaptador. Es la placa de nuestro [coche seguidor de líneas](/kits/coche-seguidor-de-lineas), que gracias al Bluetooth se puede conectar con el móvil, y de nuestra [estación meteorológica](/kits/estacion-meteorologica), que lee temperatura, humedad, presión y luz.",
+          "La diferencia que hay que tener en cuenta es que trabaja a 3,3 V. La mayoría de sensores modernos lo aceptan, pero algunos módulos antiguos de 5 V necesitan un adaptador. Es la placa de nuestro [coche robótico multifunción VR1](/kits/coche-seguidor-de-lineas), que gracias al Bluetooth se puede conectar con el móvil, y de nuestra [estación meteorológica](/kits/estacion-meteorologica), que lee temperatura, humedad, presión y luz.",
         ],
       },
       {
@@ -192,7 +192,7 @@ export const guias: Guia[] = [
       {
         titulo: "Para ir más allá",
         parrafos: [
-          "Cuando el robot ya sigue la línea, el siguiente paso es añadir un [sensor de ultrasonidos](/guias/sensor-de-ultrasonidos-hc-sr04) para que se pare si encuentra un obstáculo en el camino. Es exactamente lo que se hace en la última lección del curso del [coche seguidor de líneas](/kits/coche-seguidor-de-lineas).",
+          "Cuando el robot ya sigue la línea, el siguiente paso es añadir un [sensor de ultrasonidos](/guias/sensor-de-ultrasonidos-hc-sr04) para que se pare si encuentra un obstáculo en el camino. Es exactamente lo que se hace en la última lección del curso del [coche robótico multifunción VR1](/kits/coche-seguidor-de-lineas).",
         ],
       },
     ],
@@ -231,7 +231,7 @@ export const guias: Guia[] = [
       {
         titulo: "Cómo se conecta",
         parrafos: [
-          "Tiene cuatro pines: VCC (alimentación a 5 V), GND (tierra), TRIG (la placa le pide que dispare el pitido) y ECHO (el sensor avisa de cuánto ha tardado el eco). Con una Arduino UNO se conecta directamente. Con una ESP32, que trabaja a 3,3 V, conviene bajar la tensión de la señal ECHO con dos resistencias, o usar la versión HC-SR04P, que funciona a 3,3 V y a 5 V. Es la que lleva nuestro [coche seguidor de líneas](/kits/coche-seguidor-de-lineas).",
+          "Tiene cuatro pines: VCC (alimentación a 5 V), GND (tierra), TRIG (la placa le pide que dispare el pitido) y ECHO (el sensor avisa de cuánto ha tardado el eco). Con una Arduino UNO se conecta directamente. Con una ESP32, que trabaja a 3,3 V, conviene bajar la tensión de la señal ECHO con dos resistencias, o usar la versión HC-SR04P, que funciona a 3,3 V y a 5 V. Es la que lleva nuestro [coche robótico multifunción VR1](/kits/coche-seguidor-de-lineas).",
         ],
       },
       {

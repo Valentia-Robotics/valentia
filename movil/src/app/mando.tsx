@@ -127,7 +127,7 @@ export default function Mando() {
 
         {!permitido ? (
           <Text style={estilos.ayuda}>
-            El mando se desbloquea con el código del kit del coche. Añádelo
+            El mando se desbloquea con el código del VR1 - Starter Kit. Añádelo
             desde «Mis kits».
           </Text>
         ) : !conectado ? (

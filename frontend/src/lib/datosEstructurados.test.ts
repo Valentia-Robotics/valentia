@@ -3,7 +3,7 @@ import { datosKit, datosTienda, urlAbsoluta } from "./datosEstructurados";
 
 const kit = {
   slug: "coche-seguidor",
-  nombre: "Coche seguidor de líneas",
+  nombre: "Kit de coche robótico multifunción VR1 - Starter Kit",
   eslogan: "Tu primer robot",
   descripcion: "",
   imagen: "/images/kits/coche.svg",

@@ -18,6 +18,12 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Nombre del coche (08-11-2026, rama `claude/project-thread-4lji9k`)
+
+Decisión de Jesse: el kit del coche se llama **«Kit de coche robótico multifunción VR1 - Starter Kit»** (con guion, no dos
+puntos). El slug `coche-seguidor-de-lineas` NO cambia (enlaces, QR y fotos siguen igual). En producción el nombre se
+cambia a mano en `/admin/kits` (seed:prod no modifica lo que existe). En textos corridos: «coche robótico multifunción VR1».
+
 ### App del móvil y coche con ESP32 (08-11-2026, rama `claude/project-thread-r9yhy3`)
 
 Decisión de Jesse: app para Google Play (luego App Store) que funcione como la web: el código del kit desbloquea sus
