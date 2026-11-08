@@ -53,7 +53,14 @@ const estilos = StyleSheet.create({
     borderWidth: 1,
     borderColor: color.linea,
   },
-  foto: { width: "100%", aspectRatio: 1.9, backgroundColor: color.niebla },
+  // La foto entera dentro del marco (contain): el coche es más ancho que alto y con «cover» se cortaba
+  marcoFoto: {
+    width: "100%",
+    aspectRatio: 1.9,
+    backgroundColor: color.niebla,
+    padding: espacio.m,
+  },
+  foto: { flex: 1 },
   nombre: { fontSize: 19, fontWeight: "700", color: color.tinta },
   texto: { fontSize: 14, color: color.gris },
   barra: {

@@ -26,6 +26,7 @@ export default function Marco() {
           <Stack.Screen name="codigo" options={{ title: "" }} />
           <Stack.Screen name="kits/index" options={{ headerShown: false }} />
           <Stack.Screen name="kits/[slug]" options={{ title: "" }} />
+          <Stack.Screen name="mando" options={{ headerShown: false }} />
           <Stack.Screen
             name="activar"
             options={{ title: "Añadir un kit", presentation: "modal" }}

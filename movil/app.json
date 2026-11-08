@@ -8,7 +8,13 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.valentiarobotics.app"
+      "bundleIdentifier": "com.valentiarobotics.app",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Valentia se conecta por wifi con tu robot para manejarlo con el mando.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "package": "com.valentiarobotics.app",
@@ -41,6 +47,22 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 120,
           "backgroundColor": "#0B0B0B"
+        }
+      ],
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "neverForLocation": true,
+          "bluetoothAlwaysPermission": "Valentia usa el Bluetooth para conectar el mando con tu robot."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ],

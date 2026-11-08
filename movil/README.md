@@ -13,7 +13,18 @@ Está hecha con **Expo** (React Native): el mismo código sirve para Android y p
 - **Añadir un kit**: escanear el QR de la tarjeta con la cámara o escribir el código `VAL-XXXX-XXXX`.
   Es el mismo código que en la web: si ya lo activaste allí, el kit ya sale en la app.
 - **Ficha del kit**: sus funciones (control remoto del coche, mover el brazo, el tiempo de la estación…).
-  De momento salen como «Muy pronto»; el curso se abre en la web.
+  Las que aún no están hechas salen como «Muy pronto»; el curso se abre en la web.
+- **Mando del coche** (kit del coche): joystick, velocidad (Tortuga, Normal, Turbo), modos (conduces tú, sigue la
+  línea, esquiva solo), distancia al obstáculo y botón PARAR. Habla con la ESP32 del coche por **wifi** o **Bluetooth**.
+  El programa del coche está en `firmware/coche-esp32/` (instrucciones en su README).
+
+### Probar el mando
+
+- **Por wifi** (funciona en Expo Go): enciende el coche, conecta el móvil a la red `Valentia-Coche-XXXX`
+  (contraseña `valentia`; si Android avisa de «sin internet», elige «Mantener conexión») y pulsa «Wifi» en el mando.
+- **Por Bluetooth**: Expo Go no trae Bluetooth. Hace falta una «development build»:
+  `npx eas-cli@latest build --profile development --platform android` (cuenta gratis en expo.dev) e instalar el APK.
+- Sin coche: `EXPO_PUBLIC_COCHE_WS=ws://IP-del-ordenador:8181 npm start` con un simulador de WebSocket.
 
 Qué desbloquea cada kit se decide en la web: `frontend/src/config/app.ts`.
 
@@ -56,5 +67,8 @@ compila en la nube.
   «dispositivo de confianza» (sale en «Mis dispositivos» de la web y se puede cerrar desde allí).
 - Comprobar antes de subir: `npm run tipos` y `npm run lint`.
 - Paquetes: siempre con `npx expo install <paquete>` (elige la versión que va con el SDK de Expo).
-- El Bluetooth (control remoto del coche con ESP32) necesitará una «development build» (`eas build --profile
-  development`), porque Expo Go no trae Bluetooth.
+- Mando: `src/app/mando.tsx`, `src/componentes/Joystick.tsx` y `src/control/` (protocolo de texto, una orden por
+  línea, igual por wifi y Bluetooth: `protocolo.ts`; `conexionWifi.ts` WebSocket a `ws://192.168.4.1:81/`;
+  `conexionBluetooth.ts` con react-native-ble-plx, servicio Nordic UART; `useMando.ts` manda `M izq der` cada 150 ms).
+  El coche se para si pasa medio segundo sin recibir nada. Pruebas del protocolo: `npm test`.
+- El Bluetooth necesita una «development build» (`eas build --profile development`), porque Expo Go no lo trae.
