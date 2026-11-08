@@ -18,7 +18,7 @@ import { cargarCatalogo, crearClienteScripts } from "./catalogo";
  * Cada vez que ejecutas el seed vuelven a quedar sin usar.
  */
 const CODIGOS_DE_PRUEBA: Record<string, string[]> = {
-  "coche-seguidor-de-lineas": ["VAL-PRUE-CAR2", "VAL-PRUE-CAR3"],
+  "vr1-starter-kit": ["VAL-PRUE-CAR2", "VAL-PRUE-CAR3"],
   "brazo-robotico": ["VAL-PRUE-BRZ2", "VAL-PRUE-BRZ3"],
   "estacion-meteorologica": ["VAL-PRUE-MET2", "VAL-PRUE-MET3"],
 };

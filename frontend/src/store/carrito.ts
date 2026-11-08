@@ -8,6 +8,7 @@
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { KITS_RENOMBRADOS, slugKitActual } from "@/config/kitsRenombrados";
 import type { ArticuloCarrito } from "@/types/carrito";
 
 const CANTIDAD_MAXIMA = 99;
@@ -71,13 +72,17 @@ export const useCarrito = create<EstadoCarrito>()(
     }),
     {
       name: "valentia-carrito", // nombre con el que se guarda en el navegador
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       // Carritos guardados con la versión 1 (antes de la fase 4): rellenamos slug y piezas a partir del id
       migrate: (guardado, version) => {
         const estado = guardado as { articulos?: ArticuloCarrito[] };
         if (version < 2) {
           estado.articulos = (estado.articulos ?? []).map(completarArticuloAntiguo);
+        }
+        // Versión 3: kits que cambiaron de slug (src/config/kitsRenombrados.ts)
+        if (version < 3) {
+          estado.articulos = (estado.articulos ?? []).map(actualizarKitRenombrado);
         }
         return estado as EstadoCarrito;
       },
@@ -96,6 +101,18 @@ function completarArticuloAntiguo(a: ArticuloCarrito): ArticuloCarrito {
     return { ...a, piezas };
   }
   return { ...a, slug: resto };
+}
+
+/** Pone el slug nuevo (y su id y su foto) a un kit guardado con el slug viejo */
+function actualizarKitRenombrado(a: ArticuloCarrito): ArticuloCarrito {
+  if (a.tipo !== "kit" || !a.slug || !Object.hasOwn(KITS_RENOMBRADOS, a.slug)) return a;
+  const nuevo = slugKitActual(a.slug);
+  return {
+    ...a,
+    id: `kit:${nuevo}`,
+    slug: nuevo,
+    imagen: a.imagen?.replace(`/${a.slug}.`, `/${nuevo}.`),
+  };
 }
 
 /* ---------- Cálculos (selectores) ---------- */

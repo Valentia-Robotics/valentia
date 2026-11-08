@@ -29,7 +29,7 @@ test("tienda: todas las páginas públicas sin errores", async ({ page }) => {
     problemas,
   );
   for (const ruta of [
-    "/kits/coche-seguidor-de-lineas",
+    "/kits/vr1-starter-kit",
     "/legal/aviso-legal",
     "/legal/privacidad",
     "/legal/cookies",

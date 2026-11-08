@@ -4,7 +4,7 @@ import { TAMANO_REDES, TarjetaRedes, fotoRedes } from "@/lib/imagenRedes";
 
 /**
  * Imagen que aparece al compartir la web en redes sociales y mensajería (1200 × 630).
- * Se genera al compilar con la foto 3D del coche (public/images/redes/kits/coche-seguidor-de-lineas.png).
+ * Se genera al compilar con la foto 3D del coche (public/images/redes/kits/vr1-starter-kit.png).
  * Cada kit tiene la suya en src/app/(tienda)/kits/[slug]/opengraph-image.tsx.
  */
 export const alt = `${marca.nombre}: kits de robótica con curso incluido`;
@@ -18,7 +18,7 @@ export default async function ImagenParaRedes() {
       titulo="Construye tu propio robot."
       subtitulo="Todas las piezas y un curso en vídeo. No hace falta saber programar."
       pie={new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://valentiarobotics.com").host}
-      foto={await fotoRedes("images/redes/kits/coche-seguidor-de-lineas.png")}
+      foto={await fotoRedes("images/redes/kits/vr1-starter-kit.png")}
     />,
     size,
   );

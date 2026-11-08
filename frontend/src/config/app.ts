@@ -24,7 +24,7 @@ const CURSO: FuncionApp = {
 
 /** Funciones de cada kit, por su slug. Un kit que no está aquí solo trae su curso. */
 export const FUNCIONES_POR_KIT: Record<string, FuncionApp[]> = {
-  "coche-seguidor-de-lineas": [
+  "vr1-starter-kit": [
     {
       id: "control-remoto",
       titulo: "Control remoto",

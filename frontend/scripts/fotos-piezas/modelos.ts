@@ -1701,7 +1701,7 @@ function cajaEstacion(t: Taller) {
  */
 export const KITS: Record<string, Modelo> = {
   // El coche de la portada, montado
-  "coche-seguidor-de-lineas": {
+  "vr1-starter-kit": {
     encuadre: { elevacion: 22, azimut: 38, margen: 1.02 },
     construir(t) {
       t.grupo.add(crearModeloCoche().raiz);

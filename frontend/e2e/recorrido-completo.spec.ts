@@ -26,7 +26,7 @@ test("recorrido completo: de la cuenta nueva al test de la primera lección", as
   });
 
   await test.step("monta un robot en el configurador y lo añade al carrito", async () => {
-    await page.goto("/configurador?kit=coche-seguidor-de-lineas");
+    await page.goto("/configurador?kit=vr1-starter-kit");
     const anadir = page
       .getByRole("button", { name: /añadir al carrito/i })
       .filter({ visible: true });
@@ -35,7 +35,7 @@ test("recorrido completo: de la cuenta nueva al test de la primera lección", as
   });
 
   await test.step("añade también el kit (que trae curso)", async () => {
-    await page.goto("/kits/coche-seguidor-de-lineas");
+    await page.goto("/kits/vr1-starter-kit");
     await page
       .getByRole("button", { name: /añadir/i })
       .first()

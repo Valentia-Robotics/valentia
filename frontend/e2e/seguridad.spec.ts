@@ -54,6 +54,6 @@ test("un código postal de fuera de la zona muestra un mensaje amable", async ({
 test("SEO: robots.txt y sitemap.xml", async ({ request }) => {
   expect(await (await request.get("/robots.txt")).text()).toContain("Sitemap:");
   const sitemap = await (await request.get("/sitemap.xml")).text();
-  expect(sitemap).toContain("/kits/coche-seguidor-de-lineas");
+  expect(sitemap).toContain("/kits/vr1-starter-kit");
   expect(sitemap).not.toContain("/admin");
 });

@@ -406,7 +406,7 @@ function circuito(): Forma[] {
 }
 
 const DIBUJOS: Record<string, () => Forma[]> = {
-  "coche-seguidor-de-lineas": coche,
+  "vr1-starter-kit": coche,
   "brazo-robotico": brazo,
   "estacion-meteorologica": estacion,
 };
