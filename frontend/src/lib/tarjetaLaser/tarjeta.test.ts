@@ -5,7 +5,10 @@ import { poligonosDe } from "./fusion";
 import { tarjetaLaserSvg } from "./tarjeta";
 import { crearZip } from "./zip";
 
-const datos = (codigo: string, nombreKit = "Coche seguidor de líneas") => ({
+const datos = (
+  codigo: string,
+  nombreKit = "Kit de coche robótico multifunción VR1 - Starter Kit",
+) => ({
   codigo,
   nombreKit,
   url: `https://valentia.test/activar?codigo=${codigo}`,

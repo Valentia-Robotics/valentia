@@ -96,7 +96,7 @@ export function TarjetaRedes({
           </div>
           <div
             style={{
-              fontSize: titulo.length > 26 ? 58 : 70,
+              fontSize: titulo.length > 40 ? 46 : titulo.length > 26 ? 58 : 70,
               lineHeight: 1.05,
               color: "#0b0b0b",
               fontWeight: 600,
