@@ -27,7 +27,7 @@
     "categoria": "PLACAS",
     "tipo": "placa",
     "resumen": "Potente, con wifi y Bluetooth integrados.",
-    "descripcion": "Una placa muy rápida con wifi y Bluetooth. Ideal para proyectos conectados, como enviar al móvil los datos de una estación meteorológica. Ojo: sus pines trabajan a 3,3 V.",
+    "descripcion": "Una placa muy rápida con wifi y Bluetooth. Ideal para proyectos conectados: manejar tu coche desde el móvil o enviarle los datos de una estación meteorológica. Ojo: sus pines trabajan a 3,3 V.",
     "precio": 12.9,
     "stock": 35,
     "imagen": "/images/componentes/esp32-devkit.svg",
@@ -121,6 +121,7 @@
     "imagen": "/images/componentes/driver-motores-l298n.svg",
     "voltaje": 12,
     "voltajeLogico": 5,
+    "voltajeLogicoMin": 3.3,
     "consumoMa": 40,
     "conector": "Bornes de tornillo y pines macho",
     "pines": 6,
@@ -133,16 +134,17 @@
   },
   {
     "slug": "sensor-ultrasonidos-hc-sr04",
-    "nombre": "Sensor de ultrasonidos HC-SR04",
+    "nombre": "Sensor de ultrasonidos HC-SR04P",
     "categoria": "SENSORES",
     "tipo": "sensor-distancia",
     "resumen": "Los «ojos» de tu robot: mide distancias.",
-    "descripcion": "Emite un sonido que no podemos oír y mide cuánto tarda en volver, igual que un murciélago. Así sabe a qué distancia está un obstáculo, de 2 cm a 4 metros.",
+    "descripcion": "Emite un sonido que no podemos oír y mide cuánto tarda en volver, igual que un murciélago. Así sabe a qué distancia está un obstáculo, de 2 cm a 4 metros. Funciona a 3,3 V y a 5 V, así que vale para Arduino y para ESP32.",
     "precio": 2.9,
     "stock": 90,
     "imagen": "/images/componentes/sensor-ultrasonidos-hc-sr04.svg",
     "voltaje": 5,
     "voltajeLogico": 5,
+    "voltajeLogicoMin": 3.3,
     "consumoMa": 15,
     "conector": "4 pines macho (VCC, Trig, Echo, GND)",
     "pines": 2,
@@ -150,7 +152,7 @@
       { "nombre": "Alcance", "valor": "2 cm – 4 m" },
       { "nombre": "Precisión", "valor": "± 3 mm" },
       { "nombre": "Ángulo", "valor": "15°" },
-      { "nombre": "Tensión", "valor": "5 V" }
+      { "nombre": "Tensión", "valor": "3,3 – 5 V" }
     ]
   },
   {
@@ -165,6 +167,7 @@
     "imagen": "/images/componentes/sensor-linea-tcrt5000.svg",
     "voltaje": 5,
     "voltajeLogico": 5,
+    "voltajeLogicoMin": 3.3,
     "consumoMa": 20,
     "conector": "3 pines macho (VCC, GND, D0)",
     "pines": 1,

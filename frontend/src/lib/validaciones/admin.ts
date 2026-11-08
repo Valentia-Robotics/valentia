@@ -110,6 +110,17 @@ export const esquemaComponenteAdmin = z.object({
         .max(48)
         .nullable(),
     ),
+  voltajeLogicoMin: z
+    .string()
+    .trim()
+    .transform((v) => (v === "" ? null : Number(v.replace(",", "."))))
+    .pipe(
+      z
+        .number({ error: "Escribe un número o déjalo vacío" })
+        .positive("Tiene que ser mayor que 0")
+        .max(48)
+        .nullable(),
+    ),
   consumoMa: entero(0),
   conector: textoObligatorio(60),
   pines: entero(0, 200),

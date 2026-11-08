@@ -6,6 +6,14 @@
  * cambiar de una a otra solo cambia la dirección a la que llama n8n.
  */
 import { Hono } from "hono";
+import {
+  activarApp,
+  entrarApp,
+  reenviarApp,
+  salirApp,
+  verificarApp,
+  yoApp,
+} from "@/lib/app/api";
 import { crearDesdeN8n, ping } from "@/lib/contenido/guionesAutomaticos";
 
 export const app = new Hono();
@@ -15,6 +23,14 @@ app.get("/health", (c) => c.json({ estado: "ok" }));
 
 app.get("/api/guiones/automaticos/ping", (c) => ping(c.req.raw));
 app.post("/api/guiones/automaticos", (c) => crearDesdeN8n(c.req.raw));
+
+// App del móvil (carpeta movil/): mismas rutas que en la web
+app.post("/api/app/entrar", (c) => entrarApp(c.req.raw));
+app.post("/api/app/verificar", (c) => verificarApp(c.req.raw));
+app.post("/api/app/reenviar", (c) => reenviarApp(c.req.raw));
+app.get("/api/app/yo", (c) => yoApp(c.req.raw));
+app.post("/api/app/activar", (c) => activarApp(c.req.raw));
+app.post("/api/app/salir", (c) => salirApp(c.req.raw));
 
 app.notFound((c) => c.json({ error: "No existe esa ruta." }, 404));
 

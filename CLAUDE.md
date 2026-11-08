@@ -18,6 +18,24 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### App del móvil y coche con ESP32 (08-11-2026, rama `claude/project-thread-r9yhy3`)
+
+Decisión de Jesse: app para Google Play (luego App Store) que funcione como la web: el código del kit desbloquea sus
+funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **`movil/`** (Expo SDK 58 + Expo Router,
+`README.md` para probarla con Expo Go y publicarla con EAS). Paquetes siempre con `npx expo install` (aquí con
+`EXPO_OFFLINE=1`: api.expo.dev está bloqueado en la nube).
+
+- API en la web: `src/lib/app/api.ts` (Request/Response, también en `backend/app.ts`): `/api/app/entrar` (contraseña →
+  código por email, sin cookie: `empezarVerificacion({ sinCookie })` devuelve el token de la verificación), `verificar`,
+  `reenviar`, `yo` (kits = cursos que tiene + `funcionesDeKit`), `activar` (acepta la URL del QR), `salir`.
+  Sesión: `src/lib/app/sesionApp.ts`, un `DispositivoConfianza` por móvil (token Bearer, solo su huella en la BD,
+  90 días que se alargan al usarla; sale en «Mis dispositivos»). La cuenta se crea en la web.
+- Qué desbloquea cada kit: `src/config/app.ts` (`disponible: false` = «Muy pronto» en la app).
+- Coche: placa **ESP32** (no UNO) y sensor **HC-SR04P** (3,3–5 V), decisión de Jesse. Nuevo campo opcional
+  `Componente.voltajeLogicoMin` («también acepta señales desde»): L298N, TCRT5000 y HC-SR04P = 3,3, así la regla
+  `logica-5v-en-placa-3v3` no avisa con la ESP32. Modelo 3D del coche: ESP32 sobre su base de expansión.
+  En producción hay que cambiarlo a mano en el panel (seed:prod no modifica lo que existe).
+
 ### Fluidez, seguridad y n8n (06-11-2026, rama `mejoras/fluidez-seguridad-n8n`)
 
 Decisión del usuario: **se queda en Render y con MongoDB**; la separación de abajo queda parada, no continuarla sin que la pida.

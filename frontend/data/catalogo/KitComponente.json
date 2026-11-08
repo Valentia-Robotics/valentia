@@ -105,7 +105,7 @@
       "$oid": "6ad5f9ba06cf870884abee1c"
     },
     "componenteId": {
-      "$oid": "6ad5f9b106cf870884abede7"
+      "$oid": "6ad5f9b206cf870884abede8"
     },
     "cantidad": {
       "$numberLong": "1"

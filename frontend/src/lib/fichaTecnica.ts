@@ -18,7 +18,13 @@ export function fichaTecnica(c: ComponenteCatalogo): Especificacion[] {
     });
   }
   if (c.voltajeLogico != null) {
-    datos.push({ nombre: "Señales (lógica)", valor: `${formatearNumero(c.voltajeLogico)} V` });
+    const desde = c.voltajeLogicoMin != null && c.voltajeLogicoMin < c.voltajeLogico;
+    datos.push({
+      nombre: "Señales (lógica)",
+      valor: desde
+        ? `${formatearNumero(c.voltajeLogicoMin!)} a ${formatearNumero(c.voltajeLogico)} V`
+        : `${formatearNumero(c.voltajeLogico)} V`,
+    });
   }
   if (c.consumoMa > 0) {
     datos.push({
