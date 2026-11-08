@@ -34,7 +34,7 @@ export function BannerCookies() {
           <div className="flex items-start gap-3">
             <Cookie aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-acento" />
             <div className="text-sm">
-              <h2 className="font-sans text-base font-semibold">Tu privacidad, tu decisión</h2>
+              <h2 className="font-sans text-base font-semibold">Sobre las cookies</h2>
               <p className="mt-1 text-gris">
                 Usamos cookies necesarias para que la web funcione (sesión, carrito y pago). Con tu
                 permiso, también cargamos los reproductores de vídeo de YouTube y Vimeo en los

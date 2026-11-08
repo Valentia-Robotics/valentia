@@ -45,10 +45,10 @@ export default async function PaginaComponentes() {
       />
       <header className="max-w-2xl">
         <p className="text-sm font-medium tracking-wide text-acento uppercase">Componentes</p>
-        <h1 className="mt-3 text-4xl font-medium sm:text-6xl">Las piezas de tus ideas.</h1>
+        <h1 className="mt-3 text-4xl font-medium sm:text-6xl">Componentes sueltos.</h1>
         <p className="mt-4 text-lg text-gris">
-          Amplía tu kit o empieza un proyecto nuevo. Si no sabes si algo encaja, móntalo en el
-          configurador y te lo diremos.
+          Para ampliar el kit que ya tienes o empezar otro proyecto. Si no tienes claro si una pieza
+          va con las demás, pruébala en el configurador.
         </p>
         <Boton href="/configurador" variante="secundario" tamano="lg" className="mt-6">
           <SlidersHorizontal aria-hidden="true" className="size-5" strokeWidth={1.8} />
@@ -76,8 +76,8 @@ export default async function PaginaComponentes() {
       {grupos.length === 0 && (
         <EstadoVacio
           icono={Cpu}
-          titulo="Pronto tendrás piezas aquí"
-          texto="Todavía no hay componentes a la venta. Vuelve en unos días o echa un vistazo a los kits."
+          titulo="Aún no hay piezas a la venta"
+          texto="Las estamos preparando. Mientras, puedes ver los kits."
         >
           <Boton href="/kits" variante="secundario">
             Ver los kits

@@ -15,7 +15,7 @@ export function HeroKit({ kit, compraAbierta }: { kit: KitResumen; compraAbierta
       className="flex flex-col items-center overflow-x-clip bg-niebla px-4 pt-6 pb-12 text-center diferido sm:pt-10"
     >
       <p className="aparecer text-sm font-medium tracking-wide text-acento uppercase">
-        Kit estrella · {kit.nivel}
+        Kit destacado · {kit.nivel}
       </p>
       <h2 id="titulo-hero" className="aparecer mt-3 text-5xl font-medium sm:text-7xl">
         {kit.nombre}
@@ -31,7 +31,7 @@ export function HeroKit({ kit, compraAbierta }: { kit: KitResumen; compraAbierta
           {compraAbierta ? "Comprar" : "Avísame cuando abra"}
         </Boton>
         <Boton href={`/kits/${kit.slug}`} variante="enlace" tamano="lg">
-          Más información ›
+          Ver el kit ›
         </Boton>
       </div>
 

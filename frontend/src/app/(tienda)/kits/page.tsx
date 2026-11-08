@@ -40,8 +40,8 @@ export default async function PaginaKits() {
         <p className="text-sm font-medium tracking-wide text-acento uppercase">Kits Valentia</p>
         <h1 className="mt-3 text-4xl font-medium sm:text-6xl">Elige tu primer robot.</h1>
         <p className="mt-4 text-lg text-gris">
-          Cada kit trae todas las piezas, las instrucciones y un curso paso a paso. Solo tienes que
-          abrir la caja y empezar.
+          En cada caja van todas las piezas, el cable USB y una tarjeta para abrir el curso en
+          vídeo. No tienes que comprar nada aparte.
         </p>
       </header>
 
@@ -49,7 +49,7 @@ export default async function PaginaKits() {
         <EstadoVacio
           icono={PackageOpen}
           titulo="Los kits están en camino"
-          texto="Estamos preparando las cajas. Mientras tanto, puedes montar tu propio robot pieza a pieza o ver los componentes."
+          texto="Aún estamos preparando las cajas. Mientras, puedes elegir piezas en el configurador o mirar los componentes."
         >
           <Boton href="/componentes" variante="secundario">
             Ver componentes
@@ -66,7 +66,9 @@ export default async function PaginaKits() {
       <aside className="mt-16 flex flex-col items-start justify-between gap-6 rounded-tarjeta bg-niebla p-8 sm:flex-row sm:items-center sm:p-10">
         <div>
           <h2 className="text-2xl font-medium">¿Tienes una idea propia?</h2>
-          <p className="mt-2 text-gris">Monta tu robot pieza a pieza en el configurador.</p>
+          <p className="mt-2 text-gris">
+            En el configurador eliges las piezas una a una y te avisamos si algo no encaja.
+          </p>
         </div>
         <Boton href="/configurador" tamano="lg">
           Crear mi robot

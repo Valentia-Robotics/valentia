@@ -23,7 +23,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = metadatosPagina({
   descripcion:
-    "Kits de robótica para montar en casa, con Arduino o ESP32 y curso en vídeo. Sin saber programar y para cualquier edad: un regalo original.",
+    "Kits de robótica para montar en casa, con Arduino o ESP32 y curso en vídeo. No hace falta saber programar, y también es un buen regalo.",
   ruta: "/",
 });
 

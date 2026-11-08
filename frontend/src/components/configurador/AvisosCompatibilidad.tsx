@@ -36,8 +36,8 @@ export function AvisosCompatibilidad({ diagnostico, buscarComponente, alAnadirSu
         <p className="flex items-start gap-2.5 rounded-control bg-exito/8 p-3 text-sm">
           <CircleCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-exito" />
           <span>
-            <strong className="font-medium text-exito">¡Todo encaja!</strong> Las piezas de tu robot
-            son compatibles entre sí.
+            <strong className="font-medium text-exito">¡Todo encaja!</strong> Estas piezas funcionan
+            bien juntas.
           </span>
         </p>
       )}

@@ -6,17 +6,20 @@ const pasos: { icono: LucideIcon; titulo: string; texto: string }[] = [
   {
     icono: Package,
     titulo: "Elige tu kit",
-    texto: "Un coche, un brazo robótico o una estación meteorológica. Todo viene en la caja.",
+    texto:
+      "Hay un coche, un brazo robótico y una estación meteorológica. En la caja va todo lo necesario, hasta el cable USB.",
   },
   {
     icono: PlayCircle,
     titulo: "Sigue el curso",
-    texto: "Escanea con el móvil el código QR de la caja y aprende con vídeos cortos, a tu ritmo.",
+    texto:
+      "Escanea con el móvil el QR de la caja y se abre el curso: vídeos cortos que puedes parar y repetir las veces que haga falta.",
   },
   {
     icono: Wrench,
     titulo: "Móntalo y prográmalo",
-    texto: "Paso a paso, hasta que tu robot cobre vida. Y luego, ¡a inventar!",
+    texto:
+      "Las piezas se enchufan, encajan o se unen con imanes, sin soldar. Cuando funcione, cambia el código y haz que haga otras cosas.",
   },
 ];
 
@@ -40,12 +43,13 @@ export function BloqueComoFunciona({ cifras }: Props) {
     >
       <Contenedor>
         <div className="aparecer mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium tracking-wide text-acento uppercase">Así de fácil</p>
+          <p className="text-sm font-medium tracking-wide text-acento uppercase">Cómo funciona</p>
           <h2 id="titulo-como-funciona" className="mt-3 text-4xl font-medium sm:text-6xl">
             De la caja a tu primer robot.
           </h2>
           <p className="mt-4 text-lg text-gris sm:text-xl">
-            Tengas 10 años o 70, puedes construir tu propio robot. Solo hacen falta ganas.
+            Da igual que tengas 10 años o 70. Si alguna vez te has preguntado cómo funciona un
+            robot, puedes montar uno.
           </p>
         </div>
 

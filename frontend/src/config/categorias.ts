@@ -18,38 +18,39 @@ export const categorias: InfoCategoria[] = [
     id: "PLACAS",
     nombre: "Placas",
     icono: Cpu,
-    descripcion: "El cerebro de tu robot. Empieza por aquí: todo lo demás se conecta a la placa.",
+    descripcion: "Empieza por aquí: es donde va el programa y donde se conecta todo lo demás.",
   },
   {
     id: "MOTORES",
     nombre: "Motores",
     icono: Cog,
-    descripcion: "Lo que hace que tu robot se mueva: ruedas, brazos y pinzas.",
+    descripcion: "Mueven las ruedas, los brazos y las pinzas.",
   },
   {
     id: "SENSORES",
     nombre: "Sensores",
     icono: Radar,
     descripcion:
-      "Los sentidos de tu robot: ver obstáculos, seguir líneas o medir el tiempo que hace.",
+      "Para que el robot note lo que pasa a su alrededor: obstáculos, líneas en el suelo o el tiempo que hace.",
   },
   {
     id: "ALIMENTACION",
     nombre: "Alimentación",
     icono: BatteryCharging,
-    descripcion: "La energía. Imprescindible si tu robot lleva motores o va a moverse sin cables.",
+    descripcion:
+      "Baterías y portabaterías. Hacen falta si el robot lleva motores o va a moverse sin cables.",
   },
   {
     id: "CHASIS",
     nombre: "Chasis y ruedas",
     icono: Car,
-    descripcion: "El cuerpo de tu robot, donde se atornilla todo lo demás.",
+    descripcion: "La estructura del robot, donde se sujeta todo lo demás.",
   },
   {
     id: "EXTRAS",
     nombre: "Extras",
     icono: Puzzle,
-    descripcion: "Cables, pantallas y sonidos para darle personalidad.",
+    descripcion: "Cables, pantallas y piezas que hacen sonar al robot.",
   },
 ];
 

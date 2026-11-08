@@ -82,7 +82,7 @@ export function EjercicioReto({ id, numero, enunciado, pistas, solucionInicial }
           )}
           {confirmar ? (
             <span className="flex flex-wrap items-center gap-2 text-sm">
-              ¿Seguro? Intentarlo tú mismo es la mejor forma de aprender.
+              ¿Seguro? Si le das otra vuelta, a lo mejor te sale.
               <Boton variante="primario" onClick={desbloquear} disabled={cargando}>
                 {cargando ? "Cargando…" : "Sí, ver la solución"}
               </Boton>

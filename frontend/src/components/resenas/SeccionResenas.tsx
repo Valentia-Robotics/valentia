@@ -26,7 +26,7 @@ export function SeccionResenas({ slug, resumen }: { slug: string; resumen: Resum
             <span className="text-gris">· {plural(resumen.total, "opinión", "opiniones")}</span>
           </p>
         ) : (
-          <p className="mt-4 text-lg text-gris">Todavía no hay opiniones. ¡Sé el primero!</p>
+          <p className="mt-4 text-lg text-gris">Todavía nadie ha opinado sobre este kit.</p>
         )}
 
         {resumen.resenas.length > 0 && (

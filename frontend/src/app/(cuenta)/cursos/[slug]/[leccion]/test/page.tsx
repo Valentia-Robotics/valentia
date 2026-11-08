@@ -54,8 +54,7 @@ export default async function PaginaTest({ params }: Props) {
           <Lock aria-hidden="true" className="mx-auto size-10 text-gris" strokeWidth={1.5} />
           <h2 className="mt-4 text-2xl font-medium">Primero, el vídeo</h2>
           <p className="mx-auto mt-2 max-w-md text-gris">
-            El test se desbloquea cuando terminas de ver el vídeo de la lección. ¡Así lo tendrás
-            todo fresco!
+            El test se abre cuando terminas el vídeo de la lección, así lo haces con todo reciente.
           </p>
           <Boton href={`${urlLeccion}#video`} variante="acento" tamano="lg" className="mt-6">
             Ver el vídeo

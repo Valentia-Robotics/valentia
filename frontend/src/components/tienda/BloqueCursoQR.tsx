@@ -7,17 +7,18 @@ const pasos = [
   {
     icono: QrCode,
     titulo: "Escanea el QR de la caja",
-    texto: "Cada kit trae una tarjeta con un código único, solo para ti.",
+    texto: "En la caja va una tarjeta con un código que es solo tuyo y sirve una vez.",
   },
   {
     icono: LogIn,
     titulo: "Inicia sesión",
-    texto: "Entra en tu cuenta (o créala en un minuto) y el curso queda guardado.",
+    texto: "Entra en tu cuenta, o créate una en un minuto. El curso se queda guardado en ella.",
   },
   {
     icono: GraduationCap,
-    titulo: "Aprende a tu ritmo",
-    texto: "Vídeos, tests y retos prácticos en «Mis cursos», cuando y donde quieras.",
+    titulo: "Ve lección a lección",
+    texto:
+      "En «Mis cursos» tienes los vídeos, un test corto en cada lección y retos para probar con el robot.",
   },
 ];
 
@@ -32,11 +33,11 @@ export function BloqueCursoQR() {
         <div className="aparecer">
           <p className="text-sm font-medium tracking-wide text-acento uppercase">Curso incluido</p>
           <h2 id="titulo-curso-qr" className="mt-3 text-4xl font-medium sm:text-5xl">
-            Cada kit trae su propio profesor.
+            Cada kit viene con su curso.
           </h2>
           <p className="mt-4 max-w-lg text-lg text-gris">
-            No estás solo. Dentro de la caja encontrarás un código QR que desbloquea un curso
-            pensado para ese kit, paso a paso y sin necesidad de saber programar.
+            El curso está hecho para las piezas de ese kit y empieza desde cero, así que no
+            necesitas saber programar. Se abre con el código QR de la caja.
           </p>
 
           <ol className="mt-10 space-y-6">

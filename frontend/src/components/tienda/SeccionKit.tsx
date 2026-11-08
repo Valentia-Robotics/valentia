@@ -52,7 +52,7 @@ export function SeccionKit({
             {compraAbierta ? "Comprar" : "Avísame cuando abra"}
           </Boton>
           <Boton href={`/kits/${kit.slug}`} variante={oscuro ? "enlace-claro" : "enlace"}>
-            Más información ›
+            Ver el kit ›
           </Boton>
         </div>
       </div>

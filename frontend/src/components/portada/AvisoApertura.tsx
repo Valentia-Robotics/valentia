@@ -13,7 +13,7 @@ export function AvisoApertura() {
           <h2 id="titulo-aviso-apertura" className="font-sans text-lg font-semibold">
             Todavía no vendemos online.
           </h2>
-          <p className="mt-1 text-gris">Déjanos tu email y te avisaremos el día que abramos.</p>
+          <p className="mt-1 text-gris">Déjanos tu email y te escribimos el día que abramos.</p>
         </div>
         <FormularioAvisame origen="portada" className="w-full lg:max-w-md" />
       </Contenedor>

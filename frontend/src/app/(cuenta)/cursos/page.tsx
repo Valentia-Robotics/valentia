@@ -37,7 +37,7 @@ export default async function PaginaMisCursos() {
           <p className="mt-6 text-sm text-gris">
             ¿Aún no tienes un kit?{" "}
             <Boton href="/kits" variante="enlace" className="h-auto text-sm underline">
-              Descubre los kits ›
+              Ver los kits ›
             </Boton>
           </p>
         </section>

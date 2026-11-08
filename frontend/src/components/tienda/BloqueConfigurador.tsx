@@ -15,11 +15,11 @@ export function BloqueConfigurador() {
             Configurador
           </p>
           <h2 id="titulo-configurador" className="mt-3 text-4xl font-medium sm:text-6xl">
-            Crea tu propio robot.
+            O elige tú las piezas.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-gris-claro sm:text-xl">
-            Elige pieza a pieza, como quien pide su menú favorito. Nosotros te avisamos si algo no
-            encaja, para que aciertes a la primera.
+            Escoge la placa, los motores y los sensores que quieras. Si dos piezas no funcionan
+            juntas, el configurador te lo dice antes de que compres nada.
           </p>
         </div>
 

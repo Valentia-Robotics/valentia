@@ -169,8 +169,8 @@ export function PortadaRobot() {
             </h1>
             {/* En móviles bajitos se omite en la versión animada, para dejar sitio al robot */}
             <p className="mt-4 animate-entrada text-lg text-gris [animation-delay:160ms] motion-safe:mt-3 motion-safe:text-base sm:text-xl motion-safe:sm:text-xl max-lg:[@media(max-height:44rem)]:motion-safe:hidden">
-              No hace falta saber programar: cada kit trae todas las piezas y un curso en vídeo que
-              te guía paso a paso, hasta que lo ves moverse.
+              No hace falta saber programar. En la caja van todas las piezas y un curso en vídeo que
+              te acompaña desde la primera pieza hasta que el robot echa a andar.
             </p>
             <div className="mt-7 flex animate-entrada flex-wrap items-center justify-center gap-x-6 gap-y-3 [animation-delay:240ms] motion-safe:mt-5 lg:justify-start lg:motion-safe:mt-7">
               <Boton href="/kits" variante="acento" tamano="lg">
