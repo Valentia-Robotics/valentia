@@ -4,6 +4,7 @@ import { metadatosPagina } from "@/lib/metadatos";
 import Link from "next/link";
 import { BotonConfigurarCookies } from "@/components/layout/BotonConfigurarCookies";
 import { PaginaLegal, TablaLegal } from "@/components/legal/PaginaLegal";
+import { hayAnalitica } from "@/config/analitica";
 import { tienda } from "@/config/tienda";
 
 export const metadata: Metadata = metadatosPagina({
@@ -54,9 +55,10 @@ export default function PoliticaCookies() {
       <p>
         Las cookies son pequeños archivos que una web guarda en tu navegador. En{" "}
         {tienda.empresa.nombreComercial} usamos las mínimas: las necesarias para que la web funcione
-        y, solo si nos das permiso, las de los reproductores de vídeo. No usamos cookies de
-        publicidad ni de analítica: para saber cuánta gente visita la web contamos las páginas
-        vistas sin cookies y sin guardar tu IP (lo explicamos en la{" "}
+        y, solo si nos das permiso, las de los reproductores de vídeo
+        {hayAnalitica && " y las de Google Analytics"}. No usamos cookies de publicidad.
+        {!hayAnalitica && " Tampoco de analítica."} Además, para saber cuánta gente visita la web
+        contamos las páginas vistas sin cookies y sin guardar tu IP (lo explicamos en la{" "}
         <Link href="/legal/privacidad">política de privacidad</Link>).
       </p>
 
@@ -93,7 +95,19 @@ export default function PoliticaCookies() {
         del vídeo.
       </p>
 
-      <h2>3. Cómo cambiar tu elección</h2>
+      {hayAnalitica && (
+        <>
+          <h2>3. Cookies de terceros opcionales: analítica</h2>
+          <p>
+            Si aceptas la categoría «Analítica», cargamos Google Analytics (Google Ireland Ltd.), que
+            guarda las cookies <code>_ga</code> y <code>_ga_*</code> (hasta 2 años) para contar
+            visitas y saber qué páginas se ven más, de forma agregada. Si no la aceptas, no se carga.
+            Si la retiras, dejamos de medir y borramos esas cookies.
+          </p>
+        </>
+      )}
+
+      <h2>{hayAnalitica ? 4 : 3}. Cómo cambiar tu elección</h2>
       <p>
         Puedes aceptar o retirar tu consentimiento en cualquier momento, tan fácilmente como lo
         diste:

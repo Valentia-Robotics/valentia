@@ -20,13 +20,17 @@ function origenFotos(): string {
  * 'unsafe-inline' en scripts es necesario para que Next.js pueda generar las páginas estáticas
  * (la alternativa, un "nonce", obligaría a generar todas las páginas en cada visita). Ver SEGURIDAD.md.
  */
+/** Google Analytics: solo si hay NEXT_PUBLIC_GA_ID (y en la página solo se carga con permiso) */
+const analitica = /^G-[A-Z0-9]{4,15}$/.test(process.env.NEXT_PUBLIC_GA_ID ?? "");
+const ga = (dominios: string) => (analitica ? ` ${dominios}` : "");
+
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${desarrollo ? " 'unsafe-eval'" : ""} https://js.stripe.com https://*.js.stripe.com https://www.youtube.com https://player.vimeo.com`,
+  `script-src 'self' 'unsafe-inline'${desarrollo ? " 'unsafe-eval'" : ""} https://js.stripe.com https://*.js.stripe.com https://www.youtube.com https://player.vimeo.com${ga("https://www.googletagmanager.com")}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://*.stripe.com https://i.ytimg.com https://i.vimeocdn.com https://images.unsplash.com https://images.pexels.com https://cdn.pixabay.com ${origenFotos()}`.trim(),
+  `img-src 'self' data: blob: https://*.stripe.com https://i.ytimg.com https://i.vimeocdn.com https://images.unsplash.com https://images.pexels.com https://cdn.pixabay.com${ga("https://*.google-analytics.com https://*.googletagmanager.com")} ${origenFotos()}`.trim(),
   "font-src 'self'",
-  `connect-src 'self' https://api.stripe.com https://*.stripe.com https://*.stripe.network https://*.vimeocdn.com${desarrollo ? " ws: wss:" : ""}`,
+  `connect-src 'self' https://api.stripe.com https://*.stripe.com https://*.stripe.network https://*.vimeocdn.com${ga("https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com")}${desarrollo ? " ws: wss:" : ""}`,
   "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://*.stripe.network https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
   "media-src 'self' https:",
   "worker-src 'self' blob:",

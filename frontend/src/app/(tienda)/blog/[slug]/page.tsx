@@ -8,7 +8,7 @@ import { fechaLarga, TarjetaArticulo } from "@/components/blog/TarjetaArticulo";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { categoriaPorSlug } from "@/config/blog";
-import { articuloPublicado, articulosRelacionados } from "@/lib/blog/articulos";
+import { articuloPublicado, articulosRelacionados, todosPublicados } from "@/lib/blog/articulos";
 import { extractoDe, minutosLectura } from "@/lib/blog/texto";
 import { obtenerKits } from "@/lib/catalogo";
 import { datosArticuloBlog, datosMigas } from "@/lib/datosEstructurados";
@@ -20,6 +20,14 @@ export const revalidate = 300;
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+/**
+ * Los últimos se preparan al compilar; los demás, la primera vez que alguien los abre. Después se
+ * sirven ya hechos (rápido) hasta que se editan o pasan 5 minutos.
+ */
+export async function generateStaticParams() {
+  return (await todosPublicados()).slice(0, 50).map((a) => ({ slug: a.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
