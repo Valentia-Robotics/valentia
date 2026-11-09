@@ -63,6 +63,17 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "notasEditor" },
     { campo: "enlaceVideo" },
   ],
+  Articulo: [
+    { campo: "imagenUrl" },
+    { campo: "imagenAlt" },
+    { campo: "imagenCredito" },
+    { campo: "fuenteUrl" },
+    { campo: "fuenteTitulo" },
+    { campo: "autorId" },
+    { campo: "programadoPara" },
+    { campo: "publicadoEn" },
+  ],
+  LlamadaBlog: [{ campo: "detalle" }, { campo: "articuloId" }],
   CambioEstadoGuion: [
     { campo: "estadoAnterior" },
     { campo: "usuarioId", relacion: "usuario" },

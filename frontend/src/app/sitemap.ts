@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
+import { CATEGORIAS_BLOG } from "@/config/blog";
 import { guias } from "@/config/guias";
+import { todosPublicados } from "@/lib/blog/articulos";
 import { obtenerComponentes, obtenerKits } from "@/lib/catalogo";
 
 /**
@@ -16,7 +18,15 @@ const web = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replac
  * Sin /login ni /registro: llevan «noindex» y Google avisa si el sitemap le manda a páginas que no debe indexar.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [kits, componentes] = await Promise.all([obtenerKits(), obtenerComponentes()]);
+  const [kits, componentes, articulos] = await Promise.all([
+    obtenerKits(),
+    obtenerComponentes(),
+    todosPublicados(),
+  ]);
+  // Solo las categorías que ya tienen algo publicado (una vacía no aporta nada a Google)
+  const categoriasConArticulos = CATEGORIAS_BLOG.filter((c) =>
+    articulos.some((a) => a.categoria === c.slug),
+  );
   // [ruta, prioridad, fotos que salen en ella (Google Imágenes)]
   const paginas: [string, number, string[]?][] = [
     ["/", 1, ["/opengraph-image", ...kits.map((k) => `/images/redes/kits/${k.slug}.png`)]],
@@ -57,6 +67,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: g.actualizada,
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    })),
+    {
+      url: `${web}/blog`,
+      changeFrequency: "daily" as const,
+      priority: 0.7,
+      ...(articulos[0] ? { lastModified: articulos[0].actualizadoEn } : {}),
+    },
+    ...categoriasConArticulos.map((c) => ({
+      url: `${web}/blog/categoria/${c.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    })),
+    ...articulos.map((a) => ({
+      url: `${web}/blog/${a.slug}`,
+      lastModified: a.actualizadoEn,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      ...(a.imagenUrl
+        ? { images: [a.imagenUrl.startsWith("/") ? `${web}${a.imagenUrl}` : a.imagenUrl] }
+        : {}),
     })),
   ];
 }
