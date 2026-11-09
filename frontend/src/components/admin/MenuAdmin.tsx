@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
+  Newspaper,
   QrCode,
   ShoppingBag,
   Star,
@@ -32,6 +33,7 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },
   { href: "/admin/codigos", etiqueta: "Códigos", icono: QrCode },
   { href: "/admin/contenido", etiqueta: "Contenido", icono: Clapperboard },
+  { href: "/admin/blog", etiqueta: "Blog", icono: Newspaper },
   { href: "/admin/resenas", etiqueta: "Reseñas", icono: Star },
   { href: "/admin/lista-espera", etiqueta: "Lista de espera", icono: Mail },
   { href: "/admin/usuarios", etiqueta: "Usuarios", icono: Users },
@@ -40,6 +42,7 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
 /** El panel de editor usa este mismo menú, pero solo con lo suyo */
 const seccionesEditor: typeof seccionesAdmin = [
   { href: "/editor", etiqueta: "Mis guiones", icono: Clapperboard },
+  { href: "/editor/blog", etiqueta: "Mis artículos", icono: Newspaper },
 ];
 
 /**
@@ -59,9 +62,11 @@ export function MenuAdmin({
   const ruta = usePathname();
   const secciones = zona === "editor" ? seccionesEditor : seccionesAdmin;
   const inicio = secciones[0].href;
+  // La primera sección no se marca en las demás (/admin/kits no es «Inicio»; /editor/blog no es
+  // «Mis guiones»), salvo las fichas de guion del editor (/editor/<id>)
   const activa = (href: string) =>
-    zona === "admin" && href === inicio
-      ? ruta === inicio
+    href === inicio
+      ? ruta === inicio || (zona === "editor" && /^\/editor\/[0-9a-f]{24}$/.test(ruta))
       : ruta === href || ruta.startsWith(`${href}/`);
 
   return (

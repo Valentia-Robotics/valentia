@@ -719,3 +719,93 @@ model CambioEstadoGuion {
   @@index([guionId])
   @@index([editorId])
 }
+
+// ---------------------------------------------------------------------------
+// BLOG (src/config/blog.ts, src/lib/blog/). Artículos de n8n (AUTO) y de editores (MANUAL).
+// ---------------------------------------------------------------------------
+
+enum EstadoArticulo {
+  /// Espera la revisión del admin (no pasó los filtros, o la publicación automática está apagada)
+  PENDIENTE
+  /// Aprobado: se publicará solo, a la hora configurada
+  EN_COLA
+  PUBLICADO
+  RECHAZADO
+}
+
+enum OrigenArticulo {
+  AUTO
+  MANUAL
+}
+
+model Articulo {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  titulo           String
+  slug             String         @unique
+  extracto         String
+  /// Lo que se escribe y se edita (Markdown)
+  contenidoMd      String
+  /// El Markdown convertido y LIMPIO (sanitize-html): lo único que se pinta en la web
+  contenidoHtml    String
+  palabras         Int
+  palabraClave     String
+  metaTitulo       String
+  metaDescripcion  String
+  /// Slug de una categoría de src/config/blog.ts
+  categoria        String
+  etiquetas        String[]
+  /// Solo de bancos de imágenes con licencia libre (HOSTS_IMAGENES en src/config/blog.ts)
+  imagenUrl        String?
+  imagenAlt        String?
+  imagenCredito    String?
+  fuenteUrl        String?
+  fuenteTitulo     String?
+  /// Slugs de kits
+  kitsRelacionados String[]
+  autorNombre      String
+  /// Editor que lo escribió (null en los de n8n)
+  autorId          String?        @db.ObjectId
+  origen           OrigenArticulo
+  estado           EstadoArticulo @default(PENDIENTE)
+  /// Por qué no pasó los filtros, o por qué se rechazó
+  motivos          String[]
+  /// Cuándo se calcula que saldrá (solo EN_COLA)
+  programadoPara   DateTime?
+  publicadoEn      DateTime?
+  creadoEn         DateTime       @default(now())
+  actualizadoEn    DateTime       @updatedAt
+
+  @@index([estado, publicadoEn])
+  @@index([categoria])
+  @@index([autorId])
+}
+
+/// Slugs que tuvo un artículo publicado: la dirección vieja redirige (301) a la nueva
+model SlugAntiguoArticulo {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  slug       String @unique
+  articuloId String @db.ObjectId
+}
+
+/// Ajustes del blog: una sola fila (clave "blog")
+model AjustesBlog {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  clave        String  @unique
+  /// Apagado por defecto: lo de n8n espera a que el admin lo apruebe
+  autoPublicar Boolean @default(false)
+  porDia       Int     @default(1)
+  /// Hora de Madrid, "HH:MM"
+  hora         String  @default("10:00")
+}
+
+/// Registro de cada llamada de n8n a la API del blog (y de los avisos al webhook)
+model LlamadaBlog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  ruta       String
+  estado     Int
+  detalle    String?
+  articuloId String?  @db.ObjectId
+  fecha      DateTime @default(now())
+
+  @@index([fecha])
+}

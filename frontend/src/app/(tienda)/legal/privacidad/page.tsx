@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
 import Link from "next/link";
 import { DatosEmpresa, PaginaLegal, TablaLegal } from "@/components/legal/PaginaLegal";
+import { hayAnalitica } from "@/config/analitica";
 import { tienda } from "@/config/tienda";
 
 export const metadata: Metadata = metadatosPagina({
@@ -135,6 +136,9 @@ export default function Privacidad() {
         <li>El proveedor de alojamiento de la web, de la base de datos y de las imágenes.</li>
         <li>La empresa de transporte que entrega tu pedido (nombre, dirección y teléfono).</li>
         <li>YouTube (Google) y Vimeo, solo si aceptas sus cookies para ver los vídeos.</li>
+        {hayAnalitica && (
+          <li>Google Analytics (Google Ireland Ltd.), solo si aceptas la categoría «Analítica».</li>
+        )}
       </ul>
       <p>
         Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo. En ese

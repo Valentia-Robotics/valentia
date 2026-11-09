@@ -5,6 +5,7 @@ import { Cookie } from "lucide-react";
 import { useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Dialogo } from "@/components/ui/Dialogo";
+import { hayAnalitica } from "@/config/analitica";
 import { useConsentimiento, useConsentimientoHidratado } from "@/store/consentimiento";
 
 /**
@@ -38,9 +39,11 @@ export function BannerCookies() {
               <p className="mt-1 text-gris">
                 Usamos cookies necesarias para que la web funcione (sesión, carrito y pago). Con tu
                 permiso, también cargamos los reproductores de vídeo de YouTube y Vimeo en los
-                cursos, que ponen sus propias cookies. No usamos cookies de publicidad.{" "}
+                cursos, que ponen sus propias cookies
+                {hayAnalitica && ", y Google Analytics para saber qué páginas gustan más"}. No usamos
+                cookies de publicidad.{" "}
                 <Link href="/legal/cookies" className="text-acento underline underline-offset-2">
-                  Más información
+                  Más información sobre las cookies
                 </Link>
               </p>
             </div>
@@ -69,6 +72,7 @@ export function BannerCookies() {
 function PanelPreferencias() {
   const { preferencias, guardar } = useConsentimiento();
   const [videos, setVideos] = useState(preferencias.videos);
+  const [analitica, setAnalitica] = useState(preferencias.analitica);
 
   return (
     <div className="space-y-5 p-5 text-sm">
@@ -84,6 +88,14 @@ function PanelPreferencias() {
         activa={videos}
         alCambiar={setVideos}
       />
+      {hayAnalitica && (
+        <Categoria
+          titulo="Analítica (Google Analytics)"
+          texto="Nos dice, de forma agregada, qué páginas se visitan y desde dónde llega la gente, para mejorar la web. Google guarda sus cookies (_ga) y trata estos datos según su política. Sin tu permiso no se carga."
+          activa={analitica}
+          alCambiar={setAnalitica}
+        />
+      )}
       <p className="text-gris">
         Puedes cambiar tu elección cuando quieras desde «Configurar cookies», al final de cada
         página. Más detalles en la{" "}
@@ -93,10 +105,10 @@ function PanelPreferencias() {
         .
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Boton variante="secundario" onClick={() => guardar({ videos: false })}>
+        <Boton variante="secundario" onClick={() => guardar({ videos: false, analitica: false })}>
           Rechazar opcionales
         </Boton>
-        <Boton variante="primario" onClick={() => guardar({ videos })}>
+        <Boton variante="primario" onClick={() => guardar({ videos, analitica: hayAnalitica && analitica })}>
           Guardar mi elección
         </Boton>
       </div>

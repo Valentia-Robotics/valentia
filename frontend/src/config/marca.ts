@@ -78,6 +78,7 @@ export const columnasPie: {
       { href: "/cursos", etiqueta: "Mis cursos" },
       { href: "/activar", etiqueta: "Activar mi kit" },
       { href: "/guias", etiqueta: "Guías" },
+      { href: "/blog", etiqueta: "Blog" },
       { href: "/preguntas-frecuentes", etiqueta: "Preguntas frecuentes" },
     ],
   },

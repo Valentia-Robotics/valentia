@@ -52,6 +52,24 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
   500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
+### Blog automático y SEO (09-11-2026, rama `feature/blog-auto-seo`; especificación del usuario)
+
+Decisiones del usuario (con las recomendaciones): imágenes SOLO de bancos con licencia libre (`HOSTS_IMAGENES`), nunca
+la foto de la noticia; n8n llama cada hora a la cola (sin tarea dentro de Render ni otro servicio); publicación automática
+APAGADA por defecto; GA4 preparado y apagado; `BLOG_API_KEY` separada de `N8N_API_KEY`.
+
+- Reglas en `src/config/blog.ts` (5 categorías fijas por slug, calidad, largos de meta, estados y su nombre en la API).
+  Modelos `Articulo` (contenidoMd + contenidoHtml), `SlugAntiguoArticulo` (301/308), `AjustesBlog` (fila «blog»), `LlamadaBlog`.
+- `src/lib/blog/`: `texto.ts` (marked + sanitize-html: única forma de crear `contenidoHtml`; H1→H2, nofollow, imágenes de
+  bancos libres), `calidad.ts`, `cola.ts` (hora de Madrid), `articulos.ts` (BD, publicar = refrescar + IndexNow
+  `avisarPaginas` + webhook), `api.ts` (las 3 rutas de `/api/blog`, cada llamada en el registro).
+- Páginas `/blog`, `/blog/pagina/N`, `/blog/categoria/X[/pagina/N]`, `/blog/[slug]` (ISR), `/blog/rss.xml`; sitemap.
+  Panel `/admin/blog` (+ `/llamadas`) y `/editor/blog` (solo los suyos; vuelven a pendiente).
+- `metadatosPagina` admite `tituloExacto`, `imagen` e `indexar`. `src/lib/claveApi.ts`: clave x-api-key para todas las APIs de n8n.
+- Analítica: `src/config/analitica.ts` + `AnaliticaGoogle`; con ID, el consentimiento pasa a VERSION 2 (vuelve a preguntar).
+- Lighthouse (móvil, antes): portada 69 por el robot 3D (TBT 2,5 s; ya se carga en diferido: no tocado sin permiso),
+  ficha de kit 94, guías 99. SEO 92 → enlace del aviso de cookies arreglado.
+
 ### Fluidez, seguridad y n8n (06-11-2026, rama `mejoras/fluidez-seguridad-n8n`)
 
 Decisión del usuario: **se queda en Render y con MongoDB**; la separación de abajo queda parada, no continuarla sin que la pida.

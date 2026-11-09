@@ -7,9 +7,9 @@
  * Los campos de siempre se rellenan con lo que trae la IA (la tabla de escenas se guarda aparte).
  */
 import "server-only";
-import { createHash, timingSafeEqual } from "node:crypto";
 import { slugKitActual } from "@/config/kitsRenombrados";
 import { Prisma } from "@/generated/prisma/client";
+import { comprobarClaveApi } from "@/lib/claveApi";
 import { categoriasGuion, crearGuion } from "@/lib/contenido/guiones";
 import { leerCuerpo } from "@/lib/cuerpoLimitado";
 import { db } from "@/lib/db";
@@ -25,9 +25,6 @@ import {
 /** 200 KB: un guion es texto, sobra */
 export const TAMANO_MAXIMO = 200 * 1024;
 
-/** Una clave corta se podría adivinar: por debajo de esto la API se queda cerrada */
-const LONGITUD_MINIMA = 32;
-
 /** Sin fecha límite, el guion tiene una semana (el admin la cambia al revisarlo) */
 const DIAS_POR_DEFECTO = 7;
 
@@ -40,8 +37,6 @@ const CATEGORIA_POR_DEFECTO = "Robótica";
 const respuesta = (status: number, cuerpo: Record<string, unknown>) =>
   Response.json(cuerpo, { status, headers: { "Cache-Control": "no-store" } });
 
-const huella = (texto: string) => createHash("sha256").update(texto).digest();
-
 const sinTildes = (valor: string) =>
   valor
     .normalize("NFD")
@@ -49,21 +44,9 @@ const sinTildes = (valor: string) =>
     .trim()
     .toLowerCase();
 
-/**
- * Comprueba la cabecera x-api-key contra N8N_API_KEY, en tiempo constante (se comparan las huellas:
- * el tiempo de respuesta no da pistas). Sin clave en el servidor la API está cerrada: nunca se abre
- * por falta de configuración.
- */
+/** La clave de n8n para guiones: x-api-key = N8N_API_KEY (src/lib/claveApi.ts) */
 export function comprobarClave(peticion: Request): Response | null {
-  const esperada = process.env.N8N_API_KEY ?? "";
-  if (esperada.length < LONGITUD_MINIMA) {
-    return respuesta(503, { error: "La API no está configurada (falta N8N_API_KEY)." });
-  }
-  const recibida = peticion.headers.get("x-api-key") ?? "";
-  if (!timingSafeEqual(huella(recibida), huella(esperada))) {
-    return respuesta(401, { error: "Falta la cabecera x-api-key o no es correcta." });
-  }
-  return null;
+  return comprobarClaveApi(peticion, "N8N_API_KEY");
 }
 
 /** GET /api/guiones/automaticos/ping: para comprobar la clave desde n8n sin crear nada */

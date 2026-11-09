@@ -190,6 +190,49 @@ export function datosGuia(g: {
   };
 }
 
+/** Un artículo del blog (BlogPosting) */
+export function datosArticuloBlog(a: {
+  slug: string;
+  titulo: string;
+  metaDescripcion: string;
+  imagenUrl: string | null;
+  publicadoEn: Date;
+  actualizadoEn: Date;
+  autorNombre: string;
+  palabraClave: string;
+  etiquetas: string[];
+  categoriaNombre: string;
+  palabras: number;
+  automatico: boolean;
+}) {
+  const url = urlAbsoluta(`/blog/${a.slug}`);
+  const imagen = a.imagenUrl
+    ? a.imagenUrl.startsWith("/")
+      ? urlAbsoluta(a.imagenUrl)
+      : a.imagenUrl
+    : urlAbsoluta("/opengraph-image");
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: a.titulo,
+    description: a.metaDescripcion,
+    url,
+    mainEntityOfPage: url,
+    image: [imagen],
+    datePublished: a.publicadoEn.toISOString(),
+    dateModified: a.actualizadoEn.toISOString(),
+    inLanguage: "es-ES",
+    articleSection: a.categoriaNombre,
+    keywords: [a.palabraClave, ...a.etiquetas].join(", "),
+    wordCount: a.palabras,
+    // Los de n8n los firma la tienda; los de un editor, la persona
+    author: a.automatico
+      ? { "@type": "Organization", name: a.autorNombre, url: urlAbsoluta("/") }
+      : { "@type": "Person", name: a.autorNombre },
+    publisher: { "@id": `${urlAbsoluta("/")}#tienda` },
+  };
+}
+
 /** Gastos y plazo de envío de un producto (gratis si él solo ya llega al mínimo) */
 function datosEnvio(precioCentimos: number) {
   const { envio } = tienda;

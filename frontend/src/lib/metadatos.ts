@@ -15,6 +15,9 @@ export function metadatosPagina({
   descripcion,
   ruta,
   tipo = "website",
+  tituloExacto = false,
+  imagen,
+  indexar = true,
 }: {
   /** Título de la pestaña ("Kits" → «Kits · Valentia»). Sin título = el de la portada. */
   titulo?: string;
@@ -22,13 +25,25 @@ export function metadatosPagina({
   /** Dirección de la página, empezando por "/" (será la canónica) */
   ruta: string;
   tipo?: "website" | "article";
+  /** true = el título tal cual, sin «· Valentia» (los artículos ya lo traen medido a 60 caracteres) */
+  tituloExacto?: boolean;
+  /** Foto para compartir (si no, la tarjeta de la web) */
+  imagen?: { url: string; alt: string };
+  /** false = «noindex, follow» (por ejemplo, la página 2 de un listado vacío) */
+  indexar?: boolean;
 }): Metadata {
   // En las redes se ve el título completo (la plantilla «%s · Valentia» solo vale para la pestaña)
-  const tituloRedes = titulo ? `${titulo} · ${marca.nombre}` : `${marca.nombre}: ${marca.lema}`;
+  const tituloRedes = titulo
+    ? tituloExacto
+      ? titulo
+      : `${titulo} · ${marca.nombre}`
+    : `${marca.nombre}: ${marca.lema}`;
+  const imagenes = imagen ? [{ url: imagen.url, alt: imagen.alt }] : undefined;
   return {
-    ...(titulo ? { title: titulo } : {}),
+    ...(titulo ? { title: tituloExacto ? { absolute: titulo } : titulo } : {}),
     description: descripcion,
     alternates: { canonical: ruta },
+    ...(indexar ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
       title: tituloRedes,
       description: descripcion,
@@ -36,11 +51,13 @@ export function metadatosPagina({
       siteName: marca.nombre,
       locale: "es_ES",
       type: tipo,
+      ...(imagenes ? { images: imagenes } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: tituloRedes,
       description: descripcion,
+      ...(imagenes ? { images: imagenes } : {}),
     },
   };
 }

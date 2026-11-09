@@ -44,6 +44,10 @@ export const LIMITES = {
   resena: { maximo: 10, minutos: 60 },
   /** Peticiones de n8n para crear guiones: si el flujo entra en bucle, no llena el panel */
   guionApi: { maximo: 30, minutos: 60 },
+  /** Peticiones de n8n a la API del blog (con la clave buena) */
+  blogApi: { maximo: 60, minutos: 60 },
+  /** Llamadas a la API del blog con la clave mal (por IP): solo para no llenar el registro */
+  blogApiFallos: { maximo: 30, minutos: 60 },
 } as const;
 
 export type AccionLimitada = keyof typeof LIMITES;
