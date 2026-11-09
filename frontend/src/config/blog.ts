@@ -71,6 +71,9 @@ export const PALABRAS_POR_MINUTO = 200;
 /** Slugs que no puede tener un artículo: son carpetas de /blog */
 export const SLUGS_RESERVADOS = ["pagina", "categoria", "rss.xml"];
 
+/** Los que un editor todavía puede corregir (uno en cola o publicado ya es cosa del admin) */
+export const ESTADOS_EDITABLES_EDITOR: EstadoArticulo[] = ["PENDIENTE", "RECHAZADO"];
+
 export const estadosArticulo: Record<
   EstadoArticulo,
   { nombre: string; plural: string; tono: "neutro" | "aviso" | "acento" | "exito" | "error"; api: string }

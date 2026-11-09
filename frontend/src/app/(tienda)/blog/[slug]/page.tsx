@@ -9,7 +9,7 @@ import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { categoriaPorSlug } from "@/config/blog";
 import { articuloPublicado, articulosRelacionados } from "@/lib/blog/articulos";
-import { minutosLectura } from "@/lib/blog/texto";
+import { extractoDe, minutosLectura } from "@/lib/blog/texto";
 import { obtenerKits } from "@/lib/catalogo";
 import { datosArticuloBlog, datosMigas } from "@/lib/datosEstructurados";
 import { metadatosPagina } from "@/lib/metadatos";
@@ -53,6 +53,8 @@ export default async function PaginaArticulo({ params }: Props) {
   ]);
   const kits = todosKits.filter((k) => articulo.kitsRelacionados.includes(k.slug));
   const actualizado = articulo.actualizadoEn.getTime() - articulo.publicadoEn.getTime() > 86_400_000;
+  // Si el extracto es el primer párrafo (no lo escribió nadie aparte), no se repite como entradilla
+  const extractoRepetido = extractoDe(articulo.contenidoHtml) === articulo.extracto;
 
   const migas = [
     { nombre: "Inicio", ruta: "/" },
@@ -114,7 +116,9 @@ export default async function PaginaArticulo({ params }: Props) {
               )}{" "}
               · {minutosLectura(articulo.palabras)} min de lectura
             </p>
-            <p className="mt-8 text-xl leading-relaxed text-tinta/85">{articulo.extracto}</p>
+            {!extractoRepetido && (
+              <p className="mt-8 text-xl leading-relaxed text-tinta/85">{articulo.extracto}</p>
+            )}
           </header>
 
           {articulo.imagenUrl && (

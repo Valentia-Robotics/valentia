@@ -282,7 +282,13 @@ export async function publicarSiToca(ahora = new Date()) {
   if (!ajustes.autoPublicar) return { publicado: null, motivo: "La publicación automática está apagada." };
   const hoy = await publicadosHoy(ahora);
   if (!tocaPublicar(ahora, ajustes.hora, ajustes.porDia, hoy)) {
-    return { publicado: null, motivo: "Todavía no toca publicar." };
+    return {
+      publicado: null,
+      motivo:
+        hoy >= ajustes.porDia
+          ? `Hoy ya se han publicado ${hoy} (máximo ${ajustes.porDia} al día).`
+          : `Todavía no son las ${ajustes.hora} en Madrid.`,
+    };
   }
   const siguiente = await db.articulo.findFirst({
     where: { estado: "EN_COLA" },
