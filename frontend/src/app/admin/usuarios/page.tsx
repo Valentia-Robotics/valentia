@@ -1,4 +1,6 @@
+import { Fragment } from "react";
 import type { Metadata } from "next";
+import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Buscador } from "@/components/admin/Buscador";
 import { Cabecera } from "@/components/admin/Cabecera";
@@ -25,7 +27,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
   const parametros = await searchParams;
   const q = typeof parametros.q === "string" ? parametros.q : "";
   const pagina = leerPagina(parametros.pagina);
-  const { usuarios, total, totalPaginas } = await buscarUsuarios(q, pagina);
+  const { usuarios, total, totalEmpleados, totalPaginas } = await buscarUsuarios(q, pagina);
   const ahora = new Date();
 
   return (
@@ -37,6 +39,11 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
             ? `${plural(total, "cuenta encontrada", "cuentas encontradas")} para «${q}»`
             : plural(total, "cuenta registrada", "cuentas registradas")
         }
+        acciones={
+          <BotonAdmin href="/admin/empleados" variante="secundario">
+            Empleados y última conexión
+          </BotonAdmin>
+        }
       />
       <div className="mb-4">
         <Buscador valor={q} placeholder="Buscar por email o nombre" etiqueta="Buscar usuarios" />
@@ -47,55 +54,68 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
           columnas={["Usuario", "Registro", "Cursos activados", "Pedidos", ""]}
           vacia={usuarios.length === 0 && "No hay ninguna cuenta que coincida con la búsqueda."}
         >
-          {usuarios.map((u) => (
-            <tr key={u.id}>
-              <td>
-                <p className="font-medium">
-                  {u.nombre} {u.rol === "ADMIN" && <Insignia tono="acento">Admin</Insignia>}
-                  {u.rol === "EDITOR" && <Insignia tono="aviso">Editor</Insignia>}
-                </p>
-                <p className="text-xs text-gris">{u.email}</p>
-                {esDelEquipo(u.rol) && (
-                  <p className="mt-0.5 text-xs text-gris">
-                    Última conexión: {textoConexion(u.ultimaConexion, ahora)}
-                  </p>
-                )}
-              </td>
-              <td className="whitespace-nowrap text-gris">{fecha(u.creadoEn)}</td>
-              <td>
-                {u.cursos.length === 0 ? (
-                  <span className="text-gris">Ninguno</span>
-                ) : (
-                  <ul className="flex flex-wrap gap-1">
-                    {u.cursos.map((c) => (
-                      <li key={c.id}>
-                        <Insignia>{c.titulo}</Insignia>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </td>
-              <td className="tabular-nums">{u.pedidos}</td>
-              <td className="text-right">
-                {u.rol !== "ADMIN" && (
-                  <BotonConfirmar
-                    accion={cambiarRolEditor}
-                    datos={{ usuarioId: u.id, hacerEditor: u.rol === "EDITOR" ? "no" : "si" }}
-                    titulo={u.rol === "EDITOR" ? "Quitar el rol de editor" : "Hacer editor"}
-                    texto={
-                      u.rol === "EDITOR"
-                        ? `${u.nombre} dejará de ver el panel de editor y volverá a ser cliente.`
-                        : `${u.nombre} podrá entrar en el panel de editor y ver los guiones que le asignes. Sigue siendo cliente de la tienda.`
-                    }
-                    confirmar={u.rol === "EDITOR" ? "Sí, quitar" : "Sí, hacer editor"}
-                    variante="secundario"
-                    pequeno
+          {usuarios.map((u, i) => (
+            <Fragment key={u.id}>
+              {/* Arriba los empleados; debajo, los clientes */}
+              {(i === 0 || esDelEquipo(usuarios[i - 1].rol) !== esDelEquipo(u.rol)) && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="bg-niebla text-xs font-semibold tracking-wide text-gris uppercase"
                   >
-                    {u.rol === "EDITOR" ? "Quitar editor" : "Hacer editor"}
-                  </BotonConfirmar>
-                )}
-              </td>
-            </tr>
+                    {esDelEquipo(u.rol) ? `Empleados (${totalEmpleados})` : "Clientes"}
+                  </td>
+                </tr>
+              )}
+              <tr>
+                <td>
+                  <p className="font-medium">
+                    {u.nombre} {u.rol === "ADMIN" && <Insignia tono="acento">Admin</Insignia>}
+                    {u.rol === "EDITOR" && <Insignia tono="aviso">Editor</Insignia>}
+                  </p>
+                  <p className="text-xs text-gris">{u.email}</p>
+                  {esDelEquipo(u.rol) && (
+                    <p className="mt-0.5 text-xs text-gris">
+                      Última conexión: {textoConexion(u.ultimaConexion, ahora)}
+                    </p>
+                  )}
+                </td>
+                <td className="whitespace-nowrap text-gris">{fecha(u.creadoEn)}</td>
+                <td>
+                  {u.cursos.length === 0 ? (
+                    <span className="text-gris">Ninguno</span>
+                  ) : (
+                    <ul className="flex flex-wrap gap-1">
+                      {u.cursos.map((c) => (
+                        <li key={c.id}>
+                          <Insignia>{c.titulo}</Insignia>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </td>
+                <td className="tabular-nums">{u.pedidos}</td>
+                <td className="text-right">
+                  {u.rol !== "ADMIN" && (
+                    <BotonConfirmar
+                      accion={cambiarRolEditor}
+                      datos={{ usuarioId: u.id, hacerEditor: u.rol === "EDITOR" ? "no" : "si" }}
+                      titulo={u.rol === "EDITOR" ? "Quitar el rol de editor" : "Hacer editor"}
+                      texto={
+                        u.rol === "EDITOR"
+                          ? `${u.nombre} dejará de ver el panel de editor y volverá a ser cliente.`
+                          : `${u.nombre} podrá entrar en el panel de editor y ver los guiones que le asignes. Sigue siendo cliente de la tienda.`
+                      }
+                      confirmar={u.rol === "EDITOR" ? "Sí, quitar" : "Sí, hacer editor"}
+                      variante="secundario"
+                      pequeno
+                    >
+                      {u.rol === "EDITOR" ? "Quitar editor" : "Hacer editor"}
+                    </BotonConfirmar>
+                  )}
+                </td>
+              </tr>
+            </Fragment>
           ))}
         </Tabla>
         <Paginacion

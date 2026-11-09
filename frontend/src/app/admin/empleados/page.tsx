@@ -10,11 +10,11 @@ import { obtenerEquipo } from "@/lib/admin/equipo";
 import { exigirAdmin } from "@/lib/sesion";
 import { plural } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Equipo" };
+export const metadata: Metadata = { title: "Empleados" };
 
-/** EQUIPO: quién trabaja en la web y cuándo se conectó por última vez */
-export default async function EquipoAdmin() {
-  await exigirAdmin("/admin/equipo");
+/** EMPLEADOS: quién trabaja en la web y cuándo se conectó por última vez */
+export default async function EmpleadosAdmin() {
+  await exigirAdmin("/admin/empleados");
   const grupos = await obtenerEquipo();
   const ahora = new Date();
   const total = grupos.reduce((n, g) => n + g.personas.length, 0);
@@ -22,7 +22,7 @@ export default async function EquipoAdmin() {
   return (
     <>
       <Cabecera
-        titulo="Equipo"
+        titulo="Empleados"
         descripcion={`${plural(total, "persona", "personas")} con un rol de trabajo. La conexión se apunta mientras usan la web con la sesión abierta (con unos minutos de margen).`}
       />
       <div className="space-y-6">

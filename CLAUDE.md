@@ -57,7 +57,8 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
 Petición del usuario: ver cuándo se conectó por última vez cada trabajador. Roles de trabajo en `src/config/equipo.ts`
 (`ROLES_EQUIPO`: hoy ADMIN y EDITOR). **Rol nuevo (pronto «Hardware»): añadirlo al enum `Rol` y a `ROLES_EQUIPO`**, y sale solo.
 `Usuario.ultimaConexionEn` se apunta en `comprobarSesion` (cada lectura de sesión), solo a esos roles y como mucho cada
-2 minutos; a los clientes no. `/admin/equipo` (por rol, «Conectado ahora» si < 5 min) y una línea en `/admin/usuarios`.
+2 minutos; a los clientes no. `/admin/empleados` (por rol, «Conectado ahora» si < 5 min). En `/admin/usuarios` los empleados salen primero (todos en la
+página 1, con su última conexión) y debajo los clientes por páginas.
 Si no hay conexión apuntada, se usa el último uso de sus dispositivos (`ultimaConexion` en `src/lib/admin/equipo.ts`).
 Blog: `refrescarBlog` nombra cada página del listado (`revalidatePath("/blog", "layout")` no renovaba `/blog`).
 

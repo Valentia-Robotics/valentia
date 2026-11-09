@@ -38,7 +38,7 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
   { href: "/admin/resenas", etiqueta: "Reseñas", icono: Star },
   { href: "/admin/lista-espera", etiqueta: "Lista de espera", icono: Mail },
   { href: "/admin/usuarios", etiqueta: "Usuarios", icono: Users },
-  { href: "/admin/equipo", etiqueta: "Equipo", icono: Clock },
+  { href: "/admin/empleados", etiqueta: "Empleados", icono: Clock },
 ];
 
 /** El panel de editor usa este mismo menú, pero solo con lo suyo */
