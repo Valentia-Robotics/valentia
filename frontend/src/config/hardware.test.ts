@@ -5,6 +5,8 @@ import {
   esArchivoDelSistema,
   limpiarCarpeta,
   limpiarNombreArchivo,
+  migasDeCarpeta,
+  verCarpeta,
   tamanoLegible,
 } from "./hardware";
 
@@ -47,6 +49,31 @@ describe("espacios de hardware", () => {
     expect(esArchivoDelSistema("Coche/Thumbs.db")).toBe(true);
     expect(esArchivoDelSistema("Coche/~$informe.docx")).toBe(true);
     expect(esArchivoDelSistema("Coche/PCB/placa.kicad_pcb")).toBe(false);
+  });
+
+  it("enseña cada carpeta como en el explorador", () => {
+    const archivos = [
+      { nombre: "leeme.txt", carpeta: "", tamano: 1 },
+      { nombre: "placa.pcb", carpeta: "Coche/PCB", tamano: 10 },
+      { nombre: "b.step", carpeta: "Coche", tamano: 5 },
+      { nombre: "a.step", carpeta: "Coche", tamano: 5 },
+      { nombre: "gerber.zip", carpeta: "Coche/PCB/Gerbers", tamano: 20 },
+      { nombre: "x", carpeta: "Brazo 10", tamano: 1 },
+      { nombre: "y", carpeta: "Brazo 2", tamano: 1 },
+      { nombre: "z", carpeta: "Cochera", tamano: 1 },
+    ];
+    const raiz = verCarpeta(archivos, "");
+    expect(raiz.archivos.map((a) => a.nombre)).toEqual(["leeme.txt"]);
+    expect(raiz.carpetas.map((c) => c.nombre)).toEqual(["Brazo 2", "Brazo 10", "Coche", "Cochera"]);
+    expect(raiz.carpetas[2]).toEqual({ nombre: "Coche", ruta: "Coche", archivos: 4, bytes: 40 });
+    const coche = verCarpeta(archivos, "Coche");
+    expect(coche.archivos.map((a) => a.nombre)).toEqual(["a.step", "b.step"]);
+    expect(coche.carpetas).toEqual([{ nombre: "PCB", ruta: "Coche/PCB", archivos: 2, bytes: 30 }]);
+    expect(verCarpeta(archivos, "No existe")).toEqual({ carpetas: [], archivos: [] });
+    expect(migasDeCarpeta("Coche/PCB")).toEqual([
+      { nombre: "Coche", ruta: "Coche" },
+      { nombre: "PCB", ruta: "Coche/PCB" },
+    ]);
   });
 
   it("dice los tamaños en español", () => {

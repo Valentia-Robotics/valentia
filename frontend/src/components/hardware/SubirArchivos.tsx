@@ -95,10 +95,13 @@ function prepararSeleccion(tipo: Seleccion["tipo"], todos: Elegido[]): Seleccion
 export function SubirArchivos({
   duenoId,
   carpetas,
+  carpetaInicial = "",
   libres,
 }: {
   duenoId?: string;
   carpetas: string[];
+  /** La carpeta abierta en el explorador: lo que se suba va ahí salvo que se cambie */
+  carpetaInicial?: string;
   libres: number;
 }) {
   const router = useRouter();
@@ -312,6 +315,7 @@ export function SubirArchivos({
           <CampoAdmin
             etiqueta="Guardar dentro de la carpeta (opcional)"
             name="carpeta"
+            defaultValue={carpetaInicial}
             list={idLista}
             placeholder="Por ejemplo: Coche VR1/PCB"
             maxLength={250}
