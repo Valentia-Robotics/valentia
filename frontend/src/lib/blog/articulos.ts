@@ -5,12 +5,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import type { EstadoArticulo, OrigenArticulo } from "@/generated/prisma/enums";
-import {
-  ARTICULOS_POR_PAGINA,
-  AUTOR_AUTOMATICO,
-  CALIDAD_BLOG,
-  LARGO_META,
-} from "@/config/blog";
+import { ARTICULOS_POR_PAGINA, AUTOR_AUTOMATICO, CALIDAD_BLOG, LARGO_META } from "@/config/blog";
 import { db } from "@/lib/db";
 import { avisarPaginas } from "@/lib/indexnow";
 import { revisarCalidad } from "./calidad";
@@ -52,7 +47,11 @@ export async function ajustesBlog() {
   return db.ajustesBlog.upsert({ where: { clave: "blog" }, create: { clave: "blog" }, update: {} });
 }
 
-export async function guardarAjustes(datos: { autoPublicar: boolean; porDia: number; hora: string }) {
+export async function guardarAjustes(datos: {
+  autoPublicar: boolean;
+  porDia: number;
+  hora: string;
+}) {
   await db.ajustesBlog.upsert({
     where: { clave: "blog" },
     create: { clave: "blog", ...datos },
@@ -106,10 +105,7 @@ export async function prepararArticulo(datos: DatosArticulo, excluirId?: string)
       extracto,
       palabraClave,
       metaTitulo: recortar(datos.metaTitulo?.trim() || datos.titulo, LARGO_META.titulo),
-      metaDescripcion: recortar(
-        datos.metaDescripcion?.trim() || extracto,
-        LARGO_META.descripcion,
-      ),
+      metaDescripcion: recortar(datos.metaDescripcion?.trim() || extracto, LARGO_META.descripcion),
       categoria: datos.categoria,
       etiquetas: datos.etiquetas,
       imagenUrl: datos.imagenUrl || null,
@@ -219,7 +215,10 @@ export async function ponerEnCola(id: string) {
 }
 
 export async function rechazarArticulo(id: string, motivo: string) {
-  const antes = await db.articulo.findUnique({ where: { id }, select: { estado: true, slug: true } });
+  const antes = await db.articulo.findUnique({
+    where: { id },
+    select: { estado: true, slug: true },
+  });
   await db.articulo.update({
     where: { id },
     data: { estado: "RECHAZADO", programadoPara: null, ...(motivo ? { motivos: [motivo] } : {}) },
@@ -279,7 +278,8 @@ export async function reprogramarCola() {
  */
 export async function publicarSiToca(ahora = new Date()) {
   const ajustes = await ajustesBlog();
-  if (!ajustes.autoPublicar) return { publicado: null, motivo: "La publicación automática está apagada." };
+  if (!ajustes.autoPublicar)
+    return { publicado: null, motivo: "La publicación automática está apagada." };
   const hoy = await publicadosHoy(ahora);
   if (!tocaPublicar(ahora, ajustes.hora, ajustes.porDia, hoy)) {
     return {
@@ -342,7 +342,12 @@ export async function registrarLlamada(
 ) {
   try {
     await db.llamadaBlog.create({
-      data: { ruta, estado, detalle: detalle?.slice(0, 1000) ?? null, articuloId: articuloId ?? null },
+      data: {
+        ruta,
+        estado,
+        detalle: detalle?.slice(0, 1000) ?? null,
+        articuloId: articuloId ?? null,
+      },
     });
     if (Math.random() < 0.02) {
       await db.llamadaBlog.deleteMany({
@@ -356,7 +361,13 @@ export async function registrarLlamada(
 
 /** Vuelve a generar las páginas del blog, el sitemap y los artículos tocados */
 function refrescarBlog(slugs: string[]) {
+  // "/blog" con "layout" no renueva la portada del blog (no tiene layout propio): se nombra cada página
   revalidatePath("/blog", "layout");
+  revalidatePath("/blog");
+  revalidatePath("/blog/pagina/[n]", "page");
+  revalidatePath("/blog/categoria/[categoria]", "page");
+  revalidatePath("/blog/categoria/[categoria]/pagina/[n]", "page");
+  revalidatePath("/blog/rss.xml");
   for (const slug of slugs) revalidatePath(`/blog/${slug}`);
   revalidatePath("/sitemap.xml");
 }
@@ -375,7 +386,13 @@ const resumen = {
   publicadoEn: true,
 } as const;
 
-export async function articulosPublicados({ pagina = 1, categoria }: { pagina?: number; categoria?: string }) {
+export async function articulosPublicados({
+  pagina = 1,
+  categoria,
+}: {
+  pagina?: number;
+  categoria?: string;
+}) {
   const where = { estado: "PUBLICADO" as const, ...(categoria ? { categoria } : {}) };
   const [articulos, total] = await Promise.all([
     db.articulo.findMany({
@@ -425,7 +442,16 @@ export function todosPublicados() {
   return db.articulo.findMany({
     where: { estado: "PUBLICADO" },
     orderBy: { publicadoEn: "desc" },
-    select: { slug: true, titulo: true, extracto: true, categoria: true, imagenUrl: true, publicadoEn: true, actualizadoEn: true, etiquetas: true },
+    select: {
+      slug: true,
+      titulo: true,
+      extracto: true,
+      categoria: true,
+      imagenUrl: true,
+      publicadoEn: true,
+      actualizadoEn: true,
+      etiquetas: true,
+    },
   });
 }
 

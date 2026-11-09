@@ -326,6 +326,9 @@ model Usuario {
   creadoEn          DateTime  @default(now())
   /// Cuándo confirmó su email con el código (null = sin confirmar: no puede entrar ni activar cursos)
   emailVerificadoEn DateTime?
+  /// Última vez que alguien del equipo (editor, admin…) usó la web con la sesión abierta.
+  /// Solo se apunta a los roles de src/config/equipo.ts, como mucho una vez cada 2 minutos
+  ultimaConexionEn  DateTime?
 
   cursos         CursoUsuario[]
   codigos        CodigoActivacion[]

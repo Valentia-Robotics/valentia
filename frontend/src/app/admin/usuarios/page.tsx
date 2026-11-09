@@ -6,6 +6,7 @@ import { Caja } from "@/components/admin/Caja";
 import { Insignia } from "@/components/admin/Insignia";
 import { leerPagina, Paginacion } from "@/components/admin/Paginacion";
 import { Tabla } from "@/components/admin/Tabla";
+import { esDelEquipo, textoConexion } from "@/config/equipo";
 import { fecha } from "@/lib/admin/formato";
 import { buscarUsuarios } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
@@ -25,6 +26,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
   const q = typeof parametros.q === "string" ? parametros.q : "";
   const pagina = leerPagina(parametros.pagina);
   const { usuarios, total, totalPaginas } = await buscarUsuarios(q, pagina);
+  const ahora = new Date();
 
   return (
     <>
@@ -53,6 +55,11 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                   {u.rol === "EDITOR" && <Insignia tono="aviso">Editor</Insignia>}
                 </p>
                 <p className="text-xs text-gris">{u.email}</p>
+                {esDelEquipo(u.rol) && (
+                  <p className="mt-0.5 text-xs text-gris">
+                    Última conexión: {textoConexion(u.ultimaConexion, ahora)}
+                  </p>
+                )}
               </td>
               <td className="whitespace-nowrap text-gris">{fecha(u.creadoEn)}</td>
               <td>

@@ -10,6 +10,7 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
 import type { Rol } from "@/generated/prisma/enums";
+import { esDelEquipo, MINUTOS_ENTRE_CONEXIONES } from "@/config/equipo";
 import { db } from "@/lib/db";
 import { generarToken, hashToken } from "./cripto";
 import { nombreDispositivo } from "./nombreDispositivo";
@@ -159,7 +160,7 @@ export async function comprobarSesion(
       caducaEn: true,
       ultimoUsoEn: true,
       sesionCerradaEn: true,
-      usuario: { select: { rol: true, emailVerificadoEn: true } },
+      usuario: { select: { rol: true, emailVerificadoEn: true, ultimaConexionEn: true } },
     },
   });
   const ahora = Date.now();
@@ -180,7 +181,26 @@ export async function comprobarSesion(
       data: { ultimoUsoEn: new Date(ahora) },
     });
   }
+  await apuntarConexion(usuarioId, dispositivo.usuario, ahora);
   return dispositivo.usuario.rol;
+}
+
+/**
+ * Última conexión de la gente del equipo (editores, admin…; ver src/config/equipo.ts), para
+ * /admin/equipo. A los clientes no se les apunta. Como mucho una escritura cada 2 minutos.
+ */
+async function apuntarConexion(
+  usuarioId: string,
+  usuario: { rol: Rol; ultimaConexionEn: Date | null },
+  ahora: number,
+) {
+  if (!esDelEquipo(usuario.rol)) return;
+  const antes = usuario.ultimaConexionEn?.getTime() ?? 0;
+  if (antes > ahora - MINUTOS_ENTRE_CONEXIONES * 60_000) return;
+  await db.usuario.update({
+    where: { id: usuarioId },
+    data: { ultimaConexionEn: new Date(ahora) },
+  });
 }
 
 /**

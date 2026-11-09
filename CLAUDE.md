@@ -52,6 +52,15 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
   500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
+### Equipo y última conexión (09-11-2026, rama `mejoras/blog-refresco-ultima-conexion`)
+
+Petición del usuario: ver cuándo se conectó por última vez cada trabajador. Roles de trabajo en `src/config/equipo.ts`
+(`ROLES_EQUIPO`: hoy ADMIN y EDITOR). **Rol nuevo (pronto «Hardware»): añadirlo al enum `Rol` y a `ROLES_EQUIPO`**, y sale solo.
+`Usuario.ultimaConexionEn` se apunta en `comprobarSesion` (cada lectura de sesión), solo a esos roles y como mucho cada
+2 minutos; a los clientes no. `/admin/equipo` (por rol, «Conectado ahora» si < 5 min) y una línea en `/admin/usuarios`.
+Si no hay conexión apuntada, se usa el último uso de sus dispositivos (`ultimaConexion` en `src/lib/admin/equipo.ts`).
+Blog: `refrescarBlog` nombra cada página del listado (`revalidatePath("/blog", "layout")` no renovaba `/blog`).
+
 ### Blog automático y SEO (09-11-2026, rama `feature/blog-auto-seo`; especificación del usuario)
 
 Decisiones del usuario (con las recomendaciones): imágenes SOLO de bancos con licencia libre (`HOSTS_IMAGENES`), nunca
