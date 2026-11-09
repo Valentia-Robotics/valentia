@@ -9,11 +9,13 @@ export const metadata: Metadata = { title: "Espacio de hardware" };
 
 interface Props {
   params: Promise<{ usuarioId: string }>;
+  searchParams: Promise<{ carpeta?: string | string[] }>;
 }
 
 /** EL ESPACIO DE UNA PERSONA DE HARDWARE, visto por la administración */
-export default async function EspacioHardwareAdmin({ params }: Props) {
+export default async function EspacioHardwareAdmin({ params, searchParams }: Props) {
   const { usuarioId } = await params;
+  const { carpeta } = await searchParams;
   await exigirAdmin(`/admin/hardware/${usuarioId}`);
   const dueno = await duenoDeEspacio(usuarioId);
   if (!dueno) notFound();
@@ -25,7 +27,13 @@ export default async function EspacioHardwareAdmin({ params }: Props) {
         descripcion={dueno.email}
         volver={{ href: "/admin/hardware", etiqueta: "Hardware" }}
       />
-      <EspacioArchivos duenoId={dueno.id} paraAdmin puedeSubir={dueno.rol === "HARDWARE"} />
+      <EspacioArchivos
+        duenoId={dueno.id}
+        paraAdmin
+        puedeSubir={dueno.rol === "HARDWARE"}
+        pagina={`/admin/hardware/${dueno.id}`}
+        carpeta={typeof carpeta === "string" ? carpeta : ""}
+      />
     </>
   );
 }

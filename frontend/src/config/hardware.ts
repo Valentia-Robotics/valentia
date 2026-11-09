@@ -116,3 +116,55 @@ export function cabeceraDescarga(nombre: string): string {
   const sencillo = nombre.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
   return `attachment; filename="${sencillo}"; filename*=UTF-8''${encodeURIComponent(nombre)}`;
 }
+
+/** Una subcarpeta tal como se ve en el explorador: su nombre, su ruta completa y lo que lleva dentro */
+export interface ResumenCarpeta {
+  nombre: string;
+  ruta: string;
+  /** Archivos que hay dentro, contando los de sus subcarpetas */
+  archivos: number;
+  bytes: number;
+}
+
+const ordenNatural = new Intl.Collator("es-ES", { numeric: true, sensitivity: "base" });
+
+/**
+ * Lo que se ve al abrir una carpeta en el explorador del espacio ("" = la carpeta principal):
+ * sus subcarpetas (solo el primer nivel, con lo que llevan dentro) y sus archivos sueltos.
+ * Una carpeta existe si tiene algún archivo dentro, aunque sea en una subcarpeta suya.
+ */
+export function verCarpeta<T extends { carpeta: string; tamano: number; nombre: string }>(
+  todos: T[],
+  ruta: string,
+): { carpetas: ResumenCarpeta[]; archivos: T[] } {
+  const prefijo = ruta ? `${ruta}/` : "";
+  const carpetas = new Map<string, ResumenCarpeta>();
+  const archivos: T[] = [];
+  for (const archivo of todos) {
+    if (archivo.carpeta === ruta) {
+      archivos.push(archivo);
+      continue;
+    }
+    if (!archivo.carpeta.startsWith(prefijo)) continue;
+    const nombre = archivo.carpeta.slice(prefijo.length).split("/")[0];
+    const resumen = carpetas.get(nombre) ?? {
+      nombre,
+      ruta: prefijo + nombre,
+      archivos: 0,
+      bytes: 0,
+    };
+    resumen.archivos++;
+    resumen.bytes += archivo.tamano;
+    carpetas.set(nombre, resumen);
+  }
+  return {
+    carpetas: [...carpetas.values()].sort((a, b) => ordenNatural.compare(a.nombre, b.nombre)),
+    archivos: archivos.sort((a, b) => ordenNatural.compare(a.nombre, b.nombre)),
+  };
+}
+
+/** "Coche/PCB" → [{ nombre: "Coche", ruta: "Coche" }, { nombre: "PCB", ruta: "Coche/PCB" }] */
+export function migasDeCarpeta(ruta: string): { nombre: string; ruta: string }[] {
+  const partes = ruta.split("/").filter(Boolean);
+  return partes.map((nombre, i) => ({ nombre, ruta: partes.slice(0, i + 1).join("/") }));
+}
