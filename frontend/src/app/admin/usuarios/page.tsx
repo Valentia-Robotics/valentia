@@ -12,7 +12,8 @@ import { esDelEquipo, textoConexion } from "@/config/equipo";
 import { fecha } from "@/lib/admin/formato";
 import { buscarUsuarios } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
-import { cambiarRolEditor } from "./acciones";
+import type { Rol } from "@/generated/prisma/enums";
+import { cambiarRolTrabajo } from "./acciones";
 import { plural } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Usuarios" };
@@ -72,6 +73,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                   <p className="font-medium">
                     {u.nombre} {u.rol === "ADMIN" && <Insignia tono="acento">Admin</Insignia>}
                     {u.rol === "EDITOR" && <Insignia tono="aviso">Editor</Insignia>}
+                    {u.rol === "HARDWARE" && <Insignia tono="exito">Hardware</Insignia>}
                   </p>
                   <p className="text-xs text-gris">{u.email}</p>
                   {esDelEquipo(u.rol) && (
@@ -96,23 +98,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                 </td>
                 <td className="tabular-nums">{u.pedidos}</td>
                 <td className="text-right">
-                  {u.rol !== "ADMIN" && (
-                    <BotonConfirmar
-                      accion={cambiarRolEditor}
-                      datos={{ usuarioId: u.id, hacerEditor: u.rol === "EDITOR" ? "no" : "si" }}
-                      titulo={u.rol === "EDITOR" ? "Quitar el rol de editor" : "Hacer editor"}
-                      texto={
-                        u.rol === "EDITOR"
-                          ? `${u.nombre} dejará de ver el panel de editor y volverá a ser cliente.`
-                          : `${u.nombre} podrá entrar en el panel de editor y ver los guiones que le asignes. Sigue siendo cliente de la tienda.`
-                      }
-                      confirmar={u.rol === "EDITOR" ? "Sí, quitar" : "Sí, hacer editor"}
-                      variante="secundario"
-                      pequeno
-                    >
-                      {u.rol === "EDITOR" ? "Quitar editor" : "Hacer editor"}
-                    </BotonConfirmar>
-                  )}
+                  <BotonesRol usuario={u} />
                 </td>
               </tr>
             </Fragment>
@@ -126,5 +112,56 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
         />
       </Caja>
     </>
+  );
+}
+
+/** Qué hace cada rol de trabajo, para la ventana de confirmar */
+const ROLES = {
+  EDITOR: {
+    nombre: "editor",
+    dar: "podrá entrar en el panel de editor y ver los guiones que le asignes.",
+    quitar: "dejará de ver el panel de editor y volverá a ser cliente.",
+  },
+  HARDWARE: {
+    nombre: "hardware",
+    dar: "tendrá su espacio de archivos en /hardware (solo lo veréis esa persona y tú).",
+    quitar:
+      "dejará de ver su espacio y volverá a ser cliente. Sus archivos NO se borran: los sigues viendo en Hardware.",
+  },
+} as const;
+
+/**
+ * Botones para dar o quitar un rol de trabajo. Un cliente puede pasar a editor o a hardware; quien ya
+ * tiene uno, solo puede volver a cliente (una persona, un rol). Al admin no se le toca.
+ */
+function BotonesRol({ usuario }: { usuario: { id: string; nombre: string; rol: Rol } }) {
+  if (usuario.rol === "ADMIN") return null;
+  const roles = usuario.rol === "CLIENTE" ? (["EDITOR", "HARDWARE"] as const) : [usuario.rol];
+  return (
+    <div className="flex flex-wrap justify-end gap-2">
+      {roles.map((rol) => {
+        if (rol !== "EDITOR" && rol !== "HARDWARE") return null;
+        const r = ROLES[rol];
+        const dar = usuario.rol === "CLIENTE";
+        return (
+          <BotonConfirmar
+            key={rol}
+            accion={cambiarRolTrabajo}
+            datos={{ usuarioId: usuario.id, rol, dar: dar ? "si" : "no" }}
+            titulo={dar ? `Hacer ${r.nombre}` : `Quitar el rol de ${r.nombre}`}
+            texto={
+              dar
+                ? `${usuario.nombre} ${r.dar} Sigue siendo cliente de la tienda.`
+                : `${usuario.nombre} ${r.quitar}`
+            }
+            confirmar={dar ? `Sí, hacer ${r.nombre}` : "Sí, quitar"}
+            variante="secundario"
+            pequeno
+          >
+            {dar ? `Hacer ${r.nombre}` : `Quitar ${r.nombre}`}
+          </BotonConfirmar>
+        );
+      })}
+    </div>
   );
 }

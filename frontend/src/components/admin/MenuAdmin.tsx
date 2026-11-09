@@ -9,6 +9,7 @@ import {
   Clapperboard,
   Clock,
   Cpu,
+  FolderOpen,
   ExternalLink,
   LayoutDashboard,
   LogOut,
@@ -35,6 +36,7 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
   { href: "/admin/codigos", etiqueta: "Códigos", icono: QrCode },
   { href: "/admin/contenido", etiqueta: "Contenido", icono: Clapperboard },
   { href: "/admin/blog", etiqueta: "Blog", icono: Newspaper },
+  { href: "/admin/hardware", etiqueta: "Hardware", icono: FolderOpen },
   { href: "/admin/resenas", etiqueta: "Reseñas", icono: Star },
   { href: "/admin/lista-espera", etiqueta: "Lista de espera", icono: Mail },
   { href: "/admin/usuarios", etiqueta: "Usuarios", icono: Users },
@@ -45,6 +47,11 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
 const seccionesEditor: typeof seccionesAdmin = [
   { href: "/editor", etiqueta: "Mis guiones", icono: Clapperboard },
   { href: "/editor/blog", etiqueta: "Mis artículos", icono: Newspaper },
+];
+
+/** La zona de hardware: su espacio de archivos */
+const seccionesHardware: typeof seccionesAdmin = [
+  { href: "/hardware", etiqueta: "Mi espacio", icono: FolderOpen },
 ];
 
 /**
@@ -59,10 +66,11 @@ export function MenuAdmin({
 }: {
   nombre: string;
   email: string;
-  zona?: "admin" | "editor";
+  zona?: "admin" | "editor" | "hardware";
 }) {
   const ruta = usePathname();
-  const secciones = zona === "editor" ? seccionesEditor : seccionesAdmin;
+  const secciones =
+    zona === "editor" ? seccionesEditor : zona === "hardware" ? seccionesHardware : seccionesAdmin;
   const inicio = secciones[0].href;
   // La primera sección no se marca en las demás (/admin/kits no es «Inicio»; /editor/blog no es
   // «Mis guiones»), salvo las fichas de guion del editor (/editor/<id>)
@@ -77,7 +85,7 @@ export function MenuAdmin({
         <Link href={inicio} className="inline-flex items-center gap-2">
           <Logo alto={14} />
           <span className="rounded bg-tinta px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">
-            {zona === "editor" ? "Editor" : "Panel"}
+            {zona === "editor" ? "Editor" : zona === "hardware" ? "Hardware" : "Panel"}
           </span>
         </Link>
         {/* En el móvil, la tienda y cerrar sesión van arriba a la derecha */}

@@ -57,6 +57,15 @@ export async function exigirEditor(volver = "/editor"): Promise<UsuarioActual> {
   return usuario;
 }
 
+/**
+ * Solo para la zona /hardware (su espacio de archivos). Con sesión pero sin ser HARDWARE → 404.
+ */
+export async function exigirHardware(volver = "/hardware"): Promise<UsuarioActual> {
+  const usuario = await exigirUsuario(volver);
+  if (usuario.rol !== "HARDWARE") notFound();
+  return usuario;
+}
+
 /** Error que lanzan las acciones del panel cuando quien las llama no es ADMIN */
 export class SinPermiso extends Error {
   constructor() {

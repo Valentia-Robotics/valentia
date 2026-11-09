@@ -5,10 +5,10 @@ import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
-    user: { id: string; rol?: "CLIENTE" | "ADMIN" | "EDITOR" } & DefaultSession["user"];
+    user: { id: string; rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE" } & DefaultSession["user"];
   }
   interface User {
-    rol?: "CLIENTE" | "ADMIN" | "EDITOR";
+    rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
     /** El dispositivo de confianza al que va unida la sesión */
     dispositivoId?: string;
   }
@@ -16,7 +16,7 @@ declare module "next-auth" {
 
 declare module "@auth/core/jwt" {
   interface JWT {
-    rol?: "CLIENTE" | "ADMIN" | "EDITOR";
+    rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
     dispositivoId?: string;
     /** Cuándo se abrió la sesión (milisegundos): al cerrar sesión, las anteriores dejan de valer */
     abiertaEn?: number;

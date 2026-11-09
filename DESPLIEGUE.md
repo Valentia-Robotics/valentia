@@ -294,16 +294,50 @@ cambiará la dirección a la que llama n8n, y seguirá habiendo un único servic
 
 Variables en Render → **Environment** → **Environment Variables** (todas opcionales; sin ellas, lo suyo queda apagado):
 
-| Variable              | Para qué                                                                         |
-| --------------------- | -------------------------------------------------------------------------------- |
-| `BLOG_API_KEY`        | Clave de n8n para `/api/blog/*` (distinta de `N8N_API_KEY`). Sin ella, 503        |
-| `N8N_PUBLISH_WEBHOOK` | Webhook de n8n que recibe cada artículo publicado (https://…)                     |
-| `NEXT_PUBLIC_GA_ID`   | Google Analytics 4 (`G-…`). Hay que volver a desplegar al cambiarla               |
+| Variable              | Para qué                                                                   |
+| --------------------- | -------------------------------------------------------------------------- |
+| `BLOG_API_KEY`        | Clave de n8n para `/api/blog/*` (distinta de `N8N_API_KEY`). Sin ella, 503 |
+| `N8N_PUBLISH_WEBHOOK` | Webhook de n8n que recibe cada artículo publicado (https://…)              |
+| `NEXT_PUBLIC_GA_ID`   | Google Analytics 4 (`G-…`). Hay que volver a desplegar al cambiarla        |
 
 Pasos para n8n y formato: `backend/n8n/BLOG.md`. n8n tiene que llamar **cada hora** a `POST /api/blog/publicar-cola`:
 es lo que publica la cola. La publicación automática empieza apagada (`/admin/blog`).
 
 Al desplegar, `db:push` crea las colecciones del blog. Nada de lo que ya existe cambia.
+
+## 6 quinquies. Espacios de archivos del equipo de hardware (Cloudflare R2)
+
+Cada persona con el rol **Hardware** tiene su espacio en `/hardware`; tú los ves todos en **/admin/hardware**. Los
+archivos van a un bucket **privado** de Cloudflare R2: nadie puede abrirlos con una dirección, solo a través de la web
+y después de comprobar quién es. Mientras no lo configures, la web dice «falta configurar el almacén» y no deja subir
+(el disco de Render se borra en cada publicación).
+
+1. Entra en **dash.cloudflare.com** (crea la cuenta si no la tienes) → menú **R2 Object Storage**. La primera vez pide
+   activar R2 con una tarjeta: hasta 10 GB al mes es gratis.
+2. **Create bucket** → nombre `valentia-hardware` → ubicación automática → **Create bucket**.
+   **No** actives «Public access»: tiene que quedarse privado.
+3. Vuelve a **R2 Object Storage** → **Manage API tokens** (o «API» → «Manage R2 API Tokens») → **Create API token**:
+   - Nombre: `valentia-web`
+   - Permisos: **Object Read & Write**
+   - **Apply to specific buckets only** → `valentia-hardware` (si ya tienes un bucket de fotos, añádelo también)
+   - **Create API Token**. Copia el **Access Key ID** y el **Secret Access Key** (este solo se ve una vez) y la
+     dirección **S3 API** (`https://<número>.r2.cloudflarestorage.com`). No los pegues en ningún chat.
+4. Render → tu servicio → **Environment** → añade:
+
+   | Variable                 | Qué poner                                                  |
+   | ------------------------ | ---------------------------------------------------------- |
+   | `ALMACEN_PRIVADO_BUCKET` | `valentia-hardware`                                        |
+   | `ALMACEN_ENDPOINT`       | La dirección S3 API, **sin** el nombre del bucket al final |
+   | `ALMACEN_CLAVE_ID`       | El Access Key ID                                           |
+   | `ALMACEN_CLAVE_SECRETA`  | El Secret Access Key                                       |
+   | `ALMACEN_REGION`         | `auto`                                                     |
+
+   Si las tres últimas ya existen (fotos en R2), no las cambies: solo añade `ALMACEN_PRIVADO_BUCKET`.
+   **Save Changes** y espera a **Live**.
+
+5. Prueba: en **/admin/usuarios**, «Hacer hardware» a alguien; esa persona entra en **/hardware** y sube un archivo.
+
+Límites (en `src/config/hardware.ts`): 50 MB por archivo y 2 GB por persona. Quitar el rol no borra sus archivos.
 
 ## 7. Copias de seguridad
 

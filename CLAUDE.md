@@ -52,6 +52,26 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
   500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
+### Rol Hardware y espacios de archivos (09-11-2026, rama `feature/rol-hardware`; petición del usuario)
+
+Decisiones del usuario: archivos en **Cloudflare R2** (bucket PRIVADO `ALMACEN_PRIVADO_BUCKET`, mismas claves `ALMACEN_*`
+que las fotos) y cada espacio lo ven **solo su dueño y los ADMIN**.
+
+- Rol `HARDWARE` (enum, `ROLES_EQUIPO`, `DIAS_CONFIANZA`, `next-auth.d.ts`). Se da en `/admin/usuarios`
+  (`cambiarRolTrabajo`: un cliente pasa a editor o hardware; con rol, solo vuelve a cliente). Quitarlo NO borra archivos.
+- Zona `/hardware` (`exigirHardware`, `MenuAdmin zona="hardware"`), panel `/admin/hardware` y `/admin/hardware/[usuarioId]`.
+  Mismo componente `components/hardware/EspacioArchivos` (+ `SubirArchivos`, cliente, XHR con progreso).
+- Modelo `ArchivoHardware` (carpeta de texto, `clave` al azar en el almacén, `onDelete: Restrict`). Permisos en un solo
+  sitio: `src/lib/hardware/archivos.ts` (`puedeUsarEspacio`). Reglas puras en `src/config/hardware.ts` (50 MB/archivo,
+  2 GB/persona, nombres y carpetas limpios, Content-Disposition) + test.
+- Almacén: `src/lib/almacenamiento/privado.ts` (R2 o carpeta `archivos-privados/` en local, fuera de git; en Render sin
+  bucket no deja subir). Subida: `POST /api/hardware/archivos` (cuerpo = archivo, nombre en `x-nombre-archivo`; por `/api`
+  para no pasar por el proxy; `mismoSitio`, límite `hardwareSubida`, `leerBytes`). Descarga: `GET /api/hardware/archivos/<id>`
+  (siempre octet-stream + attachment + nosniff). Borrar: acción `borrarArchivoHardware`.
+- Rutas con `path.resolve` dinámico: llevar `/* turbopackIgnore: true */`; sin él, `next dev` vigila todo el proyecto y la
+  página se recarga sin parar (pasó con `enDisco`).
+- Guía para el usuario: DESPLIEGUE.md §6 quinquies.
+
 ### Equipo y última conexión (09-11-2026, rama `mejoras/blog-refresco-ultima-conexion`)
 
 Petición del usuario: ver cuándo se conectó por última vez cada trabajador. Roles de trabajo en `src/config/equipo.ts`

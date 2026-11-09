@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Clapperboard, LayoutDashboard, LogOut, QrCode, UserRound } from "lucide-react";
+import {
+  BookOpen,
+  Clapperboard,
+  FolderOpen,
+  LayoutDashboard,
+  LogOut,
+  QrCode,
+  UserRound,
+} from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { enSeccion } from "@/config/marca";
@@ -98,6 +106,11 @@ export function MenuUsuario() {
           {sesion.user.rol === "EDITOR" && (
             <ElementoMenu href="/editor" icono={Clapperboard} alPulsar={cerrar}>
               Panel de editor
+            </ElementoMenu>
+          )}
+          {sesion.user.rol === "HARDWARE" && (
+            <ElementoMenu href="/hardware" icono={FolderOpen} alPulsar={cerrar}>
+              Mi espacio de hardware
             </ElementoMenu>
           )}
           <li>
