@@ -47,7 +47,7 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
 
   const [guiones, categorias, editores] = await Promise.all([
     buscarGuiones({
-      ...(ORDEN_ESTADOS.includes(estado as EstadoGuion) ? { estado: estado as EstadoGuion } : {}),
+      ...(Object.hasOwn(estadosGuion, estado) ? { estado: estado as EstadoGuion } : {}),
       ...(esId(categoria) ? { categoriaId: categoria } : {}),
       ...(esId(editor) ? { editorId: editor } : {}),
       ...(automaticos ? { origen: "IA" as const, estado: "PENDIENTE_APROBACION" as const } : {}),
@@ -80,6 +80,9 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
         descripcion={plural(guiones.length, "guion", "guiones")}
         acciones={
           <div className="flex flex-wrap gap-2">
+            <BotonAdmin href="/admin/contenido/llamadas" variante="secundario">
+              Llamadas de n8n
+            </BotonAdmin>
             <BotonAdmin href="/admin/contenido/metricas" variante="secundario">
               Métricas
             </BotonAdmin>
@@ -93,7 +96,8 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
 
       {descartado && (
         <p role="status" className="mb-4 rounded-lg bg-white p-3 text-sm ring-1 ring-linea">
-          Guion descartado. Si n8n vuelve a mandar esa noticia, no se creará otra vez.
+          Guion descartado. No se ha borrado: lo encuentras con Estado «Descartado» y puedes
+          recuperarlo.
         </p>
       )}
 
@@ -115,6 +119,7 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
           opciones={[
             { valor: "", texto: "Todos" },
             ...ORDEN_ESTADOS.map((e) => ({ valor: e, texto: estadosGuion[e].nombre })),
+            { valor: "DESCARTADO", texto: "Descartados" },
           ]}
         />
         <SelectorAdmin

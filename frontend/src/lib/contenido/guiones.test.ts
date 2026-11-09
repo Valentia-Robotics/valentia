@@ -7,7 +7,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 const bd = vi.hoisted(() => ({
-  guion: { findFirst: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), updateMany: vi.fn() },
+  guion: {
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
+  },
   usuario: { findFirst: vi.fn() },
   cambioEstadoGuion: { create: vi.fn() },
 }));
@@ -21,10 +27,12 @@ import {
   actualizarGuion,
   asignarGuion,
   cambiarEstado,
+  descartarGuion,
   ErrorGuion,
   guardarNotasEditor,
   guionDelEditor,
   guionesDelEditor,
+  recuperarGuion,
 } from "./guiones";
 
 const admin = { id: "admin", nombre: "Ada" };
@@ -151,5 +159,52 @@ describe("lo que puede tocar cada uno", () => {
     await guionDelEditor("g", "ana");
     expect(bd.guion.findMany.mock.calls[0][0].where.editorId).toBe("ana");
     expect(bd.guion.findFirst.mock.calls[0][0].where).toMatchObject({ id: "g", editorId: "ana" });
+  });
+});
+
+describe("descartar y recuperar (nunca se borra)", () => {
+  it("descartar pasa a DESCARTADO, lo apunta y no borra nada", async () => {
+    bd.guion.findFirst.mockResolvedValue({ id: "g", estado: "PENDIENTE_APROBACION" });
+    await expect(descartarGuion("g", admin)).resolves.toBe(true);
+    expect(bd.guion.deleteMany).not.toHaveBeenCalled();
+    expect(bd.guion.updateMany).toHaveBeenCalledWith({
+      where: { id: "g", editorId: null, estado: "PENDIENTE_APROBACION" },
+      data: { estado: "DESCARTADO" },
+    });
+    expect(bd.cambioEstadoGuion.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        estadoAnterior: "PENDIENTE_APROBACION",
+        estadoNuevo: "DESCARTADO",
+      }),
+    });
+  });
+
+  it("solo automáticos sin editor", async () => {
+    bd.guion.findFirst.mockResolvedValue(null);
+    await expect(descartarGuion("g", admin)).resolves.toBe(false);
+    expect(bd.guion.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ origen: "IA", editorId: null }) }),
+    );
+    expect(bd.guion.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("recuperar lo devuelve a pendiente de aprobación", async () => {
+    await expect(recuperarGuion("g", admin)).resolves.toBe(true);
+    expect(bd.guion.updateMany).toHaveBeenCalledWith({
+      where: { id: "g", estado: "DESCARTADO" },
+      data: { estado: "PENDIENTE_APROBACION" },
+    });
+    expect(bd.cambioEstadoGuion.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        estadoAnterior: "DESCARTADO",
+        estadoNuevo: "PENDIENTE_APROBACION",
+      }),
+    });
+  });
+
+  it("recuperar uno que no está descartado no hace nada", async () => {
+    bd.guion.updateMany.mockResolvedValue({ count: 0 });
+    await expect(recuperarGuion("g", admin)).resolves.toBe(false);
+    expect(bd.cambioEstadoGuion.create).not.toHaveBeenCalled();
   });
 });

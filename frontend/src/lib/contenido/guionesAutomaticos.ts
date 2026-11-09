@@ -13,7 +13,7 @@ import { comprobarClaveApi } from "@/lib/claveApi";
 import { categoriasGuion, crearGuion } from "@/lib/contenido/guiones";
 import { leerCuerpo } from "@/lib/cuerpoLimitado";
 import { db } from "@/lib/db";
-import { registrarIntento } from "@/lib/limite";
+import { ipDeCabeceras, LIMITES, registrarIntento } from "@/lib/limite";
 import { erroresDeZod } from "@/lib/admin/formularios";
 import { esquemaGuion } from "@/lib/validaciones/guion";
 import {
@@ -54,36 +54,128 @@ export function ping(peticion: Request): Response {
   return comprobarClave(peticion) ?? respuesta(200, { ok: true });
 }
 
-/** POST /api/guiones/automaticos */
+/**
+ * Apunta una llamada de n8n en el registro (/admin/contenido/llamadas). Nunca hace fallar la
+ * respuesta: si la base de datos falla, solo lo dice en los logs. Borra lo de más de 90 días.
+ */
+async function registrarLlamada(datos: {
+  estado: number;
+  resultado: string;
+  detalle?: string | null;
+  titulo?: string | null;
+  fuenteUrl?: string | null;
+  guionId?: string | null;
+}) {
+  try {
+    await db.llamadaGuion.create({
+      data: {
+        estado: datos.estado,
+        resultado: datos.resultado,
+        detalle: datos.detalle?.slice(0, 1000) ?? null,
+        titulo: datos.titulo?.slice(0, 300) ?? null,
+        fuenteUrl: datos.fuenteUrl?.slice(0, 1000) ?? null,
+        guionId: datos.guionId ?? null,
+      },
+    });
+    if (Math.random() < 0.02) {
+      await db.llamadaGuion.deleteMany({
+        where: { fecha: { lt: new Date(Date.now() - 90 * 86_400_000) } },
+      });
+    }
+  } catch (error) {
+    console.error("[guiones] No se ha podido apuntar la llamada de n8n.", error);
+  }
+}
+
+/** Título y noticia de lo que mandó n8n, aunque no sea válido (para el registro) */
+function resumenEntrada(entrada: unknown) {
+  if (typeof entrada !== "object" || entrada === null) return {};
+  const e = entrada as { titulo?: unknown; fuente?: { url?: unknown } };
+  return {
+    titulo: typeof e.titulo === "string" ? e.titulo : null,
+    fuenteUrl: typeof e.fuente?.url === "string" ? e.fuente.url : null,
+  };
+}
+
+/** POST /api/guiones/automaticos. Cada llamada queda en el registro con lo que se respondió */
 export async function crearDesdeN8n(peticion: Request): Promise<Response> {
   const rechazo = comprobarClave(peticion);
-  if (rechazo) return rechazo;
+  if (rechazo) {
+    // Con la clave mal se apunta solo unas pocas veces por hora y IP (que nadie llene el registro)
+    if (await registrarIntento("guionApiFallos", ipDeCabeceras(peticion.headers))) {
+      await registrarLlamada({
+        estado: rechazo.status,
+        resultado: rechazo.status === 401 ? "Clave incorrecta" : "API sin configurar",
+        detalle:
+          rechazo.status === 401
+            ? "Falta x-api-key o no coincide con N8N_API_KEY."
+            : "Falta N8N_API_KEY en el servidor.",
+      });
+    }
+    return rechazo;
+  }
 
   // Si el flujo entra en bucle, no llena el panel (30 por hora: LIMITES.guionApi)
   if (!(await registrarIntento("guionApi", "n8n"))) {
+    await registrarLlamada({
+      estado: 429,
+      resultado: "Demasiadas en una hora",
+      detalle: `Se aceptan ${LIMITES.guionApi.maximo} guiones por hora: este no se ha creado. Vuelve a mandarlo más tarde.`,
+    });
     return respuesta(429, { error: "Demasiadas peticiones. Prueba dentro de una hora." });
   }
 
   const texto = await leerCuerpo(peticion, TAMANO_MAXIMO);
-  if (texto === null) return respuesta(413, { error: "El guion ocupa más de 200 KB." });
+  if (texto === null) {
+    await registrarLlamada({
+      estado: 413,
+      resultado: "Demasiado grande",
+      detalle: "Más de 200 KB.",
+    });
+    return respuesta(413, { error: "El guion ocupa más de 200 KB." });
+  }
   let entrada: unknown;
   try {
     entrada = JSON.parse(texto);
   } catch {
+    await registrarLlamada({
+      estado: 400,
+      resultado: "No válido",
+      detalle: "El cuerpo no es JSON válido.",
+    });
     return respuesta(400, { error: "El cuerpo no es JSON válido." });
   }
 
+  const resumen = resumenEntrada(entrada);
   const resultado = await recibir(entrada);
   switch (resultado.estado) {
     case "creado":
+      await registrarLlamada({
+        estado: 201,
+        resultado: "Creado",
+        guionId: resultado.id,
+        ...resumen,
+      });
       return respuesta(201, { id: resultado.id });
     case "repetido":
+      await registrarLlamada({
+        estado: 409,
+        resultado: "Repetido",
+        detalle: "Ya había un guion de esta noticia: no se crea otro.",
+        guionId: resultado.id,
+        ...resumen,
+      });
       return respuesta(409, { error: "Ya hay un guion de esta noticia.", id: resultado.id });
-    case "invalido":
+    case "invalido": {
+      const motivo = Object.entries(resultado.errores)
+        .map(([campo, error]) => (campo === "_" ? error : `${campo}: ${error}`))
+        .join(" · ");
+      await registrarLlamada({ estado: 400, resultado: "No válido", detalle: motivo, ...resumen });
       return respuesta(400, {
         error: `El guion no es válido: ${Object.values(resultado.errores)[0]}`,
         errores: resultado.errores,
       });
+    }
   }
 }
 

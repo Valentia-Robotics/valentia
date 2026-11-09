@@ -193,22 +193,56 @@ export function asignarGuion(guionId: string, editorId: string, autor: Autor) {
 export const ESTADOS_DESCARTABLES: EstadoGuion[] = ["BORRADOR", "PENDIENTE_APROBACION", "APROBADO"];
 
 /**
- * Descarta un guion automático: se borra con su historial (nunca tuvo editor, así que las métricas
- * no pierden nada). La noticia queda apuntada como usada: n8n no puede volver a mandarla.
+ * Descarta un guion automático: NO se borra, pasa a DESCARTADO con su cambio en el historial (se puede
+ * recuperar). La noticia sigue apuntada como usada: n8n no la vuelve a mandar como guion nuevo.
  * Devuelve false si ya no se puede (lo han asignado, no es automático…).
  */
-export function descartarGuion(id: string) {
+export function descartarGuion(id: string, autor: Autor) {
   return transaccion(async (tx) => {
     const guion = await tx.guion.findFirst({
       where: { id, origen: "IA", editorId: null, estado: { in: ESTADOS_DESCARTABLES } },
-      select: { id: true },
+      select: { id: true, estado: true },
     });
     if (!guion) return false;
-    await tx.cambioEstadoGuion.deleteMany({ where: { guionId: id } });
-    const { count } = await tx.guion.deleteMany({
-      where: { id, editorId: null, estado: { in: ESTADOS_DESCARTABLES } },
+    const { count } = await tx.guion.updateMany({
+      where: { id, editorId: null, estado: guion.estado },
+      data: { estado: "DESCARTADO" },
     });
     if (count === 0) throw new ErrorGuion("Otra persona acaba de cambiar este guion.");
+    await tx.cambioEstadoGuion.create({
+      data: {
+        guionId: id,
+        estadoAnterior: guion.estado,
+        estadoNuevo: "DESCARTADO",
+        usuarioId: autor.id,
+        usuarioNombre: autor.nombre,
+        editorId: null,
+        comentario: null,
+      },
+    });
+    return true;
+  });
+}
+
+/** Recupera un guion descartado: vuelve a «Pendiente de aprobación». false si ya no está descartado */
+export function recuperarGuion(id: string, autor: Autor) {
+  return transaccion(async (tx) => {
+    const { count } = await tx.guion.updateMany({
+      where: { id, estado: "DESCARTADO" },
+      data: { estado: "PENDIENTE_APROBACION" },
+    });
+    if (count === 0) return false;
+    await tx.cambioEstadoGuion.create({
+      data: {
+        guionId: id,
+        estadoAnterior: "DESCARTADO",
+        estadoNuevo: "PENDIENTE_APROBACION",
+        usuarioId: autor.id,
+        usuarioNombre: autor.nombre,
+        editorId: null,
+        comentario: "Recuperado",
+      },
+    });
     return true;
   });
 }
@@ -222,9 +256,10 @@ export function buscarGuiones(filtros: {
   origen?: OrigenGuion;
 }) {
   return db.guion.findMany({
-    where: filtros,
+    // Los descartados solo salen si se piden con el filtro de estado
+    where: { ...filtros, estado: filtros.estado ?? { not: "DESCARTADO" } },
     orderBy: { fechaLimite: "asc" },
-    take: 300,
+    take: 1000,
     select: {
       id: true,
       titulo: true,

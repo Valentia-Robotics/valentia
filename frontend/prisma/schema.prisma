@@ -622,6 +622,8 @@ enum EstadoGuion {
   EN_PROGRESO
   ENTREGADO
   COMPLETADO
+  /// Automático que el admin no quiere: NO se borra (se puede recuperar) y no sale en la lista salvo con su filtro
+  DESCARTADO
 }
 
 /// Dónde se publicará el vídeo
@@ -727,6 +729,25 @@ model NoticiaUsada {
   url      String   @unique
   guionId  String   @db.ObjectId
   creadoEn DateTime @default(now())
+}
+
+/// Cada llamada de n8n a POST /api/guiones/automaticos y lo que respondió la web (/admin/contenido/llamadas).
+/// Sirve para saber si un guion llegó y, si no se creó, por qué. Se guardan 90 días.
+model LlamadaGuion {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// Código HTTP de la respuesta: 201 creado, 409 repetido, 400 no válido, 401 clave, 429 demasiadas…
+  estado    Int
+  /// Lo mismo dicho para personas: «Creado», «Repetido»…
+  resultado String
+  titulo    String?
+  fuenteUrl String?
+  /// Motivo del rechazo, si lo hubo
+  detalle   String?
+  /// El guion creado (o el que ya existía con esa noticia)
+  guionId   String?  @db.ObjectId
+  fecha     DateTime @default(now())
+
+  @@index([fecha])
 }
 
 model CambioEstadoGuion {

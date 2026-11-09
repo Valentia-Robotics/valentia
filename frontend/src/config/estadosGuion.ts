@@ -7,6 +7,8 @@
  *
  * El admin puede corregir un guion hasta que lo asigna: lo devuelve a borrador y vuelve a aprobarlo.
  * Desde «entregado», el admin puede devolverlo a «en progreso» con un comentario de cambios.
+ * Un automático sin editor se puede «descartar»: queda guardado como DESCARTADO (no se borra) y se puede
+ * recuperar, que lo devuelve a «pendiente de aprobación».
  */
 import type { EstadoGuion, PlataformaGuion } from "@/generated/prisma/enums";
 
@@ -21,10 +23,13 @@ export const estadosGuion: Record<
   EN_PROGRESO: { nombre: "En progreso", tono: "aviso" },
   ENTREGADO: { nombre: "Entregado", tono: "acento" },
   COMPLETADO: { nombre: "Completado", tono: "exito" },
+  DESCARTADO: { nombre: "Descartado", tono: "neutro" },
 };
 
-/** Los estados en el orden del flujo (columnas del tablero) */
-export const ORDEN_ESTADOS = Object.keys(estadosGuion) as EstadoGuion[];
+/** Los estados en el orden del flujo (columnas del tablero). Descartado va aparte: no es un paso */
+export const ORDEN_ESTADOS = (Object.keys(estadosGuion) as EstadoGuion[]).filter(
+  (e) => e !== "DESCARTADO",
+);
 
 export const plataformasGuion: Record<PlataformaGuion, string> = {
   VIDEO_CORTO: "TikTok / Reels / Shorts",
