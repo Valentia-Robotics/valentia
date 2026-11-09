@@ -25,6 +25,10 @@ cerrada (503) si `N8N_API_KEY` falta o tiene menos de 32 caracteres; 200 KB como
 HTML y React lo escapa al pintarlo; `fuente.url` solo `http(s)`, y el enlace del panel lleva `noopener noreferrer nofollow`.
 Nunca asigna editor ni aprueba: todo pasa por el admin.
 
+**Blog** (`/api/blog/*`): `x-api-key` = `BLOG_API_KEY` (src/lib/claveApi.ts), 300 KB, 60 llamadas/hora. El Markdown
+se convierte y se limpia con sanitize-html al guardar (sin scripts, iframes ni atributos de eventos); el HTML que se pinta
+siempre sale de ahí. Imágenes solo de bancos con licencia libre (también en la CSP). Los editores solo ven y tocan lo suyo.
+
 **Riesgo aceptado:** `loginCuenta` permite que alguien agote los intentos de una cuenta ajena durante una hora. Es a propósito:
 la contraseña no basta para entrar desde un navegador nuevo, y `/recuperar` sigue funcionando.
 `/api/health?db=1` sigue siendo público: solo dice el tipo de fallo de la base de datos, sin detalles.

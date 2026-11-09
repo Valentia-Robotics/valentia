@@ -11,9 +11,9 @@ Al publicarse, la web actualiza el sitemap, avisa a Bing (IndexNow) y avisa a n8
 
 Tu servicio → **Environment** → **Environment Variables**:
 
-| Variable              | Qué poner                                                                  |
-| --------------------- | -------------------------------------------------------------------------- |
-| `BLOG_API_KEY`        | Una clave nueva, distinta de la de guiones (comando de abajo)              |
+| Variable              | Qué poner                                                                   |
+| --------------------- | --------------------------------------------------------------------------- |
+| `BLOG_API_KEY`        | Una clave nueva, distinta de la de guiones (comando de abajo)               |
 | `N8N_PUBLISH_WEBHOOK` | Opcional: la dirección de tu nodo **Webhook** de n8n (empieza por https://) |
 
 Clave segura (en la terminal del proyecto):
@@ -32,11 +32,11 @@ No la pegues en ningún chat. **Save Changes** y espera a **Live**.
 
 Todas con esa credencial (HTTP Request → Authentication: Generic Credential Type → Header Auth).
 
-| Para qué                         | Método y dirección                                              |
-| -------------------------------- | --------------------------------------------------------------- |
-| Antes de escribir                | `GET https://valentiarobotics.com/api/blog/context`             |
-| Mandar el artículo               | `POST https://valentiarobotics.com/api/blog/auto`               |
-| Publicar la cola (**cada hora**) | `POST https://valentiarobotics.com/api/blog/publicar-cola`      |
+| Para qué                         | Método y dirección                                         |
+| -------------------------------- | ---------------------------------------------------------- |
+| Antes de escribir                | `GET https://valentiarobotics.com/api/blog/context`        |
+| Mandar el artículo               | `POST https://valentiarobotics.com/api/blog/auto`          |
+| Publicar la cola (**cada hora**) | `POST https://valentiarobotics.com/api/blog/publicar-cola` |
 
 ### GET /api/blog/context
 
@@ -55,7 +55,9 @@ repetir tema), las categorías y las reglas. Pásaselo a tu IA junto con la noti
   "meta_description": "",
   "category": "Electrónica",
   "tags": ["sensores", "arduino"],
-  "related_kits": ["https://valentiarobotics.com/kits/coche-seguidor-de-lineas"],
+  "related_kits": [
+    "https://valentiarobotics.com/kits/coche-seguidor-de-lineas"
+  ],
   "image_url": "https://images.unsplash.com/photo-…",
   "image_alt": "Sensor de ultrasonidos sobre una placa",
   "image_credit": "Ana Pérez en Unsplash",
@@ -73,7 +75,13 @@ Electrónica. `related_kits`: la dirección o el slug de cada kit.
 Responde `201` con:
 
 ```json
-{ "status": "queued", "id": "…", "url": "https://valentiarobotics.com/blog/…", "scheduledFor": "2026-11-10T09:00:00.000Z", "reasons": [] }
+{
+  "status": "queued",
+  "id": "…",
+  "url": "https://valentiarobotics.com/blog/…",
+  "scheduledFor": "2026-11-10T09:00:00.000Z",
+  "reasons": []
+}
 ```
 
 `status`: `queued` (saldrá sola a la hora de `scheduledFor`) o `pending` (espera al admin; `reasons` dice por qué).
@@ -101,7 +109,13 @@ Render se reinicie, no se pierde ninguna publicación.
 Si pusiste `N8N_PUBLISH_WEBHOOK`, la web le manda (POST):
 
 ```json
-{ "title": "…", "url": "https://valentiarobotics.com/blog/…", "excerpt": "…", "imageUrl": "…", "tags": ["…"] }
+{
+  "title": "…",
+  "url": "https://valentiarobotics.com/blog/…",
+  "excerpt": "…",
+  "imageUrl": "…",
+  "tags": ["…"]
+}
 ```
 
 Si el webhook falla, el artículo se publica igual; el fallo queda en `/admin/blog/llamadas`.

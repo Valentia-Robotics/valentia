@@ -290,6 +290,21 @@ existen no cambian.
 La carpeta `backend/` no se publica todavía: será el servicio de Render cuando la web pase a Vercel. Entonces solo
 cambiará la dirección a la que llama n8n, y seguirá habiendo un único servicio en Render.
 
+## 6 quater. Blog automático y analítica
+
+Variables en Render → **Environment** → **Environment Variables** (todas opcionales; sin ellas, lo suyo queda apagado):
+
+| Variable              | Para qué                                                                         |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `BLOG_API_KEY`        | Clave de n8n para `/api/blog/*` (distinta de `N8N_API_KEY`). Sin ella, 503        |
+| `N8N_PUBLISH_WEBHOOK` | Webhook de n8n que recibe cada artículo publicado (https://…)                     |
+| `NEXT_PUBLIC_GA_ID`   | Google Analytics 4 (`G-…`). Hay que volver a desplegar al cambiarla               |
+
+Pasos para n8n y formato: `backend/n8n/BLOG.md`. n8n tiene que llamar **cada hora** a `POST /api/blog/publicar-cola`:
+es lo que publica la cola. La publicación automática empieza apagada (`/admin/blog`).
+
+Al desplegar, `db:push` crea las colecciones del blog. Nada de lo que ya existe cambia.
+
 ## 7. Copias de seguridad
 
 El plan **M0 no hace copias automáticas**. Desde tu ordenador, con tu IP añadida temporalmente (§4):
