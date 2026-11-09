@@ -45,3 +45,6 @@ npm-debug.log*
 # Fotos de prueba de npm run fotos:piezas -- --prueba
 /frontend/.fotos-prueba
 frontend/AGENTS.md
+
+# Archivos privados de los espacios de hardware en local (ver src/lib/almacenamiento/privado.ts)
+/frontend/archivos-privados/

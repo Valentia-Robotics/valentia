@@ -1,13 +1,14 @@
 /**
  * EL EQUIPO: los roles que trabajan en la web (no los clientes). De ellos se apunta la última
- * conexión y salen en /admin/equipo. Rol nuevo de trabajador (por ejemplo, «Hardware») → añadirlo
- * al enum Rol del esquema y aquí: aparece solo en la lista del equipo.
+ * conexión y salen en /admin/empleados (y primero en /admin/usuarios). Rol nuevo de trabajador → añadirlo al enum Rol
+ * del esquema y aquí: aparece solo en Empleados.
  */
 import type { Rol } from "@/generated/prisma/enums";
 
 export const ROLES_EQUIPO: { rol: Rol; nombre: string; plural: string }[] = [
   { rol: "ADMIN", nombre: "Administrador", plural: "Administración" },
   { rol: "EDITOR", nombre: "Editor", plural: "Editores" },
+  { rol: "HARDWARE", nombre: "Hardware", plural: "Hardware" },
 ];
 
 export const esDelEquipo = (rol: Rol) => ROLES_EQUIPO.some((r) => r.rol === rol);

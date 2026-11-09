@@ -154,6 +154,9 @@ export function BarraNavegacion() {
                     ...(sesion.user.rol === "EDITOR"
                       ? [{ href: "/editor", etiqueta: "Panel de editor" }]
                       : []),
+                    ...(sesion.user.rol === "HARDWARE"
+                      ? [{ href: "/hardware", etiqueta: "Mi espacio de hardware" }]
+                      : []),
                   ].map((enlace) => (
                     <Link
                       key={enlace.href}

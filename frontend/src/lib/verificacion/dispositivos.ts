@@ -187,7 +187,7 @@ export async function comprobarSesion(
 
 /**
  * Última conexión de la gente del equipo (editores, admin…; ver src/config/equipo.ts), para
- * /admin/equipo. A los clientes no se les apunta. Como mucho una escritura cada 2 minutos.
+ * /admin/empleados. A los clientes no se les apunta. Como mucho una escritura cada 2 minutos.
  */
 async function apuntarConexion(
   usuarioId: string,

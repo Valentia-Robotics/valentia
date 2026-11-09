@@ -7,8 +7,14 @@
 
 /** Devuelve el texto recibido, o null si ocupa más de `maximo` bytes */
 export async function leerCuerpo(peticion: Request, maximo: number): Promise<string | null> {
+  const datos = await leerBytes(peticion, maximo);
+  return datos === null ? null : datos.toString("utf8");
+}
+
+/** Lo mismo, pero con el contenido tal cual (archivos) */
+export async function leerBytes(peticion: Request, maximo: number): Promise<Buffer | null> {
   if (Number(peticion.headers.get("content-length") ?? 0) > maximo) return null;
-  if (!peticion.body) return "";
+  if (!peticion.body) return Buffer.alloc(0);
 
   const lector = peticion.body.getReader();
   const trozos: Uint8Array[] = [];
@@ -23,5 +29,5 @@ export async function leerCuerpo(peticion: Request, maximo: number): Promise<str
     }
     trozos.push(value);
   }
-  return Buffer.concat(trozos).toString("utf8");
+  return Buffer.concat(trozos);
 }

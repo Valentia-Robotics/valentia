@@ -312,6 +312,8 @@ enum Rol {
   ADMIN
   /// Edita los vídeos de marketing: solo ve /editor y los guiones que tiene asignados
   EDITOR
+  /// Equipo de hardware: solo ve /hardware, su espacio de archivos
+  HARDWARE
 }
 
 /// Una persona con cuenta en Valentia
@@ -345,6 +347,31 @@ model Usuario {
   guionesAsignados Guion[]             @relation("GuionEditor")
   guionesCreados   Guion[]             @relation("GuionAutor")
   cambiosGuion     CambioEstadoGuion[]
+
+  archivosHardware ArchivoHardware[]
+}
+
+/// Un archivo del espacio personal de alguien de hardware (lo ven él y los administradores).
+/// El contenido está en el almacén privado (src/lib/almacenamiento/privado.ts), nunca en una dirección pública.
+model ArchivoHardware {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// Dueño del espacio. Restrict: no se puede borrar la cuenta sin borrar antes sus archivos (si no, quedarían en el almacén)
+  dueno           Usuario  @relation(fields: [duenoId], references: [id], onDelete: Restrict)
+  duenoId         String   @db.ObjectId
+  /// Nombre original, limpio (lo que se ve y con lo que se descarga)
+  nombre          String
+  /// Carpeta dentro del espacio ("" = sin carpeta), por ejemplo "Coche VR1/PCB"
+  carpeta         String   @default("")
+  /// Dónde está en el almacén privado: hardware/<duenoId>/<al azar>
+  clave           String   @unique
+  /// En bytes
+  tamano          Int
+  tipo            String
+  /// Quién lo subió (el dueño o un administrador), tal como se llamaba entonces
+  subidoPorNombre String
+  subidoEn        DateTime @default(now())
+
+  @@index([duenoId, carpeta])
 }
 
 /// Para qué se ha enviado un código por email
@@ -622,10 +649,10 @@ model CategoriaGuion {
 
 /// Un guion de un vídeo de marketing
 model Guion {
-  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
   titulo           String
-  categoria        CategoriaGuion  @relation(fields: [categoriaId], references: [id])
-  categoriaId      String          @db.ObjectId
+  categoria        CategoriaGuion    @relation(fields: [categoriaId], references: [id])
+  categoriaId      String            @db.ObjectId
   plataforma       PlataformaGuion
   /// Solo con plataforma OTRA
   plataformaOtra   String?
@@ -635,24 +662,24 @@ model Guion {
   desarrollo       String
   llamadaAccion    String
   notasVisuales    String
-  kit              Kit?            @relation(fields: [kitId], references: [id], onDelete: SetNull)
-  kitId            String?         @db.ObjectId
+  kit              Kit?              @relation(fields: [kitId], references: [id], onDelete: SetNull)
+  kitId            String?           @db.ObjectId
   /// A las 12:00 UTC del día elegido (así se lee el mismo día en cualquier zona horaria)
   fechaLimite      DateTime
-  editor           Usuario?        @relation("GuionEditor", fields: [editorId], references: [id], onDelete: SetNull)
-  editorId         String?         @db.ObjectId
-  creadoPor        Usuario?        @relation("GuionAutor", fields: [creadoPorId], references: [id], onDelete: SetNull)
-  creadoPorId      String?         @db.ObjectId
-  estado           EstadoGuion     @default(BORRADOR)
-  origen           OrigenGuion     @default(MANUAL)
+  editor           Usuario?          @relation("GuionEditor", fields: [editorId], references: [id], onDelete: SetNull)
+  editorId         String?           @db.ObjectId
+  creadoPor        Usuario?          @relation("GuionAutor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  creadoPorId      String?           @db.ObjectId
+  estado           EstadoGuion       @default(BORRADOR)
+  origen           OrigenGuion       @default(MANUAL)
   /// Zona de trabajo del editor: sus notas o su versión adaptada (el texto aprobado no se toca)
   notasEditor      String?
   /// Enlace al vídeo terminado (Drive, YouTube…)
   enlaceVideo      String?
   /// Solo en los guiones que llegan de n8n: escenas, noticia de origen y lo que hay que comprobar
   automatico       DatosAutomaticos?
-  creadoEn         DateTime        @default(now())
-  actualizadoEn    DateTime        @updatedAt
+  creadoEn         DateTime          @default(now())
+  actualizadoEn    DateTime          @updatedAt
 
   historial CambioEstadoGuion[]
 
