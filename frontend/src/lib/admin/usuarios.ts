@@ -4,6 +4,7 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { textoContiene } from "@/lib/busqueda";
+import { ultimaConexion, ultimoDispositivo } from "@/lib/admin/equipo";
 import { db } from "@/lib/db";
 
 export const USUARIOS_POR_PAGINA = 25;
@@ -28,6 +29,8 @@ export async function buscarUsuarios(busqueda: string, pagina: number) {
         email: true,
         rol: true,
         creadoEn: true,
+        ultimaConexionEn: true,
+        dispositivos: ultimoDispositivo,
         cursos: { select: { curso: { select: { id: true, titulo: true } } } },
       },
     }),
@@ -44,8 +47,9 @@ export async function buscarUsuarios(busqueda: string, pagina: number) {
   return {
     total,
     totalPaginas: Math.max(1, Math.ceil(total / USUARIOS_POR_PAGINA)),
-    usuarios: filas.map((u) => ({
+    usuarios: filas.map(({ dispositivos, ...u }) => ({
       ...u,
+      ultimaConexion: ultimaConexion(u.ultimaConexionEn, dispositivos),
       cursos: u.cursos.map((c) => c.curso),
       pedidos: pedidosPorEmail.get(u.email) ?? 0,
     })),
