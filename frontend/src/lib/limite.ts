@@ -52,6 +52,8 @@ export const LIMITES = {
   blogApiFallos: { maximo: 30, minutos: 60 },
   /** Archivos subidos a los espacios de hardware (por persona) */
   hardwareSubida: { maximo: 1000, minutos: 60 },
+  /** Mensajes del equipo (por persona): de sobra para charlar, frena un bucle o un abuso */
+  mensajeEquipo: { maximo: 300, minutos: 60 },
 } as const;
 
 export type AccionLimitada = keyof typeof LIMITES;

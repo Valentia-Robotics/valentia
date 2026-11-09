@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
+  MessageCircle,
   Newspaper,
   QrCode,
   ShoppingBag,
@@ -23,11 +24,17 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Logo } from "@/components/marca/Logo";
+import { AvisosEquipo } from "@/components/mensajes/AvisosEquipo";
+import { ContadorMensajes } from "@/components/mensajes/ContadorMensajes";
 import { cn } from "@/lib/utils";
+
+/** Los mensajes del equipo (/mensajes): salen en las tres zonas, con el número de no leídos */
+const MENSAJES = { href: "/mensajes", etiqueta: "Mensajes", icono: MessageCircle };
 
 /** Secciones del panel. Para añadir una nueva, añádela aquí. */
 const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin", etiqueta: "Inicio", icono: LayoutDashboard },
+  MENSAJES,
   { href: "/admin/visitas", etiqueta: "Visitas", icono: ChartColumn },
   { href: "/admin/pedidos", etiqueta: "Pedidos", icono: ShoppingBag },
   { href: "/admin/componentes", etiqueta: "Componentes", icono: Cpu },
@@ -47,11 +54,13 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
 const seccionesEditor: typeof seccionesAdmin = [
   { href: "/editor", etiqueta: "Mis guiones", icono: Clapperboard },
   { href: "/editor/blog", etiqueta: "Mis artículos", icono: Newspaper },
+  MENSAJES,
 ];
 
 /** La zona de hardware: su espacio de archivos */
 const seccionesHardware: typeof seccionesAdmin = [
   { href: "/hardware", etiqueta: "Mi espacio", icono: FolderOpen },
+  MENSAJES,
 ];
 
 /**
@@ -120,6 +129,7 @@ export function MenuAdmin({
               >
                 <Icono aria-hidden="true" className="size-4" strokeWidth={1.8} />
                 {etiqueta}
+                {href === MENSAJES.href && <ContadorMensajes activo={activa(href)} />}
               </Link>
             </li>
           ))}
@@ -147,6 +157,8 @@ export function MenuAdmin({
           </button>
         </div>
       </div>
+      {/* Mensajes sin leer y alarmas de tareas (todo el equipo usa este menú) */}
+      <AvisosEquipo />
     </aside>
   );
 }

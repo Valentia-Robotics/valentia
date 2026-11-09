@@ -52,6 +52,25 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
   500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
+### Mensajes y tareas del equipo (09-11-2026, rama `claude/project-thread-0upidw`; petición de Jesse)
+
+«Como un WhatsApp»: `/mensajes` para los roles de `ROLES_EQUIPO` (un cliente recibe 404). Chat «General» y un chat
+privado entre cada dos personas del equipo, de cualquier rol (solo lo ven esas dos; tampoco los ADMIN). Rol nuevo en
+`ROLES_EQUIPO` → le salen solos sus chats. Decisión de Jesse: **sin archivos en los chats** (siguen en `/hardware`).
+
+- Reglas puras: `src/config/mensajes.ts` (+ test). Canal = `"general"` o `"privado:<id menor>_<id mayor>"`; dirección
+  `/mensajes/general` o `/mensajes/<id de la otra persona>`. BD y permisos: `src/lib/mensajes/mensajes.ts`.
+  Modelos `MensajeEquipo` y `LecturaCanal` (hasta dónde ha leído cada uno: los «no leídos»).
+- Sin WebSocket: el chat abierto hace `router.refresh()` cada 10 s; `AvisosEquipo` (en `MenuAdmin`) pide
+  `GET /api/mensajes/no-leidos` cada 45 s → número del menú (`store/avisosEquipo.ts`) y alarmas.
+- Tareas (Jesse: «como Notion»): estado Por hacer / En curso / Hecha, prioridad Alta/Media/Baja (rojo/amarillo/verde),
+  entrega, responsable y recordatorio. Tablero en `/mensajes/tareas`. La alarma suena en la web del responsable (o del
+  autor si no hay) con pitido, tarjeta y aviso del navegador (posponer 10 min / 1 h, cerrar, hecha). El correo del
+  recordatorio lo manda la misma petición del contador (`after`), sin tarea programada: sale cuando alguien del equipo
+  tiene la web abierta.
+- Correos (`plantillaMensajeEquipo`): privado → solo el primero sin leer y si no está conectado; tarea en el General →
+  a su responsable. Límite `mensajeEquipo` 300/hora. Borrar: lo suyo cada uno; en el General, un ADMIN cualquiera.
+
 ### Guiones: descartar sin borrar y registro de n8n (09-11-2026, rama `mejoras/guiones-no-se-borran`)
 
 El usuario echó en falta guiones de n8n del día anterior y pidió que no se borren. La web solo borraba al «Descartar».
