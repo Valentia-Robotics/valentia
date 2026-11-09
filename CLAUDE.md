@@ -77,6 +77,10 @@ que las fotos) y cada espacio lo ven **solo su dueño y los ADMIN**.
   bucket no deja subir). Subida: `POST /api/hardware/archivos` (cuerpo = archivo, nombre en `x-nombre-archivo`; por `/api`
   para no pasar por el proxy; `mismoSitio`, límite `hardwareSubida`, `leerBytes`). Descarga: `GET /api/hardware/archivos/<id>`
   (siempre octet-stream + attachment + nosniff). Borrar: acción `borrarArchivoHardware`.
+- Subir carpetas (Jesse, 09-11-2026): `SubirArchivos` tiene «Elegir archivos» (sueltos, 20) y «Elegir carpeta»
+  (`webkitdirectory`, hasta 500) y acepta arrastrar archivos o carpetas. Cada archivo va a `carpetaDeRuta(base, ruta)`
+  (sus subcarpetas se recrean); se saltan los del sistema (`esArchivoDelSistema`). Máximo 8 niveles; límite
+  `hardwareSubida` 1000/hora.
 - Rutas con `path.resolve` dinámico: llevar `/* turbopackIgnore: true */`; sin él, `next dev` vigila todo el proyecto y la
   página se recarga sin parar (pasó con `enDisco`).
 - Guía para el usuario: DESPLIEGUE.md §6 quinquies.

@@ -66,7 +66,11 @@ export async function EspacioArchivos({
             pero no se suben nuevos.
           </Aviso>
         ) : (
-          <SubirArchivos duenoId={paraAdmin ? duenoId : undefined} carpetas={carpetas} />
+          <SubirArchivos
+            duenoId={paraAdmin ? duenoId : undefined}
+            carpetas={carpetas}
+            libres={Math.max(0, CUOTA_BYTES_PERSONA - usados)}
+          />
         )}
       </Caja>
 

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { cabeceraDescarga, limpiarCarpeta, limpiarNombreArchivo, tamanoLegible } from "./hardware";
+import {
+  cabeceraDescarga,
+  carpetaDeRuta,
+  esArchivoDelSistema,
+  limpiarCarpeta,
+  limpiarNombreArchivo,
+  tamanoLegible,
+} from "./hardware";
 
 describe("espacios de hardware", () => {
   it("limpia los nombres de archivo", () => {
@@ -18,9 +25,28 @@ describe("espacios de hardware", () => {
     expect(limpiarCarpeta(" Coche VR1 /  PCB ")).toBe("Coche VR1/PCB");
     expect(limpiarCarpeta("a\\b")).toBe("a/b");
     expect(limpiarCarpeta("../secreto")).toBeNull();
-    expect(limpiarCarpeta("a/b/c/d/e")).toBeNull();
+    expect(limpiarCarpeta("a/b/c/d/e/f/g/h")).toBe("a/b/c/d/e/f/g/h");
+    expect(limpiarCarpeta("a/b/c/d/e/f/g/h/i")).toBeNull();
     expect(limpiarCarpeta("con:dos puntos")).toBeNull();
     expect(limpiarCarpeta("bien")).toBe("bien");
+  });
+
+  it("coloca cada archivo de una carpeta subida en su subcarpeta", () => {
+    expect(carpetaDeRuta("", "Coche/PCB/placa.kicad_pcb")).toBe("Coche/PCB");
+    expect(carpetaDeRuta("Proyectos", "Coche/placa.step")).toBe("Proyectos/Coche");
+    expect(carpetaDeRuta("", "suelto.pdf")).toBe("");
+    expect(carpetaDeRuta("", "Versión: 2/a.txt")).toBe("Versión_ 2");
+    expect(carpetaDeRuta("", "a/../b.txt")).toBe("a/_");
+    expect(carpetaDeRuta("", "1/2/3/4/5/6/7/8/9/x.txt")).toBeNull();
+    expect(carpetaDeRuta("", `${"x".repeat(80)}/a.txt`)).toBe("x".repeat(60));
+  });
+
+  it("no sube los archivos que crea solo el ordenador", () => {
+    expect(esArchivoDelSistema("Coche/.DS_Store")).toBe(true);
+    expect(esArchivoDelSistema("Coche/.git/config")).toBe(true);
+    expect(esArchivoDelSistema("Coche/Thumbs.db")).toBe(true);
+    expect(esArchivoDelSistema("Coche/~$informe.docx")).toBe(true);
+    expect(esArchivoDelSistema("Coche/PCB/placa.kicad_pcb")).toBe(false);
   });
 
   it("dice los tamaños en español", () => {
