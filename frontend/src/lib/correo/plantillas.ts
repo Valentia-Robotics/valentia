@@ -254,6 +254,57 @@ export function plantillaContrasenaCambiada(datos: { para: string; nombre: strin
   });
 }
 
+/* ---------- Mensajes del equipo ---------- */
+
+/** Aviso de un mensaje privado nuevo del equipo (solo el primero sin leer, para no llenar el correo) */
+export function plantillaMensajeEquipo(datos: {
+  para: string;
+  nombre: string;
+  de: string;
+  texto: string;
+  esTarea: boolean;
+  ruta: string;
+}): Correo {
+  const que = datos.esTarea ? "una tarea" : "un mensaje";
+  const extracto = datos.texto.length > 300 ? `${datos.texto.slice(0, 300)}…` : datos.texto;
+  return correo(datos.para, `${datos.de} te ha enviado ${que} en Valentia`, {
+    resumen: extracto,
+    titulo: datos.esTarea ? "Tienes una tarea nueva" : "Tienes un mensaje nuevo",
+    parrafos: [
+      saludo(datos.nombre),
+      `<strong>${escapar(datos.de)}</strong> te ha escrito en los mensajes del equipo:`,
+      `<em>${escapar(extracto).replaceAll("\n", "<br>")}</em>`,
+    ],
+    boton: { texto: "Abrir el chat", url: urlWeb(`/mensajes/${datos.ruta}`) },
+    notas: ["Solo te avisamos del primer mensaje sin leer de cada chat."],
+  });
+}
+
+/** Recordatorio de una tarea del equipo (la «alarma» que pusieron al crearla) */
+export function plantillaRecordatorioTarea(datos: {
+  para: string;
+  nombre: string;
+  texto: string;
+  de: string;
+  entrega: string | null;
+  prioridad: string | null;
+  ruta: string;
+}): Correo {
+  const extracto = datos.texto.length > 300 ? `${datos.texto.slice(0, 300)}…` : datos.texto;
+  return correo(datos.para, `Recordatorio: ${extracto.split("\n")[0].slice(0, 70)}`, {
+    resumen: datos.entrega ? `Entrega: ${datos.entrega}` : "Tienes una tarea pendiente.",
+    titulo: "⏰ Recordatorio de tarea",
+    parrafos: [
+      saludo(datos.nombre),
+      `Te recordamos esta tarea de <strong>${escapar(datos.de)}</strong>:`,
+      `<em>${escapar(extracto).replaceAll("\n", "<br>")}</em>`,
+      ...(datos.entrega ? [`Entrega: <strong>${escapar(datos.entrega)}</strong>`] : []),
+      ...(datos.prioridad ? [`Prioridad: <strong>${escapar(datos.prioridad)}</strong>`] : []),
+    ],
+    boton: { texto: "Ver la tarea", url: urlWeb(`/mensajes/${datos.ruta}`) },
+  });
+}
+
 /* ---------- Pedidos ---------- */
 
 const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });

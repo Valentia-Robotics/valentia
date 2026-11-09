@@ -349,6 +349,68 @@ model Usuario {
   cambiosGuion     CambioEstadoGuion[]
 
   archivosHardware ArchivoHardware[]
+
+  mensajesEquipo MensajeEquipo[]
+  lecturasCanal  LecturaCanal[]
+}
+
+/// Un mensaje de los chats del equipo (/mensajes): el «General» o una conversación privada entre dos.
+/// Los clientes nunca los ven. El canal es "general" o "privado:<id menor>_<id mayor>" (src/config/mensajes.ts).
+model MensajeEquipo {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  canal       String
+  /// Quien lo escribió. SetNull: si se borra su cuenta, el mensaje se queda con su nombre
+  autor       Usuario? @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  autorId     String?  @db.ObjectId
+  /// Nombre del autor cuando lo escribió
+  autorNombre String
+  texto       String
+  creadoEn    DateTime @default(now())
+
+  /// ---- Si es una TAREA (como en Notion): estado, prioridad, entrega, responsable y recordatorio ----
+  esTarea               Boolean         @default(false)
+  estadoTarea           EstadoTarea     @default(PENDIENTE)
+  prioridad             PrioridadTarea?
+  /// Fecha y hora de entrega
+  entregaEn             DateTime?
+  /// Quién tiene que hacerla (null = nadie en concreto: los avisos van a quien la escribió)
+  responsableId         String?         @db.ObjectId
+  responsableNombre     String?
+  /// Cuándo suena el recordatorio (alarma en la web + correo)
+  recordarEn            DateTime?
+  /// Cuándo se mandó el correo del recordatorio (para no mandarlo dos veces)
+  recordatorioEnviadoEn DateTime?
+  /// Cuándo cerró la alarma el responsable (si se pospone, vuelve a null)
+  alarmaCerradaEn       DateTime?
+  hechaEn               DateTime?
+  hechaPor              String?
+
+  @@index([canal, creadoEn])
+  @@index([esTarea, recordarEn])
+}
+
+enum EstadoTarea {
+  PENDIENTE
+  EN_CURSO
+  HECHA
+}
+
+/// Rojo, amarillo y verde
+enum PrioridadTarea {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+/// Hasta cuándo ha leído cada persona cada canal (para los «no leídos»)
+model LecturaCanal {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId  String   @db.ObjectId
+  canal      String
+  leidoHasta DateTime
+
+  @@unique([usuarioId, canal])
 }
 
 /// Un archivo del espacio personal de alguien de hardware (lo ven él y los administradores).

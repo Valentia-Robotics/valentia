@@ -79,6 +79,18 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "programadoPara" },
     { campo: "publicadoEn" },
   ],
+  MensajeEquipo: [
+    { campo: "autorId", relacion: "autor" },
+    { campo: "prioridad" },
+    { campo: "entregaEn" },
+    { campo: "responsableId" },
+    { campo: "responsableNombre" },
+    { campo: "recordarEn" },
+    { campo: "recordatorioEnviadoEn" },
+    { campo: "alarmaCerradaEn" },
+    { campo: "hechaEn" },
+    { campo: "hechaPor" },
+  ],
   LlamadaBlog: [{ campo: "detalle" }, { campo: "articuloId" }],
   CambioEstadoGuion: [
     { campo: "estadoAnterior" },

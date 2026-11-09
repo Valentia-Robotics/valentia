@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { Logo } from "@/components/marca/Logo";
 import { enlacesNavegacion, enSeccion, marca, type EnlaceNavegacion } from "@/config/marca";
+import { esDelEquipo } from "@/config/equipo";
 import { cn } from "@/lib/utils";
 import { BotonCarrito } from "./BotonCarrito";
 import { MenuUsuario } from "./MenuUsuario";
@@ -156,6 +157,9 @@ export function BarraNavegacion() {
                       : []),
                     ...(sesion.user.rol === "HARDWARE"
                       ? [{ href: "/hardware", etiqueta: "Mi espacio de hardware" }]
+                      : []),
+                    ...(sesion.user.rol && esDelEquipo(sesion.user.rol)
+                      ? [{ href: "/mensajes", etiqueta: "Mensajes del equipo" }]
                       : []),
                   ].map((enlace) => (
                     <Link
