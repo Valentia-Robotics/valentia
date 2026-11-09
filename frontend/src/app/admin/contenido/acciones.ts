@@ -16,6 +16,7 @@ import {
   cambiarEstado,
   crearGuion,
   descartarGuion,
+  recuperarGuion,
   ErrorGuion,
 } from "@/lib/contenido/guiones";
 import { db } from "@/lib/db";
@@ -130,17 +131,17 @@ export async function cambiarEstadoDeGuion(
   return { ok: true, mensaje: "Hecho." };
 }
 
-/** Descartar un guion automático que no sirve (sin editor todavía) */
+/** Descartar un guion automático que no sirve (sin editor todavía). No se borra: se puede recuperar */
 export async function descartarGuionAutomatico(
   _anterior: EstadoFormulario,
   formulario: FormData,
 ): Promise<EstadoFormulario> {
-  await exigirAdminEnAccion();
+  const admin = await exigirAdminEnAccion();
   const guionId = texto(formulario, "guionId");
   if (!esId(guionId)) return NO_ENCONTRADO;
   let descartado: boolean;
   try {
-    descartado = await descartarGuion(guionId);
+    descartado = await descartarGuion(guionId, admin);
   } catch (error) {
     return mensajeDeError(error);
   }
@@ -149,6 +150,21 @@ export async function descartarGuionAutomatico(
   }
   revalidatePath("/admin/contenido", "layout");
   redirect("/admin/contenido?descartado=1");
+}
+
+/** Recuperar un guion descartado: vuelve a «Pendiente de aprobación» */
+export async function recuperarGuionDescartado(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  const admin = await exigirAdminEnAccion();
+  const guionId = texto(formulario, "guionId");
+  if (!esId(guionId)) return NO_ENCONTRADO;
+  if (!(await recuperarGuion(guionId, admin))) {
+    return { ok: false, mensaje: "Este guion ya no está descartado. Recarga la página." };
+  }
+  revalidatePath("/admin/contenido", "layout");
+  return { ok: true, mensaje: "Recuperado: vuelve a estar pendiente de aprobación." };
 }
 
 const esquemaVarios = z.object({
@@ -178,7 +194,7 @@ export async function cambiarVariosGuiones(
       if (accion === "aprobar") {
         await cambiarEstado({ guionId, a: "APROBADO", actor: "ADMIN", autor: admin });
         hechos++;
-      } else if (await descartarGuion(guionId)) {
+      } else if (await descartarGuion(guionId, admin)) {
         hechos++;
       }
     } catch (error) {

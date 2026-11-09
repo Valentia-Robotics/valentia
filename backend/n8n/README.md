@@ -90,6 +90,13 @@ El texto se limpia: no admite HTML.
 
 La misma noticia con otro `#ancla` o con parámetros `utm_` cuenta como la misma.
 
+**Cada llamada queda apuntada** en el panel: **Contenido → Llamadas de n8n** (`/admin/contenido/llamadas`), con lo que
+respondió la web y por qué. Si un guion no aparece, mira ahí primero. Un `429` quiere decir que ese guion **no se ha
+creado** (pasó de 30 en una hora): el flujo tiene que volver a mandarlo más tarde.
+
+Los guiones **nunca se borran solos**. «Descartar» los pasa a **Descartado** (filtro Estado → Descartados) y se pueden
+recuperar con el botón **Recuperar**.
+
 ## Probar con curl
 
 En tu ordenador, con `npm run dev` encendido (en Windows usa Git Bash):

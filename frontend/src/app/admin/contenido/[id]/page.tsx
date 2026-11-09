@@ -8,7 +8,11 @@ import { FormularioGuion } from "@/components/contenido/FormularioGuion";
 import { FormularioAsignar, FormularioDevolver } from "@/components/contenido/FormulariosRevision";
 import { InsigniaEstadoGuion, TextoGuion } from "@/components/contenido/TextoGuion";
 import { ESTADOS_ASIGNABLES, ESTADOS_EDITABLES, estadosGuion } from "@/config/estadosGuion";
-import { cambiarEstadoDeGuion, descartarGuionAutomatico } from "@/app/admin/contenido/acciones";
+import {
+  cambiarEstadoDeGuion,
+  descartarGuionAutomatico,
+  recuperarGuionDescartado,
+} from "@/app/admin/contenido/acciones";
 import { CajasAutomatico } from "@/components/contenido/CajasAutomatico";
 import { InsigniaAutomatico } from "@/components/contenido/DatosAutomaticos";
 import { fechaHora } from "@/lib/admin/formato";
@@ -158,11 +162,23 @@ export default async function GuionAdmin({ params }: Props) {
                     accion={descartarGuionAutomatico}
                     datos={datos}
                     titulo="Descartar guion"
-                    texto="Se borra el guion. Si n8n vuelve a mandar esta misma noticia, no se creará otra vez."
+                    texto="El guion no se borra: pasa a «Descartado» (filtro Estado) y puedes recuperarlo cuando quieras. Si n8n vuelve a mandar esta noticia, no se creará otra vez."
                     confirmar="Sí, descartar"
                     variante="peligro"
                   >
                     Descartar
+                  </BotonConfirmar>
+                )}
+                {guion.estado === "DESCARTADO" && (
+                  <BotonConfirmar
+                    accion={recuperarGuionDescartado}
+                    datos={datos}
+                    titulo="Recuperar guion"
+                    texto="Vuelve a «Pendiente de aprobación» y a salir en la lista."
+                    confirmar="Sí, recuperar"
+                    variante="primario"
+                  >
+                    Recuperar
                   </BotonConfirmar>
                 )}
                 {guion.estado === "ENTREGADO" && (

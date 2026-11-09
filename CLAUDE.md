@@ -52,6 +52,15 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
   500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
+### Guiones: descartar sin borrar y registro de n8n (09-11-2026, rama `mejoras/guiones-no-se-borran`)
+
+El usuario echó en falta guiones de n8n del día anterior y pidió que no se borren. La web solo borraba al «Descartar».
+- Estado `DESCARTADO` (fuera de `ORDEN_ESTADOS`: no es un paso del flujo). `descartarGuion(id, autor)` cambia el estado y lo
+  apunta en el historial; `recuperarGuion` lo devuelve a pendiente (botón «Recuperar»). Ya NADA borra guiones.
+  `buscarGuiones` esconde los descartados salvo con `?estado=DESCARTADO`; lista hasta 1000 (antes 300).
+- Modelo `LlamadaGuion`: cada POST de n8n con su respuesta (201/409/400/401/413/429), título, noticia y motivo; 90 días.
+  Panel `/admin/contenido/llamadas`. Clave mal: se apunta como mucho `guionApiFallos` por IP y hora.
+
 ### Rol Hardware y espacios de archivos (09-11-2026, rama `feature/rol-hardware`; petición del usuario)
 
 Decisiones del usuario: archivos en **Cloudflare R2** (bucket PRIVADO `ALMACEN_PRIVADO_BUCKET`, mismas claves `ALMACEN_*`
@@ -123,8 +132,8 @@ Decisión del usuario: **se queda en Render y con MongoDB**; la separación de a
 - Duplicados: colección `NoticiaUsada` (`url @unique`, normalizada sin #ancla ni `utm_`). Colección aparte porque MongoDB no
   admite un único opcional (los guiones manuales no tienen URL). Se crea en la misma transacción que el guion.
 - Panel: etiqueta 🤖 (relevancia y medio), filtro `?mostrar=automaticos`, `CajasAutomatico` (datos a verificar, noticia,
-  escenas, redes; el editor ve lo mismo). «Descartar» (`descartarGuion`): solo automáticos sin editor; borra guion e
-  historial pero la noticia sigue apuntada (no vuelve). Métricas sin cambios.
+  escenas, redes; el editor ve lo mismo). «Descartar» (`descartarGuion`): solo automáticos sin editor; desde el 09-11-2026
+  NO borra (estado DESCARTADO, ver arriba); la noticia sigue apuntada (no vuelve). Métricas sin cambios.
 - Aprobar/descartar en bloque (08-11-2026, Jesse): casillas en la lista de `/admin/contenido` (solo en los que se pueden),
   `AccionesLoteGuiones` → `cambiarVariosGuiones`: cada uno pasa por `cambiarEstado`/`descartarGuion`; los demás se saltan.
 
