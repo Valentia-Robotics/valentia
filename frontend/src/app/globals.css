@@ -24,6 +24,12 @@
   --color-acento-hover: #1f3ae0; /* Acento al pasar el ratón */
   --color-acento-claro: #7a8cff; /* Acento para usar SOBRE fondos oscuros */
 
+  /* ---------- Portada (estilo «taller»: campos de color, píxeles, líneas de puntos) ---------- */
+  --color-cielo: #d3daff; /* Campo de color de la portada (azul claro; texto tinta encima: 15:1) */
+  --color-salvia: #e6ebe5; /* Fondo de las tablas de la portada */
+  --color-senal: #ffc21a; /* Amarillo de las ruedas del coche: píxeles y detalles (nunca texto) */
+  --radius-recto: 2px; /* Esquinas casi rectas de la portada */
+
   /* ---------- Estados (avisos de compatibilidad, formularios) ---------- */
   --color-exito: #157a42;
   --color-aviso: #b45309;
@@ -117,6 +123,9 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif; /* Texto normal */
   --font-titulo:
     var(--font-jost), ui-sans-serif, system-ui, sans-serif; /* Titulares → "font-titulo" */
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif; /* Entradillas → "font-serif" */
+  --font-mono:
+    var(--font-jetbrains), ui-monospace, monospace; /* Etiquetas técnicas → "font-mono" */
 }
 
 /* ---------- Estilos base de la página ---------- */
@@ -463,5 +472,53 @@ dialog[open]::backdrop {
   ::view-transition-group(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
+  }
+}
+
+/* ---------- Portada: piezas del estilo «taller» ---------- */
+
+/* Línea de puntos (como un trazo de rotulador sobre papel milimetrado): debajo del elemento */
+.linea-puntos {
+  background-image: radial-gradient(circle, currentColor 0.75px, transparent 1px);
+  background-size: 6px 2px;
+  background-repeat: repeat-x;
+  background-position: left bottom;
+}
+
+/* Titulares grandes de la portada: apretados, como en un cartel */
+.titular-cartel {
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+}
+
+/* Las palabras del titular suben una a una al cargar (cada <span> lleva su retraso en --i) */
+@media (prefers-reduced-motion: no-preference) {
+  .palabra-sube {
+    display: inline-block;
+    animation: palabra-sube 800ms var(--ease-suave) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+}
+/* Sin empezar en opacidad 0: así el navegador cuenta el titular como pintado desde el principio */
+@keyframes palabra-sube {
+  from {
+    opacity: 0.15;
+    transform: translateY(0.45em) rotate(2deg);
+  }
+}
+
+/* Cinta que se desliza sin fin (la lista va duplicada: al llegar a la mitad vuelve al principio) */
+@media (prefers-reduced-motion: no-preference) {
+  .cinta {
+    animation: cinta 46s linear infinite;
+  }
+  .cinta-pausa:hover .cinta,
+  .cinta-pausa:focus-within .cinta {
+    animation-play-state: paused;
+  }
+}
+@keyframes cinta {
+  to {
+    transform: translateX(-50%);
   }
 }

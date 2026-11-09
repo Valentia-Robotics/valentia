@@ -52,6 +52,21 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
   500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
+### Portada estilo «taller» (09-11-2026, rama `diseno/portada-con-alma`; petición del usuario)
+
+El usuario pidió una portada al estilo de fal.ai/pricing, «que no parezca una web hecha con IA», con alma y más fluida. Solo
+la inspiración (nada de su marca): campo de color con píxeles vivos, titulares enormes y apretados (`.titular-cartel`),
+entradillas en serif (Newsreader, `font-serif`), etiquetas técnicas en mono (JetBrains Mono, `font-mono`; las dos con
+un solo grueso y sin precarga, por velocidad), líneas de puntos (`.linea-puntos`), esquinas casi rectas (`rounded-recto`),
+tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de las ruedas, nunca para texto).
+- Orden: `HeroPortada` (h1, `CampoPixeles`: canvas con cable, mancha tramada y píxeles que parpadean y siguen al ratón; se
+  para fuera de pantalla y con reducir movimiento) → `Marquesina` (piezas reales de la BD) → `PortadaRobot` (el 3D sin tocar;
+  ahora h2 «Así es un robot por dentro», texto por encima del lienzo) → aviso → `BloqueComoFunciona` → `KitsPortada` (destacado +
+  `TablaKits`: la foto sigue al ratón) → configurador (cajones rectos) → curso QR → `BloqueFinal` (negro con píxeles).
+- Botón: variantes `bloque` (negro recto, se levanta con sombra azul) y `punteado`. `Etiqueta` y `PalabrasQueSuben` en
+  `components/portada/Etiqueta.tsx` (el espacio va fuera de cada palabra). Borrados `HeroKit` y `SeccionKit` (solo eran de la portada).
+- Lighthouse móvil en local (mismo equipo): antes 65, ahora 61-62 (fuentes nuevas, +45 KB). TBT sigue siendo el 3D.
+
 ### Guiones: descartar sin borrar y registro de n8n (09-11-2026, rama `mejoras/guiones-no-se-borran`)
 
 El usuario echó en falta guiones de n8n del día anterior y pidió que no se borren. La web solo borraba al «Descartar».

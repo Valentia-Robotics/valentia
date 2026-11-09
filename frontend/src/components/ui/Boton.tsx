@@ -15,9 +15,19 @@ import { cn } from "@/lib/utils";
  *   enlace     → texto azul con flecha, al estilo "Más información ›"
  *   enlace-claro → igual, pero en azul claro para fondos oscuros
  *   peligro    → rojo, para confirmar algo que no se puede deshacer
+ *   bloque     → negro y recto (portada): al pasar el ratón se levanta con una sombra azul
+ *   punteado   → recto, con borde de puntos (acción secundaria de la portada)
  */
 type Variante =
-  "primario" | "acento" | "secundario" | "claro" | "enlace" | "enlace-claro" | "peligro";
+  | "primario"
+  | "acento"
+  | "secundario"
+  | "claro"
+  | "enlace"
+  | "enlace-claro"
+  | "peligro"
+  | "bloque"
+  | "punteado";
 type Tamano = "md" | "lg" | "xl";
 
 const estilosVariante: Record<Variante, string> = {
@@ -28,6 +38,10 @@ const estilosVariante: Record<Variante, string> = {
   enlace: "text-acento hover:underline underline-offset-4 px-0!",
   "enlace-claro": "text-acento-claro hover:underline underline-offset-4 px-0!",
   peligro: "bg-error text-white hover:bg-error/90",
+  bloque:
+    "rounded-recto! bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)]",
+  punteado:
+    "rounded-recto! border border-dotted border-tinta text-tinta hover:border-solid hover:bg-white/60",
 };
 
 const estilosTamano: Record<Tamano, string> = {
@@ -63,7 +77,7 @@ export function Boton({
   const clases = cn(
     "inline-flex items-center justify-center gap-2 rounded-boton font-medium whitespace-nowrap",
     // Al pulsar se hunde un poco: la respuesta se nota antes de que cargue nada
-    "transition-[background-color,border-color,color,scale] active:scale-[0.97]",
+    "transition-[background-color,border-color,color,scale,translate,box-shadow] active:scale-[0.97]",
     "disabled:pointer-events-none disabled:opacity-50",
     estilosTamano[tamano],
     estilosVariante[variante],

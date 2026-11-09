@@ -1,4 +1,5 @@
 import { GraduationCap, LogIn, QrCode } from "lucide-react";
+import { Etiqueta } from "@/components/portada/Etiqueta";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { TarjetaQRMuestra } from "./TarjetaQRMuestra";
@@ -27,23 +28,26 @@ export function BloqueCursoQR() {
   return (
     <section
       aria-labelledby="titulo-curso-qr"
-      className="bg-white pt-6 pb-10 diferido sm:pt-10 sm:pb-12"
+      className="bg-white pt-14 pb-16 diferido sm:pt-20 sm:pb-24"
     >
       <Contenedor className="grid items-center gap-16 lg:grid-cols-2">
         <div className="aparecer">
-          <p className="text-sm font-medium tracking-wide text-acento uppercase">Curso incluido</p>
-          <h2 id="titulo-curso-qr" className="mt-3 text-4xl font-medium sm:text-5xl">
+          <Etiqueta>Curso incluido</Etiqueta>
+          <h2 id="titulo-curso-qr" className="titular-cartel mt-5 text-5xl font-medium sm:text-6xl">
             Cada kit viene con su curso.
           </h2>
-          <p className="mt-4 max-w-lg text-lg text-gris">
+          <p className="mt-5 max-w-lg font-serif text-xl leading-snug text-tinta/80">
             El curso está hecho para las piezas de ese kit y empieza desde cero, así que no
             necesitas saber programar. Se abre con el código QR de la caja.
           </p>
 
-          <ol className="mt-10 space-y-6">
+          <ol className="mt-10">
             {pasos.map(({ icono: Icono, titulo, texto }, i) => (
-              <li key={titulo} className="flex gap-4">
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-acento/10 text-acento">
+              <li
+                key={titulo}
+                className="flex gap-4 border-b border-dotted border-tinta/25 py-5 first:pt-0 last:border-b-0"
+              >
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-recto bg-salvia text-tinta">
                   <Icono aria-hidden="true" className="size-6" strokeWidth={1.6} />
                 </span>
                 <div>

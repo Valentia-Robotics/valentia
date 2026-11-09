@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Boton } from "@/components/ui/Boton";
 import { cn } from "@/lib/utils";
+import { Etiqueta } from "./Etiqueta";
 import type { EscenaRobot } from "./escenaRobot";
 import { PIEZAS_ROBOT, explosionDesdeProgreso, piezaActiva, type PiezaRobot } from "./piezasRobot";
 import { RobotEstatico } from "./RobotEstatico";
@@ -35,7 +35,7 @@ function cuandoEsteLibre(tarea: () => void): () => void {
 }
 
 /**
- * PORTADA: el robot protagonista.
+ * PORTADA (2.ª pantalla, tras HeroPortada): el robot que se desmonta.
  * En ordenador (y sin "reducir movimiento") la sección es alta y su contenido se queda fijo
  * mientras haces scroll: el robot gira, se despieza y se explica cada pieza.
  *   - Con un equipo capaz: robot en 3D (three.js), cargado después de pintar la página.
@@ -147,7 +147,7 @@ export function PortadaRobot() {
   return (
     <section
       ref={seccion}
-      aria-labelledby="titulo-portada"
+      aria-labelledby="titulo-robot"
       data-pieza-activa={sin3d ? (activa ?? undefined) : undefined}
       // Alta para que cada pieza dure un buen tramo de scroll (antes pasaba de una a otra muy rápido)
       className="portada-robot relative bg-white motion-safe:h-[620vh]"
@@ -157,29 +157,22 @@ export function PortadaRobot() {
       <div className="overflow-hidden motion-safe:sticky motion-safe:top-nav motion-safe:h-[calc(100svh-var(--spacing-nav))] lg:motion-safe:h-[calc(100dvh-var(--spacing-nav))]">
         <div className="mx-auto flex h-full max-w-6xl flex-col gap-8 px-4 pt-12 pb-16 motion-safe:gap-4 motion-safe:pt-6 motion-safe:pb-5 sm:px-6 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-center lg:gap-8 lg:py-8 lg:motion-safe:gap-8 lg:motion-safe:py-8">
           {/* ---------- Texto ---------- */}
-          <div className="text-center lg:text-left">
-            <p className="animate-entrada text-sm font-medium tracking-wide text-acento uppercase">
-              Kits de robótica con curso incluido
-            </p>
-            <h1
-              id="titulo-portada"
-              className="mt-3 animate-entrada text-5xl font-medium [animation-delay:80ms] motion-safe:text-[2.6rem] sm:text-6xl motion-safe:sm:text-6xl xl:text-7xl motion-safe:xl:text-7xl"
+          {/* Por encima del lienzo: al acercarse a una pieza, el 3D no tapa el texto */}
+          <div className="relative z-10 text-center lg:text-left">
+            <Etiqueta className="[&>span:first-child]:mx-auto lg:[&>span:first-child]:mx-0">
+              Pieza a pieza
+            </Etiqueta>
+            <h2
+              id="titulo-robot"
+              className="titular-cartel mt-4 text-5xl font-medium motion-safe:text-[2.6rem] sm:text-6xl motion-safe:sm:text-6xl xl:text-7xl motion-safe:xl:text-7xl"
             >
-              Construye tu propio robot.
-            </h1>
+              Así es un robot por dentro.
+            </h2>
             {/* En móviles bajitos se omite en la versión animada, para dejar sitio al robot */}
-            <p className="mt-4 animate-entrada text-lg text-gris [animation-delay:160ms] motion-safe:mt-3 motion-safe:text-base sm:text-xl motion-safe:sm:text-xl max-lg:[@media(max-height:44rem)]:motion-safe:hidden">
-              No hace falta saber programar. En la caja van todas las piezas y un curso en vídeo que
-              te acompaña desde la primera pieza hasta que el robot echa a andar.
+            <p className="mt-4 font-serif text-lg leading-snug text-tinta/80 motion-safe:mt-3 sm:text-xl max-lg:[@media(max-height:44rem)]:motion-safe:hidden">
+              Desliza y el coche se desmonta. Cada pieza que ves va en la caja, y el curso te
+              explica para qué sirve.
             </p>
-            <div className="mt-7 flex animate-entrada flex-wrap items-center justify-center gap-x-6 gap-y-3 [animation-delay:240ms] motion-safe:mt-5 lg:justify-start lg:motion-safe:mt-7">
-              <Boton href="/kits" variante="acento" tamano="lg">
-                Ver los kits
-              </Boton>
-              <Boton href="/configurador" variante="enlace" tamano="lg">
-                Crear mi robot ›
-              </Boton>
-            </div>
 
             {/* Las piezas: en ordenador se iluminan según el scroll; en el móvil, una lista */}
             <ol
@@ -190,14 +183,14 @@ export function PortadaRobot() {
                 <li
                   key={pieza.id}
                   className={cn(
-                    "rounded-control border-l-2 py-1 pl-4 transition-[opacity,border-color] duration-500",
+                    "border-l-2 py-1 pl-4 transition-[opacity,border-color] duration-500",
                     !modoScroll || activa === pieza.id
                       ? "border-acento opacity-100"
                       : "border-linea opacity-40",
                   )}
                 >
                   <p className="font-titulo text-lg font-medium">
-                    <span className="mr-2 text-sm text-acento tabular-nums">0{i + 1}</span>
+                    <span className="mr-2 font-mono text-xs text-acento">0{i + 1}</span>
                     {pieza.titulo}
                   </p>
                   <p
@@ -250,9 +243,9 @@ export function PortadaRobot() {
             className="grid gap-3 motion-safe:hidden sm:grid-cols-2 lg:hidden"
           >
             {PIEZAS_ROBOT.map((pieza, i) => (
-              <li key={pieza.id} className="aparecer rounded-tarjeta bg-niebla p-4">
+              <li key={pieza.id} className="aparecer rounded-recto bg-salvia p-4">
                 <p className="font-titulo text-lg font-medium">
-                  <span className="mr-2 text-sm text-acento tabular-nums">0{i + 1}</span>
+                  <span className="mr-2 font-mono text-xs text-acento">0{i + 1}</span>
                   {pieza.titulo}
                 </p>
                 <p className="mt-1 text-sm text-gris">{pieza.texto}</p>
@@ -265,7 +258,7 @@ export function PortadaRobot() {
           <p
             aria-hidden="true"
             className={cn(
-              "absolute inset-x-0 bottom-6 hidden text-center text-xs tracking-wide text-gris uppercase transition-opacity duration-500 lg:block",
+              "absolute inset-x-0 bottom-6 hidden text-center font-mono text-xs text-gris transition-opacity duration-500 lg:block",
               !alInicio && "opacity-0",
             )}
           >
@@ -287,7 +280,7 @@ function PiezaMovil({ activa }: { activa: PiezaRobot["id"] | null }) {
     >
       <p
         className={cn(
-          "absolute inset-0 flex items-center justify-center text-xs tracking-wide text-gris uppercase transition-opacity duration-500",
+          "absolute inset-0 flex items-center justify-center font-mono text-xs text-gris transition-opacity duration-500",
           indice >= 0 && "opacity-0",
         )}
       >
@@ -298,7 +291,7 @@ function PiezaMovil({ activa }: { activa: PiezaRobot["id"] | null }) {
           key={pieza.id}
           aria-hidden={i !== indice}
           className={cn(
-            "absolute inset-0 rounded-tarjeta bg-niebla px-4 py-3 transition-[opacity,translate] duration-500",
+            "absolute inset-0 rounded-recto bg-salvia px-4 py-3 transition-[opacity,translate] duration-500",
             i === indice
               ? "translate-y-0 opacity-100"
               : "pointer-events-none translate-y-2 opacity-0",
@@ -306,16 +299,13 @@ function PiezaMovil({ activa }: { activa: PiezaRobot["id"] | null }) {
         >
           <div className="flex items-center justify-between">
             <p className="font-titulo text-lg font-medium">
-              <span className="mr-2 text-sm text-acento tabular-nums">0{i + 1}</span>
+              <span className="mr-2 font-mono text-xs text-acento">0{i + 1}</span>
               {pieza.titulo}
             </p>
             {/* Puntos de avance: cuántas piezas quedan */}
             <span aria-hidden="true" className="flex gap-1">
               {PIEZAS_ROBOT.map((p, j) => (
-                <span
-                  key={p.id}
-                  className={cn("size-1.5 rounded-full", j <= i ? "bg-acento" : "bg-linea")}
-                />
+                <span key={p.id} className={cn("size-1.5", j <= i ? "bg-acento" : "bg-tinta/15")} />
               ))}
             </span>
           </div>
