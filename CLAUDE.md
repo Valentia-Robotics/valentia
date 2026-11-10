@@ -27,6 +27,26 @@ Campo nuevo `Usuario.foto` (opcional, en `OPCIONALES`). `comprobarSesion` devuel
 `MenuUsuario`, el menú móvil y los chats de `/mensajes` (`Avatar` con `foto`). Hacer ADMIN a alguien sigue siendo
 `npm run admin -- email` (en Render: Shell), no desde el panel.
 
+### Cabeceras con placa de circuito (10-11-2026, rama `diseno/estela-tecnologica`; petición del usuario)
+
+El usuario no quería la «mancha azul» ni el corte seco al final de los campos azules. `CampoPixeles` ahora dibuja una
+placa: chip con patas, pistas a 90°/45° que acaban en pads o LEDs, señales que corren por ellas, robot de píxeles
+(`ROBOT`) y engranajes; rejilla de puntos que se apaga lejos del chip. Posiciones en `chipsDe` (móvil: abajo); las
+pistas se cortan en la zona del texto (`zonaTexto`) y antes del robot y los engranajes (`obstaculos`). La estela del
+ratón es una pista que se apaga. Fondo `.campo-cielo` (azul → blanco abajo) en portada, `CabeceraPagina`,
+`TarjetaCuenta` y `/activar`; máscaras `.mascara-abajo` / `.mascara-arriba` (final) en `globals.css`.
+
+### Web más sencilla (10-11-2026, rama `diseno/estela-tecnologica`; el usuario aprobó las 8 propuestas)
+
+- Portada: héroe → aviso → **kits** (destacado + `GaleriaKits` con los DEMÁS: no se repite) → cómo funciona → piezas por
+  dentro → configurador → curso QR → final. Fuera la cinta de piezas (`Marquesina` y su CSS `.cinta`).
+- Menú: Inicio · Kits · «Crea tu robot» (`/configurador`, también marca `/componentes`) · «Mis cursos» solo con sesión
+  (`soloConSesion` en `enlacesNavegacion`). Componentes sigue en el pie.
+- Sin etiquetas «de máquina» encima de las fotos (`fig. —`, `↳ /kits/…`).
+- Configurador vacío: el panel «Tu robot» ya no repite los kits (están en «¿Cómo quieres empezar?»).
+- 404: `components/layout/AvisoNoEncontrada`; `(tienda)/not-found.tsx` y `(cuenta)/not-found.tsx` sin `MarcoWeb` (el pie
+  salía dos veces porque el not-found raíz se pintaba dentro del layout de la zona).
+
 ### Stock del almacén (10-11-2026, rama `claude/project-thread-bbn9v7`; petición de Jesse)
 
 `/stock` (fuera de `/admin`, como `/mensajes`): lo ve todo `ROLES_EQUIPO`, solo un ADMIN lo cambia (botón «Cambiar» →
@@ -96,7 +116,7 @@ tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de
 - Orden: `HeroPortada` (h1, `CampoPixeles`: canvas con cable, mancha tramada y píxeles que parpadean y siguen al ratón; se
   para fuera de pantalla y con reducir movimiento) → `Marquesina` (piezas reales de la BD) → `PiezasPortada` (ver abajo; antes el 3D,
   ahora h2 «Así es un robot por dentro», texto por encima del lienzo) → aviso → `BloqueComoFunciona` → `KitsPortada` (destacado +
-  `TablaKits`: la foto sigue al ratón) → configurador (cajones rectos) → curso QR → `BloqueFinal` (negro con píxeles).
+  `GaleriaKits`: tarjetas con foto, sin efectos de ratón; antes `TablaKits`) → configurador (cajones rectos) → curso QR → `BloqueFinal` (negro con píxeles).
 - Botón: variantes `bloque` (negro recto, se levanta con sombra azul) y `punteado`. `Etiqueta` y `PalabrasQueSuben` en
   `components/portada/Etiqueta.tsx` (el espacio va fuera de cada palabra). Borrados `HeroKit` y `SeccionKit` (solo eran de la portada).
 - Segunda tanda (mismo día, petición del usuario):
@@ -106,12 +126,11 @@ tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de
   - **Toda la web uniforme**: `ui/CabeceraPagina` (campo azul con `CampoPixeles variante="cabecera"`, etiqueta, titular de
     cartel, entradilla serif) en kits, componentes, guías, blog, preguntas, carrito, checkout, cuenta, cursos, pedidos y legales
     (va FUERA del Contenedor). Login/registro/activar: tarjeta con sombra azul sobre el campo azul. Fichas: foto sobre campo azul.
-  - Pie: `PaisajePixeles` (noche: estrellas, luna, montañas, mar, tierra; medio transparente y fundido hacia arriba) detrás de
-    `BanderasPixeles` (Europa, Senyera en medio —solo barras y franja azul, sin corona, decisión del usuario— y España).
+  - Pie: `PaisajePixeles` (noche: estrellas, luna, montañas, mar, tierra; medio transparente y fundido hacia arriba).
+    Las banderas (`BanderasPixeles`) se quitaron el 10-11-2026 a petición del usuario.
   - **Ojo en local**: `npm run build` con `npm run dev` encendido deja la caché de desarrollo mal y la página se recarga
     sin parar. Parar el dev, construir y borrar `frontend/.next/dev` antes de volver a arrancar.
-  - **Pie negro** en toda la web (texto claro) con `BanderasPixeles`: píxeles que caen y forman las banderas de Europa,
-    España y la Senyera coronada, en sus mástiles, y luego ondean (antes eran edificios de València; lo cambió el usuario).
+  - **Pie negro** en toda la web (texto claro) con el paisaje de píxeles (sin banderas desde el 10-11-2026).
   - **Estilo en toda la web** desde lo compartido: radios a 2-4 px (tokens), `Boton` (relleno que se levanta con sombra
     recta; secundario punteado), `ui/Etiqueta` en mono, `.etiqueta-taller` (antes «text-sm … text-acento uppercase»),
     h1/h2 apretados, tarjetas de kit y componente con sombra recta azul, barra de navegación con línea de puntos.

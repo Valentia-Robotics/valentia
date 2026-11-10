@@ -10,13 +10,7 @@ export function TarjetaKit({ kit }: { kit: KitResumen }) {
   return (
     // Al pasar el ratón se levanta con una sombra recta azul (estilo taller)
     <article className="group relative flex flex-col overflow-hidden rounded-tarjeta bg-white ring-1 ring-tinta/15 transition-[box-shadow,translate] duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-acento)] active:translate-0">
-      <div className="relative bg-niebla px-6 pt-8 pb-4">
-        <span
-          aria-hidden="true"
-          className="absolute top-3 left-4 font-mono text-[0.7rem] text-tinta/70"
-        >
-          ↳ /kits/{kit.slug}
-        </span>
+      <div className="relative bg-niebla px-6 pt-6 pb-4">
         <FotoKitViaje slug={kit.slug}>
           <Image
             src={kit.imagen}

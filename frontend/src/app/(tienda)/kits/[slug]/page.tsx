@@ -110,12 +110,6 @@ export default async function PaginaKit({ params }: Props) {
             {/* La foto, sobre el campo azul con píxeles (como las cabeceras de la web) */}
             <div className="relative isolate overflow-hidden rounded-tarjeta bg-cielo p-6 sm:p-10">
               <CampoPixeles variante="cabecera" />
-              <span
-                aria-hidden="true"
-                className="absolute top-3 left-4 font-mono text-[0.7rem] text-tinta/70"
-              >
-                fig. — {kit.slug}
-              </span>
               <FotoKitViaje slug={kit.slug}>
                 <Image
                   src={kit.imagen}

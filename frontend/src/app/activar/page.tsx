@@ -214,7 +214,7 @@ function Marco({
   children?: ReactNode;
 }) {
   return (
-    <div className="relative isolate flex justify-center overflow-hidden bg-cielo px-4 py-12 sm:py-20">
+    <div className="campo-cielo relative isolate flex justify-center overflow-hidden px-4 py-12 sm:py-20">
       <CampoPixeles variante="cabecera" />
       <div className="relative w-full max-w-lg rounded-tarjeta bg-white p-8 text-center shadow-[8px_8px_0_var(--color-acento)] ring-1 ring-tinta/15 sm:p-10">
         <div className="flex justify-center">{icono}</div>

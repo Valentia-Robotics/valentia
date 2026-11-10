@@ -33,15 +33,17 @@ export type EnlaceNavegacion = {
    * Por ejemplo, /activar se marca como "Mis cursos".
    */
   tambien?: string[];
+  /** Solo se enseña con la sesión iniciada (p. ej. «Mis cursos»: sin cuenta no hay cursos) */
+  soloConSesion?: boolean;
 };
 
 /** Enlaces principales de la barra de navegación (el que corresponde a la página actual se marca) */
 export const enlacesNavegacion: EnlaceNavegacion[] = [
   { href: "/", etiqueta: "Inicio" },
   { href: "/kits", etiqueta: "Kits" },
-  { href: "/componentes", etiqueta: "Componentes" },
-  { href: "/configurador", etiqueta: "Configurador" },
-  { href: "/cursos", etiqueta: "Mis cursos", tambien: ["/activar"] },
+  // Piezas sueltas y configurador son lo mismo para quien compra: elegir piezas una a una
+  { href: "/configurador", etiqueta: "Crea tu robot", tambien: ["/componentes"] },
+  { href: "/cursos", etiqueta: "Mis cursos", tambien: ["/activar"], soloConSesion: true },
 ];
 
 /**

@@ -3,9 +3,9 @@
 import { useEffect, useRef } from "react";
 
 /**
- * PAISAJE DE FONDO DEL PIE (detrás de las banderas): un paisaje de noche hecho con píxeles y medio
+ * PAISAJE DE FONDO DEL PIE: un paisaje de noche hecho con píxeles y medio
  * transparente, para que el pie no sea un bloque negro plano. De arriba abajo: estrellas que
- * parpadean, la luna, montañas al fondo, el mar con reflejos y la tierra donde están los mástiles.
+ * parpadean, la luna, montañas al fondo, el mar con reflejos y la tierra de abajo.
  * Se funde con el negro hacia arriba (máscara), así los enlaces se leen igual.
  * Decorativo (aria-hidden). Se para fuera de pantalla; con «reducir movimiento», quieto.
  */
@@ -120,7 +120,7 @@ export function PaisajePixeles() {
         cuadro(desplazado, fila, cercaLuna ? "#ffc21a" : "#7a8cff", brillo);
       }
 
-      // La tierra donde se clavan los mástiles
+      // La tierra, abajo del todo
       for (let y = tierra; y < filas; y++) {
         for (let x = 0; x < columnas; x++) cuadro(x, y, "#0f1638", 0.9);
       }
