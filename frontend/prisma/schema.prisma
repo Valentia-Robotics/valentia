@@ -344,6 +344,8 @@ model Usuario {
   /// Última vez que alguien del equipo (editor, admin…) usó la web con la sesión abierta.
   /// Solo se apunta a los roles de src/config/equipo.ts, como mucho una vez cada 2 minutos
   ultimaConexionEn  DateTime?
+  /// Foto de perfil (dirección pública en el almacén de fotos; null = círculo con la inicial)
+  foto              String?
 
   cursos         CursoUsuario[]
   codigos        CodigoActivacion[]

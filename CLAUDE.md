@@ -18,6 +18,15 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Nombre y foto de perfil (10-11-2026, rama `claude/project-thread-1gb5rz`; petición de Jesse)
+
+«Mi cuenta» → «Tu perfil»: cambiar el nombre (`cambiarNombre`) y poner o quitar la foto (`cambiarFoto`: se sube sola al
+elegirla, `subirImagen(…, "perfiles", { cuadrada: 256 })`, límite `fotoPerfil` 20/hora; la anterior se borra del almacén).
+Campo nuevo `Usuario.foto` (opcional, en `OPCIONALES`). `comprobarSesion` devuelve rol, nombre y foto: el `jwt` pone
+`token.name` y `token.picture` (→ `session.user.image`), así el menú los ve sin volver a entrar. La foto sale en
+`MenuUsuario`, el menú móvil y los chats de `/mensajes` (`Avatar` con `foto`). Hacer ADMIN a alguien sigue siendo
+`npm run admin -- email` (en Render: Shell), no desde el panel.
+
 ### Stock del almacén (10-11-2026, rama `claude/project-thread-bbn9v7`; petición de Jesse)
 
 `/stock` (fuera de `/admin`, como `/mensajes`): lo ve todo `ROLES_EQUIPO`, solo un ADMIN lo cambia (botón «Cambiar» →

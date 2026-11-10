@@ -35,6 +35,7 @@ export default async function PaginaChat({ params }: Props) {
         key={chat}
         ruta={chat}
         titulo={esta?.nombre ?? abierto.otro?.nombre ?? "General"}
+        foto={esta?.foto ?? abierto.otro?.foto ?? null}
         rol={abierto.otro?.rol ?? null}
         ultimaConexionEn={abierto.otro?.ultimaConexionEn ?? null}
         miId={yo.id}

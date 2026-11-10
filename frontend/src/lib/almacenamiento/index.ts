@@ -37,8 +37,13 @@ export function hayArchivo(valor: FormDataEntryValue | null): valor is File {
  * Comprueba la foto, la reduce (máximo 1600 px de lado), la convierte a WebP (pesa mucho menos)
  * y la guarda. Devuelve la dirección pública de la imagen.
  * "carpeta" agrupa las fotos: "componentes", "kits"…
+ * Con "cuadrada" (píxeles), la recorta en un cuadrado de ese lado (fotos de perfil).
  */
-export async function subirImagen(archivo: File, carpeta: string): Promise<string> {
+export async function subirImagen(
+  archivo: File,
+  carpeta: string,
+  { cuadrada }: { cuadrada?: number } = {},
+): Promise<string> {
   if (!TIPOS_IMAGEN.includes(archivo.type)) {
     throw new ErrorImagen("La foto tiene que ser JPG, PNG o WebP.");
   }
@@ -51,7 +56,11 @@ export async function subirImagen(archivo: File, carpeta: string): Promise<strin
     // limitInputPixels: rechaza imágenes gigantes hechas para colgar el servidor (40 megapíxeles)
     datos = await sharp(Buffer.from(await archivo.arrayBuffer()), { limitInputPixels: 40_000_000 })
       .rotate() // respeta la orientación de las fotos hechas con el móvil
-      .resize({ width: LADO_MAXIMO, height: LADO_MAXIMO, fit: "inside", withoutEnlargement: true })
+      .resize(
+        cuadrada
+          ? { width: cuadrada, height: cuadrada, fit: "cover", position: "attention" }
+          : { width: LADO_MAXIMO, height: LADO_MAXIMO, fit: "inside", withoutEnlargement: true },
+      )
       .webp({ quality: 85 })
       .toBuffer();
   } catch {

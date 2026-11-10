@@ -5,6 +5,7 @@ import { ROLES_EQUIPO, enLinea } from "@/config/equipo";
 import { cuandoEnLista } from "@/config/mensajes";
 import type { Conversacion } from "@/lib/mensajes/mensajes";
 import { cn } from "@/lib/utils";
+import { FotoPerfil } from "@/components/cuenta/FotoPerfil";
 
 /** Iniciales para el circulito de cada persona: «Dani Pérez» → «DP» */
 export function iniciales(nombre: string) {
@@ -22,16 +23,24 @@ export const nombreRol = (rol: string | null) =>
 /** El circulito con las iniciales (o el icono del grupo para el General) */
 export function Avatar({
   nombre,
+  foto,
   general,
   conectado,
 }: {
   nombre: string;
+  foto?: string | null;
   general?: boolean;
   conectado?: boolean;
 }) {
   return (
     <span className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-tinta text-sm font-medium text-white">
-      {general ? <Users aria-hidden="true" className="size-5" /> : iniciales(nombre)}
+      {general ? (
+        <Users aria-hidden="true" className="size-5" />
+      ) : foto ? (
+        <FotoPerfil foto={foto} className="size-full" />
+      ) : (
+        iniciales(nombre)
+      )}
       {conectado && (
         <span
           title="Conectado ahora"
@@ -90,6 +99,7 @@ export function PantallaMensajes({
                 >
                   <Avatar
                     nombre={c.nombre}
+                    foto={c.foto}
                     general={general}
                     conectado={!general && enLinea(c.ultimaConexionEn)}
                   />

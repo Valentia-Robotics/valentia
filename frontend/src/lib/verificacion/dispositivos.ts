@@ -146,13 +146,13 @@ export async function canjearPase(pase: string) {
  * ¿Sigue valiendo la sesión? (la llama Auth.js cada vez que se lee la sesión)
  * Vale si el dispositivo existe, es de ese usuario, no ha caducado, el email está verificado
  * y la sesión se abrió DESPUÉS del último "Cerrar sesión" en ese navegador.
- * Devuelve el rol actual (para el menú) o null si la sesión ya no vale.
+ * Devuelve el rol, el nombre y la foto actuales (para el menú) o null si la sesión ya no vale.
  */
 export async function comprobarSesion(
   usuarioId: string,
   dispositivoId: string,
   abiertaEn = 0,
-): Promise<Rol | null> {
+): Promise<{ rol: Rol; nombre: string; foto: string | null } | null> {
   const dispositivo = await db.dispositivoConfianza.findUnique({
     where: { id: dispositivoId },
     select: {
@@ -160,7 +160,15 @@ export async function comprobarSesion(
       caducaEn: true,
       ultimoUsoEn: true,
       sesionCerradaEn: true,
-      usuario: { select: { rol: true, emailVerificadoEn: true, ultimaConexionEn: true } },
+      usuario: {
+        select: {
+          rol: true,
+          nombre: true,
+          foto: true,
+          emailVerificadoEn: true,
+          ultimaConexionEn: true,
+        },
+      },
     },
   });
   const ahora = Date.now();
@@ -182,7 +190,11 @@ export async function comprobarSesion(
     });
   }
   await apuntarConexion(usuarioId, dispositivo.usuario, ahora);
-  return dispositivo.usuario.rol;
+  return {
+    rol: dispositivo.usuario.rol,
+    nombre: dispositivo.usuario.nombre,
+    foto: dispositivo.usuario.foto,
+  };
 }
 
 /**

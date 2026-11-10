@@ -47,9 +47,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const token = authConfig.callbacks.jwt(parametros);
       if (parametros.user) return token; // la sesión se acaba de abrir
       if (!token.sub || !token.dispositivoId) return null;
-      const rol = await comprobarSesion(token.sub, token.dispositivoId, token.abiertaEn);
-      if (!rol) return null;
-      token.rol = rol; // así el menú se entera al momento si cambia el rol
+      const actual = await comprobarSesion(token.sub, token.dispositivoId, token.abiertaEn);
+      if (!actual) return null;
+      // Así el menú se entera al momento si cambia el rol, el nombre o la foto (Mi cuenta)
+      token.rol = actual.rol;
+      token.name = actual.nombre;
+      token.picture = actual.foto; // Auth.js la pasa a la sesión como user.image
       return token;
     },
   },

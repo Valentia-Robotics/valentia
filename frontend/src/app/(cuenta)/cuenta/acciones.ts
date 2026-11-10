@@ -4,6 +4,7 @@
  * MI CUENTA (acciones del servidor)
  *   - Eliminar un dispositivo de confianza (su sesión se cierra)
  *   - Cerrar sesión en todos los dispositivos
+ *   - Cambiar el nombre y la foto de perfil
  *   - Cambiar la contraseña (se cierran las sesiones de los demás dispositivos)
  * Cada acción comprueba la sesión: se pueden llamar desde fuera de la web.
  */
@@ -12,10 +13,11 @@ import { revalidatePath } from "next/cache";
 import { erroresDeZod, type EstadoFormulario } from "@/lib/admin/formularios";
 import { enviarCorreo } from "@/lib/correo";
 import { plantillaContrasenaCambiada } from "@/lib/correo/plantillas";
+import { ErrorImagen, borrarImagen, hayArchivo, subirImagen } from "@/lib/almacenamiento";
 import { db } from "@/lib/db";
 import { registrarIntento } from "@/lib/limite";
 import { obtenerUsuario } from "@/lib/sesion";
-import { esquemaCambioContrasena } from "@/lib/validaciones/cuenta";
+import { esquemaCambioContrasena, esquemaCambioNombre } from "@/lib/validaciones/cuenta";
 import { dispositivoDeConfianza, olvidarDispositivos } from "@/lib/verificacion/dispositivos";
 import { esquemaId } from "@/lib/ids";
 
@@ -52,6 +54,62 @@ export async function cerrarSesionEnTodos(): Promise<EstadoDispositivo> {
   if (!usuario) return { ok: false, mensaje: SIN_SESION, sesionCerrada: true };
   await olvidarDispositivos(usuario.id);
   return { ok: true, sesionCerrada: true };
+}
+
+/** Cambia el nombre de la cuenta (el menú lo ve al recargar: ver el jwt de src/auth.ts) */
+export async function cambiarNombre(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  const usuario = await obtenerUsuario();
+  if (!usuario) return { ok: false, mensaje: SIN_SESION };
+
+  const datos = esquemaCambioNombre.safeParse({ nombre: formulario.get("nombre") });
+  if (!datos.success) return { ok: false, errores: erroresDeZod(datos.error) };
+
+  await db.usuario.update({ where: { id: usuario.id }, data: { nombre: datos.data.nombre } });
+  revalidatePath("/", "layout");
+  return { ok: true, mensaje: "Nombre cambiado." };
+}
+
+/**
+ * Pone una foto de perfil nueva (se recorta en un cuadrado de 256 px) o, con «quitar», la quita.
+ * La foto anterior se borra del almacén.
+ */
+export async function cambiarFoto(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  const usuario = await obtenerUsuario();
+  if (!usuario) return { ok: false, mensaje: SIN_SESION };
+
+  const quitar = formulario.get("quitar") === "si";
+  const archivo = formulario.get("foto");
+  if (!quitar && !hayArchivo(archivo)) {
+    return { ok: false, errores: { foto: "Elige una foto." } };
+  }
+  if (!(await registrarIntento("fotoPerfil", usuario.id))) {
+    return { ok: false, mensaje: "Has cambiado la foto muchas veces. Espera un rato." };
+  }
+
+  let foto: string | null = null;
+  if (!quitar && hayArchivo(archivo)) {
+    try {
+      foto = await subirImagen(archivo, "perfiles", { cuadrada: 256 });
+    } catch (error) {
+      if (error instanceof ErrorImagen) return { ok: false, errores: { foto: error.message } };
+      throw error;
+    }
+  }
+
+  const antes = await db.usuario.findUniqueOrThrow({
+    where: { id: usuario.id },
+    select: { foto: true },
+  });
+  await db.usuario.update({ where: { id: usuario.id }, data: { foto } });
+  await borrarImagen(antes.foto).catch(() => {}); // si ya no estaba, da igual
+  revalidatePath("/", "layout");
+  return { ok: true, mensaje: quitar ? "Foto quitada." : "Foto cambiada." };
 }
 
 /** Cambia la contraseña. Este navegador sigue dentro; los demás tendrán que volver a entrar con código. */

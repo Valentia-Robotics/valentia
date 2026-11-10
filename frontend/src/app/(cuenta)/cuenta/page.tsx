@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { KeyRound, MapPin, Package, ShieldCheck } from "lucide-react";
+import { KeyRound, MapPin, Package, ShieldCheck, UserRound } from "lucide-react";
 import { FormularioContrasena } from "@/components/cuenta/FormularioContrasena";
+import { FormularioFoto } from "@/components/cuenta/FormularioFoto";
+import { FormularioNombre } from "@/components/cuenta/FormularioNombre";
 import { ListaPedidos } from "@/components/cuenta/ListaPedidos";
 import { MisDirecciones } from "@/components/cuenta/MisDirecciones";
 import { MisDispositivos, type DispositivoVista } from "@/components/cuenta/MisDispositivos";
@@ -23,10 +25,10 @@ const formatoFecha = new Intl.DateTimeFormat("es-ES", {
   timeZone: "Europe/Madrid",
 });
 
-/** MI CUENTA: pedidos, direcciones guardadas, dispositivos de confianza y cambio de contraseña */
+/** MI CUENTA: pedidos, direcciones guardadas, dispositivos de confianza, nombre y contraseña */
 export default async function PaginaMiCuenta() {
   const usuario = await exigirUsuario("/cuenta");
-  const [dispositivos, esteId, pedidos, direcciones] = await Promise.all([
+  const [dispositivos, esteId, pedidos, direcciones, perfil] = await Promise.all([
     listarDispositivos(usuario.id),
     idDeEsteNavegador(),
     pedidosDeUsuario(usuario),
@@ -34,6 +36,7 @@ export default async function PaginaMiCuenta() {
       where: { usuarioId: usuario.id },
       orderBy: [{ predeterminada: "desc" }, { creadoEn: "desc" }],
     }),
+    db.usuario.findUnique({ where: { id: usuario.id }, select: { foto: true } }),
   ]);
 
   // Preparamos los textos aquí (en el servidor) para que no cambien al cargar la página
@@ -107,6 +110,20 @@ export default async function PaginaMiCuenta() {
             contraseña.
           </p>
           <MisDispositivos dispositivos={vista} />
+        </section>
+
+        <section aria-labelledby="titulo-nombre" className="mt-14 max-w-2xl">
+          <h2 id="titulo-nombre" className="flex items-center gap-2 text-2xl font-medium">
+            <UserRound aria-hidden="true" className="size-6 text-acento" />
+            Tu perfil
+          </h2>
+          <p className="mt-2 mb-6 text-gris">
+            Tu foto y tu nombre salen en el menú, y tu nombre en los correos que te mandamos.
+          </p>
+          <FormularioFoto foto={perfil?.foto ?? null} nombre={usuario.nombre} />
+          <div className="mt-8">
+            <FormularioNombre nombre={usuario.nombre} />
+          </div>
         </section>
 
         <section aria-labelledby="titulo-contrasena" className="mt-14 max-w-2xl">
