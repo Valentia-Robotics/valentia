@@ -48,7 +48,7 @@ export function PanelFinanzas({ d, aviso }: { d: DatosFinanzas; aviso?: string }
     <>
       <Cabecera
         titulo="Finanzas"
-        descripcion="Lo que entra, lo que sale y lo que gana la empresa. Las ventas de la web se suman solas; el resto se apunta aquí."
+        descripcion="Lo que entra, lo que sale y lo que gana la empresa. Las ventas reales de la web se suman solas (los pedidos de prueba no cuentan); el resto se apunta aquí."
         acciones={
           <>
             <BotonAdmin href="/admin/finanzas/nuevo?tipo=ingreso" variante="secundario">
@@ -171,7 +171,7 @@ export function PanelFinanzas({ d, aviso }: { d: DatosFinanzas; aviso?: string }
         <TarjetaDato
           titulo="Ventas en la web"
           valor={d.pedidosWeb}
-          detalle="Pedidos cobrados en este periodo"
+          detalle="Pedidos cobrados de verdad en este periodo"
           icono={ArrowUpRight}
           href="/admin/pedidos"
         />

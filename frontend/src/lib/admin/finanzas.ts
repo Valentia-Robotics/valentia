@@ -1,7 +1,7 @@
 /**
  * FINANZAS DEL PANEL (/admin/finanzas, solo ADMIN)
  * Junta los ingresos y gastos apuntados a mano (MovimientoDinero) con los pedidos cobrados en la
- * web, que cuentan solos como ingreso. Los cálculos están en src/lib/finanzas/resumen.ts.
+ * web con dinero real (no los de prueba), que cuentan solos como ingreso. Los cálculos están en src/lib/finanzas/resumen.ts.
  */
 import "server-only";
 import {
@@ -15,6 +15,10 @@ import {
 import { db } from "@/lib/db";
 import { resumirFinanzas, type Apunte } from "@/lib/finanzas/resumen";
 import { PEDIDO_COBRADO } from "@/lib/pedidos";
+
+/** Solo cuentan los pedidos cobrados con dinero de verdad: los pagos de prueba (Stripe en modo
+ *  prueba o pago simulado) no son ingresos de la empresa */
+const VENTA_REAL = { ...PEDIDO_COBRADO, cobroReal: true } as const;
 
 /** Una fila de la lista de movimientos (los pedidos no se editan: se ven en Pedidos) */
 export interface Movimiento extends Apunte {
@@ -40,7 +44,7 @@ async function primerMes(): Promise<string | undefined> {
   const [movimiento, pedido] = await Promise.all([
     db.movimientoDinero.findFirst({ orderBy: { fecha: "asc" }, select: { fecha: true } }),
     db.pedido.findFirst({
-      where: PEDIDO_COBRADO,
+      where: VENTA_REAL,
       orderBy: { pagadoEn: "asc" },
       select: { pagadoEn: true },
     }),
@@ -66,7 +70,7 @@ export async function obtenerFinanzas(periodo: Periodo) {
   const [manuales, pedidos] = await Promise.all([
     db.movimientoDinero.findMany({ where: { fecha: rango }, orderBy: { fecha: "desc" } }),
     db.pedido.findMany({
-      where: { ...PEDIDO_COBRADO, pagadoEn: rango },
+      where: { ...VENTA_REAL, pagadoEn: rango },
       orderBy: { pagadoEn: "desc" },
       select: {
         id: true,

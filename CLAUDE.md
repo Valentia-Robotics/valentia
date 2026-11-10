@@ -34,7 +34,9 @@ que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empe
 
 `/admin/finanzas` (solo ADMIN, en el menú tras «Pedidos»). Ingresos y gastos apuntados a mano (modelo `MovimientoDinero`:
 tipo, concepto, categoría, importe con IVA, % de IVA, fecha, proveedor/cliente, notas) + los pedidos cobrados
-(`PEDIDO_COBRADO`, por `pagadoEn`), que cuentan solos como ingreso «Ventas en la web» (no se guardan aparte).
+(`PEDIDO_COBRADO` + `cobroReal: true`, por `pagadoEn`), que cuentan solos como ingreso «Ventas en la web» (no se guardan aparte).
+  `Pedido.cobroReal` lo pone el webhook de Stripe solo con `livemode`; los pagos de prueba y simulados (y todos los anteriores
+  al 10-11-2026) se quedan fuera.
 - Reglas puras: `src/config/finanzas.ts` (categorías por slug, tipos de IVA, meses en hora de Madrid, periodos `12m`/año/`todo`)
   y `src/lib/finanzas/resumen.ts` (+ test). BD: `src/lib/admin/finanzas.ts`. Validación: `src/lib/validaciones/finanzas.ts`.
 - Gráficos sin librerías (`GraficosFinanzas`): ingresos/gastos por mes (azul/naranja), beneficio por mes, dinero acumulado;

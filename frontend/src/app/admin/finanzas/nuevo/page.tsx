@@ -17,7 +17,7 @@ export default async function NuevoMovimiento({ searchParams }: Props) {
     <>
       <Cabecera
         titulo={tipo === "INGRESO" ? "Apuntar un ingreso" : "Apuntar un gasto"}
-        descripcion="Las ventas de la web no hace falta apuntarlas: se suman solas al cobrarse."
+        descripcion="Las ventas de la web no hace falta apuntarlas: se suman solas al cobrarse (solo las de dinero real, no las de prueba)."
         volver={{ href: "/admin/finanzas", etiqueta: "Finanzas" }}
       />
       <FormularioMovimiento tipoInicial={tipo} />

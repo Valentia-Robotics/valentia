@@ -340,6 +340,8 @@ export type ResultadoPago = "pagado" | "ya-estaba-pagado" | "sin-stock" | "no-ex
 export async function marcarPedidoPagado(
   pedidoId: string,
   referenciaPago: string,
+  /** true solo con un cobro real de Stripe (livemode); los de prueba no cuentan en Finanzas */
+  cobroReal = false,
 ): Promise<ResultadoPago> {
   return transaccion(async (tx) => {
     const pedido = await tx.pedido.findUnique({
@@ -363,7 +365,7 @@ export async function marcarPedidoPagado(
     const ahora = new Date();
     const cambio = await tx.pedido.updateMany({
       where: { id: pedidoId, estado: estadoPrevio, pagadoEn: null },
-      data: { estado: "PAGADO", pagadoEn: ahora, referenciaPago, canceladoEn: null },
+      data: { estado: "PAGADO", pagadoEn: ahora, referenciaPago, cobroReal, canceladoEn: null },
     });
     if (cambio.count === 0) return "ya-estaba-pagado";
 

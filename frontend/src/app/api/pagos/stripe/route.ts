@@ -82,7 +82,7 @@ async function procesar(evento: Stripe.Event) {
     return;
   }
 
-  const resultado = await marcarPedidoPagado(pedido.id, intento.id);
+  const resultado = await marcarPedidoPagado(pedido.id, intento.id, intento.livemode === true);
   if (resultado === "pagado") {
     await enviarConfirmacionPedido(pedido.id);
   } else if (resultado === "sin-stock") {
