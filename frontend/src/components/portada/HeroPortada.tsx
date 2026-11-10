@@ -5,7 +5,7 @@ import { Etiqueta, PalabrasQueSuben } from "./Etiqueta";
 
 /**
  * PRIMERA PANTALLA DE LA PORTADA: un campo de color con píxeles vivos (CampoPixeles), el titular
- * en grande y las dos puertas de entrada. Debajo van la cinta de piezas y el robot por dentro (PiezasPortada).
+ * en grande y las dos puertas de entrada. Debajo van los kits (KitsPortada).
  * La raya de colores de la izquierda es la «regla» del taller: azul, blanco y amarillo.
  */
 export function HeroPortada({

@@ -36,6 +36,17 @@ pistas se cortan en la zona del texto (`zonaTexto`) y antes del robot y los engr
 ratón es una pista que se apaga. Fondo `.campo-cielo` (azul → blanco abajo) en portada, `CabeceraPagina`,
 `TarjetaCuenta` y `/activar`; máscaras `.mascara-abajo` / `.mascara-arriba` (final) en `globals.css`.
 
+### Web más sencilla (10-11-2026, rama `diseno/estela-tecnologica`; el usuario aprobó las 8 propuestas)
+
+- Portada: héroe → aviso → **kits** (destacado + `GaleriaKits` con los DEMÁS: no se repite) → cómo funciona → piezas por
+  dentro → configurador → curso QR → final. Fuera la cinta de piezas (`Marquesina` y su CSS `.cinta`).
+- Menú: Inicio · Kits · «Crea tu robot» (`/configurador`, también marca `/componentes`) · «Mis cursos» solo con sesión
+  (`soloConSesion` en `enlacesNavegacion`). Componentes sigue en el pie.
+- Sin etiquetas «de máquina» encima de las fotos (`fig. —`, `↳ /kits/…`).
+- Configurador vacío: el panel «Tu robot» ya no repite los kits (están en «¿Cómo quieres empezar?»).
+- 404: `components/layout/AvisoNoEncontrada`; `(tienda)/not-found.tsx` y `(cuenta)/not-found.tsx` sin `MarcoWeb` (el pie
+  salía dos veces porque el not-found raíz se pintaba dentro del layout de la zona).
+
 ### Stock del almacén (10-11-2026, rama `claude/project-thread-bbn9v7`; petición de Jesse)
 
 `/stock` (fuera de `/admin`, como `/mensajes`): lo ve todo `ROLES_EQUIPO`, solo un ADMIN lo cambia (botón «Cambiar» →

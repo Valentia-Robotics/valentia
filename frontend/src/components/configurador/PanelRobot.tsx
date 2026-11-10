@@ -42,7 +42,6 @@ export function PanelRobot({
   const kitOrigen = useConfigurador((estado) => estado.kitOrigen);
   const ultimaAnadida = useConfigurador((estado) => estado.ultimaAnadida);
   const cambiarCantidad = useConfigurador((estado) => estado.cambiarCantidad);
-  const cargarKit = useConfigurador((estado) => estado.cargarKit);
   const vaciar = useConfigurador((estado) => estado.vaciar);
   const [confirmarVaciar, setConfirmarVaciar] = useState(false);
 
@@ -108,7 +107,7 @@ export function PanelRobot({
         {!robot.hidratado ? (
           <p className="py-8 text-center text-sm text-gris">Cargando tu robot…</p>
         ) : vacio ? (
-          <EstadoVacio kits={kits} alCargarKit={(k) => cargarKit(k.slug, k.piezas)} />
+          <EstadoVacio />
         ) : (
           <>
             <ul className="divide-y divide-linea">
@@ -225,42 +224,18 @@ function crearArticulo(robot: Robot, kit?: KitParaConfigurador): Omit<ArticuloCa
   };
 }
 
-/** Lo que se ve cuando el robot no tiene piezas */
-function EstadoVacio({
-  kits,
-  alCargarKit,
-}: {
-  kits: KitParaConfigurador[];
-  alCargarKit: (kit: KitParaConfigurador) => void;
-}) {
+/**
+ * Lo que se ve cuando el robot no tiene piezas. Los kits para empezar ya salen en «¿Cómo quieres
+ * empezar?», a la izquierda: aquí no se repiten, solo se dice por dónde seguir.
+ */
+function EstadoVacio() {
   return (
-    <div className="py-4 text-center">
+    <div className="py-6 text-center">
       <Bot aria-hidden="true" className="mx-auto size-12 text-gris-claro" strokeWidth={1.2} />
-      <p className="mt-3 font-medium">Todavía no has elegido ninguna pieza</p>
+      <p className="mt-3 font-medium">Tu robot está vacío</p>
       <p className="mt-1 text-sm text-gris">
-        Empieza por una categoría o coge uno de nuestros kits:
+        Elige una placa para empezar, o parte de uno de nuestros kits.
       </p>
-      <ul className="mt-4 space-y-2 text-left">
-        {kits.map((kit) => (
-          <li key={kit.slug}>
-            <button
-              type="button"
-              onClick={() => alCargarKit(kit)}
-              className="flex w-full items-center gap-3 rounded-control bg-white p-2 text-sm ring-1 ring-linea transition-colors hover:ring-tinta"
-            >
-              <Image
-                src={kit.imagen}
-                alt=""
-                width={64}
-                height={48}
-                unoptimized
-                className="h-10 w-14 shrink-0 object-contain"
-              />
-              <span className="flex-1">{kit.nombre}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

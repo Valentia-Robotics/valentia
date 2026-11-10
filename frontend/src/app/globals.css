@@ -523,22 +523,6 @@ dialog[open]::backdrop {
   }
 }
 
-/* Cinta que se desliza sin fin (la lista va duplicada: al llegar a la mitad vuelve al principio) */
-@media (prefers-reduced-motion: no-preference) {
-  .cinta {
-    animation: cinta 46s linear infinite;
-  }
-  .cinta-pausa:hover .cinta,
-  .cinta-pausa:focus-within .cinta {
-    animation-play-state: paused;
-  }
-}
-@keyframes cinta {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 /* Etiqueta técnica (la que va encima de los titulares en toda la web): puntos y letra de máquina.
    «etiqueta-taller-oscura» sobre fondos oscuros. */
 .etiqueta-taller,

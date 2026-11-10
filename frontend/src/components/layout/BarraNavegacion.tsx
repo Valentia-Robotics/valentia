@@ -23,6 +23,8 @@ export function BarraNavegacion() {
   const { data: sesion } = useSession();
 
   const estaActivo = (enlace: EnlaceNavegacion) => enSeccion(ruta, enlace);
+  // «Mis cursos» solo con la sesión iniciada (sin cuenta no hay cursos que ver)
+  const enlaces = enlacesNavegacion.filter((e) => !e.soloConSesion || sesion?.user);
 
   // Cerrar el menú móvil con la tecla Escape
   useEffect(() => {
@@ -63,7 +65,7 @@ export function BarraNavegacion() {
 
           {/* Enlaces en ordenador: el de la sección actual va en negrita con una raya azul debajo */}
           <ul className="hidden h-full items-stretch gap-4 md:flex lg:gap-8">
-            {enlacesNavegacion.map((enlace) => (
+            {enlaces.map((enlace) => (
               <li key={enlace.href} className="flex">
                 <Link
                   href={enlace.href}
@@ -120,7 +122,7 @@ export function BarraNavegacion() {
               menuAbierto ? "max-h-[calc(100dvh-var(--spacing-nav))] overflow-y-auto" : "opacity-0",
             )}
           >
-            {enlacesNavegacion.map((enlace) => (
+            {enlaces.map((enlace) => (
               <li key={enlace.href}>
                 <Link
                   href={enlace.href}

@@ -10,7 +10,7 @@ import { GaleriaKits } from "./GaleriaKits";
 
 /**
  * LOS KITS EN LA PORTADA: primero el destacado, grande (su foto «viaja» a la ficha), y después
- * todos en una galería de fotos sencilla (GaleriaKits).
+ * los demás en una galería de fotos sencilla (GaleriaKits; la portada no le pasa el destacado).
  */
 export function KitsPortada({
   estrella,
@@ -22,7 +22,10 @@ export function KitsPortada({
   compraAbierta: boolean;
 }) {
   return (
-    <section aria-labelledby="titulo-kits" className="overflow-x-clip bg-white pt-8 pb-20 sm:pb-28">
+    <section
+      aria-labelledby="titulo-kits"
+      className="overflow-x-clip bg-white pt-14 pb-20 sm:pt-20 sm:pb-28"
+    >
       <Contenedor>
         <div className="aparecer">
           <Etiqueta>Elige tu kit</Etiqueta>
@@ -63,12 +66,6 @@ export function KitsPortada({
               </div>
             </div>
             <div className="acercar relative order-1 rounded-recto bg-niebla p-6 lg:order-2">
-              <span
-                aria-hidden="true"
-                className="absolute top-4 left-4 font-mono text-[0.7rem] text-tinta/70"
-              >
-                fig. 01 — {estrella.slug}
-              </span>
               <FotoKitViaje slug={estrella.slug}>
                 <Image
                   src={estrella.imagen}
@@ -86,7 +83,9 @@ export function KitsPortada({
         {kits.length > 0 && (
           <div className="aparecer mt-20">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <h3 className="text-2xl font-medium sm:text-3xl">Todos los kits</h3>
+              <h3 className="text-2xl font-medium sm:text-3xl">
+                {estrella ? "Más kits" : "Todos los kits"}
+              </h3>
               <p className="max-w-sm font-serif text-base leading-snug text-tinta/80">
                 Todos llevan las piezas, el cable y un curso en vídeo hecho para ellos.
               </p>
