@@ -399,6 +399,9 @@ export function CampoPixeles({
 
     function pintar(tiempo: number) {
       const t = quieto ? 0 : tiempo / 1000;
+      // Sin tamaño todavía (la página aún se está colocando, o el bloque está oculto): copiar un
+      // lienzo de 0 px da error en el navegador. Se pinta en cuanto tenga tamaño (ResizeObserver).
+      if (!fondo.width || !fondo.height || !ancho || !alto) return;
       ctx!.clearRect(0, 0, ancho, alto);
       ctx!.drawImage(fondo, 0, 0, ancho, alto);
       const c2 = celda / 2;
