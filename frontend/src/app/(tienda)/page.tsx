@@ -34,7 +34,7 @@ export const metadata: Metadata = metadatosPagina({
  *   2. Las cinco piezas de un robot en un mosaico con «escáner» (antes, un coche 3D con scroll largo)
  *      (debajo, mientras la tienda no cobra, un aviso pequeño con «Avísame»)
  *   3. Cómo funciona, en tres pasos, con cifras reales
- *   4. Los kits: el destacado en grande y todos en una tabla para compararlos
+ *   4. Los kits: el destacado en grande y todos en una galería de fotos (GaleriaKits)
  *   5. "O elige tú las piezas" → configurador (tramo oscuro)
  *   6. El curso incluido con el QR de la caja
  *   7. Invitación final, sobre negro con los mismos píxeles que el principio

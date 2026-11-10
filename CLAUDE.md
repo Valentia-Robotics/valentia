@@ -105,7 +105,7 @@ tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de
 - Orden: `HeroPortada` (h1, `CampoPixeles`: canvas con cable, mancha tramada y píxeles que parpadean y siguen al ratón; se
   para fuera de pantalla y con reducir movimiento) → `Marquesina` (piezas reales de la BD) → `PiezasPortada` (ver abajo; antes el 3D,
   ahora h2 «Así es un robot por dentro», texto por encima del lienzo) → aviso → `BloqueComoFunciona` → `KitsPortada` (destacado +
-  `TablaKits`: la foto sigue al ratón) → configurador (cajones rectos) → curso QR → `BloqueFinal` (negro con píxeles).
+  `GaleriaKits`: tarjetas con foto, sin efectos de ratón; antes `TablaKits`) → configurador (cajones rectos) → curso QR → `BloqueFinal` (negro con píxeles).
 - Botón: variantes `bloque` (negro recto, se levanta con sombra azul) y `punteado`. `Etiqueta` y `PalabrasQueSuben` en
   `components/portada/Etiqueta.tsx` (el espacio va fuera de cada palabra). Borrados `HeroKit` y `SeccionKit` (solo eran de la portada).
 - Segunda tanda (mismo día, petición del usuario):
