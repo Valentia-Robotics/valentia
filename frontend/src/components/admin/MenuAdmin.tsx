@@ -20,6 +20,7 @@ import {
   ShoppingBag,
   Star,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -37,6 +38,7 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
   MENSAJES,
   { href: "/admin/visitas", etiqueta: "Visitas", icono: ChartColumn },
   { href: "/admin/pedidos", etiqueta: "Pedidos", icono: ShoppingBag },
+  { href: "/admin/finanzas", etiqueta: "Finanzas", icono: Wallet },
   { href: "/admin/componentes", etiqueta: "Componentes", icono: Cpu },
   { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },

@@ -5,9 +5,12 @@ import { porcentaje } from "@/lib/admin/formato";
 export function ListaConBarras({
   filas,
   vacia,
+  formato = String,
 }: {
   filas: { nombre: string; ruta?: string; cantidad: number }[];
   vacia: string;
+  /** Cómo se escribe cada cifra (por defecto, tal cual; en finanzas, en euros) */
+  formato?: (cantidad: number) => string;
 }) {
   if (filas.length === 0) return <p className="px-5 py-6 text-center text-sm text-gris">{vacia}</p>;
   const maximo = Math.max(...filas.map((f) => f.cantidad));
@@ -36,7 +39,7 @@ export function ListaConBarras({
               <span className="min-w-0 truncate">{f.nombre}</span>
             )}
             <span className="shrink-0 tabular-nums">
-              {f.cantidad}
+              {formato(f.cantidad)}
               <span className="ml-2 inline-block w-10 text-right text-xs text-gris">
                 {porcentaje(f.cantidad, total)}
               </span>
