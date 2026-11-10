@@ -45,6 +45,10 @@ model Componente {
   descripcion      String
   precioCentimos   Int
   stock            Int
+  /// Con estas unidades o menos, /stock avisa de que hay que reponer (null = el aviso de siempre, src/config/stock.ts)
+  stockMinimo      Int?
+  /// true = ya se han pedido más unidades al proveedor: con 0, la tienda dice «En reposición» (y no «Sin stock»)
+  enReposicion     Boolean   @default(false)
   imagen           String
   /// Tensión de funcionamiento en voltios (en una batería: la tensión que entrega)
   voltaje          Float
@@ -84,6 +88,12 @@ model Kit {
   puntosFuertes  Json
   /// false = oculto: no se vende ni aparece en la tienda (sus códigos siguen funcionando)
   visible        Boolean @default(true)
+  /// Kits montados y en su caja, listos para enviar. Cada kit vendido resta uno (como los componentes)
+  stock          Int     @default(0)
+  /// Con estas unidades o menos, /stock avisa de que hay que reponer (null = el aviso de siempre, src/config/stock.ts)
+  stockMinimo    Int?
+  /// true = ya se están preparando más: con 0, la tienda dice «En reposición» (y no «Sin stock»)
+  enReposicion   Boolean @default(false)
 
   componentes KitComponente[]
   curso       Curso              @relation(fields: [cursoId], references: [id])
@@ -921,6 +931,27 @@ model LlamadaBlog {
   fecha      DateTime @default(now())
 
   @@index([fecha])
+}
+
+/// Cada cambio del stock hecho a mano en /stock (quién, qué y cuánto), para saber de dónde sale cada número
+model MovimientoStock {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// "kit" o "componente"
+  tipo        String
+  productoId  String   @db.ObjectId
+  /// Nombre del producto en ese momento (si luego se borra, el registro se sigue entendiendo)
+  nombre      String
+  antes       Int
+  despues     Int
+  minimoAntes   Int?
+  minimoDespues Int?
+  /// Si cambió la casilla «Ya hemos pedido más» (null = no cambió)
+  reposicion  Boolean?
+  autorNombre String
+  creadoEn    DateTime @default(now())
+
+  @@index([creadoEn])
+  @@index([productoId, creadoEn])
 }
 
 /// FINANZAS (/admin/finanzas, solo ADMIN): ingresos y gastos que se apuntan a mano.

@@ -118,7 +118,7 @@ export default async function ComponentesAdmin({ searchParams }: Props) {
                 {formatearPrecio(c.precioCentimos)}
               </td>
               <td className={cn("tabular-nums", c.stock === 0 && "font-medium text-error")}>
-                {c.stock === 0 ? "Agotado" : c.stock}
+                {c.stock === 0 ? "Sin stock" : c.stock}
               </td>
               <td>
                 {c.visible ? (

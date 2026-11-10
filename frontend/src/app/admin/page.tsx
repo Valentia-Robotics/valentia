@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Boxes, QrCode, ShoppingBag, UserPlus, Users } from "lucide-react";
+import { BookOpen, Boxes, PackageSearch, QrCode, ShoppingBag, UserPlus, Users } from "lucide-react";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
 import { EstadoPedido } from "@/components/admin/EstadoPedido";
@@ -8,12 +8,13 @@ import { TarjetaDato } from "@/components/admin/TarjetaDato";
 import { DIAS_ACTIVIDAD, obtenerResumen } from "@/lib/admin/estadisticas";
 import { fecha, fechaHora, porcentaje } from "@/lib/admin/formato";
 import { exigirAdmin } from "@/lib/sesion";
+import { contarPorReponer } from "@/lib/stock/stock";
 import { formatearPrecio, plural } from "@/lib/utils";
 
 /** INICIO DEL PANEL: las cifras principales y lo último que ha pasado */
 export default async function InicioAdmin() {
   const admin = await exigirAdmin("/admin");
-  const r = await obtenerResumen();
+  const [r, porReponer] = await Promise.all([obtenerResumen(), contarPorReponer()]);
 
   return (
     <>
@@ -53,6 +54,15 @@ export default async function InicioAdmin() {
           detalle={`Últimos ${DIAS_ACTIVIDAD} días`}
           icono={BookOpen}
           href="/admin/cursos"
+        />
+        <TarjetaDato
+          titulo="Por reponer"
+          valor={porReponer}
+          detalle={
+            porReponer > 0 ? "Productos con stock bajo o sin unidades" : "Todo el stock está bien"
+          }
+          icono={PackageSearch}
+          href="/stock"
         />
       </div>
 
