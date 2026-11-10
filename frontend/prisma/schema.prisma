@@ -953,3 +953,36 @@ model MovimientoStock {
   @@index([creadoEn])
   @@index([productoId, creadoEn])
 }
+
+/// FINANZAS (/admin/finanzas, solo ADMIN): ingresos y gastos que se apuntan a mano.
+/// Los pedidos cobrados en la web NO se guardan aquí: se suman solos como ingreso (ver src/lib/admin/finanzas.ts).
+enum TipoMovimiento {
+  INGRESO
+  GASTO
+}
+
+model MovimientoDinero {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  tipo             TipoMovimiento
+  /// Qué es: "Compra de 50 motores TT", "Taller en el colegio X"…
+  concepto         String
+  /// Slug de la categoría (lista en src/config/finanzas.ts)
+  categoria        String
+  /// Importe total en céntimos, IVA incluido (siempre positivo: el tipo dice si entra o sale)
+  importeCentimos  Int
+  /// Porcentaje de IVA (0, 4, 10 o 21) y el IVA que va dentro del importe, en céntimos
+  ivaPorcentaje    Int            @default(0)
+  ivaCentimos      Int            @default(0)
+  /// Día del ingreso o del gasto (a las 12:00 UTC, así no cambia de día en España)
+  fecha            DateTime
+  /// Proveedor o cliente (opcional, "" si no se pone)
+  contraparte      String         @default("")
+  notas            String         @default("")
+  /// Nombre de quien lo apuntó (para saberlo aunque se borre la cuenta)
+  creadoPor        String         @default("")
+  creadoEn         DateTime       @default(now())
+  actualizadoEn    DateTime       @default(now()) @updatedAt
+
+  @@index([fecha])
+  @@index([tipo, fecha])
+}

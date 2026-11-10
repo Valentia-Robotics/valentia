@@ -18,7 +18,9 @@ vi.mock("@/lib/contenido/guiones", () => ({
 vi.mock("@/lib/db", () => ({
   db: { kit: simulado.kit, noticiaUsada: simulado.noticiaUsada },
 }));
-vi.mock("@/lib/limite", () => ({
+// Solo se simula registrarIntento: LIMITES e ipDeCabeceras son los de verdad
+vi.mock("@/lib/limite", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/limite")>()),
   registrarIntento: simulado.registrarIntento,
 }));
 

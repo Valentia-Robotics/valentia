@@ -30,6 +30,17 @@ que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empe
   cancelar lo devuelve). Tienda (`textoTienda`): «En stock» / «En reposición» (0 y pedido) / «Sin stock» (0 y nada
   pedido o ya no se vende). El seed de desarrollo pone 20 a los kits con 0 (para e2e).
 
+### Finanzas: ingresos, gastos y beneficio (10-11-2026, rama `claude/project-thread-90iech`; petición de Jesse)
+
+`/admin/finanzas` (solo ADMIN, en el menú tras «Pedidos»). Ingresos y gastos apuntados a mano (modelo `MovimientoDinero`:
+tipo, concepto, categoría, importe con IVA, % de IVA, fecha, proveedor/cliente, notas) + los pedidos cobrados
+(`PEDIDO_COBRADO`, por `pagadoEn`), que cuentan solos como ingreso «Ventas en la web» (no se guardan aparte).
+- Reglas puras: `src/config/finanzas.ts` (categorías por slug, tipos de IVA, meses en hora de Madrid, periodos `12m`/año/`todo`)
+  y `src/lib/finanzas/resumen.ts` (+ test). BD: `src/lib/admin/finanzas.ts`. Validación: `src/lib/validaciones/finanzas.ts`.
+- Gráficos sin librerías (`GraficosFinanzas`): ingresos/gastos por mes (azul/naranja), beneficio por mes, dinero acumulado;
+  reparto por categoría, IVA cobrado/pagado y beneficio sin IVA, tabla mes a mes, lista y CSV (`/admin/finanzas/csv`).
+- Categoría nueva → añadirla a la lista (nunca cambiar un slug que ya se usa: los apuntes guardan el slug).
+
 ### Nombre del coche (08-11-2026, rama `claude/project-thread-4lji9k`)
 
 Decisión de Jesse: el kit del coche se llama **«Kit de coche robótico multifunción VR1 - Starter Kit»** (con guion, no dos
