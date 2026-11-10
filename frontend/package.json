@@ -20,6 +20,7 @@
     "predeploy:prod": "tsx scripts/predeploy.ts",
     "kits:renombrar": "tsx scripts/renombrar-kits.ts",
     "prod:admin": "tsx scripts/prod-admin.ts",
+    "codigos:borrar-usados": "tsx scripts/borrar-codigos-usados.ts",
     "db:check": "tsx scripts/comprobar-bd.ts",
     "db:copia": "tsx scripts/copia-seguridad.ts",
     "db:push": "prisma db push",
