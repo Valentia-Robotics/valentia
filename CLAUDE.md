@@ -18,6 +18,18 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Stock del almacén (10-11-2026, rama `claude/project-thread-bbn9v7`; petición de Jesse)
+
+`/stock` (fuera de `/admin`, como `/mensajes`): lo ve todo `ROLES_EQUIPO`, solo un ADMIN lo cambia (botón «Cambiar» →
+`guardarStock` con `exigirAdminEnAccion`). Reglas puras en `src/config/stock.ts` (+ test); BD en `src/lib/stock/stock.ts`.
+- Campos nuevos: `Kit.stock` (kits montados en su caja, por defecto 0), `stockMinimo` (null = aviso de siempre: 3 kits,
+  10 componentes) y `enReposicion` («Ya hemos pedido más»; se quita sola al pasar del aviso) en Kit y Componente.
+  Modelo `MovimientoStock`: cada cambio a mano («Últimos cambios»). Kits gratis fuera.
+- Estados: Reposición necesaria (0, sin pedir) · Stock bajo · Reposición en curso (pedido) · Stock suficiente.
+- Decisión de Jesse: **cada kit vendido resta uno de su stock y con 0 no se vende** (`reservarStock` en `pedidos.ts`;
+  cancelar lo devuelve). Tienda (`textoTienda`): «En stock» / «En reposición» (0 y pedido) / «Sin stock» (0 y nada
+  pedido o ya no se vende). El seed de desarrollo pone 20 a los kits con 0 (para e2e).
+
 ### Nombre del coche (08-11-2026, rama `claude/project-thread-4lji9k`)
 
 Decisión de Jesse: el kit del coche se llama **«Kit de coche robótico multifunción VR1 - Starter Kit»** (con guion, no dos

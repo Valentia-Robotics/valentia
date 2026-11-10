@@ -16,6 +16,7 @@ import {
   Mail,
   MessageCircle,
   Newspaper,
+  PackageSearch,
   QrCode,
   ShoppingBag,
   Star,
@@ -31,6 +32,9 @@ import { cn } from "@/lib/utils";
 /** Los mensajes del equipo (/mensajes): salen en las tres zonas, con el número de no leídos */
 const MENSAJES = { href: "/mensajes", etiqueta: "Mensajes", icono: MessageCircle };
 
+/** El stock (/stock): lo ve todo el equipo; solo administración lo cambia */
+const STOCK = { href: "/stock", etiqueta: "Stock", icono: PackageSearch };
+
 /** Secciones del panel. Para añadir una nueva, añádela aquí. */
 const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin", etiqueta: "Inicio", icono: LayoutDashboard },
@@ -39,6 +43,7 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
   { href: "/admin/pedidos", etiqueta: "Pedidos", icono: ShoppingBag },
   { href: "/admin/componentes", etiqueta: "Componentes", icono: Cpu },
   { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
+  STOCK,
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },
   { href: "/admin/codigos", etiqueta: "Códigos", icono: QrCode },
   { href: "/admin/contenido", etiqueta: "Contenido", icono: Clapperboard },
@@ -55,12 +60,14 @@ const seccionesEditor: typeof seccionesAdmin = [
   { href: "/editor", etiqueta: "Mis guiones", icono: Clapperboard },
   { href: "/editor/blog", etiqueta: "Mis artículos", icono: Newspaper },
   MENSAJES,
+  STOCK,
 ];
 
 /** La zona de hardware: su espacio de archivos */
 const seccionesHardware: typeof seccionesAdmin = [
   { href: "/hardware", etiqueta: "Mi espacio", icono: FolderOpen },
   MENSAJES,
+  STOCK,
 ];
 
 /**

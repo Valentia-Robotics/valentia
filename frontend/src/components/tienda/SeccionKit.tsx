@@ -3,6 +3,7 @@ import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
 import { Boton } from "@/components/ui/Boton";
 import { formatearPrecio, cn } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
+import { textoTienda } from "@/config/stock";
 
 /**
  * Sección de la portada dedicada a un kit. Se alternan fondos claros y oscuros
@@ -49,7 +50,11 @@ export function SeccionKit({
         </p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
           <Boton href={`/kits/${kit.slug}#comprar`} variante={oscuro ? "claro" : "primario"}>
-            {compraAbierta ? "Comprar" : "Avísame cuando abra"}
+            {!compraAbierta
+              ? "Avísame cuando abra"
+              : kit.stock > 0
+                ? "Comprar"
+                : `${textoTienda(0, kit.enReposicion)} · Avísame`}
           </Boton>
           <Boton href={`/kits/${kit.slug}`} variante={oscuro ? "enlace-claro" : "enlace"}>
             Ver el kit ›

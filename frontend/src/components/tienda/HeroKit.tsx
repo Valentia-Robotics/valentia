@@ -3,6 +3,7 @@ import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
 import { Boton } from "@/components/ui/Boton";
 import { formatearPrecio } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
+import { textoTienda } from "@/config/stock";
 
 /**
  * Bloque de la portada con el kit estrella (estilo web de Apple):
@@ -28,7 +29,11 @@ export function HeroKit({ kit, compraAbierta }: { kit: KitResumen; compraAbierta
       <div className="aparecer mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
         <Boton href={`/kits/${kit.slug}#comprar`} variante="acento" tamano="lg">
           {/* Con la tienda cerrada, la ficha enseña ahí el «Avísame»: el botón no promete una compra */}
-          {compraAbierta ? "Comprar" : "Avísame cuando abra"}
+          {!compraAbierta
+            ? "Avísame cuando abra"
+            : kit.stock > 0
+              ? "Comprar"
+              : `${textoTienda(0, kit.enReposicion)} · Avísame`}
         </Boton>
         <Boton href={`/kits/${kit.slug}`} variante="enlace" tamano="lg">
           Ver el kit ›

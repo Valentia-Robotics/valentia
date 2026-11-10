@@ -11,6 +11,7 @@ import { fichaTecnica } from "@/lib/fichaTecnica";
 import { formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 import { maximoDe } from "./useRobot";
+import { textoTienda } from "@/config/stock";
 
 interface Props {
   componente: ComponenteCatalogo;
@@ -69,7 +70,9 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
         </dl>
 
         <p className="mt-4 text-sm text-gris">
-          {componente.stock > 0 ? `${componente.stock} unidades disponibles` : "Agotado"}
+          {componente.stock > 0
+            ? `${componente.stock} unidades disponibles`
+            : textoTienda(0, componente.enReposicion)}
           {enRobot > 0 && ` · ${enRobot} ya en tu robot`}
         </p>
 

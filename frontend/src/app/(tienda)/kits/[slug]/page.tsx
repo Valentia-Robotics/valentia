@@ -33,6 +33,7 @@ import { resenasDelKit } from "@/lib/resenas";
 import { conseguirKitGratis } from "./acciones";
 import { formatearMedia } from "@/lib/resenas/formato";
 import { precioDeKit } from "@/lib/utils";
+import { textoTienda } from "@/config/stock";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -84,7 +85,7 @@ export default async function PaginaKit({ params }: Props) {
 
   return (
     <>
-      <DatosEstructurados datos={datosKit(kit, abierta || gratis, resenas)} />
+      <DatosEstructurados datos={datosKit(kit, (abierta && kit.stock > 0) || gratis, resenas)} />
       <DatosEstructurados
         datos={datosMigas([
           { nombre: "Inicio", ruta: "/" },
@@ -161,6 +162,18 @@ export default async function PaginaKit({ params }: Props) {
                 <form action={conseguirKitGratis.bind(null, kit.slug)} className="mt-8">
                   <BotonKitGratis />
                 </form>
+              ) : abierta && kit.stock === 0 ? (
+                // Sin unidades en el almacén (se cuentan en /stock): no se puede comprar, pero sí pedir aviso
+                <div className="mt-8 rounded-tarjeta bg-niebla p-5 sm:p-6">
+                  <p className="font-medium">{textoTienda(0, kit.enReposicion)}</p>
+                  <p className="mt-1 text-sm text-gris">
+                    {kit.enReposicion
+                      ? "Se han agotado las unidades que teníamos y ya estamos preparando más."
+                      : "Ahora mismo no nos quedan unidades de este kit."}{" "}
+                    Déjanos tu email y te escribimos en cuanto vuelva a estar disponible.
+                  </p>
+                  <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
+                </div>
               ) : abierta ? (
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <BotonAnadirCarrito

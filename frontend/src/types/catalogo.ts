@@ -22,6 +22,8 @@ export interface ComponenteCatalogo {
   descripcion: string;
   precioCentimos: number;
   stock: number;
+  /** Con stock 0: true = ya hay más pedidas («En reposición»), false = «Sin stock» */
+  enReposicion: boolean;
   imagen: string;
   /** Voltios de funcionamiento (en una batería: los que entrega) */
   voltaje: number;

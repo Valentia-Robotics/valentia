@@ -6,6 +6,7 @@ import { Boton } from "@/components/ui/Boton";
 import { formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 import { maximoDe } from "./useRobot";
+import { textoTienda } from "@/config/stock";
 
 interface Props {
   componente: ComponenteCatalogo;
@@ -67,7 +68,7 @@ export function TarjetaPieza({ componente, enRobot, alAnadir, alVerDetalle }: Pr
           className="relative z-10 mt-3 w-full"
         >
           {agotado ? (
-            "Agotado"
+            textoTienda(0, componente.enReposicion)
           ) : sinMas ? (
             "No hay más"
           ) : (
