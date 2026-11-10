@@ -10,7 +10,7 @@ import { FormularioComponente } from "@/components/admin/FormularioComponente";
 import { Insignia } from "@/components/admin/Insignia";
 import { obtenerComponenteAdmin, tiposDePieza } from "@/lib/admin/componentes";
 import { listaDeEspecificaciones } from "@/lib/catalogo";
-import { exigirAdmin } from "@/lib/sesion";
+import { exigirCatalogo } from "@/lib/sesion";
 import { esId } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Editar componente" };
@@ -25,7 +25,7 @@ export default async function EditarComponente({ params, searchParams }: Props) 
   const { id } = await params;
   // Un id con otra forma no existe (y Prisma daría error con MongoDB)
   if (!esId(id)) notFound();
-  await exigirAdmin(`/admin/componentes/${id}`);
+  await exigirCatalogo(`/admin/componentes/${id}`);
   const [componente, tipos, { creado }] = await Promise.all([
     obtenerComponenteAdmin(id),
     tiposDePieza(),

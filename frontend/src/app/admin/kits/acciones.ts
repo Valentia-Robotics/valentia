@@ -10,7 +10,7 @@ import { casilla, conErrores, texto, textos, type EstadoFormulario } from "@/lib
 import { refrescarTienda } from "@/lib/admin/refrescar";
 import { borrarImagen, ErrorImagen, hayArchivo, subirImagen } from "@/lib/almacenamiento";
 import { db, transaccion } from "@/lib/db";
-import { exigirAdminEnAccion } from "@/lib/sesion";
+import { exigirCatalogoEnAccion } from "@/lib/sesion";
 import { crearSlug, esquemaKitAdmin, slug as esquemaSlug } from "@/lib/validaciones/admin";
 import { idsValidos } from "@/lib/ids";
 
@@ -19,7 +19,7 @@ export async function guardarKit(
   _anterior: EstadoFormulario,
   formulario: FormData,
 ): Promise<EstadoFormulario> {
-  await exigirAdminEnAccion();
+  await exigirCatalogoEnAccion();
   const id = texto(formulario, "id");
   if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
 
@@ -177,7 +177,7 @@ export async function cambiarVisibilidadKit(
   _anterior: EstadoFormulario,
   formulario: FormData,
 ): Promise<EstadoFormulario> {
-  await exigirAdminEnAccion();
+  await exigirCatalogoEnAccion();
   const id = texto(formulario, "id");
   if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const kit = await db.kit.findUnique({ where: { id }, select: { visible: true } });
@@ -196,7 +196,7 @@ export async function borrarKit(
   _anterior: EstadoFormulario,
   formulario: FormData,
 ): Promise<EstadoFormulario> {
-  await exigirAdminEnAccion();
+  await exigirCatalogoEnAccion();
   const id = texto(formulario, "id");
   if (!idsValidos(id)) return { ok: false, mensaje: "No encontramos lo que quieres cambiar." };
   const kit = await db.kit.findUnique({

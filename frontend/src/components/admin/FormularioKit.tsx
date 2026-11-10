@@ -109,7 +109,7 @@ export function FormularioKit({
             error={error("cursoId")}
             ayuda={
               cursos.length === 0
-                ? "No hay cursos libres: crea antes uno en «Cursos»."
+                ? "No hay cursos libres: hace falta uno nuevo en «Cursos» (lo crea administración)."
                 : "Cada curso va con un solo kit. Al activar el código QR, el alumno recibe este curso."
             }
             opciones={[
