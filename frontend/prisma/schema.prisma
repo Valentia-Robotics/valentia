@@ -213,6 +213,9 @@ model Pedido {
   estado               EstadoPedido @default(PENDIENTE)
   /// Quién cobra el pedido: "simulado" (sin claves de Stripe) o "stripe"
   proveedorPago        String
+  /// true solo si se cobró dinero de verdad (Stripe en modo real). Los pagos de prueba (Stripe con claves
+  /// de prueba o pago simulado) se quedan en false y no cuentan en Finanzas.
+  cobroReal            Boolean      @default(false)
   /// Referencia del pago que da el proveedor (en Stripe, el id del PaymentIntent)
   referenciaPago       String?
   /// Número de seguimiento del transportista (lo pone el panel al enviarlo)
