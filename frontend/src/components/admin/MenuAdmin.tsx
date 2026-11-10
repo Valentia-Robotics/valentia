@@ -122,15 +122,22 @@ export function MenuAdmin({
         </div>
       </div>
 
-      <nav aria-label="Secciones del panel" className="mt-3 lg:mt-8 lg:flex-1">
-        <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:px-3 lg:pb-0">
+      {/* En ordenador el menú ocupa justo la altura de la pantalla: si las secciones no caben,
+          se desplaza SOLO esta lista (rueda, panel táctil o arrastrando), y «Ver la tienda» y
+          «Cerrar sesión» se quedan siempre a la vista abajo. Antes la lista empujaba esa parte
+          fuera de la pantalla y la columna fija no dejaba llegar a ella. */}
+      <nav
+        aria-label="Secciones del panel"
+        className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin]"
+      >
+        <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3">
           {secciones.map(({ href, etiqueta, icono: Icono }) => (
             <li key={href} className="shrink-0">
               <Link
                 href={href}
                 aria-current={activa(href) ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors lg:py-1.5",
                   activa(href)
                     ? "bg-tinta text-white"
                     : "text-tinta/80 hover:bg-niebla hover:text-tinta",
@@ -145,7 +152,7 @@ export function MenuAdmin({
         </ul>
       </nav>
 
-      <div className="hidden border-t border-linea p-4 text-sm lg:block">
+      <div className="hidden shrink-0 border-t border-linea p-4 text-sm lg:block">
         <p className="truncate font-medium">{nombre}</p>
         <p className="truncate text-xs text-gris">{email}</p>
         <div className="mt-3 flex flex-col gap-1">
