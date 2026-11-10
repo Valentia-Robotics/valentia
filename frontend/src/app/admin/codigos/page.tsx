@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Printer } from "lucide-react";
 import { cambiarDesactivacion, cambiarDesactivacionTodos } from "@/app/admin/codigos/acciones";
+import {
+  AccionesLoteCodigos,
+  FORMULARIO_LOTE_CODIGOS,
+} from "@/components/admin/AccionesLoteCodigos";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Buscador } from "@/components/admin/Buscador";
@@ -14,6 +18,7 @@ import { leerPagina, Paginacion } from "@/components/admin/Paginacion";
 import { Tabla } from "@/components/admin/Tabla";
 import {
   contarParaBloque,
+  esBorrable,
   listarCodigos,
   MAXIMO_LOTE,
   resumenBienvenida,
@@ -196,7 +201,11 @@ export default async function CodigosAdmin({ searchParams }: Props) {
 
       <Caja sinRelleno>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linea px-4 py-2">
-          <p className="text-xs text-gris">{plural(total, "código", "códigos")}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-xs text-gris">{plural(total, "código", "códigos")}</p>
+            {/* Borrar los marcados (solo llevan casilla los que nadie ha usado ni se vendieron) */}
+            {codigos.some(esBorrable) && <AccionesLoteCodigos />}
+          </div>
           {/* Desactivar o reactivar de una vez todos los códigos de los filtros elegidos */}
           <div className="flex flex-wrap gap-2">
             {bloque.activos > 0 && (
@@ -240,11 +249,23 @@ export default async function CodigosAdmin({ searchParams }: Props) {
           </div>
         </div>
         <Tabla
-          columnas={["Código", "Kit", "Estado", "Usado por", "Origen", ""]}
+          columnas={["", "Código", "Kit", "Estado", "Usado por", "Origen", ""]}
           vacia={codigos.length === 0 && "No hay códigos con estos filtros."}
         >
           {codigos.map((c) => (
             <tr key={c.id}>
+              <td className="w-0">
+                {esBorrable(c) && (
+                  <input
+                    type="checkbox"
+                    name="ids"
+                    value={c.id}
+                    form={FORMULARIO_LOTE_CODIGOS}
+                    aria-label={`Seleccionar el código ${c.codigo}`}
+                    className="size-4 accent-acento"
+                  />
+                )}
+              </td>
               <td className="font-mono text-[13px] font-medium whitespace-nowrap">{c.codigo}</td>
               <td className="whitespace-nowrap">{c.kit.nombre}</td>
               <td>
