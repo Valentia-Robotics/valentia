@@ -6,11 +6,11 @@ import type { KitResumen } from "@/lib/catalogo";
 import { formatearPrecio } from "@/lib/utils";
 import { textoTienda } from "@/config/stock";
 import { Etiqueta } from "./Etiqueta";
-import { TablaKits } from "./TablaKits";
+import { GaleriaKits } from "./GaleriaKits";
 
 /**
  * LOS KITS EN LA PORTADA: primero el destacado, grande (su foto «viaja» a la ficha), y después
- * todos en una tabla para compararlos de un vistazo.
+ * todos en una galería de fotos sencilla (GaleriaKits).
  */
 export function KitsPortada({
   estrella,
@@ -86,21 +86,19 @@ export function KitsPortada({
         {kits.length > 0 && (
           <div className="aparecer mt-20">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <h3 className="text-2xl font-medium sm:text-3xl">Compáralos</h3>
+              <h3 className="text-2xl font-medium sm:text-3xl">Todos los kits</h3>
               <p className="max-w-sm font-serif text-base leading-snug text-tinta/80">
                 Todos llevan las piezas, el cable y un curso en vídeo hecho para ellos.
               </p>
             </div>
             <div className="mt-6">
-              <TablaKits
+              <GaleriaKits
                 kits={kits.map((k) => ({
                   slug: k.slug,
                   nombre: k.nombre,
-                  eslogan: k.eslogan,
                   imagen: k.imagen,
                   nivel: k.nivel,
                   edadMinima: k.edadMinima,
-                  tiempoMontaje: k.tiempoMontaje,
                   precio: formatearPrecio(k.precioCentimos),
                   lecciones: k.curso._count.lecciones,
                 }))}
