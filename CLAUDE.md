@@ -270,6 +270,14 @@ curso `bienvenida-a-valentia`; vídeo `PENDIENTE`: ponerlo en `/admin/cursos`). 
   `public/images/kits/bienvenida-valentia.svg` y `public/images/redes/kits/bienvenida-valentia.png` (sin modelo 3D).
 - Pruebas: `src/lib/validaciones/kitGratis.test.ts` y `e2e/kit-gratis.spec.ts`.
 
+### Borrar códigos seleccionándolos (10-11-2026, rama `claude/project-thread-moqndl`; petición de Jesse)
+
+`/admin/codigos`: casilla en cada código que se puede borrar + barra `AccionesLoteCodigos` («Marcar todos», «Borrar
+seleccionados», con confirmación) → `borrarVariosCodigos` → `borrarCodigos` (`src/lib/admin/codigos.ts`). Borrado de
+verdad: deja de contar en el número de códigos del kit (`/admin/kits`), que sí cuenta los desactivados. Solo se borran
+los que nadie ha usado y no se vendieron en un pedido (`condicionBorrable`); los demás se saltan. El lote se queda con
+la cantidad que le queda y, vacío, se borra.
+
 ### Desactivar códigos en bloque (05-11-2026, rama `claude/project-thread-df82fa`)
 
 `/admin/codigos`: botones «Desactivar todos» / «Reactivar todos» (con confirmación) encima de la tabla; actúan sobre
