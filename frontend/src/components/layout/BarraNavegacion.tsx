@@ -11,6 +11,7 @@ import { esDelEquipo } from "@/config/equipo";
 import { cn } from "@/lib/utils";
 import { BotonCarrito } from "./BotonCarrito";
 import { MenuUsuario } from "./MenuUsuario";
+import { FotoPerfil } from "@/components/cuenta/FotoPerfil";
 
 /**
  * Barra de navegación fija, fina y translúcida (con desenfoque del fondo).
@@ -145,7 +146,12 @@ export function BarraNavegacion() {
             <li className="mt-4 mb-4 border-t border-linea pt-4">
               {sesion?.user ? (
                 <>
-                  <p className="py-2 text-sm text-gris">Hola, {sesion.user.name}</p>
+                  <p className="flex items-center gap-2 py-2 text-sm text-gris">
+                    {sesion.user.image && (
+                      <FotoPerfil foto={sesion.user.image} className="size-7" />
+                    )}
+                    Hola, {sesion.user.name}
+                  </p>
                   {[
                     { href: "/activar", etiqueta: "Activar un kit" },
                     { href: "/cuenta", etiqueta: "Mi cuenta" },

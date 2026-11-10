@@ -28,6 +28,7 @@ export class ErrorMensaje extends Error {}
 export interface Companero {
   id: string;
   nombre: string;
+  foto: string | null;
   rol: Rol;
   ultimaConexionEn: Date | null;
 }
@@ -36,7 +37,7 @@ export interface Companero {
 export async function companeros(yo: UsuarioActual): Promise<Companero[]> {
   return db.usuario.findMany({
     where: { rol: { in: ROLES_EQUIPO.map((r) => r.rol) }, id: { not: yo.id } },
-    select: { id: true, nombre: true, rol: true, ultimaConexionEn: true },
+    select: { id: true, nombre: true, foto: true, rol: true, ultimaConexionEn: true },
     orderBy: { nombre: "asc" },
   });
 }
@@ -56,7 +57,7 @@ async function comprobarCanal(
   const otroId = personas[0] === yo.id ? personas[1] : personas[0];
   const otro = await db.usuario.findUnique({
     where: { id: otroId },
-    select: { id: true, nombre: true, rol: true, ultimaConexionEn: true },
+    select: { id: true, nombre: true, foto: true, rol: true, ultimaConexionEn: true },
   });
   if (!otro) throw new ErrorMensaje("Esa persona ya no existe.");
   return { otro, puedeEscribir: esDelEquipo(otro.rol) };
@@ -178,6 +179,7 @@ export interface Conversacion {
   /** "general" o el id de la otra persona: va en la dirección /mensajes/<ruta> */
   ruta: string;
   nombre: string;
+  foto: string | null;
   rol: Rol | null;
   ultimaConexionEn: Date | null;
   ultimo: { texto: string; autorNombre: string; mio: boolean; creadoEn: Date } | null;
@@ -195,6 +197,7 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
       canal: CANAL_GENERAL,
       ruta: CANAL_GENERAL,
       nombre: "General",
+      foto: null,
       rol: null,
       ultimaConexionEn: null,
       ultimo: null,
@@ -204,6 +207,7 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
       canal: canalDeRuta(o.id, yo.id)!,
       ruta: o.id,
       nombre: o.nombre,
+      foto: o.foto,
       rol: o.rol,
       ultimaConexionEn: o.ultimaConexionEn,
       ultimo: null,
@@ -226,13 +230,14 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
       .filter(esId);
     const antiguos = await db.usuario.findMany({
       where: { id: { in: ids } },
-      select: { id: true, nombre: true, rol: true, ultimaConexionEn: true },
+      select: { id: true, nombre: true, foto: true, rol: true, ultimaConexionEn: true },
     });
     for (const o of antiguos)
       lista.push({
         canal: canalDeRuta(o.id, yo.id)!,
         ruta: o.id,
         nombre: o.nombre,
+        foto: o.foto,
         rol: o.rol,
         ultimaConexionEn: o.ultimaConexionEn,
         ultimo: null,
@@ -260,6 +265,7 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
     return {
       ruta: c.ruta,
       nombre: c.nombre,
+      foto: c.foto,
       rol: c.rol,
       ultimaConexionEn: c.ultimaConexionEn,
       noLeidos: noLeidos.get(c.canal) ?? 0,

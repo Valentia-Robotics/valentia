@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import { FotoPerfil } from "@/components/cuenta/FotoPerfil";
 import { useEffect, useRef, useState } from "react";
 import { esDelEquipo } from "@/config/equipo";
 import { enSeccion } from "@/config/marca";
@@ -70,12 +71,16 @@ export function MenuUsuario() {
         aria-controls="menu-usuario"
         aria-label={`Menú de ${nombre}`}
         className={cn(
-          "flex size-8 items-center justify-center rounded-full bg-tinta font-titulo text-sm text-white transition-colors hover:bg-grafito",
+          "flex size-8 items-center justify-center overflow-hidden rounded-full bg-tinta font-titulo text-sm text-white transition-colors hover:bg-grafito",
           // En "Mi cuenta" el círculo lleva un anillo azul: es la sección actual
           enCuenta && "ring-2 ring-acento ring-offset-2",
         )}
       >
-        {nombre.charAt(0).toUpperCase()}
+        {sesion.user.image ? (
+          <FotoPerfil foto={sesion.user.image} className="size-full" />
+        ) : (
+          nombre.charAt(0).toUpperCase()
+        )}
       </button>
 
       <div

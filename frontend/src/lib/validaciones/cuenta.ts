@@ -22,11 +22,20 @@ const contrasenaNueva = z
   // bcrypt solo tiene en cuenta los primeros 72 bytes
   .max(72, "La contraseña es demasiado larga (máximo 72 caracteres)");
 
+const nombre = z
+  .string()
+  .trim()
+  .min(2, "Escribe tu nombre")
+  .max(80, "El nombre es demasiado largo");
+
 export const esquemaRegistro = z.object({
-  nombre: z.string().trim().min(2, "Escribe tu nombre").max(80, "El nombre es demasiado largo"),
+  nombre,
   email,
   contrasena: contrasenaNueva,
 });
+
+/** Cambiar el nombre desde "Mi cuenta" */
+export const esquemaCambioNombre = z.object({ nombre });
 
 /** Cambiar la contraseña desde "Mi cuenta" (hay que saber la actual) */
 export const esquemaCambioContrasena = z

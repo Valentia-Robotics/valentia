@@ -37,6 +37,7 @@ import { TarjetaTarea } from "./TarjetaTarea";
 interface Props {
   ruta: string;
   titulo: string;
+  foto: string | null;
   rol: Rol | null;
   ultimaConexionEn: Date | null;
   miId: string;
@@ -49,7 +50,8 @@ interface Props {
 
 /** UN CHAT ABIERTO, como en WhatsApp: burbujas, separadores de día y el cuadro para escribir */
 export function Chat(props: Props) {
-  const { ruta, titulo, rol, ultimaConexionEn, miId, soyAdmin, puedeEscribir, personas } = props;
+  const { ruta, titulo, foto, rol, ultimaConexionEn, miId, soyAdmin, puedeEscribir, personas } =
+    props;
   const general = ruta === "general";
   const router = useRouter();
   const [texto, setTexto] = useState("");
@@ -156,7 +158,7 @@ export function Chat(props: Props) {
         >
           <ChevronLeft aria-hidden="true" className="size-5" />
         </Link>
-        <Avatar nombre={titulo} general={general} />
+        <Avatar nombre={titulo} foto={foto} general={general} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-medium">{titulo}</h2>
           <p className="truncate text-xs text-gris">
