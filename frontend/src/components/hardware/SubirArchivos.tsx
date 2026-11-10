@@ -88,6 +88,22 @@ function prepararSeleccion(tipo: Seleccion["tipo"], todos: Elegido[]): Seleccion
 }
 
 /**
+ * Suma lo nuevo a lo que ya estaba elegido (el navegador solo deja elegir UNA carpeta cada vez:
+ * así se pueden subir «diseños» y «programas» juntas eligiéndolas una detrás de otra).
+ * Si un archivo ya estaba (misma ruta), se queda el último elegido.
+ */
+function juntarSelecciones(antes: Seleccion | null, nueva: Seleccion): Seleccion {
+  if (!antes) return nueva;
+  const porRuta = new Map(antes.elegidos.map((e) => [e.ruta, e]));
+  for (const e of nueva.elegidos) porRuta.set(e.ruta, e);
+  return {
+    tipo: antes.tipo === "carpeta" || nueva.tipo === "carpeta" ? "carpeta" : "archivos",
+    elegidos: [...porRuta.values()],
+    ignorados: antes.ignorados + nueva.ignorados,
+  };
+}
+
+/**
  * «Subir archivos»: elige archivos sueltos o una carpeta entera (con sus subcarpetas, que se crean
  * igual en el espacio), o arrástralos encima. Se suben uno detrás de otro. `duenoId` solo hace
  * falta cuando sube un administrador al espacio de otra persona; `libres` = bytes que quedan.
@@ -118,7 +134,7 @@ export function SubirArchivos({
   function elegir(nueva: Seleccion) {
     setErrores([]);
     setHecho(null);
-    setSeleccion(nueva);
+    setSeleccion((antes) => juntarSelecciones(antes, nueva));
   }
 
   function alElegirArchivos(e: ChangeEvent<HTMLInputElement>) {
@@ -237,10 +253,23 @@ export function SubirArchivos({
     }
   }
 
-  const raices =
-    seleccion?.tipo === "carpeta"
-      ? [...new Set(seleccion.elegidos.map((e) => e.ruta.split("/")[0]))]
-      : [];
+  // Las carpetas elegidas (la primera parte de la ruta de los archivos que van en carpeta)
+  const raices = [
+    ...new Set(
+      (seleccion?.elegidos ?? [])
+        .filter((e) => e.ruta.includes("/"))
+        .map((e) => e.ruta.split("/")[0]),
+    ),
+  ];
+
+  /** Quita de lo elegido una de las carpetas (si se eligió una de más) */
+  function quitarCarpeta(raiz: string) {
+    setSeleccion((antes) => {
+      if (!antes) return null;
+      const elegidos = antes.elegidos.filter((e) => !e.ruta.startsWith(`${raiz}/`));
+      return elegidos.length > 0 ? { ...antes, elegidos } : null;
+    });
+  }
   const pesoElegido = seleccion?.elegidos.reduce((suma, e) => suma + e.archivo.size, 0) ?? 0;
   const claseBoton =
     "inline-flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors";
@@ -308,7 +337,7 @@ export function SubirArchivos({
           <p className="mt-1.5 text-xs text-gris">
             También puedes arrastrar archivos o carpetas aquí. Hasta {MAXIMO_MB_ARCHIVO} MB cada
             archivo; una carpeta se sube con todas sus subcarpetas (hasta {MAXIMO_ARCHIVOS_CARPETA}{" "}
-            archivos).
+            archivos). Para subir varias carpetas, elígelas una detrás de otra: se van sumando.
           </p>
         </div>
         <div>
@@ -332,13 +361,30 @@ export function SubirArchivos({
 
       {seleccion && (
         <div className="flex items-start justify-between gap-3 rounded-md bg-tinta/5 px-3 py-2 text-sm">
-          <p className="min-w-0 break-words">
-            {seleccion.tipo === "carpeta" ? (
-              <>
-                {raices.length === 1 ? "Carpeta" : "Carpetas"}{" "}
-                <strong>{raices.map((r) => `«${r}»`).join(", ")}</strong>:{" "}
-              </>
-            ) : null}
+          <div className="min-w-0 break-words">
+            {raices.length > 0 && (
+              <span className="mb-1.5 flex flex-wrap items-center gap-1.5">
+                {raices.length === 1 ? "Carpeta" : `${raices.length} carpetas`}
+                {raices.map((r) => (
+                  <span
+                    key={r}
+                    className="inline-flex items-center gap-1 rounded bg-white px-2 py-0.5 font-semibold ring-1 ring-linea"
+                  >
+                    {r}
+                    {!subiendo && raices.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => quitarCarpeta(r)}
+                        className="rounded text-gris hover:text-tinta"
+                        aria-label={`Quitar la carpeta ${r}`}
+                      >
+                        <X aria-hidden="true" className="size-3.5" />
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </span>
+            )}
             {seleccion.elegidos.length === 1
               ? "1 archivo"
               : `${seleccion.elegidos.length} archivos`}{" "}
@@ -349,7 +395,7 @@ export function SubirArchivos({
                 · {seleccion.ignorados} del sistema que no se suben (.DS_Store, Thumbs.db…)
               </span>
             )}
-          </p>
+          </div>
           {!subiendo && (
             <button
               type="button"
