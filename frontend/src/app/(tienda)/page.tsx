@@ -4,7 +4,7 @@ import { BloqueFinal } from "@/components/portada/BloqueFinal";
 import { HeroPortada } from "@/components/portada/HeroPortada";
 import { KitsPortada } from "@/components/portada/KitsPortada";
 import { Marquesina } from "@/components/portada/Marquesina";
-import { PortadaRobot } from "@/components/portada/PortadaRobot";
+import { PiezasPortada } from "@/components/portada/PiezasPortada";
 import { BloqueConfigurador } from "@/components/tienda/BloqueConfigurador";
 import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
@@ -31,7 +31,7 @@ export const metadata: Metadata = metadatosPagina({
 /**
  * PÁGINA DE INICIO (estilo «taller»: carteles, campos de color con píxeles vivos, líneas de puntos)
  *   1. Campo de color con el titular y las dos entradas (HeroPortada) y la cinta de piezas reales
- *   2. El robot que se desmonta al hacer scroll (3D o dibujo ligero)
+ *   2. Las cinco piezas de un robot en un mosaico con «escáner» (antes, un coche 3D con scroll largo)
  *      (debajo, mientras la tienda no cobra, un aviso pequeño con «Avísame»)
  *   3. Cómo funciona, en tres pasos, con cifras reales
  *   4. Los kits: el destacado en grande y todos en una tabla para compararlos
@@ -55,7 +55,7 @@ export default async function Inicio() {
       <DatosEstructurados datos={datosTienda()} />
       <HeroPortada cifras={cifras} />
       <Marquesina piezas={componentes.map((c) => ({ nombre: c.nombre, categoria: c.categoria }))} />
-      <PortadaRobot />
+      <PiezasPortada />
       {!abierta && <AvisoApertura />}
       <BloqueComoFunciona cifras={cifras} />
       <KitsPortada

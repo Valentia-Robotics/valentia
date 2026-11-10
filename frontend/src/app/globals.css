@@ -38,9 +38,10 @@
   --color-aviso-oscuro: #8a3c05; /* Texto de aviso sobre fondo naranja claro (contraste 7:1) */
 
   /* ---------- Radios (esquinas redondeadas) ---------- */
-  --radius-boton: 999px; /* Botones en forma de píldora */
-  --radius-tarjeta: 1.5rem; /* Tarjetas grandes */
-  --radius-control: 0.75rem; /* Campos de formulario, chips */
+  /* Estilo «taller» (09-11-2026): esquinas casi rectas en toda la web, como piezas cortadas a láser */
+  --radius-boton: 2px; /* Botones */
+  --radius-tarjeta: 4px; /* Tarjetas grandes */
+  --radius-control: 2px; /* Campos de formulario, chips */
 
   /* ---------- Sombras ---------- */
   --shadow-tarjeta: 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px rgb(11 11 11 / 0.06);
@@ -149,12 +150,17 @@
   h3 {
     @apply font-titulo tracking-tight text-balance;
   }
+  /* Los titulares grandes, apretados como en un cartel */
+  h1,
+  h2 {
+    letter-spacing: -0.035em;
+  }
 
   /* Contorno visible al navegar con teclado (accesibilidad) */
   :focus-visible {
     outline: 2px solid var(--color-acento);
     outline-offset: 3px;
-    border-radius: 4px;
+    border-radius: 2px;
   }
 
   /* Con una ventana emergente abierta, la página de detrás no se mueve */
@@ -214,26 +220,6 @@
       animation-range: entry 0% cover 30%;
     }
   }
-}
-
-/*
- * Robot de la portada en SVG (src/components/portada/RobotEstatico.tsx).
- * --e (0 = montado, 1 = despiezado) lo pone el scroll; --dx y --dy, cada pieza.
- * Cuando se explica una pieza, las demás se atenúan.
- */
-.pieza-robot {
-  translate: calc(var(--dx) * var(--e, 0) * 1px) calc(var(--dy) * var(--e, 0) * 1px);
-  transition: opacity 0.4s ease;
-}
-[data-pieza-activa] .pieza-robot {
-  opacity: 0.3;
-}
-[data-pieza-activa="chasis"] [data-pieza="chasis"],
-[data-pieza-activa="placa"] [data-pieza="placa"],
-[data-pieza-activa="motores"] [data-pieza="motores"],
-[data-pieza-activa="sensores"] [data-pieza="sensores"],
-[data-pieza-activa="bateria"] [data-pieza="bateria"] {
-  opacity: 1;
 }
 
 /*
@@ -520,5 +506,56 @@ dialog[open]::backdrop {
 @keyframes cinta {
   to {
     transform: translateX(-50%);
+  }
+}
+
+/* Etiqueta técnica (la que va encima de los titulares en toda la web): puntos y letra de máquina.
+   «etiqueta-taller-oscura» sobre fondos oscuros. */
+.etiqueta-taller,
+.etiqueta-taller-oscura {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: rgb(11 11 11 / 0.7);
+}
+.etiqueta-taller-oscura {
+  color: rgb(255 255 255 / 0.65);
+}
+.etiqueta-taller::before,
+.etiqueta-taller-oscura::before {
+  content: "";
+  display: block;
+  width: 3.5rem;
+  height: 0.375rem;
+  margin-bottom: 0.5rem;
+  background-image: radial-gradient(circle, currentColor 0.75px, transparent 1px);
+  background-size: 6px 2px;
+  background-repeat: repeat-x;
+  background-position: left bottom;
+}
+/* Centrada cuando el bloque va centrado */
+.text-center .etiqueta-taller::before,
+.text-center .etiqueta-taller-oscura::before,
+.etiqueta-taller.text-center::before {
+  margin-inline: auto;
+}
+
+/* Línea de escáner que barre de arriba abajo la foto de la pieza activa (PiezasPortada) */
+@media (prefers-reduced-motion: no-preference) {
+  .escaner {
+    animation: escaner 2.2s var(--ease-suave) both;
+  }
+}
+@keyframes escaner {
+  from {
+    top: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    top: 100%;
+    opacity: 0;
   }
 }

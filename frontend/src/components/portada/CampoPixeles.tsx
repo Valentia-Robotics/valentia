@@ -11,20 +11,22 @@ import { useEffect, useRef } from "react";
  * Es un <canvas> decorativo (aria-hidden): no lleva texto. Se para cuando no se ve y, con
  * «reducir movimiento», se dibuja una vez y se queda quieto.
  *
- *   variante → "portada" (sobre azul claro: cable arriba a la derecha) o "final" (sobre negro:
+ *   variante → "cabecera" (cabecera de cada página: solo mancha pequeña y píxeles, sin cable),
+ *              "portada" (sobre azul claro: cable arriba a la derecha) o "final" (sobre negro:
  *              cable abajo a la izquierda)
  */
 const PALETAS = {
   // [principal, secundario, detalle]: azul circuito, blanco y el amarillo de las ruedas
   portada: ["#2d4bff", "#ffffff", "#ffc21a"],
   final: ["#2d4bff", "#7a8cff", "#ffc21a"],
+  cabecera: ["#2d4bff", "#ffffff", "#ffc21a"],
 } as const;
 
 export function CampoPixeles({
   variante = "portada",
   className,
 }: {
-  variante?: "portada" | "final";
+  variante?: "portada" | "final" | "cabecera";
   className?: string;
 }) {
   const lienzo = useRef<HTMLCanvasElement>(null);
@@ -37,7 +39,7 @@ export function CampoPixeles({
     const [principal, secundario, detalle] = PALETAS[variante];
 
     // Números «al azar» pero siempre iguales: el dibujo no cambia entre visitas
-    let semilla = variante === "portada" ? 7 : 19;
+    let semilla = variante === "final" ? 19 : 7;
     const azar = () => {
       semilla = (semilla * 16807) % 2147483647;
       return (semilla - 1) / 2147483646;
@@ -68,7 +70,7 @@ export function CampoPixeles({
       canvas!.height = Math.round(alto * dpr);
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
       celda = ancho < 640 ? 9 : 12;
-      semilla = variante === "portada" ? 7 : 19;
+      semilla = variante === "final" ? 19 : 7;
 
       const columnas = Math.ceil(ancho / celda);
       const filas = Math.ceil(alto / celda);
@@ -77,10 +79,22 @@ export function CampoPixeles({
       mancha = [];
       // En el móvil el texto ocupa todo el ancho: la mancha baja a la esquina de abajo
       estrecho = ancho < 640;
-      const cx = (variante === "portada" ? (estrecho ? 0.92 : 0.86) : 0.14) * columnas;
+      const claro = variante !== "final"; // portada y cabecera: mancha a la derecha
+      const cx = (claro ? (estrecho ? 0.92 : 0.86) : 0.14) * columnas;
       const cy =
-        (variante === "portada" ? (estrecho ? 0.93 : 0.42) : estrecho ? 0.92 : 0.55) * filas;
-      const radio = Math.max(5, Math.min(columnas, filas) * (estrecho ? 0.24 : 0.26));
+        (variante === "cabecera"
+          ? estrecho
+            ? 0.95
+            : 0.55
+          : claro
+            ? estrecho
+              ? 0.93
+              : 0.42
+            : estrecho
+              ? 0.92
+              : 0.55) * filas;
+      const tamano = variante === "cabecera" ? (estrecho ? 0.32 : 0.34) : estrecho ? 0.24 : 0.26;
+      const radio = Math.max(4, Math.min(columnas, filas) * tamano);
       for (let f = Math.floor(cy - radio * 1.4); f < cy + radio * 1.4; f++) {
         for (let c = Math.floor(cx - radio * 1.4); c < cx + radio * 1.4; c++) {
           const angulo = Math.atan2(f - cy, c - cx);
@@ -101,7 +115,7 @@ export function CampoPixeles({
         // Dejar libre la zona del texto (izquierda arriba en la portada, centro en el final)
         const libre = estrecho
           ? y < filas * 0.86
-          : variante === "portada"
+          : variante !== "final"
             ? x < columnas * 0.64 && y < filas * 0.86
             : Math.abs(x - columnas / 2) < columnas * 0.32 && y < filas * 0.8;
         if (libre) continue;
@@ -123,8 +137,9 @@ export function CampoPixeles({
       ctx!.clearRect(0, 0, ancho, alto);
       const lado = celda - 2;
 
-      // El cable: un trazo grueso de puntas redondas
+      // El cable: un trazo grueso de puntas redondas (las cabeceras no lo llevan)
       ctx!.save();
+      if (variante === "cabecera") ctx!.globalAlpha = 0;
       ctx!.translate(0, desplazamiento * -0.15);
       ctx!.strokeStyle = principal;
       ctx!.lineCap = "round";

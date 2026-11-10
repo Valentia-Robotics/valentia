@@ -32,6 +32,7 @@ import { compraAbierta } from "@/lib/pagos";
 import { resenasDelKit } from "@/lib/resenas";
 import { conseguirKitGratis } from "./acciones";
 import { formatearMedia } from "@/lib/resenas/formato";
+import { CampoPixeles } from "@/components/portada/CampoPixeles";
 import { precioDeKit } from "@/lib/utils";
 import { textoTienda } from "@/config/stock";
 
@@ -106,7 +107,15 @@ export default async function PaginaKit({ params }: Props) {
           </Link>
 
           <div className="mt-6 grid items-center gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
-            <div className="rounded-tarjeta bg-niebla p-6 sm:p-10">
+            {/* La foto, sobre el campo azul con píxeles (como las cabeceras de la web) */}
+            <div className="relative isolate overflow-hidden rounded-tarjeta bg-cielo p-6 sm:p-10">
+              <CampoPixeles variante="cabecera" />
+              <span
+                aria-hidden="true"
+                className="absolute top-3 left-4 font-mono text-[0.7rem] text-tinta/70"
+              >
+                fig. — {kit.slug}
+              </span>
               <FotoKitViaje slug={kit.slug}>
                 <Image
                   src={kit.imagen}
@@ -115,7 +124,7 @@ export default async function PaginaKit({ params }: Props) {
                   height={600}
                   priority
                   unoptimized
-                  className="mx-auto h-auto w-full"
+                  className="relative mx-auto h-auto w-full"
                 />
               </FotoKitViaje>
             </div>
@@ -131,8 +140,8 @@ export default async function PaginaKit({ params }: Props) {
                   </Etiqueta>
                 )}
               </div>
-              <h1 className="mt-5 text-4xl font-medium sm:text-5xl">{kit.nombre}</h1>
-              <p className="mt-3 text-lg text-gris">{kit.eslogan}</p>
+              <h1 className="titular-cartel mt-5 text-5xl font-medium sm:text-6xl">{kit.nombre}</h1>
+              <p className="mt-4 font-serif text-xl leading-snug text-tinta/80">{kit.eslogan}</p>
               {resenas.total > 0 && (
                 <a
                   href="#opiniones"
@@ -216,7 +225,7 @@ export default async function PaginaKit({ params }: Props) {
       <Fundido desde="blanco" hasta="tinta" />
       <section aria-labelledby="titulo-descripcion" className="bg-tinta py-6 text-white sm:py-10">
         <Contenedor className="aparecer max-w-3xl text-center">
-          <h2 id="titulo-descripcion" className="text-3xl font-medium sm:text-5xl">
+          <h2 id="titulo-descripcion" className="titular-cartel text-4xl font-medium sm:text-6xl">
             {gratis ? "Lo que vas a ver." : "Lo que vas a construir."}
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-gris-claro sm:text-xl">
@@ -232,7 +241,7 @@ export default async function PaginaKit({ params }: Props) {
         <section aria-labelledby="titulo-caja" className="pt-6 pb-8 sm:pt-10 sm:pb-12">
           <Contenedor>
             <div className="aparecer max-w-2xl">
-              <h2 id="titulo-caja" className="text-3xl font-medium sm:text-5xl">
+              <h2 id="titulo-caja" className="titular-cartel text-4xl font-medium sm:text-6xl">
                 Qué hay en la caja.
               </h2>
               <p className="mt-3 text-lg text-gris">
@@ -284,10 +293,8 @@ export default async function PaginaKit({ params }: Props) {
       <section aria-labelledby="titulo-curso" className="bg-niebla pt-6 pb-8 sm:pt-10 sm:pb-12">
         <Contenedor className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
           <div className="aparecer">
-            <p className="text-sm font-medium tracking-wide text-acento uppercase">
-              Curso incluido
-            </p>
-            <h2 id="titulo-curso" className="mt-3 text-3xl font-medium sm:text-5xl">
+            <p className="etiqueta-taller">Curso incluido</p>
+            <h2 id="titulo-curso" className="titular-cartel mt-3 text-4xl font-medium sm:text-6xl">
               {kit.curso.titulo}
             </h2>
             <p className="mt-4 text-lg text-gris">{kit.curso.descripcion}</p>

@@ -3,6 +3,7 @@ import { FormularioCheckout } from "@/components/compra/FormularioCheckout";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { db } from "@/lib/db";
 import { modoPago } from "@/lib/pagos";
+import { CabeceraPagina } from "@/components/ui/CabeceraPagina";
 import { obtenerUsuario } from "@/lib/sesion";
 
 export const metadata: Metadata = {
@@ -40,13 +41,15 @@ export default async function PaginaCheckout() {
   }
 
   return (
-    <Contenedor className="py-12 sm:py-16">
-      <h1 className="text-4xl font-medium sm:text-5xl">Finalizar compra.</h1>
-      <FormularioCheckout
-        cuenta={usuario ? { nombre: usuario.nombre, email: usuario.email } : null}
-        direcciones={direcciones}
-        modo={modo}
-      />
-    </Contenedor>
+    <>
+      <CabeceraPagina compacta etiqueta="Compra · último paso" titulo="Finalizar compra." />
+      <Contenedor className="py-12 sm:py-16">
+        <FormularioCheckout
+          cuenta={usuario ? { nombre: usuario.nombre, email: usuario.email } : null}
+          direcciones={direcciones}
+          modo={modo}
+        />
+      </Contenedor>
+    </>
   );
 }

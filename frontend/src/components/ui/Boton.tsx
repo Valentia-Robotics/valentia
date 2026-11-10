@@ -31,10 +31,15 @@ type Variante =
 type Tamano = "md" | "lg" | "xl";
 
 const estilosVariante: Record<Variante, string> = {
-  primario: "bg-tinta text-white hover:bg-grafito",
-  acento: "bg-acento text-white hover:bg-acento-hover",
-  secundario: "border border-tinta/20 text-tinta hover:border-tinta hover:bg-tinta/5",
-  claro: "bg-white text-tinta hover:bg-niebla",
+  // Los de relleno se «levantan» al pasar el ratón, con una sombra recta (estilo taller)
+  primario:
+    "bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento)]",
+  acento:
+    "bg-acento text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-tinta)]",
+  secundario:
+    "border border-dotted border-tinta/60 text-tinta hover:border-solid hover:border-tinta hover:bg-tinta/5",
+  claro:
+    "bg-white text-tinta hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento-claro)]",
   enlace: "text-acento hover:underline underline-offset-4 px-0!",
   "enlace-claro": "text-acento-claro hover:underline underline-offset-4 px-0!",
   peligro: "bg-error text-white hover:bg-error/90",

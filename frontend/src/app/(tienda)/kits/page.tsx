@@ -7,6 +7,7 @@ import { Contenedor } from "@/components/ui/Contenedor";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { obtenerKits } from "@/lib/catalogo";
+import { CabeceraPagina } from "@/components/ui/CabeceraPagina";
 import { datosListaKits, datosMigas } from "@/lib/datosEstructurados";
 
 /**
@@ -28,52 +29,51 @@ export default async function PaginaKits() {
   const kits = await obtenerKits();
 
   return (
-    <Contenedor className="py-16 sm:py-24">
-      {kits.length > 0 && <DatosEstructurados datos={datosListaKits(kits)} />}
-      <DatosEstructurados
-        datos={datosMigas([
-          { nombre: "Inicio", ruta: "/" },
-          { nombre: "Kits", ruta: "/kits" },
-        ])}
+    <>
+      <CabeceraPagina
+        etiqueta="Kits Valentia"
+        titulo="Elige tu primer robot."
+        entradilla="En cada caja van todas las piezas, el cable USB y una tarjeta para abrir el curso en vídeo. No tienes que comprar nada aparte."
       />
-      <header className="max-w-2xl">
-        <p className="text-sm font-medium tracking-wide text-acento uppercase">Kits Valentia</p>
-        <h1 className="mt-3 text-4xl font-medium sm:text-6xl">Elige tu primer robot.</h1>
-        <p className="mt-4 text-lg text-gris">
-          En cada caja van todas las piezas, el cable USB y una tarjeta para abrir el curso en
-          vídeo. No tienes que comprar nada aparte.
-        </p>
-      </header>
+      <Contenedor className="py-12 sm:py-16">
+        {kits.length > 0 && <DatosEstructurados datos={datosListaKits(kits)} />}
+        <DatosEstructurados
+          datos={datosMigas([
+            { nombre: "Inicio", ruta: "/" },
+            { nombre: "Kits", ruta: "/kits" },
+          ])}
+        />
 
-      {kits.length === 0 ? (
-        <EstadoVacio
-          icono={PackageOpen}
-          titulo="Los kits están en camino"
-          texto="Aún estamos preparando las cajas. Mientras, puedes elegir piezas en el configurador o mirar los componentes."
-        >
-          <Boton href="/componentes" variante="secundario">
-            Ver componentes
+        {kits.length === 0 ? (
+          <EstadoVacio
+            icono={PackageOpen}
+            titulo="Los kits están en camino"
+            texto="Aún estamos preparando las cajas. Mientras, puedes elegir piezas en el configurador o mirar los componentes."
+          >
+            <Boton href="/componentes" variante="secundario">
+              Ver componentes
+            </Boton>
+          </EstadoVacio>
+        ) : (
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {kits.map((kit) => (
+              <TarjetaKit key={kit.id} kit={kit} />
+            ))}
+          </div>
+        )}
+
+        <aside className="mt-16 flex flex-col items-start justify-between gap-6 rounded-tarjeta border border-dashed border-tinta/30 bg-salvia p-8 sm:flex-row sm:items-center sm:p-10">
+          <div>
+            <h2 className="text-3xl font-medium">¿Tienes una idea propia?</h2>
+            <p className="mt-2 text-tinta/75">
+              En el configurador eliges las piezas una a una y te avisamos si algo no encaja.
+            </p>
+          </div>
+          <Boton href="/configurador" tamano="lg">
+            Crear mi robot
           </Boton>
-        </EstadoVacio>
-      ) : (
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {kits.map((kit) => (
-            <TarjetaKit key={kit.id} kit={kit} />
-          ))}
-        </div>
-      )}
-
-      <aside className="mt-16 flex flex-col items-start justify-between gap-6 rounded-tarjeta bg-niebla p-8 sm:flex-row sm:items-center sm:p-10">
-        <div>
-          <h2 className="text-2xl font-medium">¿Tienes una idea propia?</h2>
-          <p className="mt-2 text-gris">
-            En el configurador eliges las piezas una a una y te avisamos si algo no encaja.
-          </p>
-        </div>
-        <Boton href="/configurador" tamano="lg">
-          Crear mi robot
-        </Boton>
-      </aside>
-    </Contenedor>
+        </aside>
+      </Contenedor>
+    </>
   );
 }

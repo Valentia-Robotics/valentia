@@ -4,6 +4,7 @@ import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import type { KitResumen } from "@/lib/catalogo";
 import { formatearPrecio } from "@/lib/utils";
+import { textoTienda } from "@/config/stock";
 import { Etiqueta } from "./Etiqueta";
 import { TablaKits } from "./TablaKits";
 
@@ -50,7 +51,11 @@ export function KitsPortada({
               <div className="mt-7 flex flex-wrap gap-3">
                 <Boton href={`/kits/${estrella.slug}#comprar`} variante="bloque" tamano="lg">
                   {/* Con la tienda cerrada, la ficha enseña ahí el «Avísame» */}
-                  {compraAbierta ? "Comprar" : "Avísame cuando abra"}
+                  {!compraAbierta
+                    ? "Avísame cuando abra"
+                    : estrella.stock > 0
+                      ? "Comprar"
+                      : `${textoTienda(0, estrella.enReposicion)} · Avísame`}
                 </Boton>
                 <Boton href={`/kits/${estrella.slug}`} variante="punteado" tamano="lg">
                   Ver el kit

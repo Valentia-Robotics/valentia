@@ -1,7 +1,7 @@
 /**
  * Texturas del robot 3D de la portada, dibujadas con un <canvas> 2D (sin imágenes que descargar):
  * la serigrafía de las placas, la rejilla de los ultrasonidos, los agujeros de la protoboard…
- * Solo lo usa escenaRobot.ts / modeloCoche.ts (se cargan con import(), después de pintar la página).
+ * Lo usa modeloCoche.ts (el coche 3D con el que se hacen las fotos: scripts/fotos-piezas).
  */
 import { CanvasTexture, NoColorSpace, RepeatWrapping, SRGBColorSpace } from "three";
 
