@@ -5,7 +5,14 @@ import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
-    user: { id: string; rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE" } & DefaultSession["user"];
+    user: {
+      id: string;
+      rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
+      /** ADMIN que también trabaja como editor (enlace a «Mis guiones») */
+      tambienEditor?: boolean;
+      /** El puesto se dice en femenino («Panel de editora») */
+      rolFemenino?: boolean;
+    } & DefaultSession["user"];
   }
   interface User {
     rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
@@ -18,6 +25,8 @@ declare module "@auth/core/jwt" {
   interface JWT {
     rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
     dispositivoId?: string;
+    tambienEditor?: boolean;
+    rolFemenino?: boolean;
     /** Cuándo se abrió la sesión (milisegundos): al cerrar sesión, las anteriores dejan de valer */
     abiertaEn?: number;
   }

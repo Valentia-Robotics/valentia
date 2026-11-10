@@ -110,9 +110,11 @@ export function MenuUsuario() {
               Panel de administración
             </ElementoMenu>
           )}
-          {sesion.user.rol === "EDITOR" && (
+          {(sesion.user.rol === "EDITOR" || sesion.user.tambienEditor) && (
             <ElementoMenu href="/editor" icono={Clapperboard} alPulsar={cerrar}>
-              Panel de editor
+              {sesion.user.rol === "EDITOR"
+                ? `Panel de ${sesion.user.rolFemenino ? "editora" : "editor"}`
+                : "Mis guiones"}
             </ElementoMenu>
           )}
           {sesion.user.rol === "HARDWARE" && (

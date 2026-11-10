@@ -16,6 +16,7 @@ import {
   Mail,
   MessageCircle,
   Newspaper,
+  PenLine,
   PackageSearch,
   QrCode,
   ShoppingBag,
@@ -28,6 +29,7 @@ import { signOut } from "next-auth/react";
 import { Logo } from "@/components/marca/Logo";
 import { AvisosEquipo } from "@/components/mensajes/AvisosEquipo";
 import { ContadorMensajes } from "@/components/mensajes/ContadorMensajes";
+import { nombreEditor } from "@/config/equipo";
 import { cn } from "@/lib/utils";
 
 /** Los mensajes del equipo (/mensajes): salen en las tres zonas, con el número de no leídos */
@@ -57,9 +59,12 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
   { href: "/admin/empleados", etiqueta: "Empleados", icono: Clock },
 ];
 
+/** El espacio de trabajo del editor (también lo tiene el admin que edita) */
+const MIS_GUIONES = { href: "/editor", etiqueta: "Mis guiones", icono: PenLine };
+
 /** El panel de editor usa este mismo menú, pero solo con lo suyo */
 const seccionesEditor: typeof seccionesAdmin = [
-  { href: "/editor", etiqueta: "Mis guiones", icono: Clapperboard },
+  MIS_GUIONES,
   { href: "/editor/blog", etiqueta: "Mis artículos", icono: Newspaper },
   MENSAJES,
   STOCK,
@@ -81,20 +86,32 @@ export function MenuAdmin({
   nombre,
   email,
   zona = "admin",
+  tambienEditor = false,
+  femenino = false,
 }: {
   nombre: string;
   email: string;
   zona?: "admin" | "editor" | "hardware";
+  /** Administrador que también edita: «Mis guiones» sale en su menú, tras «Contenido» */
+  tambienEditor?: boolean;
+  /** Su puesto en femenino («Editora») */
+  femenino?: boolean;
 }) {
   const ruta = usePathname();
   const secciones =
-    zona === "editor" ? seccionesEditor : zona === "hardware" ? seccionesHardware : seccionesAdmin;
+    zona === "editor"
+      ? seccionesEditor
+      : zona === "hardware"
+        ? seccionesHardware
+        : tambienEditor
+          ? seccionesAdmin.flatMap((s) => (s.href === "/admin/contenido" ? [s, MIS_GUIONES] : [s]))
+          : seccionesAdmin;
   const inicio = secciones[0].href;
   // La primera sección no se marca en las demás (/admin/kits no es «Inicio»; /editor/blog no es
   // «Mis guiones»), salvo las fichas de guion del editor (/editor/<id>)
   const activa = (href: string) =>
     href === inicio
-      ? ruta === inicio || (zona === "editor" && /^\/editor\/[0-9a-f]{24}$/.test(ruta))
+      ? ruta === inicio || (zona === "editor" && /^\/editor\/([0-9a-f]{24}|nuevo)$/.test(ruta))
       : ruta === href || ruta.startsWith(`${href}/`);
 
   return (
@@ -103,7 +120,11 @@ export function MenuAdmin({
         <Link href={inicio} className="inline-flex items-center gap-2">
           <Logo alto={14} />
           <span className="rounded bg-tinta px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">
-            {zona === "editor" ? "Editor" : zona === "hardware" ? "Hardware" : "Panel"}
+            {zona === "editor"
+              ? nombreEditor(femenino)
+              : zona === "hardware"
+                ? "Hardware"
+                : "Panel"}
           </span>
         </Link>
         {/* En el móvil, la tienda y cerrar sesión van arriba a la derecha */}
@@ -128,7 +149,7 @@ export function MenuAdmin({
           fuera de la pantalla y la columna fija no dejaba llegar a ella. */}
       <nav
         aria-label="Secciones del panel"
-        className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin]"
+        className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:[scrollbar-width:thin] lg:overflow-y-auto lg:overscroll-contain"
       >
         <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3">
           {secciones.map(({ href, etiqueta, icono: Icono }) => (

@@ -8,6 +8,7 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { auth } from "@/auth";
+import { puedeEditarGuiones } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
 
@@ -16,6 +17,10 @@ export interface UsuarioActual {
   nombre: string;
   email: string;
   rol: Rol;
+  /** Solo ADMIN: también trabaja como editor */
+  tambienEditor: boolean | null;
+  /** El nombre del puesto en femenino («Editora») */
+  rolFemenino: boolean | null;
 }
 
 /** El usuario que ha iniciado sesión, o null. Solo devuelve los datos necesarios (nunca la contraseña). */
@@ -25,7 +30,14 @@ export const obtenerUsuario = cache(async (): Promise<UsuarioActual | null> => {
   if (!id) return null;
   return db.usuario.findUnique({
     where: { id },
-    select: { id: true, nombre: true, email: true, rol: true },
+    select: {
+      id: true,
+      nombre: true,
+      email: true,
+      rol: true,
+      tambienEditor: true,
+      rolFemenino: true,
+    },
   });
 });
 
@@ -49,11 +61,11 @@ export async function exigirAdmin(volver = "/admin"): Promise<UsuarioActual> {
 
 /**
  * Solo para el panel /editor. Igual que exigirAdmin: se llama en CADA página.
- * Con sesión pero sin ser EDITOR → 404: para un cliente o un admin, esa zona no existe.
+ * Entra el rol EDITOR y el ADMIN que también edita (puedeEditarGuiones); los demás → 404.
  */
 export async function exigirEditor(volver = "/editor"): Promise<UsuarioActual> {
   const usuario = await exigirUsuario(volver);
-  if (usuario.rol !== "EDITOR") notFound();
+  if (!puedeEditarGuiones(usuario)) notFound();
   return usuario;
 }
 
@@ -87,6 +99,6 @@ export async function exigirAdminEnAccion(): Promise<UsuarioActual> {
 /** Lo mismo para las acciones del panel de editor */
 export async function exigirEditorEnAccion(): Promise<UsuarioActual> {
   const usuario = await obtenerUsuario();
-  if (usuario?.rol !== "EDITOR") throw new SinPermiso();
+  if (!usuario || !puedeEditarGuiones(usuario)) throw new SinPermiso();
   return usuario;
 }

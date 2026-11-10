@@ -8,12 +8,12 @@ import { Caja } from "@/components/admin/Caja";
 import { Insignia } from "@/components/admin/Insignia";
 import { leerPagina, Paginacion } from "@/components/admin/Paginacion";
 import { Tabla } from "@/components/admin/Tabla";
-import { esDelEquipo, textoConexion } from "@/config/equipo";
+import { esDelEquipo, nombreEditor, nombreRol, textoConexion } from "@/config/equipo";
 import { fecha } from "@/lib/admin/formato";
 import { buscarUsuarios } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
 import type { Rol } from "@/generated/prisma/enums";
-import { cambiarRolTrabajo } from "./acciones";
+import { cambiarFormaPuesto, cambiarRolTrabajo, cambiarTambienEditor } from "./acciones";
 import { plural } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Usuarios" };
@@ -71,9 +71,17 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
               <tr>
                 <td>
                   <p className="font-medium">
-                    {u.nombre} {u.rol === "ADMIN" && <Insignia tono="acento">Admin</Insignia>}
-                    {u.rol === "EDITOR" && <Insignia tono="aviso">Editor</Insignia>}
-                    {u.rol === "HARDWARE" && <Insignia tono="exito">Hardware</Insignia>}
+                    {u.nombre}{" "}
+                    {esDelEquipo(u.rol) && (
+                      <Insignia tono={TONO_ROL[u.rol] ?? "neutro"}>
+                        {nombreRol(u.rol, u.rolFemenino)}
+                      </Insignia>
+                    )}{" "}
+                    {u.rol === "ADMIN" && u.tambienEditor && (
+                      <Insignia tono="aviso">
+                        También {nombreEditor(u.rolFemenino).toLowerCase()}
+                      </Insignia>
+                    )}
                   </p>
                   <p className="text-xs text-gris">{u.email}</p>
                   {esDelEquipo(u.rol) && (
@@ -115,53 +123,130 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
   );
 }
 
+/** Color de la etiqueta de cada puesto */
+const TONO_ROL: Partial<Record<Rol, "acento" | "aviso" | "exito">> = {
+  ADMIN: "acento",
+  EDITOR: "aviso",
+  HARDWARE: "exito",
+};
+
+interface UsuarioFila {
+  id: string;
+  nombre: string;
+  rol: Rol;
+  tambienEditor: boolean | null;
+  rolFemenino: boolean | null;
+}
+
+/**
+ * Botones de cada fila:
+ *   - Cliente: hacer editor, hacer editora o hacer hardware.
+ *   - Editor o hardware: quitar el puesto (vuelve a cliente). Una persona, un rol.
+ *   - Administrador: hacerle también editor/editora, o quitárselo. Su rol de admin no se toca aquí.
+ *   - Editor y administrador: cambiar cómo se dice su puesto (masculino o femenino).
+ */
+function BotonesRol({ usuario }: { usuario: UsuarioFila }) {
+  const { id: usuarioId, nombre, rol } = usuario;
+  const comun = { variante: "secundario" as const, pequeno: true };
+
+  const botonForma = (rol === "EDITOR" || rol === "ADMIN") && (
+    <BotonConfirmar
+      {...comun}
+      accion={cambiarFormaPuesto}
+      datos={{ usuarioId, femenino: usuario.rolFemenino ? "no" : "si" }}
+      titulo="Cómo se dice su puesto"
+      texto={`Su puesto se mostrará como «${nombreRol(rol, !usuario.rolFemenino)}» en el panel y en el equipo.`}
+      confirmar="Sí, cambiar"
+    >
+      Llamar «{nombreRol(rol, !usuario.rolFemenino)}»
+    </BotonConfirmar>
+  );
+
+  if (rol === "ADMIN") {
+    const editorA = nombreEditor(usuario.rolFemenino).toLowerCase();
+    return (
+      <div className="flex flex-wrap justify-end gap-2">
+        {usuario.tambienEditor ? (
+          <BotonConfirmar
+            {...comun}
+            accion={cambiarTambienEditor}
+            datos={{ usuarioId, dar: "no" }}
+            titulo={`Quitar «también ${editorA}»`}
+            texto={`${nombre} sigue siendo administrador, pero deja de tener «Mis guiones» y de salir al asignar guiones.`}
+            confirmar="Sí, quitar"
+          >
+            Quitar {editorA}
+          </BotonConfirmar>
+        ) : (
+          <BotonConfirmar
+            {...comun}
+            accion={cambiarTambienEditor}
+            datos={{ usuarioId, dar: "si" }}
+            titulo={`Hacer también ${editorA}`}
+            texto={`${nombre} sigue siendo administrador y, además, tendrá «Mis guiones» en su menú: podrá escribir sus propias ideas y le podrás asignar guiones.`}
+            confirmar="Sí, hacer"
+          >
+            Hacer también {editorA}
+          </BotonConfirmar>
+        )}
+        {botonForma}
+      </div>
+    );
+  }
+
+  if (rol === "CLIENTE") {
+    const opciones = [
+      { rol: "EDITOR", femenino: false, texto: "editor" },
+      { rol: "EDITOR", femenino: true, texto: "editora" },
+      { rol: "HARDWARE", femenino: false, texto: "hardware" },
+    ] as const;
+    return (
+      <div className="flex flex-wrap justify-end gap-2">
+        {opciones.map((o) => (
+          <BotonConfirmar
+            {...comun}
+            key={o.texto}
+            accion={cambiarRolTrabajo}
+            datos={{ usuarioId, rol: o.rol, dar: "si", femenino: o.femenino ? "si" : "no" }}
+            titulo={`Hacer ${o.texto}`}
+            texto={`${nombre} ${QUE_HACE[o.rol].dar} Sigue siendo cliente de la tienda.`}
+            confirmar={`Sí, hacer ${o.texto}`}
+          >
+            Hacer {o.texto}
+          </BotonConfirmar>
+        ))}
+      </div>
+    );
+  }
+
+  if (rol !== "EDITOR" && rol !== "HARDWARE") return null;
+  const puesto = nombreRol(rol, usuario.rolFemenino).toLowerCase();
+  return (
+    <div className="flex flex-wrap justify-end gap-2">
+      <BotonConfirmar
+        {...comun}
+        accion={cambiarRolTrabajo}
+        datos={{ usuarioId, rol, dar: "no" }}
+        titulo={`Quitar el rol de ${puesto}`}
+        texto={`${nombre} ${QUE_HACE[rol].quitar}`}
+        confirmar="Sí, quitar"
+      >
+        Quitar {puesto}
+      </BotonConfirmar>
+      {botonForma}
+    </div>
+  );
+}
+
 /** Qué hace cada rol de trabajo, para la ventana de confirmar */
-const ROLES = {
+const QUE_HACE = {
   EDITOR: {
-    nombre: "editor",
-    dar: "podrá entrar en el panel de editor y ver los guiones que le asignes.",
-    quitar: "dejará de ver el panel de editor y volverá a ser cliente.",
+    dar: "podrá entrar en «Mis guiones»: los guiones que le asignes y sus propias ideas.",
+    quitar: "dejará de ver «Mis guiones» y volverá a ser cliente.",
   },
   HARDWARE: {
-    nombre: "hardware",
     dar: "tendrá su espacio de archivos en /hardware (solo lo veréis esa persona y tú).",
     quitar:
       "dejará de ver su espacio y volverá a ser cliente. Sus archivos NO se borran: los sigues viendo en Hardware.",
   },
 } as const;
-
-/**
- * Botones para dar o quitar un rol de trabajo. Un cliente puede pasar a editor o a hardware; quien ya
- * tiene uno, solo puede volver a cliente (una persona, un rol). Al admin no se le toca.
- */
-function BotonesRol({ usuario }: { usuario: { id: string; nombre: string; rol: Rol } }) {
-  if (usuario.rol === "ADMIN") return null;
-  const roles = usuario.rol === "CLIENTE" ? (["EDITOR", "HARDWARE"] as const) : [usuario.rol];
-  return (
-    <div className="flex flex-wrap justify-end gap-2">
-      {roles.map((rol) => {
-        if (rol !== "EDITOR" && rol !== "HARDWARE") return null;
-        const r = ROLES[rol];
-        const dar = usuario.rol === "CLIENTE";
-        return (
-          <BotonConfirmar
-            key={rol}
-            accion={cambiarRolTrabajo}
-            datos={{ usuarioId: usuario.id, rol, dar: dar ? "si" : "no" }}
-            titulo={dar ? `Hacer ${r.nombre}` : `Quitar el rol de ${r.nombre}`}
-            texto={
-              dar
-                ? `${usuario.nombre} ${r.dar} Sigue siendo cliente de la tienda.`
-                : `${usuario.nombre} ${r.quitar}`
-            }
-            confirmar={dar ? `Sí, hacer ${r.nombre}` : "Sí, quitar"}
-            variante="secundario"
-            pequeno
-          >
-            {dar ? `Hacer ${r.nombre}` : `Quitar ${r.nombre}`}
-          </BotonConfirmar>
-        );
-      })}
-    </div>
-  );
-}

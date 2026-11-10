@@ -27,6 +27,19 @@ Campo nuevo `Usuario.foto` (opcional, en `OPCIONALES`). `comprobarSesion` devuel
 `MenuUsuario`, el menú móvil y los chats de `/mensajes` (`Avatar` con `foto`). Hacer ADMIN a alguien sigue siendo
 `npm run admin -- email` (en Render: Shell), no desde el panel.
 
+### «Mis guiones», admin que también edita y «Editora» (10-11-2026, rama `feature/mis-guiones`; petición del usuario)
+
+- `/editor` es el espacio de trabajo: lo asignado + **ideas propias** (origen `EDITOR`, `creadoPorId` = autor,
+  `editorId` null). Pestañas (Activos · Por hacer · Mis ideas · Terminados · Archivados), buscador, cifras y aviso de
+  fechas (`urgenciaGuion`). Idea: borrador privado (`PRIVADO` en `guiones.ts`: administración no ve ni toca las ideas en
+  BORRADOR/DESCARTADO) → «Enviar a revisión» → el admin la aprueba y la asigna (sale elegido su autor) o la «Devuelve a
+  su autor». Actor `AUTOR` en `TRANSICIONES`. Nunca se borra: «Archivar» = DESCARTADO.
+- Ficha: teleprompter, copiar, descargar .txt e imprimir (`HerramientasGuion`), tiempo de lectura (150 palabras/min),
+  notas que se guardan solas (`ZonaTrabajo`), `PASOS_EDICION` (`Guion.pasosHechos`; no cambiar ids) y «Duplicar como idea nueva».
+- `Usuario.tambienEditor` (solo ADMIN): `puedeEditarGuiones` / `FILTRO_EDITORES` en `src/config/equipo.ts`; tiene «Mis
+  guiones» en su menú de admin y se le asignan guiones. `Usuario.rolFemenino`: `nombreRol` («Editora», «Administradora»).
+  Las dos se cambian en `/admin/usuarios` y van en la sesión (menús). Formulario de guion compartido: `leerFormularioGuion`.
+
 ### Cabeceras con placa de circuito (10-11-2026, rama `diseno/estela-tecnologica`; petición del usuario)
 
 El usuario no quería la «mancha azul» ni el corte seco al final de los campos azules. `CampoPixeles` ahora dibuja una

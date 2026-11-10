@@ -3,7 +3,9 @@
 /**
  * ACCIONES DEL PANEL: USUARIOS
  * Dar o quitar los roles de trabajo (editor, hardware). Una persona tiene un solo rol: para pasar
- * de editor a hardware, primero se le quita. Desde aquí nadie gana ni pierde el rol de administrador.
+ * de editor a hardware, primero se le quita. Desde aquí nadie gana ni pierde el rol de administrador,
+ * pero a un administrador sí se le puede dar «también editor» (Usuario.tambienEditor).
+ * Cada puesto se puede decir en masculino o en femenino («Editor» / «Editora»): Usuario.rolFemenino.
  */
 import { revalidatePath } from "next/cache";
 import { ESTADOS_ACTIVOS } from "@/config/estadosGuion";
@@ -17,9 +19,30 @@ import { DIAS_CONFIANZA } from "@/lib/verificacion/reglas";
 const ROLES_ASIGNABLES = ["EDITOR", "HARDWARE"] as const;
 type RolAsignable = (typeof ROLES_ASIGNABLES)[number];
 
+const NO_ENCONTRADA: EstadoFormulario = { ok: false, mensaje: "No encontramos esa cuenta." };
+
+/** Con guiones a medias no se deja de ser editor: antes hay que terminarlos o pasarlos a otro */
+async function avisoGuionesActivos(usuarioId: string): Promise<EstadoFormulario | null> {
+  const activos = await db.guion.count({
+    where: { editorId: usuarioId, estado: { in: ESTADOS_ACTIVOS } },
+  });
+  if (activos === 0) return null;
+  return {
+    ok: false,
+    mensaje: `Tiene ${activos} ${activos === 1 ? "guion activo" : "guiones activos"}: termínalos o pásalos a otro editor antes.`,
+  };
+}
+
+function refrescar() {
+  revalidatePath("/admin/usuarios");
+  revalidatePath("/admin/empleados");
+  revalidatePath("/admin/contenido", "layout");
+  revalidatePath("/admin/hardware", "layout");
+}
+
 /**
- * Datos del formulario: usuarioId, rol ("EDITOR" | "HARDWARE") y dar ("si" para darlo, "no" para
- * quitarlo y que vuelva a ser cliente).
+ * Datos del formulario: usuarioId, rol ("EDITOR" | "HARDWARE"), dar ("si" para darlo, "no" para
+ * quitarlo y que vuelva a ser cliente) y, al darlo, femenino ("si" = «Editora»).
  */
 export async function cambiarRolTrabajo(
   _anterior: EstadoFormulario,
@@ -29,14 +52,15 @@ export async function cambiarRolTrabajo(
   const usuarioId = texto(formulario, "usuarioId");
   const rol = texto(formulario, "rol") as RolAsignable;
   const dar = texto(formulario, "dar") === "si";
-  if (!esId(usuarioId)) return { ok: false, mensaje: "No encontramos esa cuenta." };
+  const femenino = texto(formulario, "femenino") === "si";
+  if (!esId(usuarioId)) return NO_ENCONTRADA;
   if (!ROLES_ASIGNABLES.includes(rol)) return { ok: false, mensaje: "Ese rol no existe." };
 
   const usuario = await db.usuario.findUnique({
     where: { id: usuarioId },
     select: { rol: true, emailVerificadoEn: true },
   });
-  if (!usuario) return { ok: false, mensaje: "No encontramos esa cuenta." };
+  if (!usuario) return NO_ENCONTRADA;
   if (usuario.rol === "ADMIN") {
     return { ok: false, mensaje: "Una cuenta de administrador no se cambia desde aquí." };
   }
@@ -48,7 +72,10 @@ export async function cambiarRolTrabajo(
     if (usuario.rol !== "CLIENTE") {
       return { ok: false, mensaje: "Ya tiene otro rol: quítaselo antes de darle este." };
     }
-    await db.usuario.updateMany({ where: { id: usuarioId, rol: "CLIENTE" }, data: { rol } });
+    await db.usuario.updateMany({
+      where: { id: usuarioId, rol: "CLIENTE" },
+      data: { rol, rolFemenino: femenino },
+    });
     // Rol de trabajo: su confianza en cada dispositivo dura menos (src/lib/verificacion/reglas.ts)
     const dias = DIAS_CONFIANZA[rol] * 24 * 60 * 60_000;
     const dispositivos = await db.dispositivoConfianza.findMany({ where: { usuarioId } });
@@ -60,21 +87,59 @@ export async function cambiarRolTrabajo(
     }
   } else {
     if (rol === "EDITOR") {
-      const activos = await db.guion.count({
-        where: { editorId: usuarioId, estado: { in: ESTADOS_ACTIVOS } },
-      });
-      if (activos > 0) {
-        return {
-          ok: false,
-          mensaje: `Tiene ${activos} ${activos === 1 ? "guion activo" : "guiones activos"}: termínalos o pásalos a otro editor antes.`,
-        };
-      }
+      const aviso = await avisoGuionesActivos(usuarioId);
+      if (aviso) return aviso;
     }
     // Hardware: sus archivos se quedan; la administración los sigue viendo en /admin/hardware
     await db.usuario.updateMany({ where: { id: usuarioId, rol }, data: { rol: "CLIENTE" } });
   }
 
-  revalidatePath("/admin/usuarios");
-  revalidatePath("/admin/hardware", "layout");
+  refrescar();
+  return { ok: true };
+}
+
+/**
+ * Un administrador que además trabaja como editor: tiene «Mis guiones» y se le pueden asignar
+ * guiones. Datos: usuarioId, dar ("si" | "no") y, al darlo, femenino ("si" = «Editora»).
+ */
+export async function cambiarTambienEditor(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const usuarioId = texto(formulario, "usuarioId");
+  const dar = texto(formulario, "dar") === "si";
+  if (!esId(usuarioId)) return NO_ENCONTRADA;
+
+  const usuario = await db.usuario.findUnique({ where: { id: usuarioId }, select: { rol: true } });
+  if (!usuario) return NO_ENCONTRADA;
+  if (usuario.rol !== "ADMIN") {
+    return { ok: false, mensaje: "Solo a un administrador se le da «también editor»." };
+  }
+  if (!dar) {
+    const aviso = await avisoGuionesActivos(usuarioId);
+    if (aviso) return aviso;
+  }
+  await db.usuario.update({ where: { id: usuarioId }, data: { tambienEditor: dar } });
+  refrescar();
+  revalidatePath("/editor", "layout");
+  return { ok: true };
+}
+
+/** Cómo se dice el puesto de alguien del equipo: femenino ("si") o masculino ("no") */
+export async function cambiarFormaPuesto(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const usuarioId = texto(formulario, "usuarioId");
+  const femenino = texto(formulario, "femenino") === "si";
+  if (!esId(usuarioId)) return NO_ENCONTRADA;
+  const { count } = await db.usuario.updateMany({
+    where: { id: usuarioId, rol: { not: "CLIENTE" } },
+    data: { rolFemenino: femenino },
+  });
+  if (count === 0) return { ok: false, mensaje: "Esta cuenta no tiene un puesto de trabajo." };
+  refrescar();
   return { ok: true };
 }

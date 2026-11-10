@@ -152,7 +152,13 @@ export async function comprobarSesion(
   usuarioId: string,
   dispositivoId: string,
   abiertaEn = 0,
-): Promise<{ rol: Rol; nombre: string; foto: string | null } | null> {
+): Promise<{
+  rol: Rol;
+  nombre: string;
+  foto: string | null;
+  tambienEditor: boolean;
+  rolFemenino: boolean;
+} | null> {
   const dispositivo = await db.dispositivoConfianza.findUnique({
     where: { id: dispositivoId },
     select: {
@@ -165,6 +171,8 @@ export async function comprobarSesion(
           rol: true,
           nombre: true,
           foto: true,
+          tambienEditor: true,
+          rolFemenino: true,
           emailVerificadoEn: true,
           ultimaConexionEn: true,
         },
@@ -194,6 +202,8 @@ export async function comprobarSesion(
     rol: dispositivo.usuario.rol,
     nombre: dispositivo.usuario.nombre,
     foto: dispositivo.usuario.foto,
+    tambienEditor: !!dispositivo.usuario.tambienEditor,
+    rolFemenino: !!dispositivo.usuario.rolFemenino,
   };
 }
 

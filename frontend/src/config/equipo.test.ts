@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enLinea, esDelEquipo, textoConexion } from "./equipo";
+import { enLinea, esDelEquipo, nombreRol, puedeEditarGuiones, textoConexion } from "./equipo";
 
 // 9 nov 2026, 15:00 en Madrid (14:00 UTC)
 const ahora = new Date("2026-11-09T14:00:00Z");
@@ -27,5 +27,23 @@ describe("última conexión del equipo", () => {
     expect(esDelEquipo("EDITOR")).toBe(true);
     expect(esDelEquipo("ADMIN")).toBe(true);
     expect(esDelEquipo("CLIENTE")).toBe(false);
+  });
+});
+
+describe("puestos en masculino o femenino y admins que también editan", () => {
+  it("nombra el puesto según lo elegido", () => {
+    expect(nombreRol("EDITOR", false)).toBe("Editor");
+    expect(nombreRol("EDITOR", true)).toBe("Editora");
+    expect(nombreRol("ADMIN", true)).toBe("Administradora");
+    expect(nombreRol("ADMIN", null)).toBe("Administrador");
+    expect(nombreRol("CLIENTE", true)).toBe("Cliente");
+  });
+
+  it("trabaja como editor el rol EDITOR y el admin que también edita", () => {
+    expect(puedeEditarGuiones({ rol: "EDITOR" })).toBe(true);
+    expect(puedeEditarGuiones({ rol: "ADMIN", tambienEditor: true })).toBe(true);
+    expect(puedeEditarGuiones({ rol: "ADMIN", tambienEditor: null })).toBe(false);
+    expect(puedeEditarGuiones({ rol: "HARDWARE", tambienEditor: true })).toBe(false);
+    expect(puedeEditarGuiones({ rol: "CLIENTE" })).toBe(false);
   });
 });

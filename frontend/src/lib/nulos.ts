@@ -51,7 +51,13 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "detalle" },
     { campo: "guionId" },
   ],
-  Usuario: [{ campo: "emailVerificadoEn" }, { campo: "ultimaConexionEn" }, { campo: "foto" }],
+  Usuario: [
+    { campo: "emailVerificadoEn" },
+    { campo: "ultimaConexionEn" },
+    { campo: "foto" },
+    { campo: "tambienEditor" },
+    { campo: "rolFemenino" },
+  ],
   Verificacion: [
     { campo: "usuarioId", relacion: "usuario" },
     { campo: "confirmadoEn" },

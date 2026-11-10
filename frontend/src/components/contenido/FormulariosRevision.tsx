@@ -15,10 +15,13 @@ export function FormularioAsignar({
   guionId,
   editores,
   reasignar,
+  sugerido,
 }: {
   guionId: string;
   editores: { id: string; nombre: string; email: string }[];
   reasignar: boolean;
+  /** Quien propuso la idea: sale ya elegido */
+  sugerido?: string;
 }) {
   const { estado, alEnviar, enviando, error } = useFormulario(asignarEditor);
 
@@ -36,7 +39,7 @@ export function FormularioAsignar({
       <SelectorAdmin
         etiqueta={reasignar ? "Pasar a otro editor" : "Editor"}
         name="editorId"
-        defaultValue=""
+        defaultValue={sugerido && editores.some((e) => e.id === sugerido) ? sugerido : ""}
         error={error("editorId")}
         opciones={[
           { valor: "", texto: "Elige un editor…" },
