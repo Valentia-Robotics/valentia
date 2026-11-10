@@ -12,7 +12,7 @@ interface Props {
 export function TarjetaCuenta({ titulo, subtitulo, children }: Props) {
   return (
     // Sobre el campo azul con píxeles de las cabeceras; la tarjeta, recta con sombra azul
-    <div className="relative isolate flex justify-center overflow-hidden bg-cielo px-4 py-12 sm:py-20">
+    <div className="campo-cielo relative isolate flex justify-center overflow-hidden px-4 py-12 sm:py-20">
       <CampoPixeles variante="cabecera" />
       <div className="relative w-full max-w-md rounded-tarjeta bg-white p-6 shadow-[8px_8px_0_var(--color-acento)] ring-1 ring-tinta/15 sm:p-10">
         <Logo alto={14} />

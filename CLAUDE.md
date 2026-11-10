@@ -27,6 +27,15 @@ Campo nuevo `Usuario.foto` (opcional, en `OPCIONALES`). `comprobarSesion` devuel
 `MenuUsuario`, el menú móvil y los chats de `/mensajes` (`Avatar` con `foto`). Hacer ADMIN a alguien sigue siendo
 `npm run admin -- email` (en Render: Shell), no desde el panel.
 
+### Cabeceras con placa de circuito (10-11-2026, rama `diseno/estela-tecnologica`; petición del usuario)
+
+El usuario no quería la «mancha azul» ni el corte seco al final de los campos azules. `CampoPixeles` ahora dibuja una
+placa: chip con patas, pistas a 90°/45° que acaban en pads o LEDs, señales que corren por ellas, robot de píxeles
+(`ROBOT`) y engranajes; rejilla de puntos que se apaga lejos del chip. Posiciones en `chipsDe` (móvil: abajo); las
+pistas se cortan en la zona del texto (`zonaTexto`) y antes del robot y los engranajes (`obstaculos`). La estela del
+ratón es una pista que se apaga. Fondo `.campo-cielo` (azul → blanco abajo) en portada, `CabeceraPagina`,
+`TarjetaCuenta` y `/activar`; máscaras `.mascara-abajo` / `.mascara-arriba` (final) en `globals.css`.
+
 ### Stock del almacén (10-11-2026, rama `claude/project-thread-bbn9v7`; petición de Jesse)
 
 `/stock` (fuera de `/admin`, como `/mensajes`): lo ve todo `ROLES_EQUIPO`, solo un ADMIN lo cambia (botón «Cambiar» →

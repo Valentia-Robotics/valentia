@@ -25,7 +25,7 @@ export function CabeceraPagina({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative isolate overflow-hidden bg-cielo">
+    <section className="campo-cielo relative isolate overflow-hidden">
       <CampoPixeles variante="cabecera" />
       <div aria-hidden="true" className="absolute inset-y-5 left-3 flex w-1.5 flex-col sm:left-5">
         <span className="flex-[5] bg-acento" />

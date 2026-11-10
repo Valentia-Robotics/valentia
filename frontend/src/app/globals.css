@@ -384,6 +384,36 @@
   );
 }
 
+/*
+ * CAMPO AZUL de las cabeceras (CampoPixeles encima): el azul claro se funde con el blanco de la
+ * sección de abajo, sin raya. Se queda azul hasta casi el final para que el texto no pierda fondo.
+ */
+.campo-cielo {
+  background-image: linear-gradient(
+    to bottom in oklab,
+    var(--color-cielo) 0%,
+    var(--color-cielo) 62%,
+    color-mix(in oklab, var(--color-cielo) 70%, white) 78%,
+    color-mix(in oklab, var(--color-cielo) 30%, white) 90%,
+    white 100%
+  );
+}
+
+/* Máscaras del dibujo de la placa: se desvanece en el borde en lugar de cortarse */
+.mascara-abajo {
+  /* En el móvil la placa va abajo del todo: se apaga más tarde para que se vea */
+  mask-image: linear-gradient(to bottom, #000 0%, #000 84%, transparent 100%);
+}
+@media (min-width: 640px) {
+  .mascara-abajo {
+    mask-image: linear-gradient(to bottom, #000 0%, #000 70%, transparent 98%);
+  }
+}
+/* Bloque final: viene de un fundido (arriba) y debajo está el pie, del mismo negro */
+.mascara-arriba {
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 22%);
+}
+
 /* Fondo de las ventanas emergentes: aparece poco a poco */
 dialog[open]::backdrop {
   animation: desvanecer 0.28s ease reverse both;
