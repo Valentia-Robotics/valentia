@@ -1,6 +1,6 @@
 /**
- * Las piezas del robot de la portada: el texto de cada paso y hacia dónde se mueve al despiezarse.
- * Lo usan la versión 3D (escenaRobot.ts) y la versión ligera en SVG (RobotEstatico.tsx).
+ * Las piezas de un robot: el texto de cada una (portada, PiezasPortada) y hacia dónde se mueve al
+ * despiezarse (modeloCoche.ts, el coche 3D con el que se hacen las fotos).
  * Es un archivo pequeño y sin "three", así que se puede importar sin coste.
  */
 
@@ -52,30 +52,3 @@ export const PIEZAS_ROBOT: PiezaRobot[] = [
     direccion2d: [-110, -70],
   },
 ];
-
-/** Suaviza la transición entre 0 y 1 (empieza y acaba despacio) */
-function suavizar(desde: number, hasta: number, valor: number) {
-  const t = Math.min(1, Math.max(0, (valor - desde) / (hasta - desde)));
-  return t * t * (3 - 2 * t);
-}
-
-/**
- * Cuánto está despiezado el robot (0 = montado, 1 = despiezado) según el scroll:
- * se despieza al principio de la sección, se queda así mientras se leen los pasos
- * y se vuelve a montar al final.
- */
-export function explosionDesdeProgreso(progreso: number): number {
-  return suavizar(0.04, 0.22, progreso) * (1 - suavizar(0.86, 0.98, progreso));
-}
-
-// Tramo del scroll en el que se explican las piezas (una detrás de otra, a partes iguales)
-const INICIO_PIEZAS = 0.2;
-const FIN_PIEZAS = 0.88;
-
-/** Qué pieza se está explicando según el scroll (null al principio y al final) */
-export function piezaActiva(progreso: number): PiezaRobot["id"] | null {
-  if (progreso < INICIO_PIEZAS || progreso > FIN_PIEZAS) return null;
-  const tramo = (progreso - INICIO_PIEZAS) / (FIN_PIEZAS - INICIO_PIEZAS);
-  const indice = Math.min(PIEZAS_ROBOT.length - 1, Math.floor(tramo * PIEZAS_ROBOT.length));
-  return PIEZAS_ROBOT[indice].id;
-}

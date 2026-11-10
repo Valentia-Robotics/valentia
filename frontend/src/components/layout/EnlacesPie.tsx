@@ -10,7 +10,7 @@ interface Props {
   enlacesConSesion?: EnlaceNavegacion[];
 }
 
-const estilo = "text-gris transition-colors hover:text-tinta";
+const estilo = "text-gris-claro transition-colors hover:text-white";
 
 /** Lista de enlaces de una columna del pie. Cambia según hayas iniciado sesión o no. */
 export function EnlacesPie({ enlaces, enlacesConSesion }: Props) {

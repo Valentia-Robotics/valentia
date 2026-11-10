@@ -5,6 +5,7 @@ import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { guias } from "@/config/guias";
 import { datosMigas } from "@/lib/datosEstructurados";
+import { CabeceraPagina } from "@/components/ui/CabeceraPagina";
 import { metadatosPagina } from "@/lib/metadatos";
 
 export const metadata: Metadata = metadatosPagina({
@@ -17,37 +18,38 @@ export const metadata: Metadata = metadatosPagina({
 /** GUÍAS: listado de artículos (el texto está en src/config/guias.ts) */
 export default function PaginaGuias() {
   return (
-    <Contenedor className="py-12 sm:py-16">
-      <DatosEstructurados
-        datos={datosMigas([
-          { nombre: "Inicio", ruta: "/" },
-          { nombre: "Guías", ruta: "/guias" },
-        ])}
+    <>
+      <CabeceraPagina
+        etiqueta="Guías"
+        titulo="Aprende robótica desde cero."
+        entradilla="Textos cortos y sin tecnicismos sobre cómo funcionan las piezas de un robot. Sirven para antes de montarlo y para después."
       />
-      <header className="max-w-2xl">
-        <p className="text-sm font-medium tracking-wide text-acento uppercase">Guías</p>
-        <h1 className="mt-3 text-4xl font-medium sm:text-5xl">Aprende robótica desde cero.</h1>
-        <p className="mt-4 text-lg text-gris">
-          Textos cortos y sin tecnicismos sobre cómo funcionan las piezas de un robot. Sirven para
-          antes de montarlo y para después.
-        </p>
-      </header>
+      <Contenedor className="py-12 sm:py-16">
+        <DatosEstructurados
+          datos={datosMigas([
+            { nombre: "Inicio", ruta: "/" },
+            { nombre: "Guías", ruta: "/guias" },
+          ])}
+        />
 
-      <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {guias.map((guia) => (
-          <li key={guia.slug}>
-            <Link
-              href={`/guias/${guia.slug}`}
-              className="flex h-full flex-col rounded-tarjeta bg-niebla p-6 transition-colors hover:bg-linea/60"
-            >
-              <BookOpen aria-hidden="true" className="size-6 text-acento" strokeWidth={1.6} />
-              <h2 className="mt-4 font-sans text-lg font-medium">{guia.titulo}</h2>
-              <p className="mt-2 flex-1 text-gris">{guia.descripcion}</p>
-              <p className="mt-4 text-sm text-gris">{guia.minutos} min de lectura</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Contenedor>
+        <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {guias.map((guia) => (
+            <li key={guia.slug}>
+              <Link
+                href={`/guias/${guia.slug}`}
+                className="flex h-full flex-col rounded-tarjeta bg-niebla p-6 transition-[background-color,box-shadow,translate] duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:bg-white hover:shadow-[6px_6px_0_var(--color-acento)] hover:ring-1 hover:ring-tinta/15"
+              >
+                <BookOpen aria-hidden="true" className="size-6 text-acento" strokeWidth={1.6} />
+                <h2 className="mt-4 text-2xl font-medium">{guia.titulo}</h2>
+                <p className="mt-2 flex-1 text-gris">{guia.descripcion}</p>
+                <p className="mt-4 font-mono text-xs text-tinta/70">
+                  ↳ {guia.minutos} min de lectura
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Contenedor>
+    </>
   );
 }

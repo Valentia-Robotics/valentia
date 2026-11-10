@@ -8,8 +8,15 @@ import type { KitResumen } from "@/lib/catalogo";
 /** Tarjeta de un kit para el listado /kits. Toda la tarjeta es un enlace a su ficha. */
 export function TarjetaKit({ kit }: { kit: KitResumen }) {
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-tarjeta bg-white shadow-tarjeta ring-1 ring-linea transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-flotante active:translate-y-0">
-      <div className="bg-niebla px-6 pt-8 pb-4">
+    // Al pasar el ratón se levanta con una sombra recta azul (estilo taller)
+    <article className="group relative flex flex-col overflow-hidden rounded-tarjeta bg-white ring-1 ring-tinta/15 transition-[box-shadow,translate] duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-acento)] active:translate-0">
+      <div className="relative bg-niebla px-6 pt-8 pb-4">
+        <span
+          aria-hidden="true"
+          className="absolute top-3 left-4 font-mono text-[0.7rem] text-tinta/70"
+        >
+          ↳ /kits/{kit.slug}
+        </span>
         <FotoKitViaje slug={kit.slug}>
           <Image
             src={kit.imagen}
@@ -39,8 +46,11 @@ export function TarjetaKit({ kit }: { kit: KitResumen }) {
         </p>
         <div className="mt-5 flex items-center justify-between">
           <span className="text-xl font-medium">{precioDeKit(kit.precioCentimos)}</span>
-          <span aria-hidden="true" className="text-sm text-acento group-hover:underline">
-            Ver kit ›
+          <span
+            aria-hidden="true"
+            className="font-mono text-xs text-tinta/70 transition-colors group-hover:text-acento"
+          >
+            Ver kit →
           </span>
         </div>
       </div>

@@ -17,6 +17,7 @@ import { datosComponente, datosMigas } from "@/lib/datosEstructurados";
 import { fichaTecnica } from "@/lib/fichaTecnica";
 import { compraAbierta } from "@/lib/pagos";
 import { metadatosPagina } from "@/lib/metadatos";
+import { CampoPixeles } from "@/components/portada/CampoPixeles";
 import { formatearPrecio } from "@/lib/utils";
 import { textoTienda } from "@/config/stock";
 
@@ -83,7 +84,9 @@ export default async function PaginaComponente({ params }: Props) {
         </Link>
 
         <div className="mt-6 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="rounded-tarjeta bg-niebla p-6 sm:p-10">
+          {/* La foto, sobre el campo azul con píxeles (como las cabeceras de la web) */}
+          <div className="relative isolate overflow-hidden rounded-tarjeta bg-cielo p-6 sm:p-10">
+            <CampoPixeles variante="cabecera" />
             <Image
               src={componente.imagen}
               alt={`Foto de ${componente.nombre}`}
@@ -91,14 +94,18 @@ export default async function PaginaComponente({ params }: Props) {
               height={480}
               priority
               unoptimized
-              className="mx-auto aspect-square h-auto w-full max-w-sm"
+              className="relative mx-auto aspect-square h-auto w-full max-w-sm"
             />
           </div>
 
           <div>
             <Etiqueta tono="acento">{nombreCategoria(componente.categoria)}</Etiqueta>
-            <h1 className="mt-5 text-4xl font-medium sm:text-5xl">{componente.nombre}</h1>
-            <p className="mt-3 text-lg text-gris">{componente.resumen}</p>
+            <h1 className="titular-cartel mt-5 text-5xl font-medium sm:text-6xl">
+              {componente.nombre}
+            </h1>
+            <p className="mt-4 font-serif text-xl leading-snug text-tinta/80">
+              {componente.resumen}
+            </p>
             <p className="mt-6 text-3xl font-medium">
               {formatearPrecio(componente.precioCentimos)}
             </p>

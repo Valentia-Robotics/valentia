@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Jost } from "next/font/google";
+import { Inter, JetBrains_Mono, Jost, Newsreader } from "next/font/google";
 import type { ReactNode } from "react";
 import { Proveedores } from "@/components/layout/Proveedores";
 import { marca } from "@/config/marca";
@@ -10,9 +10,26 @@ import "./globals.css";
  * y las sirve desde nuestra propia web, así que no dependen de Google al navegar.
  *   - Jost: titulares. Geométrica y fina, como el logo.
  *   - Inter: textos. Muy legible en pantalla.
+ *   - Newsreader (serif) y JetBrains Mono: detalles de la portada (entradillas y etiquetas técnicas),
+ *     para que no parezca una plantilla más.
  */
 const jost = Jost({ subsets: ["latin"], variable: "--font-jost", display: "swap" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+// Las dos de detalle no se precargan: no compiten con lo importante al abrir la página
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  weight: "400", // un solo grueso: el archivo pesa mucho menos que la fuente variable entera
+  display: "swap",
+  preload: false,
+});
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  weight: "400",
+  display: "swap",
+  preload: false,
+});
 
 // Metadatos: lo que ven Google y las redes sociales, y el título de la pestaña.
 export const metadata: Metadata = {
@@ -61,7 +78,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="es-ES"
       data-scroll-behavior="smooth"
-      className={`${jost.variable} ${inter.variable}`}
+      className={`${jost.variable} ${inter.variable} ${newsreader.variable} ${mono.variable}`}
     >
       <body className="flex min-h-dvh flex-col">
         {/* Enlace oculto para quien navega con teclado: salta directamente al contenido */}

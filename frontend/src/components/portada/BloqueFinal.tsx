@@ -3,9 +3,11 @@ import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
 import { tienda } from "@/config/tienda";
 import { formatearPrecio } from "@/lib/utils";
+import { CampoPixeles } from "./CampoPixeles";
 
 /**
- * Último bloque de la portada: una invitación final a empezar.
+ * Último bloque de la portada: una invitación final a empezar, sobre negro con los mismos píxeles
+ * vivos que la primera pantalla (la página empieza y acaba igual).
  * Mientras la tienda no cobra, en su lugar se pide el email para avisar el día que abra.
  */
 export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
@@ -14,13 +16,14 @@ export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
       <section
         id="avisame"
         aria-labelledby="titulo-final"
-        className="scroll-mt-nav bg-tinta pt-6 pb-12 text-white diferido sm:pt-10 sm:pb-16"
+        className="relative isolate scroll-mt-nav overflow-hidden bg-tinta pt-20 pb-28 text-white sm:pt-28 sm:pb-36"
       >
-        <Contenedor className="aparecer max-w-2xl text-center">
-          <h2 id="titulo-final" className="text-4xl font-medium sm:text-6xl">
+        <CampoPixeles variante="final" />
+        <Contenedor className="aparecer relative max-w-2xl text-center">
+          <h2 id="titulo-final" className="titular-cartel text-5xl font-medium sm:text-8xl">
             Abrimos muy pronto.
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-gris-claro">
+          <p className="mx-auto mt-6 max-w-xl font-serif text-xl leading-snug text-white/75">
             Estamos montando las primeras cajas y probando cada robot antes de que salga de casa. Si
             quieres, te mandamos un correo el día que se pueda comprar. Uno, nada más.
           </p>
@@ -33,18 +36,19 @@ export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
   return (
     <section
       aria-labelledby="titulo-final"
-      className="bg-tinta pt-6 pb-12 text-white diferido sm:pt-10 sm:pb-16"
+      className="relative isolate overflow-hidden bg-tinta pt-20 pb-28 text-white sm:pt-28 sm:pb-36"
     >
-      <Contenedor className="aparecer text-center">
-        <h2 id="titulo-final" className="text-4xl font-medium sm:text-6xl">
+      <CampoPixeles variante="final" />
+      <Contenedor className="aparecer relative text-center">
+        <h2 id="titulo-final" className="titular-cartel text-5xl font-medium sm:text-8xl">
           ¿Te animas?
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-gris-claro">
+        <p className="mx-auto mt-6 max-w-xl font-serif text-xl leading-snug text-white/75">
           Envío a toda la {tienda.envio.nombreZona} en {tienda.envio.plazo}. Gratis a partir de{" "}
           {formatearPrecio(tienda.envio.gratisDesdeCentimos)}.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-          <Boton href="/kits" variante="claro" tamano="lg">
+          <Boton href="/kits" variante="claro" tamano="lg" className="rounded-recto!">
             Elegir mi kit
           </Boton>
           <Boton href="/configurador" variante="enlace-claro" tamano="lg">

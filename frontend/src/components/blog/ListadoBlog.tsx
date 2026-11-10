@@ -9,6 +9,7 @@ import { articulosPublicados } from "@/lib/blog/articulos";
 import { datosMigas } from "@/lib/datosEstructurados";
 import { metadatosPagina } from "@/lib/metadatos";
 import { cn } from "@/lib/utils";
+import { CabeceraPagina } from "@/components/ui/CabeceraPagina";
 import { TarjetaArticulo } from "./TarjetaArticulo";
 
 /** /blog, /blog/pagina/2, /blog/categoria/tutoriales, /blog/categoria/tutoriales/pagina/2 */
@@ -27,7 +28,9 @@ export function metadatosListado(categoria: string | undefined, pagina: number) 
   if (categoria && !cat) return { title: "Categoría no encontrada" };
   const sufijo = pagina > 1 ? ` (página ${pagina})` : "";
   return metadatosPagina({
-    titulo: cat ? `${cat.nombre}: blog de robótica${sufijo}` : `Blog de robótica y electrónica${sufijo}`,
+    titulo: cat
+      ? `${cat.nombre}: blog de robótica${sufijo}`
+      : `Blog de robótica y electrónica${sufijo}`,
     descripcion: cat
       ? cat.descripcion
       : "Artículos de robótica educativa, electrónica, proyectos maker y tutoriales para aprender en casa, sin saber programar.",
@@ -53,96 +56,109 @@ export async function ListadoBlog({ categoria, pagina }: { categoria?: string; p
   ];
 
   return (
-    <Contenedor className="py-16 sm:py-24">
-      <DatosEstructurados datos={datosMigas(migas)} />
-      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div className="max-w-2xl">
-          <p className="text-sm font-medium tracking-wide text-acento uppercase">Blog de Valentia</p>
-          <h1 className="mt-3 text-4xl font-medium sm:text-6xl">
-            {cat ? cat.nombre : "Aprende robótica, poco a poco."}
-          </h1>
-          <p className="mt-4 text-lg text-gris">
-            {cat
-              ? cat.descripcion
-              : "Noticias, tutoriales y proyectos de robótica y electrónica, explicados para que cualquiera los entienda."}
-          </p>
-        </div>
+    <>
+      <CabeceraPagina
+        etiqueta="Blog de Valentia"
+        titulo={cat ? cat.nombre : "Aprende robótica, poco a poco."}
+        entradilla={
+          cat
+            ? cat.descripcion
+            : "Noticias, tutoriales y proyectos de robótica y electrónica, explicados para que cualquiera los entienda."
+        }
+      >
         <a
           href="/blog/rss.xml"
-          className="inline-flex shrink-0 items-center gap-1.5 text-sm text-gris hover:text-tinta"
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-tinta/70 hover:text-tinta"
         >
           <Rss aria-hidden="true" className="size-4" />
           RSS
         </a>
-      </header>
+      </CabeceraPagina>
+      <Contenedor className="py-12 sm:py-16">
+        <DatosEstructurados datos={datosMigas(migas)} />
 
-      <nav aria-label="Categorías del blog" className="sin-barra -mx-4 mt-10 overflow-x-auto px-4">
-        <ul className="flex gap-2">
-          {[{ slug: undefined, nombre: "Todo" }, ...CATEGORIAS_BLOG].map((c) => {
-            const activa = c.slug === categoria;
-            return (
-              <li key={c.nombre} className="shrink-0">
-                <Link
-                  href={rutaListado(c.slug, 1)}
-                  aria-current={activa ? "page" : undefined}
-                  className={cn(
-                    "inline-flex h-9 items-center rounded-boton px-4 text-sm transition-colors",
-                    activa ? "bg-tinta text-white" : "bg-niebla text-tinta hover:bg-linea/70",
-                  )}
-                >
-                  {c.nombre}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {articulos.length === 0 ? (
-        <EstadoVacio
-          icono={Newspaper}
-          titulo="Pronto habrá artículos aquí"
-          texto="Mientras tanto, nuestras guías explican lo básico de la robótica, paso a paso."
+        <nav
+          aria-label="Categorías del blog"
+          className="-mx-4 mt-10 sin-barra overflow-x-auto px-4"
         >
-          <Link href="/guias" className="text-acento underline underline-offset-4">
-            Ver las guías
-          </Link>
-        </EstadoVacio>
-      ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {articulos.map((a) => (
-            <TarjetaArticulo key={a.slug} articulo={a} />
-          ))}
-        </div>
-      )}
-
-      {paginas > 1 && (
-        <nav aria-label="Páginas" className="mt-12 flex flex-wrap items-center justify-center gap-2">
-          {pagina > 1 && (
-            <Link rel="prev" href={rutaListado(categoria, pagina - 1)} className="px-3 py-2 text-sm text-acento">
-              ‹ Anterior
-            </Link>
-          )}
-          {Array.from({ length: paginas }, (_, i) => i + 1).map((n) => (
-            <Link
-              key={n}
-              href={rutaListado(categoria, n)}
-              aria-current={n === pagina ? "page" : undefined}
-              className={cn(
-                "inline-flex size-10 items-center justify-center rounded-full text-sm",
-                n === pagina ? "bg-tinta text-white" : "text-tinta hover:bg-niebla",
-              )}
-            >
-              {n}
-            </Link>
-          ))}
-          {pagina < paginas && (
-            <Link rel="next" href={rutaListado(categoria, pagina + 1)} className="px-3 py-2 text-sm text-acento">
-              Siguiente ›
-            </Link>
-          )}
+          <ul className="flex gap-2">
+            {[{ slug: undefined, nombre: "Todo" }, ...CATEGORIAS_BLOG].map((c) => {
+              const activa = c.slug === categoria;
+              return (
+                <li key={c.nombre} className="shrink-0">
+                  <Link
+                    href={rutaListado(c.slug, 1)}
+                    aria-current={activa ? "page" : undefined}
+                    className={cn(
+                      "inline-flex h-9 items-center rounded-boton px-4 text-sm transition-colors",
+                      activa ? "bg-tinta text-white" : "bg-niebla text-tinta hover:bg-linea/70",
+                    )}
+                  >
+                    {c.nombre}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
-      )}
-    </Contenedor>
+
+        {articulos.length === 0 ? (
+          <EstadoVacio
+            icono={Newspaper}
+            titulo="Pronto habrá artículos aquí"
+            texto="Mientras tanto, nuestras guías explican lo básico de la robótica, paso a paso."
+          >
+            <Link href="/guias" className="text-acento underline underline-offset-4">
+              Ver las guías
+            </Link>
+          </EstadoVacio>
+        ) : (
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {articulos.map((a) => (
+              <TarjetaArticulo key={a.slug} articulo={a} />
+            ))}
+          </div>
+        )}
+
+        {paginas > 1 && (
+          <nav
+            aria-label="Páginas"
+            className="mt-12 flex flex-wrap items-center justify-center gap-2"
+          >
+            {pagina > 1 && (
+              <Link
+                rel="prev"
+                href={rutaListado(categoria, pagina - 1)}
+                className="px-3 py-2 text-sm text-acento"
+              >
+                ‹ Anterior
+              </Link>
+            )}
+            {Array.from({ length: paginas }, (_, i) => i + 1).map((n) => (
+              <Link
+                key={n}
+                href={rutaListado(categoria, n)}
+                aria-current={n === pagina ? "page" : undefined}
+                className={cn(
+                  "inline-flex size-10 items-center justify-center rounded-full text-sm",
+                  n === pagina ? "bg-tinta text-white" : "text-tinta hover:bg-niebla",
+                )}
+              >
+                {n}
+              </Link>
+            ))}
+            {pagina < paginas && (
+              <Link
+                rel="next"
+                href={rutaListado(categoria, pagina + 1)}
+                className="px-3 py-2 text-sm text-acento"
+              >
+                Siguiente ›
+              </Link>
+            )}
+          </nav>
+        )}
+      </Contenedor>
+    </>
   );
 }

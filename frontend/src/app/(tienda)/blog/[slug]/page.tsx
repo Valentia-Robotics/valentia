@@ -60,7 +60,8 @@ export default async function PaginaArticulo({ params }: Props) {
     obtenerKits(),
   ]);
   const kits = todosKits.filter((k) => articulo.kitsRelacionados.includes(k.slug));
-  const actualizado = articulo.actualizadoEn.getTime() - articulo.publicadoEn.getTime() > 86_400_000;
+  const actualizado =
+    articulo.actualizadoEn.getTime() - articulo.publicadoEn.getTime() > 86_400_000;
   // Si el extracto es el primer párrafo (no lo escribió nadie aparte), no se repite como entradilla
   const extractoRepetido = extractoDe(articulo.contenidoHtml) === articulo.extracto;
 
@@ -100,15 +101,14 @@ export default async function PaginaArticulo({ params }: Props) {
         <article className="mx-auto mt-8 max-w-2xl">
           <header>
             {categoria && (
-              <Link
-                href={`/blog/categoria/${categoria.slug}`}
-                className="text-sm font-medium tracking-wide text-acento uppercase"
-              >
+              <Link href={`/blog/categoria/${categoria.slug}`} className="etiqueta-taller">
                 {categoria.nombre}
               </Link>
             )}
-            <h1 className="mt-3 text-4xl font-medium text-balance sm:text-5xl">{articulo.titulo}</h1>
-            <p className="mt-4 text-sm text-gris">
+            <h1 className="titular-cartel mt-4 text-5xl font-medium text-balance sm:text-6xl">
+              {articulo.titulo}
+            </h1>
+            <p className="mt-4 font-mono text-xs text-tinta/70">
               {articulo.autorNombre} ·{" "}
               <time dateTime={articulo.publicadoEn.toISOString()}>
                 {fechaLarga.format(articulo.publicadoEn)}
@@ -125,7 +125,9 @@ export default async function PaginaArticulo({ params }: Props) {
               · {minutosLectura(articulo.palabras)} min de lectura
             </p>
             {!extractoRepetido && (
-              <p className="mt-8 text-xl leading-relaxed text-tinta/85">{articulo.extracto}</p>
+              <p className="mt-8 font-serif text-2xl leading-snug text-tinta/85">
+                {articulo.extracto}
+              </p>
             )}
           </header>
 

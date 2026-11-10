@@ -71,8 +71,11 @@ export default async function PaginaGuia({ params }: Props) {
 
         <article className="mx-auto mt-8 max-w-2xl">
           <header>
-            <h1 className="text-4xl font-medium text-balance sm:text-5xl">{guia.titulo}</h1>
-            <p className="mt-4 text-sm text-gris">
+            <p className="etiqueta-taller">Guía</p>
+            <h1 className="titular-cartel mt-4 text-5xl font-medium text-balance sm:text-6xl">
+              {guia.titulo}
+            </h1>
+            <p className="mt-4 font-mono text-xs text-tinta/70">
               <time dateTime={guia.actualizada}>
                 {fecha.format(new Date(`${guia.actualizada}T12:00:00`))}
               </time>{" "}

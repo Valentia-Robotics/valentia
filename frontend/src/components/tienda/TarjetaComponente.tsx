@@ -12,7 +12,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
   const agotado = componente.stock === 0;
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-tarjeta bg-white shadow-tarjeta ring-1 ring-linea">
+    <article className="flex flex-col overflow-hidden rounded-tarjeta bg-white ring-1 ring-tinta/15 transition-[box-shadow,translate] duration-300 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)]">
       <Link href={`/componentes/${componente.slug}`} tabIndex={-1} className="block bg-niebla p-6">
         <Image
           src={componente.imagen}
@@ -55,8 +55,8 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
         <div className="mt-5 flex items-center justify-between gap-3">
           <div>
             <p className="text-xl font-medium">{formatearPrecio(componente.precioCentimos)}</p>
-            <p className="text-xs text-gris">
-              {textoTienda(componente.stock, componente.enReposicion)}
+            <p className="font-mono text-xs text-gris">
+              ● {textoTienda(componente.stock, componente.enReposicion)}
             </p>
           </div>
           <BotonAnadirCarrito
