@@ -86,6 +86,37 @@ funciones (coche: control remoto por Bluetooth, en la 2.ª versión). Carpeta **
   `P`, `O manual|linea|obstaculos`, `L` (latido); coche → `H nombre versión`, `D cm`, `O modo`. El coche para a los
   500 ms sin mensajes. Firmware en `firmware/coche-esp32/` (sin compilar aquí: descargas de Arduino bloqueadas).
 
+### Portada estilo «taller» (09-11-2026, rama `diseno/portada-con-alma`; petición del usuario)
+
+El usuario pidió una portada al estilo de fal.ai/pricing, «que no parezca una web hecha con IA», con alma y más fluida. Solo
+la inspiración (nada de su marca): campo de color con píxeles vivos, titulares enormes y apretados (`.titular-cartel`),
+entradillas en serif (Newsreader, `font-serif`), etiquetas técnicas en mono (JetBrains Mono, `font-mono`; las dos con
+un solo grueso y sin precarga, por velocidad), líneas de puntos (`.linea-puntos`), esquinas casi rectas (`rounded-recto`),
+tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de las ruedas, nunca para texto).
+- Orden: `HeroPortada` (h1, `CampoPixeles`: canvas con cable, mancha tramada y píxeles que parpadean y siguen al ratón; se
+  para fuera de pantalla y con reducir movimiento) → `Marquesina` (piezas reales de la BD) → `PiezasPortada` (ver abajo; antes el 3D,
+  ahora h2 «Así es un robot por dentro», texto por encima del lienzo) → aviso → `BloqueComoFunciona` → `KitsPortada` (destacado +
+  `TablaKits`: la foto sigue al ratón) → configurador (cajones rectos) → curso QR → `BloqueFinal` (negro con píxeles).
+- Botón: variantes `bloque` (negro recto, se levanta con sombra azul) y `punteado`. `Etiqueta` y `PalabrasQueSuben` en
+  `components/portada/Etiqueta.tsx` (el espacio va fuera de cada palabra). Borrados `HeroKit` y `SeccionKit` (solo eran de la portada).
+- Segunda tanda (mismo día, petición del usuario):
+  - **Sin coche 3D en la portada** (al usuario el tramo se le hacía largo): `PiezasPortada`, mosaico de las 5 piezas
+    con sus fotos de estudio y un «escáner» azul que pasa solo de una a otra (fila deslizable en el móvil). Borrados
+    `PortadaRobot`, `RobotEstatico`, `escenaRobot` y `fusionarMallas`; `modeloCoche` sigue (fotos de `fotos:piezas`).
+  - **Toda la web uniforme**: `ui/CabeceraPagina` (campo azul con `CampoPixeles variante="cabecera"`, etiqueta, titular de
+    cartel, entradilla serif) en kits, componentes, guías, blog, preguntas, carrito, checkout, cuenta, cursos, pedidos y legales
+    (va FUERA del Contenedor). Login/registro/activar: tarjeta con sombra azul sobre el campo azul. Fichas: foto sobre campo azul.
+  - Pie: `PaisajePixeles` (noche: estrellas, luna, montañas, mar, tierra; medio transparente y fundido hacia arriba) detrás de
+    `BanderasPixeles` (Europa, Senyera en medio —solo barras y franja azul, sin corona, decisión del usuario— y España).
+  - **Ojo en local**: `npm run build` con `npm run dev` encendido deja la caché de desarrollo mal y la página se recarga
+    sin parar. Parar el dev, construir y borrar `frontend/.next/dev` antes de volver a arrancar.
+  - **Pie negro** en toda la web (texto claro) con `BanderasPixeles`: píxeles que caen y forman las banderas de Europa,
+    España y la Senyera coronada, en sus mástiles, y luego ondean (antes eran edificios de València; lo cambió el usuario).
+  - **Estilo en toda la web** desde lo compartido: radios a 2-4 px (tokens), `Boton` (relleno que se levanta con sombra
+    recta; secundario punteado), `ui/Etiqueta` en mono, `.etiqueta-taller` (antes «text-sm … text-acento uppercase»),
+    h1/h2 apretados, tarjetas de kit y componente con sombra recta azul, barra de navegación con línea de puntos.
+- Lighthouse móvil en local: portada 89 (antes 65, sobre todo por quitar el 3D). Accesibilidad, SEO y prácticas 100.
+
 ### Mensajes y tareas del equipo (09-11-2026, rama `claude/project-thread-0upidw`; petición de Jesse)
 
 «Como un WhatsApp»: `/mensajes` para los roles de `ROLES_EQUIPO` (un cliente recibe 404). Chat «General» y un chat

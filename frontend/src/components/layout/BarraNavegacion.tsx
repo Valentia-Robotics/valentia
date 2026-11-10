@@ -47,7 +47,7 @@ export function BarraNavegacion() {
         className={cn(
           // En el móvil, desenfoque más corto (el navegador lo rehace en cada paso del scroll) y
           // fondo algo más opaco para que se vea igual
-          "border-b border-linea/60 backdrop-blur-md backdrop-saturate-150 transition-colors lg:backdrop-blur-xl",
+          "border-b border-dotted border-tinta/25 backdrop-blur-md backdrop-saturate-150 transition-colors lg:backdrop-blur-xl",
           menuAbierto ? "bg-white" : "bg-white/85 lg:bg-white/75",
         )}
       >
@@ -70,7 +70,7 @@ export function BarraNavegacion() {
                   aria-current={estaActivo(enlace) ? "page" : undefined}
                   className={cn(
                     "relative flex items-center text-[13px] transition-colors",
-                    "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-acento after:transition-transform",
+                    "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-acento after:transition-transform",
                     estaActivo(enlace)
                       ? "font-medium text-tinta after:scale-x-100"
                       : "text-tinta/70 after:scale-x-0 hover:text-tinta",

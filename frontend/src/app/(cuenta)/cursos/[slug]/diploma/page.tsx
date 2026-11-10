@@ -48,7 +48,7 @@ export default async function PaginaDiploma({ params }: { params: Promise<{ slug
   return (
     <Contenedor className="py-10 sm:py-14 print:p-0">
       <header className="mb-8 print:hidden">
-        <p className="text-sm font-medium tracking-wide text-acento uppercase">Curso terminado</p>
+        <p className="etiqueta-taller">Curso terminado</p>
         <h1 className="mt-2 text-3xl font-medium sm:text-4xl">Tu diploma.</h1>
         <p className="mt-2 max-w-2xl text-gris">
           Lo has hecho entero, lección a lección. Aquí lo tienes para guardarlo o imprimirlo.

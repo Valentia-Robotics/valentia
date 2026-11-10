@@ -91,7 +91,7 @@ export function Configurador({ componentes, kits, kitInicial }: Props) {
         {/* ---------- Zona central: tarjetas ---------- */}
         <div className="min-w-0 px-4 py-6 sm:px-6 lg:p-0">
           <header>
-            <p className="text-sm font-medium tracking-wide text-acento uppercase">Configurador</p>
+            <p className="etiqueta-taller">Configurador</p>
             <h1 className="mt-1 text-3xl font-medium sm:text-4xl">Monta tu robot pieza a pieza.</h1>
           </header>
 

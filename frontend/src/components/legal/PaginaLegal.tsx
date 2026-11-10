@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { TriangleAlert } from "lucide-react";
+import { CabeceraPagina } from "@/components/ui/CabeceraPagina";
 import { Contenedor } from "@/components/ui/Contenedor";
 
 /**
@@ -20,37 +21,43 @@ export function PaginaLegal({
   children: ReactNode;
 }) {
   return (
-    <Contenedor className="max-w-3xl py-12 sm:py-16">
-      {borrador && (
-        <p
-          role="note"
-          className="mb-8 flex items-start gap-3 rounded-tarjeta border-2 border-aviso/50 bg-aviso/8 p-4 text-sm text-aviso-oscuro"
+    <>
+      <CabeceraPagina
+        compacta
+        etiqueta="Legal"
+        titulo={titulo}
+        entradilla={<p className="font-mono text-xs">Última actualización: {actualizado}</p>}
+      />
+      <Contenedor className="max-w-3xl py-12 sm:py-16">
+        {borrador && (
+          <p
+            role="note"
+            className="mb-8 flex items-start gap-3 rounded-tarjeta border-2 border-aviso/50 bg-aviso/8 p-4 text-sm text-aviso-oscuro"
+          >
+            <TriangleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+            <span>
+              <strong className="font-semibold">
+                BORRADOR — pendiente de revisión por un profesional.
+              </strong>{" "}
+              Este texto es provisional y no debe publicarse sin que lo revise un abogado.
+            </span>
+          </p>
+        )}
+        <div
+          className={[
+            "leading-relaxed text-tinta/90",
+            "[&_h2]:mt-12 [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-tinta",
+            "[&_h3]:mt-8 [&_h3]:font-sans [&_h3]:text-lg [&_h3]:font-semibold",
+            "[&_p]:mt-4 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6",
+            "[&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6",
+            "[&_a]:text-acento [&_a]:underline [&_a]:underline-offset-2",
+            "[&_table]:w-full [&_table]:text-sm [&_td]:border-t [&_td]:border-dotted [&_td]:border-tinta/25 [&_td]:py-2 [&_td]:pr-3 [&_td]:align-top [&_th]:pr-3 [&_th]:pb-2 [&_th]:text-left [&_th]:font-medium",
+          ].join(" ")}
         >
-          <TriangleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-          <span>
-            <strong className="font-semibold">
-              BORRADOR — pendiente de revisión por un profesional.
-            </strong>{" "}
-            Este texto es provisional y no debe publicarse sin que lo revise un abogado.
-          </span>
-        </p>
-      )}
-      <h1 className="text-4xl font-medium sm:text-5xl">{titulo}</h1>
-      <p className="mt-3 text-sm text-gris">Última actualización: {actualizado}</p>
-      <div
-        className={[
-          "mt-10 leading-relaxed text-tinta/90",
-          "[&_h2]:mt-12 [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-tinta",
-          "[&_h3]:mt-8 [&_h3]:font-sans [&_h3]:text-lg [&_h3]:font-semibold",
-          "[&_p]:mt-4 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6",
-          "[&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6",
-          "[&_a]:text-acento [&_a]:underline [&_a]:underline-offset-2",
-          "[&_table]:w-full [&_table]:text-sm [&_td]:border-t [&_td]:border-linea [&_td]:py-2 [&_td]:pr-3 [&_td]:align-top [&_th]:pr-3 [&_th]:pb-2 [&_th]:text-left [&_th]:font-medium",
-        ].join(" ")}
-      >
-        {children}
-      </div>
-    </Contenedor>
+          {children}
+        </div>
+      </Contenedor>
+    </>
   );
 }
 
