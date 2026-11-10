@@ -20,7 +20,9 @@ type Opcional = { campo: string; relacion?: string };
 
 /** Campos opcionales de cada colección (los Json? no: no se filtran y null ahí es otra cosa) */
 export const OPCIONALES: Record<string, Opcional[]> = {
-  Componente: [{ campo: "voltajeLogico" }, { campo: "voltajeLogicoMin" }],
+  Componente: [{ campo: "stockMinimo" }, { campo: "voltajeLogico" }, { campo: "voltajeLogicoMin" }],
+  Kit: [{ campo: "stockMinimo" }],
+  MovimientoStock: [{ campo: "minimoAntes" }, { campo: "minimoDespues" }, { campo: "reposicion" }],
   ListaEspera: [{ campo: "kitSlug" }, { campo: "avisadoEn" }],
   Visita: [{ campo: "origen" }],
   Ejercicio: [{ campo: "correcta" }, { campo: "explicacion" }, { campo: "solucion" }],
@@ -78,6 +80,18 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "autorId" },
     { campo: "programadoPara" },
     { campo: "publicadoEn" },
+  ],
+  MensajeEquipo: [
+    { campo: "autorId", relacion: "autor" },
+    { campo: "prioridad" },
+    { campo: "entregaEn" },
+    { campo: "responsableId" },
+    { campo: "responsableNombre" },
+    { campo: "recordarEn" },
+    { campo: "recordatorioEnviadoEn" },
+    { campo: "alarmaCerradaEn" },
+    { campo: "hechaEn" },
+    { campo: "hechaPor" },
   ],
   LlamadaBlog: [{ campo: "detalle" }, { campo: "articuloId" }],
   CambioEstadoGuion: [

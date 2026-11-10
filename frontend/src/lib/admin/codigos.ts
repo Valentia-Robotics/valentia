@@ -194,3 +194,41 @@ export async function resumenBienvenida() {
   ]);
   return { kitId: kit.id, generadas, usadas };
 }
+
+/**
+ * Se puede borrar un código si nadie lo ha usado y no se vendió en un pedido
+ * (si se borrara uno vendido, el cliente perdería el código de su caja; si se borrara
+ * uno usado, se perdería quién lo activó: reseñas, tarjetas de bienvenida…).
+ */
+export const condicionBorrable = {
+  usadoEn: null,
+  pedidoId: null,
+} satisfies Prisma.CodigoActivacionWhereInput;
+
+/** ¿Se puede borrar este código? (lo mismo que condicionBorrable, para la lista) */
+export function esBorrable(codigo: { usadoEn: Date | null; pedido: unknown }) {
+  return !codigo.usadoEn && !codigo.pedido;
+}
+
+/**
+ * Borra para siempre los códigos elegidos que se pueden borrar (los demás se saltan).
+ * Dejan de contar en el número de códigos del kit. Los lotes que pierden códigos
+ * se quedan con la cantidad que les queda, y un lote vacío se borra también.
+ * Devuelve cuántos se han borrado.
+ */
+export async function borrarCodigos(ids: string[]) {
+  return transaccion(async (tx) => {
+    const where = { id: { in: ids }, ...condicionBorrable };
+    const elegidos = await tx.codigoActivacion.findMany({ where, select: { loteId: true } });
+    if (elegidos.length === 0) return 0;
+    const { count } = await tx.codigoActivacion.deleteMany({ where });
+
+    const lotes = [...new Set(elegidos.flatMap((c) => (c.loteId ? [c.loteId] : [])))];
+    for (const loteId of lotes) {
+      const quedan = await tx.codigoActivacion.count({ where: { loteId } });
+      if (quedan === 0) await tx.loteCodigos.delete({ where: { id: loteId } });
+      else await tx.loteCodigos.update({ where: { id: loteId }, data: { cantidad: quedan } });
+    }
+    return count;
+  });
+}

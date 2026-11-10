@@ -96,6 +96,7 @@ function componenteDeFila(fila: FilaComponente): ComponenteCatalogo {
     descripcion: fila.descripcion,
     precioCentimos: fila.precioCentimos,
     stock: fila.stock,
+    enReposicion: fila.enReposicion,
     imagen: fila.imagen,
     voltaje: fila.voltaje,
     voltajeLogico: fila.voltajeLogico,

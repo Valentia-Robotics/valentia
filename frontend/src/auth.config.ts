@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === "production" && !process.env.AUTH_URL && process.en
 }
 
 /** Rutas que necesitan haber iniciado sesión */
-export const RUTAS_PROTEGIDAS = ["/cursos", "/cuenta", "/admin", "/editor", "/hardware"];
+export const RUTAS_PROTEGIDAS = ["/cursos", "/cuenta", "/admin", "/editor", "/hardware", "/mensajes", "/stock"];
 
 export const authConfig = {
   // Nuestras propias páginas en lugar de las que trae Auth.js

@@ -7,8 +7,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { conErrores, texto, type EstadoFormulario } from "@/lib/admin/formularios";
+import { conErrores, texto, textos, type EstadoFormulario } from "@/lib/admin/formularios";
 import {
+  borrarCodigos,
   cambiarDesactivacionEnBloque,
   crearLote,
   MAXIMO_LOTE,
@@ -107,5 +108,35 @@ export async function cambiarDesactivacionTodos(
       modo === "desactivar"
         ? `${cambiados} ${palabra} desactivado${cambiados === 1 ? "" : "s"}.`
         : `${cambiados} ${palabra} reactivado${cambiados === 1 ? "" : "s"}.`,
+  };
+}
+
+const esquemaBorrar = z.object({
+  ids: z.array(esquemaId).min(1, "Marca al menos un código.").max(500),
+});
+
+/**
+ * Borrar para siempre los códigos marcados con las casillas.
+ * Solo se borran los que nadie ha usado y no se vendieron en un pedido; los demás se saltan.
+ */
+export async function borrarVariosCodigos(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const datos = esquemaBorrar.safeParse({ ids: [...new Set(textos(formulario, "ids"))] });
+  if (!datos.success) return conErrores(datos.error);
+
+  const pedidos = datos.data.ids.length;
+  const borrados = await borrarCodigos(datos.data.ids);
+  revalidatePath("/admin", "layout");
+  const saltados = pedidos - borrados;
+  return {
+    ok: borrados > 0,
+    mensaje:
+      (borrados === 1 ? "1 código borrado." : `${borrados} códigos borrados.`) +
+      (saltados > 0
+        ? ` ${saltados === 1 ? "1 no se ha borrado" : `${saltados} no se han borrado`} porque ya se ${saltados === 1 ? "ha usado o vendido" : "han usado o vendido"}.`
+        : ""),
   };
 }

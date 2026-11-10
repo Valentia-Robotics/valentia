@@ -11,6 +11,7 @@ import { randomBytes } from "node:crypto";
 import {
   CUOTA_BYTES_PERSONA,
   limpiarCarpeta,
+  MAXIMO_NIVELES_CARPETA,
   limpiarNombreArchivo,
   MAXIMO_BYTES_ARCHIVO,
   MAXIMO_MB_ARCHIVO,
@@ -133,7 +134,7 @@ export async function subirArchivo(datos: {
   const carpeta = limpiarCarpeta(datos.carpeta);
   if (carpeta === null) {
     throw new ErrorArchivo(
-      "El nombre de la carpeta no vale (máximo 4 niveles, sin caracteres como : * ? < >).",
+      `El nombre de la carpeta no vale (máximo ${MAXIMO_NIVELES_CARPETA} niveles, sin caracteres como : * ? < >).`,
     );
   }
   if (contenido.length === 0) throw new ErrorArchivo("El archivo está vacío.");

@@ -18,6 +18,31 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Stock del almacén (10-11-2026, rama `claude/project-thread-bbn9v7`; petición de Jesse)
+
+`/stock` (fuera de `/admin`, como `/mensajes`): lo ve todo `ROLES_EQUIPO`, solo un ADMIN lo cambia (botón «Cambiar» →
+`guardarStock` con `exigirAdminEnAccion`). Reglas puras en `src/config/stock.ts` (+ test); BD en `src/lib/stock/stock.ts`.
+- Campos nuevos: `Kit.stock` (kits montados en su caja, por defecto 0), `stockMinimo` (null = aviso de siempre: 3 kits,
+  10 componentes) y `enReposicion` («Ya hemos pedido más»; se quita sola al pasar del aviso) en Kit y Componente.
+  Modelo `MovimientoStock`: cada cambio a mano («Últimos cambios»). Kits gratis fuera.
+- Estados: Reposición necesaria (0, sin pedir) · Stock bajo · Reposición en curso (pedido) · Stock suficiente.
+- Decisión de Jesse: **cada kit vendido resta uno de su stock y con 0 no se vende** (`reservarStock` en `pedidos.ts`;
+  cancelar lo devuelve). Tienda (`textoTienda`): «En stock» / «En reposición» (0 y pedido) / «Sin stock» (0 y nada
+  pedido o ya no se vende). El seed de desarrollo pone 20 a los kits con 0 (para e2e).
+
+### Finanzas: ingresos, gastos y beneficio (10-11-2026, rama `claude/project-thread-90iech`; petición de Jesse)
+
+`/admin/finanzas` (solo ADMIN, en el menú tras «Pedidos»). Ingresos y gastos apuntados a mano (modelo `MovimientoDinero`:
+tipo, concepto, categoría, importe con IVA, % de IVA, fecha, proveedor/cliente, notas) + los pedidos cobrados
+(`PEDIDO_COBRADO` + `cobroReal: true`, por `pagadoEn`), que cuentan solos como ingreso «Ventas en la web» (no se guardan aparte).
+  `Pedido.cobroReal` lo pone el webhook de Stripe solo con `livemode`; los pagos de prueba y simulados (y todos los anteriores
+  al 10-11-2026) se quedan fuera.
+- Reglas puras: `src/config/finanzas.ts` (categorías por slug, tipos de IVA, meses en hora de Madrid, periodos `12m`/año/`todo`)
+  y `src/lib/finanzas/resumen.ts` (+ test). BD: `src/lib/admin/finanzas.ts`. Validación: `src/lib/validaciones/finanzas.ts`.
+- Gráficos sin librerías (`GraficosFinanzas`): ingresos/gastos por mes (azul/naranja), beneficio por mes, dinero acumulado;
+  reparto por categoría, IVA cobrado/pagado y beneficio sin IVA, tabla mes a mes, lista y CSV (`/admin/finanzas/csv`).
+- Categoría nueva → añadirla a la lista (nunca cambiar un slug que ya se usa: los apuntes guardan el slug).
+
 ### Nombre del coche (08-11-2026, rama `claude/project-thread-4lji9k`)
 
 Decisión de Jesse: el kit del coche se llama **«Kit de coche robótico multifunción VR1 - Starter Kit»** (con guion, no dos
@@ -67,6 +92,25 @@ tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de
   `components/portada/Etiqueta.tsx` (el espacio va fuera de cada palabra). Borrados `HeroKit` y `SeccionKit` (solo eran de la portada).
 - Lighthouse móvil en local (mismo equipo): antes 65, ahora 61-62 (fuentes nuevas, +45 KB). TBT sigue siendo el 3D.
 
+### Mensajes y tareas del equipo (09-11-2026, rama `claude/project-thread-0upidw`; petición de Jesse)
+
+«Como un WhatsApp»: `/mensajes` para los roles de `ROLES_EQUIPO` (un cliente recibe 404). Chat «General» y un chat
+privado entre cada dos personas del equipo, de cualquier rol (solo lo ven esas dos; tampoco los ADMIN). Rol nuevo en
+`ROLES_EQUIPO` → le salen solos sus chats. Decisión de Jesse: **sin archivos en los chats** (siguen en `/hardware`).
+
+- Reglas puras: `src/config/mensajes.ts` (+ test). Canal = `"general"` o `"privado:<id menor>_<id mayor>"`; dirección
+  `/mensajes/general` o `/mensajes/<id de la otra persona>`. BD y permisos: `src/lib/mensajes/mensajes.ts`.
+  Modelos `MensajeEquipo` y `LecturaCanal` (hasta dónde ha leído cada uno: los «no leídos»).
+- Sin WebSocket: el chat abierto hace `router.refresh()` cada 10 s; `AvisosEquipo` (en `MenuAdmin`) pide
+  `GET /api/mensajes/no-leidos` cada 45 s → número del menú (`store/avisosEquipo.ts`) y alarmas.
+- Tareas (Jesse: «como Notion»): estado Por hacer / En curso / Hecha, prioridad Alta/Media/Baja (rojo/amarillo/verde),
+  entrega, responsable y recordatorio. Tablero en `/mensajes/tareas`. La alarma suena en la web del responsable (o del
+  autor si no hay) con pitido, tarjeta y aviso del navegador (posponer 10 min / 1 h, cerrar, hecha). El correo del
+  recordatorio lo manda la misma petición del contador (`after`), sin tarea programada: sale cuando alguien del equipo
+  tiene la web abierta.
+- Correos (`plantillaMensajeEquipo`): privado → solo el primero sin leer y si no está conectado; tarea en el General →
+  a su responsable. Límite `mensajeEquipo` 300/hora. Borrar: lo suyo cada uno; en el General, un ADMIN cualquiera.
+
 ### Guiones: descartar sin borrar y registro de n8n (09-11-2026, rama `mejoras/guiones-no-se-borran`)
 
 El usuario echó en falta guiones de n8n del día anterior y pidió que no se borren. La web solo borraba al «Descartar».
@@ -92,6 +136,10 @@ que las fotos) y cada espacio lo ven **solo su dueño y los ADMIN**.
   bucket no deja subir). Subida: `POST /api/hardware/archivos` (cuerpo = archivo, nombre en `x-nombre-archivo`; por `/api`
   para no pasar por el proxy; `mismoSitio`, límite `hardwareSubida`, `leerBytes`). Descarga: `GET /api/hardware/archivos/<id>`
   (siempre octet-stream + attachment + nosniff). Borrar: acción `borrarArchivoHardware`.
+- Subir carpetas (Jesse, 09-11-2026): `SubirArchivos` tiene «Elegir archivos» (sueltos, 20) y «Elegir carpeta»
+  (`webkitdirectory`, hasta 500) y acepta arrastrar archivos o carpetas. Cada archivo va a `carpetaDeRuta(base, ruta)`
+  (sus subcarpetas se recrean); se saltan los del sistema (`esArchivoDelSistema`). Máximo 8 niveles; límite
+  `hardwareSubida` 1000/hora.
 - Rutas con `path.resolve` dinámico: llevar `/* turbopackIgnore: true */`; sin él, `next dev` vigila todo el proyecto y la
   página se recarga sin parar (pasó con `enDisco`).
 - Guía para el usuario: DESPLIEGUE.md §6 quinquies.
@@ -236,6 +284,14 @@ curso `bienvenida-a-valentia`; vídeo `PENDIENTE`: ponerlo en `/admin/cursos`). 
 - Llega a producción con `data/catalogo/` (seed:prod solo crea: kit, curso y lección). Imágenes hechas a mano:
   `public/images/kits/bienvenida-valentia.svg` y `public/images/redes/kits/bienvenida-valentia.png` (sin modelo 3D).
 - Pruebas: `src/lib/validaciones/kitGratis.test.ts` y `e2e/kit-gratis.spec.ts`.
+
+### Borrar códigos seleccionándolos (10-11-2026, rama `claude/project-thread-moqndl`; petición de Jesse)
+
+`/admin/codigos`: casilla en cada código que se puede borrar + barra `AccionesLoteCodigos` («Marcar todos», «Borrar
+seleccionados», con confirmación) → `borrarVariosCodigos` → `borrarCodigos` (`src/lib/admin/codigos.ts`). Borrado de
+verdad: deja de contar en el número de códigos del kit (`/admin/kits`), que sí cuenta los desactivados. Solo se borran
+los que nadie ha usado y no se vendieron en un pedido (`condicionBorrable`); los demás se saltan. El lote se queda con
+la cantidad que le queda y, vacío, se borra.
 
 ### Desactivar códigos en bloque (05-11-2026, rama `claude/project-thread-df82fa`)
 

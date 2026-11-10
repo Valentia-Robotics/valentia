@@ -71,6 +71,10 @@ async function main() {
       }
     }
 
+    // Kits de prueba en el almacén: sin unidades no se pueden comprar (cada venta resta una).
+    // Solo a los que tienen 0, para no pisar lo que se haya puesto a mano en /stock.
+    await db.kit.updateMany({ where: { stock: 0, precioCentimos: { gt: 0 } }, data: { stock: 20 } });
+
     // Usuario de prueba: si ya existe, solo se le vuelve a poner la contraseña de prueba.
     // Su email ya está verificado (no hace falta código para confirmarlo).
     const contrasenaHash = await bcrypt.hash(USUARIO_DE_PRUEBA.contrasena, 10);

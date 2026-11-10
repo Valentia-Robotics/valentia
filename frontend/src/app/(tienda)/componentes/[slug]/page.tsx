@@ -18,6 +18,7 @@ import { fichaTecnica } from "@/lib/fichaTecnica";
 import { compraAbierta } from "@/lib/pagos";
 import { metadatosPagina } from "@/lib/metadatos";
 import { formatearPrecio } from "@/lib/utils";
+import { textoTienda } from "@/config/stock";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho
@@ -102,7 +103,7 @@ export default async function PaginaComponente({ params }: Props) {
               {formatearPrecio(componente.precioCentimos)}
             </p>
             <p className="mt-1 text-sm text-gris">
-              IVA incluido · {agotado ? "Agotado" : "En stock"}
+              IVA incluido · {textoTienda(componente.stock, componente.enReposicion)}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <BotonAnadirCarrito

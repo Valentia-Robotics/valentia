@@ -8,11 +8,13 @@ import {
   FolderOpen,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   QrCode,
   UserRound,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
+import { esDelEquipo } from "@/config/equipo";
 import { enSeccion } from "@/config/marca";
 import { cn } from "@/lib/utils";
 
@@ -111,6 +113,11 @@ export function MenuUsuario() {
           {sesion.user.rol === "HARDWARE" && (
             <ElementoMenu href="/hardware" icono={FolderOpen} alPulsar={cerrar}>
               Mi espacio de hardware
+            </ElementoMenu>
+          )}
+          {sesion.user.rol && esDelEquipo(sesion.user.rol) && (
+            <ElementoMenu href="/mensajes" icono={MessageCircle} alPulsar={cerrar}>
+              Mensajes del equipo
             </ElementoMenu>
           )}
           <li>

@@ -5,6 +5,7 @@ import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { fichaTecnica } from "@/lib/fichaTecnica";
 import { formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
+import { textoTienda } from "@/config/stock";
 
 /** Tarjeta de un componente suelto para /componentes, con sus datos técnicos desplegables. */
 export function TarjetaComponente({ componente }: { componente: ComponenteCatalogo }) {
@@ -54,7 +55,9 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
         <div className="mt-5 flex items-center justify-between gap-3">
           <div>
             <p className="text-xl font-medium">{formatearPrecio(componente.precioCentimos)}</p>
-            <p className="text-xs text-gris">{agotado ? "Agotado" : "En stock"}</p>
+            <p className="text-xs text-gris">
+              {textoTienda(componente.stock, componente.enReposicion)}
+            </p>
           </div>
           <BotonAnadirCarrito
             articulo={{

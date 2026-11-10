@@ -45,6 +45,10 @@ model Componente {
   descripcion      String
   precioCentimos   Int
   stock            Int
+  /// Con estas unidades o menos, /stock avisa de que hay que reponer (null = el aviso de siempre, src/config/stock.ts)
+  stockMinimo      Int?
+  /// true = ya se han pedido más unidades al proveedor: con 0, la tienda dice «En reposición» (y no «Sin stock»)
+  enReposicion     Boolean   @default(false)
   imagen           String
   /// Tensión de funcionamiento en voltios (en una batería: la tensión que entrega)
   voltaje          Float
@@ -84,6 +88,12 @@ model Kit {
   puntosFuertes  Json
   /// false = oculto: no se vende ni aparece en la tienda (sus códigos siguen funcionando)
   visible        Boolean @default(true)
+  /// Kits montados y en su caja, listos para enviar. Cada kit vendido resta uno (como los componentes)
+  stock          Int     @default(0)
+  /// Con estas unidades o menos, /stock avisa de que hay que reponer (null = el aviso de siempre, src/config/stock.ts)
+  stockMinimo    Int?
+  /// true = ya se están preparando más: con 0, la tienda dice «En reposición» (y no «Sin stock»)
+  enReposicion   Boolean @default(false)
 
   componentes KitComponente[]
   curso       Curso              @relation(fields: [cursoId], references: [id])
@@ -203,6 +213,9 @@ model Pedido {
   estado               EstadoPedido @default(PENDIENTE)
   /// Quién cobra el pedido: "simulado" (sin claves de Stripe) o "stripe"
   proveedorPago        String
+  /// true solo si se cobró dinero de verdad (Stripe en modo real). Los pagos de prueba (Stripe con claves
+  /// de prueba o pago simulado) se quedan en false y no cuentan en Finanzas.
+  cobroReal            Boolean      @default(false)
   /// Referencia del pago que da el proveedor (en Stripe, el id del PaymentIntent)
   referenciaPago       String?
   /// Número de seguimiento del transportista (lo pone el panel al enviarlo)
@@ -349,6 +362,68 @@ model Usuario {
   cambiosGuion     CambioEstadoGuion[]
 
   archivosHardware ArchivoHardware[]
+
+  mensajesEquipo MensajeEquipo[]
+  lecturasCanal  LecturaCanal[]
+}
+
+/// Un mensaje de los chats del equipo (/mensajes): el «General» o una conversación privada entre dos.
+/// Los clientes nunca los ven. El canal es "general" o "privado:<id menor>_<id mayor>" (src/config/mensajes.ts).
+model MensajeEquipo {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  canal       String
+  /// Quien lo escribió. SetNull: si se borra su cuenta, el mensaje se queda con su nombre
+  autor       Usuario? @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  autorId     String?  @db.ObjectId
+  /// Nombre del autor cuando lo escribió
+  autorNombre String
+  texto       String
+  creadoEn    DateTime @default(now())
+
+  /// ---- Si es una TAREA (como en Notion): estado, prioridad, entrega, responsable y recordatorio ----
+  esTarea               Boolean         @default(false)
+  estadoTarea           EstadoTarea     @default(PENDIENTE)
+  prioridad             PrioridadTarea?
+  /// Fecha y hora de entrega
+  entregaEn             DateTime?
+  /// Quién tiene que hacerla (null = nadie en concreto: los avisos van a quien la escribió)
+  responsableId         String?         @db.ObjectId
+  responsableNombre     String?
+  /// Cuándo suena el recordatorio (alarma en la web + correo)
+  recordarEn            DateTime?
+  /// Cuándo se mandó el correo del recordatorio (para no mandarlo dos veces)
+  recordatorioEnviadoEn DateTime?
+  /// Cuándo cerró la alarma el responsable (si se pospone, vuelve a null)
+  alarmaCerradaEn       DateTime?
+  hechaEn               DateTime?
+  hechaPor              String?
+
+  @@index([canal, creadoEn])
+  @@index([esTarea, recordarEn])
+}
+
+enum EstadoTarea {
+  PENDIENTE
+  EN_CURSO
+  HECHA
+}
+
+/// Rojo, amarillo y verde
+enum PrioridadTarea {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+/// Hasta cuándo ha leído cada persona cada canal (para los «no leídos»)
+model LecturaCanal {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId  String   @db.ObjectId
+  canal      String
+  leidoHasta DateTime
+
+  @@unique([usuarioId, canal])
 }
 
 /// Un archivo del espacio personal de alguien de hardware (lo ven él y los administradores).
@@ -859,4 +934,58 @@ model LlamadaBlog {
   fecha      DateTime @default(now())
 
   @@index([fecha])
+}
+
+/// Cada cambio del stock hecho a mano en /stock (quién, qué y cuánto), para saber de dónde sale cada número
+model MovimientoStock {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// "kit" o "componente"
+  tipo        String
+  productoId  String   @db.ObjectId
+  /// Nombre del producto en ese momento (si luego se borra, el registro se sigue entendiendo)
+  nombre      String
+  antes       Int
+  despues     Int
+  minimoAntes   Int?
+  minimoDespues Int?
+  /// Si cambió la casilla «Ya hemos pedido más» (null = no cambió)
+  reposicion  Boolean?
+  autorNombre String
+  creadoEn    DateTime @default(now())
+
+  @@index([creadoEn])
+  @@index([productoId, creadoEn])
+}
+
+/// FINANZAS (/admin/finanzas, solo ADMIN): ingresos y gastos que se apuntan a mano.
+/// Los pedidos cobrados en la web NO se guardan aquí: se suman solos como ingreso (ver src/lib/admin/finanzas.ts).
+enum TipoMovimiento {
+  INGRESO
+  GASTO
+}
+
+model MovimientoDinero {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  tipo             TipoMovimiento
+  /// Qué es: "Compra de 50 motores TT", "Taller en el colegio X"…
+  concepto         String
+  /// Slug de la categoría (lista en src/config/finanzas.ts)
+  categoria        String
+  /// Importe total en céntimos, IVA incluido (siempre positivo: el tipo dice si entra o sale)
+  importeCentimos  Int
+  /// Porcentaje de IVA (0, 4, 10 o 21) y el IVA que va dentro del importe, en céntimos
+  ivaPorcentaje    Int            @default(0)
+  ivaCentimos      Int            @default(0)
+  /// Día del ingreso o del gasto (a las 12:00 UTC, así no cambia de día en España)
+  fecha            DateTime
+  /// Proveedor o cliente (opcional, "" si no se pone)
+  contraparte      String         @default("")
+  notas            String         @default("")
+  /// Nombre de quien lo apuntó (para saberlo aunque se borre la cuenta)
+  creadoPor        String         @default("")
+  creadoEn         DateTime       @default(now())
+  actualizadoEn    DateTime       @default(now()) @updatedAt
+
+  @@index([fecha])
+  @@index([tipo, fecha])
 }

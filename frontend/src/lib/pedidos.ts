@@ -91,6 +91,8 @@ async function calcularLineas(tx: Tx, articulosCarrito: ArticuloPedido[]) {
   const salidas = new Map<string, number>();
   const sacar = (slug: string, unidades: number) =>
     salidas.set(slug, (salidas.get(slug) ?? 0) + unidades);
+  /** slug del kit → kits (ya montados, en su caja) que salen del almacén */
+  const salidasKits = new Map<string, number>();
 
   const lineas: LineaCalculada[] = articulos.map((articulo) => {
     if (articulo.tipo === "kit") {
@@ -102,6 +104,7 @@ async function calcularLineas(tx: Tx, articulosCarrito: ArticuloPedido[]) {
           `«${kit.nombre}» es gratis: consíguelo desde su ficha, sin pasar por caja.`,
         );
       }
+      salidasKits.set(kit.slug, (salidasKits.get(kit.slug) ?? 0) + articulo.cantidad);
       return {
         tipo: "KIT",
         nombre: kit.nombre,
@@ -145,7 +148,7 @@ async function calcularLineas(tx: Tx, articulosCarrito: ArticuloPedido[]) {
   });
 
   const subtotalCentimos = lineas.reduce((t, l) => t + l.precioUnitarioCentimos * l.cantidad, 0);
-  return { lineas, subtotalCentimos, salidas, componentePorSlug };
+  return { lineas, subtotalCentimos, salidas, salidasKits, componentePorSlug, kitPorSlug };
 }
 
 /**
@@ -159,19 +162,43 @@ export function calcularPrecios(articulos: ArticuloPedido[]) {
   });
 }
 
+/** Unidades que salen del almacén: componentes sueltos (y de robots) y kits enteros, por slug */
+interface Salidas {
+  componentes: Map<string, number>;
+  kits: Map<string, number>;
+}
+type Nombres = Map<string, { nombre: string; stock: number }>;
+
 /** Saca del almacén las unidades pedidas, solo si quedan (comprobación y resta a la vez) */
 async function reservarStock(
   tx: Tx,
-  salidas: Map<string, number>,
-  nombres?: Map<string, { nombre: string; stock: number }>,
+  { componentes, kits }: Salidas,
+  nombres?: { componentes: Nombres; kits: Nombres },
 ) {
-  for (const [slug, unidades] of salidas) {
+  // Kits: cada kit vendido resta uno de su stock (decisión de Jesse, 10-11-2026); sin stock no se vende
+  for (const [slug, unidades] of kits) {
+    const resultado = await tx.kit.updateMany({
+      where: { slug, stock: { gte: unidades } },
+      data: { stock: { decrement: unidades } },
+    });
+    if (resultado.count === 0) {
+      const kit = nombres?.kits.get(slug);
+      throw new ErrorPedido(
+        kit
+          ? kit.stock === 0
+            ? `Ahora mismo no nos quedan unidades de «${kit.nombre}». Estamos preparando más.`
+            : `No nos quedan suficientes unidades de «${kit.nombre}» (quedan ${kit.stock}).`
+          : "Ya no queda stock suficiente de alguno de los productos.",
+      );
+    }
+  }
+  for (const [slug, unidades] of componentes) {
     const resultado = await tx.componente.updateMany({
       where: { slug, stock: { gte: unidades } },
       data: { stock: { decrement: unidades } },
     });
     if (resultado.count === 0) {
-      const componente = nombres?.get(slug);
+      const componente = nombres?.componentes.get(slug);
       throw new ErrorPedido(
         componente
           ? `No nos quedan suficientes unidades de «${componente.nombre}» (quedan ${componente.stock}).`
@@ -181,12 +208,19 @@ async function reservarStock(
   }
 }
 
-/** Unidades de cada componente que se llevó un pedido guardado (para devolverlas o reservarlas) */
+/** Unidades de cada componente y de cada kit que se llevó un pedido guardado (para devolverlas o reservarlas) */
 function salidasDePedido(
   lineas: { tipo: string; slug: string | null; cantidad: number; piezas: unknown }[],
-) {
+): Salidas {
   const salidas = new Map<string, number>();
+  const kits = new Map<string, number>();
   for (const linea of lineas) {
+    if (linea.tipo === "KIT" && linea.slug) {
+      // Un pedido hecho antes de renombrar el kit guarda su slug viejo
+      const slug = slugKitActual(linea.slug);
+      kits.set(slug, (kits.get(slug) ?? 0) + linea.cantidad);
+      continue;
+    }
     const piezas =
       linea.tipo === "COMPONENTE" && linea.slug
         ? [{ slug: linea.slug, unidades: linea.cantidad }]
@@ -200,7 +234,7 @@ function salidasDePedido(
       salidas.set(slug, (salidas.get(slug) ?? 0) + unidades);
     }
   }
-  return salidas;
+  return { componentes: salidas, kits };
 }
 
 /**
@@ -245,11 +279,13 @@ export async function crearPedido(
   opciones: OpcionesPedido,
 ) {
   return transaccion(async (tx) => {
-    const { lineas, subtotalCentimos, salidas, componentePorSlug } = await calcularLineas(
+    const { lineas, subtotalCentimos, salidas, salidasKits, componentePorSlug, kitPorSlug } =
+      await calcularLineas(tx, articulos);
+    await reservarStock(
       tx,
-      articulos,
+      { componentes: salidas, kits: salidasKits },
+      { componentes: componentePorSlug, kits: kitPorSlug },
     );
-    await reservarStock(tx, salidas, componentePorSlug);
 
     // Envío, total e IVA calculados en el servidor (src/lib/precios.ts)
     const totales = calcularTotales(subtotalCentimos);
@@ -304,6 +340,8 @@ export type ResultadoPago = "pagado" | "ya-estaba-pagado" | "sin-stock" | "no-ex
 export async function marcarPedidoPagado(
   pedidoId: string,
   referenciaPago: string,
+  /** true solo con un cobro real de Stripe (livemode); los de prueba no cuentan en Finanzas */
+  cobroReal = false,
 ): Promise<ResultadoPago> {
   return transaccion(async (tx) => {
     const pedido = await tx.pedido.findUnique({
@@ -327,7 +365,7 @@ export async function marcarPedidoPagado(
     const ahora = new Date();
     const cambio = await tx.pedido.updateMany({
       where: { id: pedidoId, estado: estadoPrevio, pagadoEn: null },
-      data: { estado: "PAGADO", pagadoEn: ahora, referenciaPago, canceladoEn: null },
+      data: { estado: "PAGADO", pagadoEn: ahora, referenciaPago, cobroReal, canceladoEn: null },
     });
     if (cambio.count === 0) return "ya-estaba-pagado";
 
@@ -379,8 +417,12 @@ export async function cancelarPedido(
     });
     if (cambio.count === 0) return false;
 
-    for (const [slug, unidades] of salidasDePedido(pedido.lineas)) {
+    const devueltas = salidasDePedido(pedido.lineas);
+    for (const [slug, unidades] of devueltas.componentes) {
       await tx.componente.updateMany({ where: { slug }, data: { stock: { increment: unidades } } });
+    }
+    for (const [slug, unidades] of devueltas.kits) {
+      await tx.kit.updateMany({ where: { slug }, data: { stock: { increment: unidades } } });
     }
     await tx.codigoActivacion.updateMany({
       where: { pedidoId, usadoEn: null, desactivadoEn: null },

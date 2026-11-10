@@ -14,24 +14,38 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
+  MessageCircle,
   Newspaper,
+  PackageSearch,
   QrCode,
   ShoppingBag,
   Star,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Logo } from "@/components/marca/Logo";
+import { AvisosEquipo } from "@/components/mensajes/AvisosEquipo";
+import { ContadorMensajes } from "@/components/mensajes/ContadorMensajes";
 import { cn } from "@/lib/utils";
+
+/** Los mensajes del equipo (/mensajes): salen en las tres zonas, con el número de no leídos */
+const MENSAJES = { href: "/mensajes", etiqueta: "Mensajes", icono: MessageCircle };
+
+/** El stock (/stock): lo ve todo el equipo; solo administración lo cambia */
+const STOCK = { href: "/stock", etiqueta: "Stock", icono: PackageSearch };
 
 /** Secciones del panel. Para añadir una nueva, añádela aquí. */
 const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = [
   { href: "/admin", etiqueta: "Inicio", icono: LayoutDashboard },
+  MENSAJES,
   { href: "/admin/visitas", etiqueta: "Visitas", icono: ChartColumn },
   { href: "/admin/pedidos", etiqueta: "Pedidos", icono: ShoppingBag },
+  { href: "/admin/finanzas", etiqueta: "Finanzas", icono: Wallet },
   { href: "/admin/componentes", etiqueta: "Componentes", icono: Cpu },
   { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
+  STOCK,
   { href: "/admin/cursos", etiqueta: "Cursos", icono: BookOpen },
   { href: "/admin/codigos", etiqueta: "Códigos", icono: QrCode },
   { href: "/admin/contenido", etiqueta: "Contenido", icono: Clapperboard },
@@ -47,11 +61,15 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
 const seccionesEditor: typeof seccionesAdmin = [
   { href: "/editor", etiqueta: "Mis guiones", icono: Clapperboard },
   { href: "/editor/blog", etiqueta: "Mis artículos", icono: Newspaper },
+  MENSAJES,
+  STOCK,
 ];
 
 /** La zona de hardware: su espacio de archivos */
 const seccionesHardware: typeof seccionesAdmin = [
   { href: "/hardware", etiqueta: "Mi espacio", icono: FolderOpen },
+  MENSAJES,
+  STOCK,
 ];
 
 /**
@@ -104,15 +122,22 @@ export function MenuAdmin({
         </div>
       </div>
 
-      <nav aria-label="Secciones del panel" className="mt-3 lg:mt-8 lg:flex-1">
-        <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:px-3 lg:pb-0">
+      {/* En ordenador el menú ocupa justo la altura de la pantalla: si las secciones no caben,
+          se desplaza SOLO esta lista (rueda, panel táctil o arrastrando), y «Ver la tienda» y
+          «Cerrar sesión» se quedan siempre a la vista abajo. Antes la lista empujaba esa parte
+          fuera de la pantalla y la columna fija no dejaba llegar a ella. */}
+      <nav
+        aria-label="Secciones del panel"
+        className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin]"
+      >
+        <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3">
           {secciones.map(({ href, etiqueta, icono: Icono }) => (
             <li key={href} className="shrink-0">
               <Link
                 href={href}
                 aria-current={activa(href) ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors lg:py-1.5",
                   activa(href)
                     ? "bg-tinta text-white"
                     : "text-tinta/80 hover:bg-niebla hover:text-tinta",
@@ -120,13 +145,14 @@ export function MenuAdmin({
               >
                 <Icono aria-hidden="true" className="size-4" strokeWidth={1.8} />
                 {etiqueta}
+                {href === MENSAJES.href && <ContadorMensajes activo={activa(href)} />}
               </Link>
             </li>
           ))}
         </ul>
       </nav>
 
-      <div className="hidden border-t border-linea p-4 text-sm lg:block">
+      <div className="hidden shrink-0 border-t border-linea p-4 text-sm lg:block">
         <p className="truncate font-medium">{nombre}</p>
         <p className="truncate text-xs text-gris">{email}</p>
         <div className="mt-3 flex flex-col gap-1">
@@ -147,6 +173,8 @@ export function MenuAdmin({
           </button>
         </div>
       </div>
+      {/* Mensajes sin leer y alarmas de tareas (todo el equipo usa este menú) */}
+      <AvisosEquipo />
     </aside>
   );
 }
