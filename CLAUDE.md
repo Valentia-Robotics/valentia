@@ -115,12 +115,11 @@ tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de
   - **Toda la web uniforme**: `ui/CabeceraPagina` (campo azul con `CampoPixeles variante="cabecera"`, etiqueta, titular de
     cartel, entradilla serif) en kits, componentes, guías, blog, preguntas, carrito, checkout, cuenta, cursos, pedidos y legales
     (va FUERA del Contenedor). Login/registro/activar: tarjeta con sombra azul sobre el campo azul. Fichas: foto sobre campo azul.
-  - Pie: `PaisajePixeles` (noche: estrellas, luna, montañas, mar, tierra; medio transparente y fundido hacia arriba) detrás de
-    `BanderasPixeles` (Europa, Senyera en medio —solo barras y franja azul, sin corona, decisión del usuario— y España).
+  - Pie: `PaisajePixeles` (noche: estrellas, luna, montañas, mar, tierra; medio transparente y fundido hacia arriba).
+    Las banderas (`BanderasPixeles`) se quitaron el 10-11-2026 a petición del usuario.
   - **Ojo en local**: `npm run build` con `npm run dev` encendido deja la caché de desarrollo mal y la página se recarga
     sin parar. Parar el dev, construir y borrar `frontend/.next/dev` antes de volver a arrancar.
-  - **Pie negro** en toda la web (texto claro) con `BanderasPixeles`: píxeles que caen y forman las banderas de Europa,
-    España y la Senyera coronada, en sus mástiles, y luego ondean (antes eran edificios de València; lo cambió el usuario).
+  - **Pie negro** en toda la web (texto claro) con el paisaje de píxeles (sin banderas desde el 10-11-2026).
   - **Estilo en toda la web** desde lo compartido: radios a 2-4 px (tokens), `Boton` (relleno que se levanta con sombra
     recta; secundario punteado), `ui/Etiqueta` en mono, `.etiqueta-taller` (antes «text-sm … text-acento uppercase»),
     h1/h2 apretados, tarjetas de kit y componente con sombra recta azul, barra de navegación con línea de puntos.

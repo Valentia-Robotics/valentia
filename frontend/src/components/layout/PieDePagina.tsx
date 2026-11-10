@@ -4,12 +4,11 @@ import { Contenedor } from "@/components/ui/Contenedor";
 import { columnasPie, enlacesLegales, marca } from "@/config/marca";
 import { tienda } from "@/config/tienda";
 import { BotonConfigurarCookies } from "./BotonConfigurarCookies";
-import { BanderasPixeles } from "./BanderasPixeles";
 import { PaisajePixeles } from "./PaisajePixeles";
 
 /**
  * Pie de página en negro (sigue al último bloque oscuro de la portada sin corte): logo, columnas de
- * enlaces, © Valentia y, abajo del todo, las banderas de Europa, España y València en píxeles que ondean.
+ * enlaces, © Valentia y, abajo del todo, un paisaje nocturno de píxeles.
  */
 export function PieDePagina() {
   const anio = new Date().getFullYear();
@@ -47,12 +46,9 @@ export function PieDePagina() {
           </p>
         </div>
       </Contenedor>
-      {/* Las banderas sobre un paisaje de píxeles medio transparente (no un bloque negro plano) */}
-      <div className="relative isolate overflow-hidden pt-28 sm:pt-36">
+      {/* Paisaje de píxeles medio transparente (no un bloque negro plano) */}
+      <div className="relative isolate overflow-hidden pt-40 sm:pt-52">
         <PaisajePixeles />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-          <BanderasPixeles />
-        </div>
         <p className="relative flex h-10 items-center justify-center font-mono text-[0.7rem] text-white/70">
           Hecho en València, pieza a pieza
         </p>
