@@ -13,6 +13,14 @@ export const ROLES_EQUIPO: { rol: Rol; nombre: string; plural: string }[] = [
 
 export const esDelEquipo = (rol: Rol) => ROLES_EQUIPO.some((r) => r.rol === rol);
 
+/**
+ * Quién puede gestionar el CATÁLOGO del panel (/admin/componentes y /admin/kits): crear, editar,
+ * ocultar, publicar y borrar piezas y kits. Hardware también (petición del usuario, 10-11-2026);
+ * el resto del panel sigue siendo solo de ADMIN.
+ */
+export const ROLES_CATALOGO: Rol[] = ["ADMIN", "HARDWARE"];
+export const puedeGestionarCatalogo = (rol: Rol) => ROLES_CATALOGO.includes(rol);
+
 /** Cada cuánto se apunta, como mucho, la última conexión (para no escribir en la BD en cada clic) */
 export const MINUTOS_ENTRE_CONEXIONES = 2;
 

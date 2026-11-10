@@ -11,7 +11,7 @@ import { Caja } from "@/components/admin/Caja";
 import { Insignia } from "@/components/admin/Insignia";
 import { Tabla } from "@/components/admin/Tabla";
 import { listarKitsAdmin } from "@/lib/admin/kits";
-import { exigirAdmin } from "@/lib/sesion";
+import { exigirCatalogo } from "@/lib/sesion";
 import { plural, precioDeKit } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Kits" };
@@ -22,7 +22,7 @@ interface Props {
 
 /** KITS: lista con ventas, códigos y estado */
 export default async function KitsAdmin({ searchParams }: Props) {
-  await exigirAdmin("/admin/kits");
+  await exigirCatalogo("/admin/kits");
   const [kits, { borrado }] = await Promise.all([listarKitsAdmin(), searchParams]);
 
   return (

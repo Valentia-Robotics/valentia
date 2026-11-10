@@ -9,6 +9,7 @@ import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { auth } from "@/auth";
 import type { Rol } from "@/generated/prisma/enums";
+import { puedeGestionarCatalogo } from "@/config/equipo";
 import { db } from "@/lib/db";
 
 export interface UsuarioActual {
@@ -66,6 +67,26 @@ export async function exigirHardware(volver = "/hardware"): Promise<UsuarioActua
   return usuario;
 }
 
+/**
+ * Para las secciones del CATÁLOGO del panel (/admin/componentes y /admin/kits): ADMIN o HARDWARE
+ * (`ROLES_CATALOGO`). Se llama en CADA página de esas secciones; cualquier otro rol → 404.
+ */
+export async function exigirCatalogo(volver = "/admin/kits"): Promise<UsuarioActual> {
+  const usuario = await exigirUsuario(volver);
+  if (!puedeGestionarCatalogo(usuario.rol)) notFound();
+  return usuario;
+}
+
+/**
+ * Entrada al panel /admin (solo el layout): ADMIN o HARDWARE. Cada página sigue exigiendo lo suyo
+ * (exigirAdmin en casi todas; exigirCatalogo en componentes y kits), así que hardware solo ve esas dos.
+ */
+export async function exigirPanel(volver = "/admin"): Promise<UsuarioActual> {
+  const usuario = await exigirUsuario(volver);
+  if (usuario.rol !== "ADMIN" && usuario.rol !== "HARDWARE") notFound();
+  return usuario;
+}
+
 /** Error que lanzan las acciones del panel cuando quien las llama no es ADMIN */
 export class SinPermiso extends Error {
   constructor() {
@@ -81,6 +102,13 @@ export class SinPermiso extends Error {
 export async function exigirAdminEnAccion(): Promise<UsuarioActual> {
   const usuario = await obtenerUsuario();
   if (usuario?.rol !== "ADMIN") throw new SinPermiso();
+  return usuario;
+}
+
+/** Acciones del catálogo (componentes y kits): ADMIN o HARDWARE */
+export async function exigirCatalogoEnAccion(): Promise<UsuarioActual> {
+  const usuario = await obtenerUsuario();
+  if (!usuario || !puedeGestionarCatalogo(usuario.rol)) throw new SinPermiso();
   return usuario;
 }
 

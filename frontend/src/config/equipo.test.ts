@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enLinea, esDelEquipo, textoConexion } from "./equipo";
+import { enLinea, esDelEquipo, puedeGestionarCatalogo, textoConexion } from "./equipo";
 
 // 9 nov 2026, 15:00 en Madrid (14:00 UTC)
 const ahora = new Date("2026-11-09T14:00:00Z");
@@ -27,5 +27,14 @@ describe("última conexión del equipo", () => {
     expect(esDelEquipo("EDITOR")).toBe(true);
     expect(esDelEquipo("ADMIN")).toBe(true);
     expect(esDelEquipo("CLIENTE")).toBe(false);
+  });
+});
+
+describe("catálogo del panel (componentes y kits)", () => {
+  it("lo gestionan administración y hardware; nadie más", () => {
+    expect(puedeGestionarCatalogo("ADMIN")).toBe(true);
+    expect(puedeGestionarCatalogo("HARDWARE")).toBe(true);
+    expect(puedeGestionarCatalogo("EDITOR")).toBe(false);
+    expect(puedeGestionarCatalogo("CLIENTE")).toBe(false);
   });
 });

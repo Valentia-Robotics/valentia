@@ -36,6 +36,15 @@ pistas se cortan en la zona del texto (`zonaTexto`) y antes del robot y los engr
 ratón es una pista que se apaga. Fondo `.campo-cielo` (azul → blanco abajo) en portada, `CabeceraPagina`,
 `TarjetaCuenta` y `/activar`; máscaras `.mascara-abajo` / `.mascara-arriba` (final) en `globals.css`.
 
+### Hardware gestiona el catálogo (10-11-2026, rama `feature/hardware-catalogo`; petición del usuario)
+
+El rol HARDWARE entra en `/admin/componentes` y `/admin/kits` (crear, editar, ocultar, publicar y borrar), con el menú
+de su zona (Mi espacio · Componentes · Kits · Mensajes · Stock). `ROLES_CATALOGO` / `puedeGestionarCatalogo` en
+`src/config/equipo.ts`; `exigirCatalogo` y `exigirCatalogoEnAccion` en `sesion.ts` (páginas y acciones de esas dos
+secciones). El layout de `/admin` usa `exigirPanel` (ADMIN o HARDWARE): el resto de páginas siguen con `exigirAdmin`, así
+que a hardware le dan 404. Cursos siguen siendo solo de ADMIN: sin curso libre, hardware no puede crear un kit (el aviso
+de «Nuevo kit» le dice que lo pida). Página nueva del panel → SIEMPRE con su `exigirAdmin`/`exigirCatalogo`.
+
 ### Web más sencilla (10-11-2026, rama `diseno/estela-tecnologica`; el usuario aprobó las 8 propuestas)
 
 - Portada: héroe → aviso → **kits** (destacado + `GaleriaKits` con los DEMÁS: no se repite) → cómo funciona → piezas por

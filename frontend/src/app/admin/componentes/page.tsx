@@ -13,7 +13,7 @@ import { Insignia } from "@/components/admin/Insignia";
 import { Tabla } from "@/components/admin/Tabla";
 import { categorias, nombreCategoria } from "@/config/categorias";
 import { listarComponentesAdmin } from "@/lib/admin/componentes";
-import { exigirAdmin } from "@/lib/sesion";
+import { exigirCatalogo } from "@/lib/sesion";
 import { cn, formatearPrecio, plural } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Componentes" };
@@ -24,7 +24,7 @@ interface Props {
 
 /** COMPONENTES: lista con buscador y filtro por categoría */
 export default async function ComponentesAdmin({ searchParams }: Props) {
-  await exigirAdmin("/admin/componentes");
+  await exigirCatalogo("/admin/componentes");
   const p = await searchParams;
   const q = typeof p.q === "string" ? p.q : "";
   const categoria = categorias.find((c) => c.id === p.categoria)?.id;

@@ -65,9 +65,11 @@ const seccionesEditor: typeof seccionesAdmin = [
   STOCK,
 ];
 
-/** La zona de hardware: su espacio de archivos */
+/** La zona de hardware: su espacio de archivos y el catálogo (piezas y kits, en el panel) */
 const seccionesHardware: typeof seccionesAdmin = [
   { href: "/hardware", etiqueta: "Mi espacio", icono: FolderOpen },
+  { href: "/admin/componentes", etiqueta: "Componentes", icono: Cpu },
+  { href: "/admin/kits", etiqueta: "Kits", icono: Boxes },
   MENSAJES,
   STOCK,
 ];
@@ -128,7 +130,7 @@ export function MenuAdmin({
           fuera de la pantalla y la columna fija no dejaba llegar a ella. */}
       <nav
         aria-label="Secciones del panel"
-        className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin]"
+        className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:[scrollbar-width:thin] lg:overflow-y-auto lg:overscroll-contain"
       >
         <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3">
           {secciones.map(({ href, etiqueta, icono: Icono }) => (
