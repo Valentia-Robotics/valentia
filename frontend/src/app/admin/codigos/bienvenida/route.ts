@@ -3,6 +3,7 @@
  * Crea un lote nuevo de códigos del kit de bienvenida y devuelve al momento su ZIP para el láser, con el
  * mismo formato que el de los lotes de los kits. Lo usa el botón «Descargar ZIP de bienvenida» del panel.
  */
+import { tieneAccesoAdmin } from "@/config/equipo";
 import { MAXIMO_TARJETAS_BIENVENIDA, SLUG_KIT_BIENVENIDA } from "@/config/bienvenida";
 import { crearLote, obtenerLote } from "@/lib/admin/codigos";
 import { db } from "@/lib/db";
@@ -15,7 +16,7 @@ const texto = (mensaje: string, status: number) =>
 export async function POST(peticion: Request) {
   // Solo administradores; para los demás, como si no existiera
   const usuario = await obtenerUsuario();
-  if (usuario?.rol !== "ADMIN") return texto("No encontrado", 404);
+  if (!tieneAccesoAdmin(usuario?.rol)) return texto("No encontrado", 404);
 
   // Solo desde la propia web (otra página no puede pedir lotes en nombre del administrador)
   const sitio = peticion.headers.get("sec-fetch-site");

@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { Logo } from "@/components/marca/Logo";
 import { enlacesNavegacion, enSeccion, marca, type EnlaceNavegacion } from "@/config/marca";
-import { esDelEquipo } from "@/config/equipo";
+import { esDelEquipo, tieneAccesoAdmin } from "@/config/equipo";
 import { cn } from "@/lib/utils";
 import { BotonCarrito } from "./BotonCarrito";
 import { MenuUsuario } from "./MenuUsuario";
@@ -157,7 +157,7 @@ export function BarraNavegacion() {
                   {[
                     { href: "/activar", etiqueta: "Activar un kit" },
                     { href: "/cuenta", etiqueta: "Mi cuenta" },
-                    ...(sesion.user.rol === "ADMIN"
+                    ...(tieneAccesoAdmin(sesion.user.rol)
                       ? [{ href: "/admin", etiqueta: "Panel de administración" }]
                       : []),
                     ...(sesion.user.rol === "EDITOR"

@@ -5,6 +5,7 @@
  * Las usan /hardware (su dueño) y /admin/hardware (administradores): el permiso lo decide
  * src/lib/hardware/archivos.ts según quién llama, nunca lo que diga el formulario.
  */
+import { tieneAccesoAdmin } from "@/config/equipo";
 import { revalidatePath } from "next/cache";
 import { texto, type EstadoFormulario } from "@/lib/admin/formularios";
 import { borrarArchivo, borrarCarpeta, crearCarpetas, ErrorArchivo } from "@/lib/hardware/archivos";
@@ -13,7 +14,7 @@ import { obtenerUsuario, SinPermiso, type UsuarioActual } from "@/lib/sesion";
 /** Quién llama (solo hardware o admin) y de quién es el espacio: alguien de hardware, el suyo */
 async function quienYDonde(formulario: FormData): Promise<[UsuarioActual, string]> {
   const usuario = await obtenerUsuario();
-  if (!usuario || (usuario.rol !== "HARDWARE" && usuario.rol !== "ADMIN")) throw new SinPermiso();
+  if (!usuario || (usuario.rol !== "HARDWARE" && !tieneAccesoAdmin(usuario.rol))) throw new SinPermiso();
   return [usuario, usuario.rol === "HARDWARE" ? usuario.id : texto(formulario, "duenoId")];
 }
 
@@ -81,7 +82,7 @@ export async function borrarArchivoHardware(
   formulario: FormData,
 ): Promise<EstadoFormulario> {
   const usuario = await obtenerUsuario();
-  if (!usuario || (usuario.rol !== "HARDWARE" && usuario.rol !== "ADMIN")) throw new SinPermiso();
+  if (!usuario || (usuario.rol !== "HARDWARE" && !tieneAccesoAdmin(usuario.rol))) throw new SinPermiso();
   try {
     await borrarArchivo(usuario, texto(formulario, "archivoId"));
   } catch (error) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { tieneAccesoAdmin } from "@/config/equipo";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -18,7 +19,7 @@ export function ContadorVisitas() {
 
   useEffect(() => {
     // Espera a saber si hay sesión, para no contar al administrador
-    if (status === "loading" || sesion?.user?.rol === "ADMIN") return;
+    if (status === "loading" || tieneAccesoAdmin(sesion?.user?.rol)) return;
     if (navigator.webdriver || ruta === ultima.current) return;
     ultima.current = ruta;
 

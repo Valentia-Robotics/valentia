@@ -327,6 +327,9 @@ enum Rol {
   EDITOR
   /// Equipo de hardware: solo ve /hardware, su espacio de archivos
   HARDWARE
+  /// Mano derecha: los mismos accesos que ADMIN, pero por debajo (no toca cuentas de admin ni de
+  /// otros sigma, y solo un ADMIN le da o le quita el rol). Ver tieneAccesoAdmin en src/config/equipo.ts
+  SIGMA
 }
 
 /// Una persona con cuenta en Valentia

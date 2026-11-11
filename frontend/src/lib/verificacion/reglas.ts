@@ -23,6 +23,7 @@ export const DIAS_CONFIANZA: Record<Rol, number> = {
   ADMIN: 7,
   EDITOR: 7,
   HARDWARE: 7,
+  SIGMA: 7,
 };
 
 /** Segundos que vale el "pase" que convierte un dispositivo de confianza en una sesión */
