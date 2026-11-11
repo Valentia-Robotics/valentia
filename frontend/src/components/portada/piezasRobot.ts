@@ -40,7 +40,7 @@ export const PIEZAS_ROBOT: PiezaRobot[] = [
     id: "sensores",
     titulo: "Los sensores",
     texto: "Miran al suelo para seguir la línea y avisan si hay algo delante.",
-    direccion3d: [1.05, 0.3, 0],
+    direccion3d: [0.72, 0.3, 0],
     direccion2d: [110, -20],
   },
   {

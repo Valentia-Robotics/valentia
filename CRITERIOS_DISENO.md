@@ -43,3 +43,16 @@ Un 10 exige que cada punto tenga su nota máxima. Si alguno no la tiene, no se e
 
 - 11-11-2026 · Visor 3D, versión 1 (pieza negra de prueba, 5 botones, medidas y texto debajo): **4/10**.
   Jesse: «demasiado detalle y texto». Fallaban Sencillez y Realismo.
+- 11-11-2026 · Visor 3D, versión 2 (sin pestañas ni botones, gira sola, un botón «Medidas»): enseñada en el PR #106.
+- 11-11-2026 · Rediseño de la tienda pública, estilo «estudio» (portada con el coche VR1 en 3D que se abre al
+  bajar, kits en 3D en su ficha, cabeceras de papel, menos texto): **8/10**. Wow 1,5 · Realismo 1 · Sencillez 2 ·
+  Movimiento 1 · Sin IA 1 · Objetivo 1 · Calidad 0,5. Falta para el 10: los modelos reales de Alonso (los de
+  ahora están dibujados por código y no son hiperrealistas), fotos reales de los kits, las capturas de
+  visualizalo.es (bloqueada en la nube) y probarlo en un móvil de verdad. Se le enseña a Jesse porque lo pidió
+  para probarlo en su ordenador, diciéndole claro la nota y lo que falta.
+
+## Peticiones añadidas (11-11-2026, segunda tanda)
+
+11. **Todo muy ordenado:** cada cosa en su sitio, nada que aparezca de golpe, un solo mensaje por pantalla.
+12. **Poder probarlo en su ordenador (localhost), también en Windows,** antes de publicarlo.
+13. **Si el trabajo se corta por el límite de uso, seguir solo** en cuanto se restablezca.
