@@ -18,6 +18,15 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Visor 3D de las piezas (11-11-2026, rama `claude/project-thread-kanu9n`; petición de Jesse, parte 1 del rediseño de la tienda)
+
+Alonso subirá .obj/.stl de cada componente. Archivo en `public/modelos/componentes/<slug>.(glb|gltf|stl|obj)` (+ `.mtl`)
+y sale solo: `src/lib/modelos3d.ts` lee la carpeta (en dev en cada petición) y `ComponenteCatalogo.modelo3d` lo lleva
+al navegador. Ajustes opcionales (unidad, color, brillo, metal, giro) en `AJUSTES_MODELOS` (`src/config/modelos3d.ts` + test).
+`Visor3D` (three.js con `import()`, solo dibuja cuando algo cambia; girar, zoom, medidas ancho × fondo × alto en mm con
+CSS2DRenderer, pantalla completa; si falla o no hay WebGL, la foto). `FotoOModelo` («3D · Foto») en el detalle del
+configurador y en `/componentes/[slug]`; la tarjeta del configurador lleva la marca «3D». Guía: `public/modelos/componentes/LEEME.md`.
+
 ### Foto de perfil en grande (11-11-2026, rama `claude/project-thread-51a75i`; petición de Jesse)
 
 En Mensajes, pulsar la foto de alguien (lista de chats, cabecera del chat, General) la abre en grande:

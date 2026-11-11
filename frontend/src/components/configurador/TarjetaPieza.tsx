@@ -33,6 +33,12 @@ export function TarjetaPieza({ componente, enRobot, alAnadir, alVerDetalle }: Pr
         </span>
       )}
 
+      {componente.modelo3d && (
+        <span className="absolute top-3 right-3 z-10 rounded-control bg-white px-2 py-0.5 font-mono text-[11px] text-tinta ring-1 ring-linea">
+          3D
+        </span>
+      )}
+
       <div className="bg-niebla p-4">
         <Image
           src={componente.imagen}

@@ -6,6 +6,7 @@ import { ChevronLeft, SlidersHorizontal } from "lucide-react";
 import { GuiasRelacionadas } from "@/components/guias/GuiasRelacionadas";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
+import { FotoOModelo } from "@/components/tienda/FotoOModelo";
 import { TarjetaComponente } from "@/components/tienda/TarjetaComponente";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
@@ -84,19 +85,25 @@ export default async function PaginaComponente({ params }: Props) {
         </Link>
 
         <div className="mt-6 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          {/* La foto, sobre la placa verde (como las cabeceras de la web) */}
-          <div className="relative isolate overflow-hidden rounded-tarjeta bg-placa p-6 sm:p-10">
-            <CampoPixeles variante="cabecera" />
-            <Image
-              src={componente.imagen}
-              alt={`Foto de ${componente.nombre}`}
-              width={480}
-              height={480}
-              priority
-              unoptimized
-              className="relative mx-auto aspect-square h-auto w-full max-w-sm"
-            />
-          </div>
+          {/* La foto, sobre la placa verde (como las cabeceras de la web); con modelo 3D, también en 3D */}
+          <FotoOModelo
+            modelo={componente.modelo3d}
+            nombre={componente.nombre}
+            foto={
+              <div className="relative isolate overflow-hidden rounded-tarjeta bg-placa p-6 sm:p-10">
+                <CampoPixeles variante="cabecera" />
+                <Image
+                  src={componente.imagen}
+                  alt={`Foto de ${componente.nombre}`}
+                  width={480}
+                  height={480}
+                  priority
+                  unoptimized
+                  className="relative mx-auto aspect-square h-auto w-full max-w-sm"
+                />
+              </div>
+            }
+          />
 
           <div>
             <Etiqueta tono="acento">{nombreCategoria(componente.categoria)}</Etiqueta>
