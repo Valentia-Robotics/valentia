@@ -43,6 +43,7 @@ import {
   textoDia,
   trozosConEnlaces,
 } from "@/config/mensajes";
+import type { GifEncontrado } from "@/config/gifs";
 import type { Rol } from "@/generated/prisma/enums";
 import type { LecturaDeOtro, Mensaje } from "@/lib/mensajes/mensajes";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ import {
 } from "./OpcionesTarea";
 import { Avatar, nombreRol } from "./PantallaMensajes";
 import { SelectorEmojis } from "./SelectorEmojis";
+import { SelectorGifs } from "./SelectorGifs";
 import { TarjetaTarea } from "./TarjetaTarea";
 
 interface Props {
@@ -82,6 +84,8 @@ interface Envio {
   idLocal: string;
   texto: string;
   imagen: { archivo: File; url: string } | null;
+  /** Un GIF de GIPHY (se manda solo su id: el servidor lo descarga) */
+  gif?: GifEncontrado | null;
   tarea: OpcionesTareaValor | null;
   creadoEn: Date;
 }
@@ -93,17 +97,21 @@ const TODO_EL_EQUIPO = (() => {
   return `Todo el equipo: ${nombres.length ? `${nombres.join(", ")} y ${ultimo}` : ultimo}`;
 })();
 
-/** Manda un mensaje con imagen por /api/mensajes/enviar (las acciones no llevan archivos grandes) */
+/**
+ * Manda un mensaje con imagen (o con un GIF, por su id) por /api/mensajes/enviar (las acciones no
+ * llevan archivos grandes)
+ */
 async function enviarConImagen(
   ruta: string,
   texto: string,
-  imagen: File,
+  imagen: File | { gif: string },
   tarea: object | null,
 ): Promise<Respuesta> {
   const datos = new FormData();
   datos.set("chat", ruta);
   datos.set("texto", texto);
-  datos.set("imagen", imagen);
+  if (imagen instanceof File) datos.set("imagen", imagen);
+  else datos.set("gif", imagen.gif);
   if (tarea) datos.set("tarea", JSON.stringify(tarea));
   try {
     const respuesta = await fetch("/api/mensajes/enviar", { method: "POST", body: datos });
@@ -172,8 +180,12 @@ export function Chat(props: Props) {
       autorId: miId,
       autorNombre: "",
       texto: f.texto,
-      imagen: f.imagen ? { ancho: null, alto: null } : null,
-      vistaPrevia: f.imagen?.url,
+      imagen: f.gif
+        ? { ancho: f.gif.ancho, alto: f.gif.alto }
+        : f.imagen
+          ? { ancho: null, alto: null }
+          : null,
+      vistaPrevia: f.gif?.vistaPrevia ?? f.imagen?.url,
       creadoEn: f.creadoEn,
       esTarea: !!f.tarea,
       estadoTarea: "PENDIENTE" as const,
@@ -343,8 +355,12 @@ export function Chat(props: Props) {
         autorId: miId,
         autorNombre: "",
         texto: envio.texto,
-        imagen: envio.imagen ? { ancho: null, alto: null } : null,
-        vistaPrevia: envio.imagen?.url,
+        imagen: envio.gif
+          ? { ancho: envio.gif.ancho, alto: envio.gif.alto }
+          : envio.imagen
+            ? { ancho: null, alto: null }
+            : null,
+        vistaPrevia: envio.gif?.vistaPrevia ?? envio.imagen?.url,
         creadoEn: envio.creadoEn,
         esTarea: !!envio.tarea,
         estadoTarea: "PENDIENTE",
@@ -359,9 +375,11 @@ export function Chat(props: Props) {
       const datosTarea = envio.tarea && tareaParaEnviar(envio.tarea);
       let respuesta: Respuesta;
       try {
-        respuesta = envio.imagen
-          ? await enviarConImagen(ruta, envio.texto, envio.imagen.archivo, datosTarea)
-          : await enviarMensaje(ruta, envio.texto, datosTarea);
+        respuesta = envio.gif
+          ? await enviarConImagen(ruta, envio.texto, { gif: envio.gif.id }, datosTarea)
+          : envio.imagen
+            ? await enviarConImagen(ruta, envio.texto, envio.imagen.archivo, datosTarea)
+            : await enviarMensaje(ruta, envio.texto, datosTarea);
       } catch {
         respuesta = { ok: false, mensaje: "Sin conexión: no se ha podido enviar." };
       }
@@ -395,6 +413,19 @@ export function Chat(props: Props) {
       texto: limpio,
       imagen,
       tarea: esTarea ? opciones : null,
+      creadoEn: new Date(),
+    });
+  };
+
+  /** Un GIF se envía nada más elegirlo, solo (lo que estés escribiendo se queda en el cuadro) */
+  const enviarGif = (gif: GifEncontrado) => {
+    setError(null);
+    mandar({
+      idLocal: idLocalNuevo(),
+      texto: "",
+      imagen: null,
+      gif,
+      tarea: null,
       creadoEn: new Date(),
     });
   };
@@ -730,6 +761,7 @@ export function Chat(props: Props) {
               <ImagePlus aria-hidden="true" className="size-5" />
             </button>
             <SelectorEmojis elegir={meterEmoji} />
+            <SelectorGifs elegir={enviarGif} />
             <label className="sr-only" htmlFor="texto-mensaje">
               Mensaje
             </label>

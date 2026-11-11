@@ -18,6 +18,15 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### GIFs en el chat (11-11-2026, rama `claude/project-thread-mu0to6`; petición de Jesse)
+
+Botón **GIF** (`SelectorGifs`, junto a los emojis): GIFs del momento + buscador; al tocar uno se envía solo. Buscan en
+GIPHY desde el servidor (`GET /api/mensajes/gifs`, clave `GIPHY_API_KEY`; sin ella 503 `sinClave`). Tenor no: Google
+cerró su API en 2026. Reglas puras en `src/config/gifs.ts` (+ test), servidor en `src/lib/mensajes/gifs.ts` (caché
+10 min, límite `gifBusqueda`). Al enviar, `POST /api/mensajes/enviar` con `gif=<id>`: el servidor lo descarga (solo
+`*.giphy.com`, 15 MB) y lo guarda como imagen del chat (WebP animado, almacén privado): mismos tics, avisos y
+permisos. CSP `img-src` con `https://*.giphy.com` (vistas previas). `GIPHY_API_URL` solo para pruebas (GIPHY falso).
+
 ### Fotos de perfil que todos ven (11-11-2026, rama `claude/project-thread-n22cf7`; petición de Jesse)
 
 Las fotos de perfil iban al almacén de fotos del panel, que en Render es el disco (`ALMACEN_PROVEEDOR` local, sin R2

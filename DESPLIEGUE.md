@@ -353,6 +353,21 @@ volver a pulsar «Activar avisos».
 Los recordatorios de tareas suenan a su hora aunque nadie tenga la web abierta: el servidor lo
 mira solo cada minuto (usa `AUTH_SECRET`, que ya existe).
 
+## 6 septies. GIFs en los mensajes (GIPHY)
+
+El botón **GIF** del chat busca en GIPHY. Necesita una clave gratis:
+
+1. Entra en <https://developers.giphy.com> → **Create an Account** (o inicia sesión).
+2. **Create an App** → elige **API** (no SDK) → nombre «Valentia equipo» y una descripción corta.
+3. Copia la **API Key** que te da.
+4. Render → tu servicio → **Environment** → añade `GIPHY_API_KEY` con esa clave → **Save changes**
+   (Render vuelve a publicar la web solo).
+
+La clave de empezar («beta») deja unas 100 búsquedas por hora: de sobra para el equipo (la web
+además recuerda cada búsqueda 10 minutos). Si algún día se queda corta, en la misma página de
+GIPHY se pide la clave de producción (gratis). Sin la clave, el botón GIF explica que falta.
+Al enviar un GIF, la web lo descarga y lo guarda como una imagen más del chat (almacén privado).
+
 ## 7. Copias de seguridad
 
 El plan **M0 no hace copias automáticas**. Desde tu ordenador, con tu IP añadida temporalmente (§4):
