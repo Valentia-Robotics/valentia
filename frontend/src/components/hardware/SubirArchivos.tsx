@@ -1,7 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
+import {
+  useId,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+  type MouseEvent,
+} from "react";
 import { FileUp, FolderUp, Upload, X } from "lucide-react";
 import { Aviso } from "@/components/admin/Aviso";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
@@ -95,6 +102,42 @@ async function leerEntrada(
   }
 }
 
+/** Lo mínimo de la API del navegador para abrir carpetas (Chrome y Edge; TypeScript aún no la trae) */
+interface CarpetaDelNavegador {
+  kind: "directory";
+  name: string;
+  values(): AsyncIterable<CarpetaDelNavegador | ArchivoDelNavegador>;
+}
+interface ArchivoDelNavegador {
+  kind: "file";
+  name: string;
+  getFile(): Promise<File>;
+}
+type ConSelectorDeCarpetas = Window & {
+  showDirectoryPicker?: (opciones?: { mode?: "read" }) => Promise<CarpetaDelNavegador>;
+};
+
+/**
+ * Lee una carpeta abierta con showDirectoryPicker. A diferencia del <input webkitdirectory>, esta
+ * forma SÍ ve las carpetas vacías (el input solo da archivos). Las carpetas ocultas (.git…) no se abren.
+ */
+async function leerCarpetaDelNavegador(
+  carpeta: CarpetaDelNavegador,
+  ruta: string,
+  salida: Elegido[],
+  carpetas: string[],
+): Promise<void> {
+  carpetas.push(ruta);
+  for await (const hija of carpeta.values()) {
+    const rutaHija = `${ruta}/${hija.name}`;
+    if (hija.kind === "file") {
+      salida.push({ archivo: await hija.getFile(), ruta: rutaHija });
+    } else if (!hija.name.startsWith(".")) {
+      await leerCarpetaDelNavegador(hija, rutaHija, salida, carpetas);
+    }
+  }
+}
+
 /** Separa los archivos útiles de los que crea solo el ordenador */
 function prepararSeleccion(
   tipo: Seleccion["tipo"],
@@ -182,6 +225,30 @@ export function SubirArchivos({
     e.target.value = "";
     if (lista.length > 0) elegir(prepararSeleccion("carpeta", lista));
     else setErrores(["Esa carpeta está vacía."]);
+  }
+
+  /**
+   * «Elegir carpeta»: si el navegador sabe abrir carpetas (Chrome, Edge), se usa esa ventana, que
+   * también trae las subcarpetas vacías. Si no (Firefox, Safari), sigue el input de siempre.
+   */
+  async function abrirCarpeta(e: MouseEvent<HTMLLabelElement>) {
+    const selector = (window as ConSelectorDeCarpetas).showDirectoryPicker;
+    if (!selector || subiendo) return;
+    e.preventDefault();
+    let carpeta: CarpetaDelNavegador;
+    try {
+      carpeta = await selector.call(window, { mode: "read" });
+    } catch {
+      return; // ha cerrado la ventana sin elegir
+    }
+    const lista: Elegido[] = [];
+    const vistas: string[] = [];
+    try {
+      await leerCarpetaDelNavegador(carpeta, carpeta.name, lista, vistas);
+    } catch {
+      return setErrores(["No se ha podido leer esa carpeta. Prueba a arrastrarla aquí."]);
+    }
+    elegir(prepararSeleccion("carpeta", lista, vistas));
   }
 
   async function alSoltar(e: DragEvent<HTMLFormElement>) {
@@ -383,6 +450,7 @@ export function SubirArchivos({
             />
             <label
               htmlFor={idCarpeta}
+              onClick={abrirCarpeta}
               className={cn(
                 claseBoton,
                 "bg-white text-tinta ring-1 ring-linea hover:ring-tinta/40",
@@ -406,8 +474,7 @@ export function SubirArchivos({
             También puedes arrastrar archivos o carpetas aquí. Hasta {MAXIMO_MB_ARCHIVO} MB cada
             archivo; una carpeta se sube con todas sus subcarpetas (hasta {MAXIMO_ARCHIVOS_CARPETA}{" "}
             archivos). Para subir varias carpetas, elígelas una detrás de otra: se van sumando. Las
-            carpetas vacías solo llegan si las arrastras (el botón se las salta) o con «Nueva
-            carpeta».
+            carpetas vacías también se crean (en Firefox y Safari, solo arrastrándolas).
           </p>
         </div>
         <div>
