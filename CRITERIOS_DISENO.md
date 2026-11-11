@@ -20,7 +20,9 @@ Si algo baja de 10, se corrige y se vuelve a puntuar. Cada mensaje nuevo de Jess
    mande los modelos reales (.obj/.stl), se cambian por esos. Medidas, zoom y girar.
 9. **Nunca olvidar el objetivo de Valentia:** vender kits de robótica fáciles de montar (sin soldar) para
    todas las edades y, mientras la tienda esté cerrada, que la gente se apunte a la lista de espera.
-10. **Si algo no se puede hacer porque falta algo (un enlace, un archivo, un permiso), decírselo claro.**
+10. **Organización clara.** Un orden lógico de arriba abajo, cada cosa en su sitio y nada que aparezca
+    de golpe y sin sentido (en la web del chip verde «las cosas aparecían de repente sin organización»).
+11. **Si algo no se puede hacer porque falta algo (un enlace, un archivo, un permiso), decírselo claro.**
 
 Recordatorios de la memoria del proyecto: textos humanos, nunca de anuncio; pilas y cable USB incluidos;
 el coche se llama «Kit de coche robótico multifunción VR1 - Starter Kit»; montaje plug & play.
@@ -34,6 +36,7 @@ el coche se llama «Kit de coche robótico multifunción VR1 - Starter Kit»; mo
 | Sencillez | ¿Lo entendería a la primera un niño de 10 años y una persona de 70? ¿Sobra algún texto, botón o número? | 2 |
 | Movimiento | ¿Las animaciones son suaves, con sentido y van fluidas en un móvil normal? | 1 |
 | Sin IA | ¿Nada suena a plantilla o a texto de IA (degradados raros, adornos, «¡…!», etiquetas técnicas)? | 1 |
+| Orden | ¿Se entiende el recorrido de arriba abajo y nada aparece de golpe? (cuenta dentro de Sencillez) | — |
 | Objetivo | ¿Lleva a ver los kits y a apuntarse a la lista de espera sin perderse? | 1 |
 | Calidad | ¿Funciona en móvil y ordenador, sin errores, rápido y accesible? | 1 |
 
