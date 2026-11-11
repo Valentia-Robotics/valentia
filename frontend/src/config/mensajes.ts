@@ -150,6 +150,8 @@ export const RECORDATORIOS = [
   { valor: "entrega", nombre: "A la hora de entrega", minutosAntes: 0 },
   { valor: "15m", nombre: "15 minutos antes", minutosAntes: 15 },
   { valor: "1h", nombre: "1 hora antes", minutosAntes: 60 },
+  { valor: "4h", nombre: "4 horas antes", minutosAntes: 4 * 60 },
+  { valor: "10h", nombre: "10 horas antes", minutosAntes: 10 * 60 },
   { valor: "1d", nombre: "1 día antes", minutosAntes: 24 * 60 },
   { valor: "otra", nombre: "Otro día y hora…" },
 ] as const;

@@ -60,6 +60,8 @@ describe("mensajes del equipo", () => {
     const entrega = new Date("2026-11-10T17:00:00Z");
     expect(calcularRecordatorio("", entrega, null)).toBeNull();
     expect(calcularRecordatorio("1h", entrega, null)).toEqual(new Date("2026-11-10T16:00:00Z"));
+    expect(calcularRecordatorio("4h", entrega, null)).toEqual(new Date("2026-11-10T13:00:00Z"));
+    expect(calcularRecordatorio("10h", entrega, null)).toEqual(new Date("2026-11-10T07:00:00Z"));
     expect(calcularRecordatorio("entrega", entrega, null)).toEqual(entrega);
     expect(typeof calcularRecordatorio("15m", null, null)).toBe("string"); // falta la entrega
     const otra = new Date("2026-11-10T08:00:00Z");
