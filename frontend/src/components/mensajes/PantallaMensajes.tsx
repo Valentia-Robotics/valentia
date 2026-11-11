@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { MessagesSquare, Users } from "lucide-react";
+import { BellRing, MessagesSquare, Users } from "lucide-react";
 import { ROLES_EQUIPO, enLinea } from "@/config/equipo";
 import { cuandoEnLista } from "@/config/mensajes";
 import type { Conversacion } from "@/lib/mensajes/mensajes";
@@ -74,7 +74,16 @@ export function PantallaMensajes({
         )}
       >
         <header className="border-b border-linea px-4 py-4">
-          <h1 className="text-xl font-medium">Mensajes</h1>
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-xl font-medium">Mensajes</h1>
+            <Link
+              href="/mensajes/avisos"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-gris hover:bg-niebla hover:text-tinta"
+            >
+              <BellRing aria-hidden="true" className="size-4" />
+              Avisos
+            </Link>
+          </div>
           <p className="text-xs text-gris">
             Solo los ve el equipo. Los privados, solo sus dos personas.
           </p>

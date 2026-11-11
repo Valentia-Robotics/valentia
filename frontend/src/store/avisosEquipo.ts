@@ -15,16 +15,26 @@ export interface Alarma {
   entrega: string | null;
 }
 
+/** El último mensaje sin leer (para la tarjeta «Nuevo mensaje de…») */
+export interface UltimoMensaje {
+  id: string;
+  de: string;
+  texto: string;
+  ruta: string;
+}
+
 interface Estado {
   total: number;
   alarmas: Alarma[];
-  poner: (datos: { total: number; alarmas: Alarma[] }) => void;
+  ultimo: UltimoMensaje | null;
+  poner: (datos: { total: number; alarmas: Alarma[]; ultimo?: UltimoMensaje | null }) => void;
   quitarAlarma: (id: string) => void;
 }
 
 export const useAvisosEquipo = create<Estado>((set) => ({
   total: 0,
   alarmas: [],
-  poner: ({ total, alarmas }) => set({ total, alarmas }),
+  ultimo: null,
+  poner: ({ total, alarmas, ultimo = null }) => set({ total, alarmas, ultimo }),
   quitarAlarma: (id) => set((e) => ({ alarmas: e.alarmas.filter((a) => a.id !== id) })),
 }));

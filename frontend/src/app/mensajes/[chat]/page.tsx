@@ -47,6 +47,7 @@ export default async function PaginaChat({ params }: Props) {
         mensajes={abierto.mensajes}
         huella={huella}
         personas={personas}
+        lecturas={abierto.lecturas}
       />
     </PantallaMensajes>
   );

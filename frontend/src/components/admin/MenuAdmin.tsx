@@ -174,7 +174,7 @@ export function MenuAdmin({
         </div>
       </div>
       {/* Mensajes sin leer y alarmas de tareas (todo el equipo usa este menú) */}
-      <AvisosEquipo />
+      <AvisosEquipo email={email} />
     </aside>
   );
 }

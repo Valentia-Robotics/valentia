@@ -7,31 +7,10 @@
  */
 import { after } from "next/server";
 import { esDelEquipo } from "@/config/equipo";
-import { datosPrioridad, textoFechaTarea } from "@/config/mensajes";
-import { enviarCorreo } from "@/lib/correo";
-import { plantillaRecordatorioTarea } from "@/lib/correo/plantillas";
-import { misAlarmas, recordatoriosPorEnviar, totalNoLeidos } from "@/lib/mensajes/mensajes";
+import { textoFechaTarea } from "@/config/mensajes";
+import { misAlarmas, totalNoLeidos, ultimoSinLeer } from "@/lib/mensajes/mensajes";
+import { mandarRecordatorios } from "@/lib/mensajes/recordatorios";
 import { obtenerUsuario } from "@/lib/sesion";
-
-async function mandarRecordatorios() {
-  try {
-    for (const t of await recordatoriosPorEnviar()) {
-      await enviarCorreo(
-        plantillaRecordatorioTarea({
-          para: t.destino.email,
-          nombre: t.destino.nombre,
-          texto: t.texto,
-          de: t.autorNombre,
-          entrega: t.entregaEn ? textoFechaTarea(t.entregaEn) : null,
-          prioridad: datosPrioridad(t.prioridad)?.nombre ?? null,
-          ruta: t.ruta,
-        }),
-      );
-    }
-  } catch (error) {
-    console.error("[mensajes] No se han podido mandar los recordatorios.", error);
-  }
-}
 
 export async function GET() {
   const yo = await obtenerUsuario();
@@ -40,10 +19,15 @@ export async function GET() {
   }
   // Después de responder, para no hacer esperar al menú
   after(mandarRecordatorios);
-  const [total, alarmas] = await Promise.all([totalNoLeidos(yo), misAlarmas(yo)]);
+  const [total, alarmas, ultimo] = await Promise.all([
+    totalNoLeidos(yo),
+    misAlarmas(yo),
+    ultimoSinLeer(yo),
+  ]);
   return Response.json(
     {
       total,
+      ultimo,
       alarmas: alarmas.map((a) => ({
         id: a.id,
         ruta: a.ruta,
