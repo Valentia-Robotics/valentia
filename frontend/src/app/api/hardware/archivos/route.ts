@@ -4,6 +4,7 @@
  * (codificado con encodeURIComponent). Lo usa el botón «Subir archivos» (SubirArchivos.tsx).
  * Va por /api para no pasar por el proxy (que corta los cuerpos grandes).
  */
+import { tieneAccesoAdmin } from "@/config/equipo";
 import { revalidatePath } from "next/cache";
 import { MAXIMO_BYTES_ARCHIVO, MAXIMO_MB_ARCHIVO } from "@/config/hardware";
 import { leerBytes } from "@/lib/cuerpoLimitado";
@@ -17,7 +18,7 @@ const respuesta = (cuerpo: object, status: number) =>
 
 export async function POST(peticion: Request) {
   const usuario = await obtenerUsuario();
-  if (!usuario || (usuario.rol !== "HARDWARE" && usuario.rol !== "ADMIN")) {
+  if (!usuario || (usuario.rol !== "HARDWARE" && !tieneAccesoAdmin(usuario.rol))) {
     return respuesta({ error: "No encontrado" }, 404);
   }
   if (!mismoSitio(peticion)) return respuesta({ error: "No permitido" }, 403);

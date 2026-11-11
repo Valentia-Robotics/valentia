@@ -19,7 +19,7 @@ import {
   type Estado,
   type Prioridad,
 } from "@/config/mensajes";
-import { esDelEquipo, ROLES_EQUIPO } from "@/config/equipo";
+import { esDelEquipo, ROLES_EQUIPO, tieneAccesoAdmin } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
 import { borrarPrivado } from "@/lib/almacenamiento/privado";
 import { db } from "@/lib/db";
@@ -634,7 +634,7 @@ export async function listarTareas(yo: UsuarioActual): Promise<TareaEnLista[]> {
 export async function borrarMensaje(yo: UsuarioActual, mensajeId: string) {
   const mensaje = await mensajeVisible(yo, mensajeId);
   const puede =
-    mensaje.autorId === yo.id || (mensaje.canal === CANAL_GENERAL && yo.rol === "ADMIN");
+    mensaje.autorId === yo.id || (mensaje.canal === CANAL_GENERAL && tieneAccesoAdmin(yo.rol));
   if (!puede) throw new ErrorMensaje("Solo puedes borrar tus mensajes.");
   await db.mensajeEquipo.delete({ where: { id: mensaje.id } });
   // La imagen también se borra del almacén (si falla, el mensaje ya no existe y nadie puede verla)

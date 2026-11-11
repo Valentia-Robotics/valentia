@@ -67,6 +67,16 @@ Campo nuevo `Usuario.foto` (opcional, en `OPCIONALES`). `comprobarSesion` devuel
 `MenuUsuario`, el menú móvil y los chats de `/mensajes` (`Avatar` con `foto`). Hacer ADMIN a alguien sigue siendo
 `npm run admin -- email` (en Render: Shell), no desde el panel.
 
+### Rol «Sigma» (11-11-2026, rama `feature/rol-sigma`; petición del usuario)
+
+Para un compañero con los mismos accesos que un admin, pero por debajo. Enum `Rol.SIGMA` (en `ROLES_EQUIPO`,
+`DIAS_CONFIANZA` 7). `tieneAccesoAdmin(rol)` (ADMIN o SIGMA) en `src/config/equipo.ts` es la comprobación del panel:
+`exigirAdmin`, `exigirAdminEnAccion`, descargas (CSV, láser, bienvenida), stock, hardware, borrar en el General, menús.
+`esJefe(rol)` = solo ADMIN. Lo único que no puede un SIGMA: dar o quitar SIGMA (lo hace un ADMIN en `/admin/usuarios`:
+«Hacer sigma» en un cliente, «Quitar sigma» → cliente) y tocar cuentas de administración (ADMIN u otro SIGMA) salvo
+la suya (`puedeTocar` en `admin/usuarios/acciones.ts`). Puede ser «también editor». Los correos de pedidos nuevos
+siguen yendo solo a los ADMIN. **Rol nuevo con acceso al panel → usar `tieneAccesoAdmin`, nunca `rol === "ADMIN"`.**
+
 ### «Mis guiones», admin que también edita y «Editora» (10-11-2026, rama `feature/mis-guiones`; petición del usuario)
 
 - `/editor` es el espacio de trabajo: lo asignado + **ideas propias** (origen `EDITOR`, `creadoPorId` = autor,

@@ -1,3 +1,4 @@
+import { tieneAccesoAdmin } from "@/config/equipo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Check, CircleCheck, CircleX, Clock, Truck } from "lucide-react";
@@ -51,7 +52,7 @@ export default async function PaginaPedido({ params, searchParams }: Props) {
     usuario !== null &&
     (pedido.usuarioId === usuario.id ||
       (pedido.usuarioId === null && pedido.email === usuario.email));
-  if (!esSuyo && usuario?.rol !== "ADMIN" && !tokenValido(pedido.id, t)) notFound();
+  if (!esSuyo && !tieneAccesoAdmin(usuario?.rol) && !tokenValido(pedido.id, t)) notFound();
 
   const pagado = pedido.pagadoEn !== null && pedido.estado !== "CANCELADO";
   const pendiente = pedido.estado === "PENDIENTE";

@@ -2,6 +2,7 @@
  * Descarga de los ingresos y gastos del periodo en CSV (Excel o Google Sheets),
  * por ejemplo para pasárselo a la gestoría. Solo para ADMIN: sin permiso, 404.
  */
+import { tieneAccesoAdmin } from "@/config/equipo";
 import { diaEnEspana, leerPeriodo, nombreCategoria, periodoEnTexto } from "@/config/finanzas";
 import { obtenerFinanzas } from "@/lib/admin/finanzas";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -17,7 +18,7 @@ const euros = (centimos: number) => (centimos / 100).toFixed(2).replace(".", ","
 
 export async function GET(request: Request) {
   const usuario = await obtenerUsuario();
-  if (usuario?.rol !== "ADMIN") return new Response("No encontrado", { status: 404 });
+  if (!tieneAccesoAdmin(usuario?.rol)) return new Response("No encontrado", { status: 404 });
 
   const periodo = leerPeriodo(new URL(request.url).searchParams.get("periodo"));
   const { movimientos } = await obtenerFinanzas(periodo);

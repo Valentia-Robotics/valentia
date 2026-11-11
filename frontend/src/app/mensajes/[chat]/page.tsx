@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Chat } from "@/components/mensajes/Chat";
 import { PantallaMensajes } from "@/components/mensajes/PantallaMensajes";
-import { esDelEquipo } from "@/config/equipo";
+import { esDelEquipo, tieneAccesoAdmin } from "@/config/equipo";
 import { abrirChat, companeros, huellaChat, listarConversaciones } from "@/lib/mensajes/mensajes";
 import { exigirUsuario } from "@/lib/sesion";
 
@@ -42,7 +42,7 @@ export default async function PaginaChat({ params }: Props) {
         rol={abierto.otro?.rol ?? null}
         ultimaConexionEn={abierto.otro?.ultimaConexionEn ?? null}
         miId={yo.id}
-        soyAdmin={yo.rol === "ADMIN"}
+        soyAdmin={tieneAccesoAdmin(yo.rol)}
         puedeEscribir={abierto.puedeEscribir}
         mensajes={abierto.mensajes}
         huella={huella}

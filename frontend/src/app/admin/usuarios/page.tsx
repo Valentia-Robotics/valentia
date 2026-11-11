@@ -8,7 +8,14 @@ import { Caja } from "@/components/admin/Caja";
 import { Insignia } from "@/components/admin/Insignia";
 import { leerPagina, Paginacion } from "@/components/admin/Paginacion";
 import { Tabla } from "@/components/admin/Tabla";
-import { esDelEquipo, nombreEditor, nombreRol, textoConexion } from "@/config/equipo";
+import {
+  esDelEquipo,
+  esJefe,
+  nombreEditor,
+  nombreRol,
+  textoConexion,
+  tieneAccesoAdmin,
+} from "@/config/equipo";
 import { fecha } from "@/lib/admin/formato";
 import { buscarUsuarios } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
@@ -24,7 +31,7 @@ interface Props {
 
 /** USUARIOS: lista con buscador por email o nombre */
 export default async function UsuariosAdmin({ searchParams }: Props) {
-  await exigirAdmin("/admin/usuarios");
+  const yo = await exigirAdmin("/admin/usuarios");
   const parametros = await searchParams;
   const q = typeof parametros.q === "string" ? parametros.q : "";
   const pagina = leerPagina(parametros.pagina);
@@ -77,7 +84,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                         {nombreRol(u.rol, u.rolFemenino)}
                       </Insignia>
                     )}{" "}
-                    {u.rol === "ADMIN" && u.tambienEditor && (
+                    {tieneAccesoAdmin(u.rol) && u.tambienEditor && (
                       <Insignia tono="aviso">
                         También {nombreEditor(u.rolFemenino).toLowerCase()}
                       </Insignia>
@@ -106,7 +113,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                 </td>
                 <td className="tabular-nums">{u.pedidos}</td>
                 <td className="text-right">
-                  <BotonesRol usuario={u} />
+                  <BotonesRol usuario={u} yo={yo} />
                 </td>
               </tr>
             </Fragment>
@@ -126,6 +133,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
 /** Color de la etiqueta de cada puesto */
 const TONO_ROL: Partial<Record<Rol, "acento" | "aviso" | "exito">> = {
   ADMIN: "acento",
+  SIGMA: "acento",
   EDITOR: "aviso",
   HARDWARE: "exito",
 };
@@ -142,12 +150,16 @@ interface UsuarioFila {
  * Botones de cada fila:
  *   - Cliente: hacer editor, hacer editora o hacer hardware.
  *   - Editor o hardware: quitar el puesto (vuelve a cliente). Una persona, un rol.
- *   - Administrador: hacerle también editor/editora, o quitárselo. Su rol de admin no se toca aquí.
+ *   - Administrador o sigma: hacerle también editor/editora, o quitárselo. Su rol de admin no se toca aquí.
  *   - Editor y administrador: cambiar cómo se dice su puesto (masculino o femenino).
+ *   - Sigma: solo un ADMIN lo da («Hacer sigma» en un cliente) o lo quita. Un sigma no ve botones en
+ *     las cuentas de administración (ADMIN u otro sigma), salvo en la suya.
  */
-function BotonesRol({ usuario }: { usuario: UsuarioFila }) {
+function BotonesRol({ usuario, yo }: { usuario: UsuarioFila; yo: { id: string; rol: Rol } }) {
   const { id: usuarioId, nombre, rol } = usuario;
   const comun = { variante: "secundario" as const, pequeno: true };
+  const jefe = esJefe(yo.rol);
+  if (tieneAccesoAdmin(rol) && !jefe && usuarioId !== yo.id) return null;
 
   const botonForma = (rol === "EDITOR" || rol === "ADMIN") && (
     <BotonConfirmar
@@ -162,8 +174,9 @@ function BotonesRol({ usuario }: { usuario: UsuarioFila }) {
     </BotonConfirmar>
   );
 
-  if (rol === "ADMIN") {
+  if (tieneAccesoAdmin(rol)) {
     const editorA = nombreEditor(usuario.rolFemenino).toLowerCase();
+    const puestoAdmin = rol === "SIGMA" ? "sigma" : "administrador";
     return (
       <div className="flex flex-wrap justify-end gap-2">
         {usuario.tambienEditor ? (
@@ -172,7 +185,7 @@ function BotonesRol({ usuario }: { usuario: UsuarioFila }) {
             accion={cambiarTambienEditor}
             datos={{ usuarioId, dar: "no" }}
             titulo={`Quitar «también ${editorA}»`}
-            texto={`${nombre} sigue siendo administrador, pero deja de tener «Mis guiones» y de salir al asignar guiones.`}
+            texto={`${nombre} sigue siendo ${puestoAdmin}, pero deja de tener «Mis guiones» y de salir al asignar guiones.`}
             confirmar="Sí, quitar"
           >
             Quitar {editorA}
@@ -183,13 +196,25 @@ function BotonesRol({ usuario }: { usuario: UsuarioFila }) {
             accion={cambiarTambienEditor}
             datos={{ usuarioId, dar: "si" }}
             titulo={`Hacer también ${editorA}`}
-            texto={`${nombre} sigue siendo administrador y, además, tendrá «Mis guiones» en su menú: podrá escribir sus propias ideas y le podrás asignar guiones.`}
+            texto={`${nombre} sigue siendo ${puestoAdmin} y, además, tendrá «Mis guiones» en su menú: podrá escribir sus propias ideas y le podrás asignar guiones.`}
             confirmar="Sí, hacer"
           >
             Hacer también {editorA}
           </BotonConfirmar>
         )}
         {botonForma}
+        {rol === "SIGMA" && jefe && (
+          <BotonConfirmar
+            {...comun}
+            accion={cambiarRolTrabajo}
+            datos={{ usuarioId, rol: "SIGMA", dar: "no" }}
+            titulo="Quitar el rol de sigma"
+            texto={`${nombre} ${QUE_HACE.SIGMA.quitar}`}
+            confirmar="Sí, quitar"
+          >
+            Quitar sigma
+          </BotonConfirmar>
+        )}
       </div>
     );
   }
@@ -199,6 +224,8 @@ function BotonesRol({ usuario }: { usuario: UsuarioFila }) {
       { rol: "EDITOR", femenino: false, texto: "editor" },
       { rol: "EDITOR", femenino: true, texto: "editora" },
       { rol: "HARDWARE", femenino: false, texto: "hardware" },
+      // SIGMA: solo lo da un ADMIN
+      ...(jefe ? [{ rol: "SIGMA", femenino: false, texto: "sigma" } as const] : []),
     ] as const;
     return (
       <div className="flex flex-wrap justify-end gap-2">
@@ -248,5 +275,9 @@ const QUE_HACE = {
     dar: "tendrá su espacio de archivos en /hardware (solo lo veréis esa persona y tú).",
     quitar:
       "dejará de ver su espacio y volverá a ser cliente. Sus archivos NO se borran: los sigues viendo en Hardware.",
+  },
+  SIGMA: {
+    dar: "tendrá los mismos accesos que un administrador en todo el panel, pero por debajo de ti: no podrá cambiar nada de las cuentas de administración ni dar o quitar el rol de sigma.",
+    quitar: "deja de entrar en el panel de administración y vuelve a ser cliente.",
   },
 } as const;

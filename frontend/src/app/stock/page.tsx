@@ -1,3 +1,4 @@
+import { tieneAccesoAdmin } from "@/config/equipo";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,7 +30,7 @@ const FILTROS = [
 /** STOCK: cuánto queda de cada kit y de cada componente, y qué hay que pedir */
 export default async function PaginaStock({ searchParams }: Props) {
   const yo = await exigirUsuario("/stock");
-  const puedeCambiar = yo.rol === "ADMIN";
+  const puedeCambiar = tieneAccesoAdmin(yo.rol);
   const p = await searchParams;
   const ver = FILTROS.find((f) => f.id && f.id === p.ver)?.id;
 
