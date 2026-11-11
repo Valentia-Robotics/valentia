@@ -131,15 +131,25 @@ const ordenNatural = new Intl.Collator("es-ES", { numeric: true, sensitivity: "b
 /**
  * Lo que se ve al abrir una carpeta en el explorador del espacio ("" = la carpeta principal):
  * sus subcarpetas (solo el primer nivel, con lo que llevan dentro) y sus archivos sueltos.
- * Una carpeta existe si tiene algún archivo dentro, aunque sea en una subcarpeta suya.
+ * Una carpeta existe si tiene algún archivo dentro (aunque sea en una subcarpeta suya) o si está
+ * guardada (`guardadas`: creada con «Nueva carpeta» o subida vacía).
  */
 export function verCarpeta<T extends { carpeta: string; tamano: number; nombre: string }>(
   todos: T[],
   ruta: string,
+  /** Carpetas creadas a mano o subidas vacías: salen aunque no tengan nada dentro */
+  guardadas: string[] = [],
 ): { carpetas: ResumenCarpeta[]; archivos: T[] } {
   const prefijo = ruta ? `${ruta}/` : "";
   const carpetas = new Map<string, ResumenCarpeta>();
   const archivos: T[] = [];
+  for (const guardada of guardadas) {
+    if (!guardada.startsWith(prefijo) || guardada === ruta) continue;
+    const nombre = guardada.slice(prefijo.length).split("/")[0];
+    if (nombre && !carpetas.has(nombre)) {
+      carpetas.set(nombre, { nombre, ruta: prefijo + nombre, archivos: 0, bytes: 0 });
+    }
+  }
   for (const archivo of todos) {
     if (archivo.carpeta === ruta) {
       archivos.push(archivo);
@@ -167,4 +177,19 @@ export function verCarpeta<T extends { carpeta: string; tamano: number; nombre: 
 export function migasDeCarpeta(ruta: string): { nombre: string; ruta: string }[] {
   const partes = ruta.split("/").filter(Boolean);
   return partes.map((nombre, i) => ({ nombre, ruta: partes.slice(0, i + 1).join("/") }));
+}
+
+/** "Coche/PCB/Gerbers" → ["Coche", "Coche/PCB", "Coche/PCB/Gerbers"]: una carpeta y todas sus de arriba */
+export function conCarpetasDeArriba(rutas: string[]): string[] {
+  const todas = new Set<string>();
+  for (const ruta of rutas) {
+    const partes = ruta.split("/").filter(Boolean);
+    for (let i = 1; i <= partes.length; i++) todas.add(partes.slice(0, i).join("/"));
+  }
+  return [...todas];
+}
+
+/** ¿Está `ruta` dentro de `carpeta` (o es ella misma)? "Coche/PCB" está en "Coche"; "Cochera" no */
+export function estaDentroDe(ruta: string, carpeta: string): boolean {
+  return ruta === carpeta || ruta.startsWith(`${carpeta}/`);
 }
