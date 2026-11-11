@@ -51,7 +51,7 @@ describe("fotos de perfil", () => {
     const datos = [...guardadas.values()][0];
     const { width, height, format } = await sharp(datos).metadata();
     expect([width, height, format]).toEqual([LADO_FOTO_PERFIL, LADO_FOTO_PERFIL, "webp"]);
-    expect(datos.length).toBeLessThan(30_000);
+    expect(datos.length).toBeLessThan(100_000);
 
     await borrarFotoPerfil(url);
     expect(guardadas.size).toBe(0);

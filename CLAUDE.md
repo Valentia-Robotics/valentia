@@ -18,6 +18,13 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Foto de perfil en grande (11-11-2026, rama `claude/project-thread-51a75i`; petición de Jesse)
+
+En Mensajes, pulsar la foto de alguien (lista de chats, cabecera del chat, General) la abre en grande:
+`FotoAmpliable` (dentro de `Avatar`). Cierra con X, tocando fuera o Esc. En la lista abre la foto, no el chat (span
+`role="button"` + ventana en `<body>` con `createPortal`). Sin foto (o si no carga), no hace nada. Fotos nuevas a 512 px
+(`LADO_FOTO_PERFIL`; antes 192, esas se ven algo borrosas en grande hasta que se vuelvan a subir).
+
 ### GIFs en el chat (11-11-2026, rama `claude/project-thread-mu0to6`; petición de Jesse)
 
 Botón **GIF** (`SelectorGifs`, junto a los emojis): GIFs del momento + buscador; al tocar uno se envía solo. Buscan en
