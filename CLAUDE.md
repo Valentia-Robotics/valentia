@@ -200,7 +200,7 @@ que las fotos) y cada espacio lo ven **solo su dueño y los ADMIN**.
   `hardwareSubida` 1000/hora.
 - Carpetas vacías (Jesse, 11-11-2026): modelo `CarpetaHardware` (dueño + ruta, único) para que una carpeta salga aunque
   no tenga archivos (`verCarpeta(…, guardadas)`). Se crean con «Nueva carpeta» (`NuevaCarpeta`), al subir una carpeta
-  (todas sus subcarpetas; las vacías solo arrastrando: `webkitdirectory` se las salta) y al borrar el último archivo.
+  (todas sus subcarpetas, también las vacías: «Elegir carpeta» usa `showDirectoryPicker` en Chrome/Edge; `webkitdirectory`, el de Firefox/Safari, se las salta) y al borrar el último archivo.
   «Borrar» en cada carpeta: `borrarCarpeta` borra todo lo de dentro (almacén y lista; la de arriba se queda). Se pueden
   elegir varias carpetas una detrás de otra (se suman). Subir un archivo igual (nombre, carpeta y tamaño) no lo repite
   (la API responde 200 con `repetido`): volver a subir una carpeta entera solo trae lo que faltaba.
