@@ -48,7 +48,11 @@ export const CATEGORIAS_INICIALES = [
   "Proyectos maker",
 ];
 
-export type ActorGuion = "ADMIN" | "EDITOR";
+/**
+ * ADMIN = administración · EDITOR = el editor que tiene el guion asignado ·
+ * AUTOR = el editor que escribió una idea propia (origen EDITOR), mientras aún no está aprobada
+ */
+export type ActorGuion = "ADMIN" | "EDITOR" | "AUTOR";
 
 /** Cambios de estado permitidos y quién puede hacerlos. Asignar tiene su propia función. */
 const TRANSICIONES: { de: EstadoGuion; a: EstadoGuion; quien: ActorGuion }[] = [
@@ -60,6 +64,12 @@ const TRANSICIONES: { de: EstadoGuion; a: EstadoGuion; quien: ActorGuion }[] = [
   { de: "EN_PROGRESO", a: "ENTREGADO", quien: "EDITOR" },
   { de: "ENTREGADO", a: "COMPLETADO", quien: "ADMIN" },
   { de: "ENTREGADO", a: "EN_PROGRESO", quien: "ADMIN" },
+  // Ideas propias del editor: las envía a revisión, las retira para seguir escribiendo,
+  // las archiva (no se borran) y las recupera
+  { de: "BORRADOR", a: "PENDIENTE_APROBACION", quien: "AUTOR" },
+  { de: "PENDIENTE_APROBACION", a: "BORRADOR", quien: "AUTOR" },
+  { de: "BORRADOR", a: "DESCARTADO", quien: "AUTOR" },
+  { de: "DESCARTADO", a: "BORRADOR", quien: "AUTOR" },
 ];
 
 export function puedeCambiar(de: EstadoGuion, a: EstadoGuion, quien: ActorGuion): boolean {
@@ -90,3 +100,78 @@ export const ESTADOS_DE_TRABAJO: EstadoGuion[] = ["ASIGNADO", "EN_PROGRESO"];
 
 /** Con guiones en estos estados no se le puede quitar el rol a un editor: antes hay que reasignarlos */
 export const ESTADOS_ACTIVOS: EstadoGuion[] = ["ASIGNADO", "EN_PROGRESO", "ENTREGADO"];
+
+/**
+ * Estados en los que el editor ve sus ideas propias (origen EDITOR, escritas por él) mientras nadie
+ * se las asigna. Aprobada y asignada, la idea pasa a ser un guion asignado más.
+ */
+export const ESTADOS_PROPIOS: EstadoGuion[] = [
+  "BORRADOR",
+  "PENDIENTE_APROBACION",
+  "APROBADO",
+  "DESCARTADO",
+];
+
+/** El autor solo cambia el texto de su idea mientras es borrador (enviada, la revisa administración) */
+export const ESTADOS_EDITABLES_AUTOR: EstadoGuion[] = ["BORRADOR"];
+
+/**
+ * PASOS DE EDICIÓN: la lista que el editor va marcando mientras trabaja un guion (se guarda en
+ * Guion.pasosHechos). Para añadir un paso, añádelo aquí; nunca cambies un id que ya se usa.
+ */
+export const PASOS_EDICION: { id: string; texto: string }[] = [
+  { id: "leido", texto: "Guion leído y dudas resueltas" },
+  { id: "material", texto: "Material grabado o reunido" },
+  { id: "montaje", texto: "Montaje" },
+  { id: "subtitulos", texto: "Subtítulos" },
+  { id: "sonido", texto: "Música y sonido" },
+  { id: "miniatura", texto: "Portada o miniatura" },
+  { id: "revision", texto: "Revisión final" },
+];
+
+/** Solo los ids que existen, sin repetir y en el orden de la lista */
+export function limpiarPasos(ids: string[]): string[] {
+  return PASOS_EDICION.map((p) => p.id).filter((id) => ids.includes(id));
+}
+
+const DIA = 86_400_000;
+const diaUTC = (fecha: Date) =>
+  Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate()) / DIA;
+
+/**
+ * Cuánto queda para la fecha límite, dicho para una persona. La fecha límite se guarda a las
+ * 12:00 UTC del día elegido; se comparan días enteros. Los guiones ya entregados no corren prisa.
+ */
+export function urgenciaGuion(
+  fechaLimite: Date,
+  estado: EstadoGuion,
+  ahora = new Date(),
+): { texto: string; tono: "neutro" | "aviso" | "error" | "exito" } | null {
+  if (estado === "ENTREGADO" || estado === "COMPLETADO" || estado === "DESCARTADO") return null;
+  const dias = diaUTC(fechaLimite) - diaUTC(ahora);
+  if (dias < 0) {
+    const n = -dias;
+    return { texto: `Retrasado ${n} ${n === 1 ? "día" : "días"}`, tono: "error" };
+  }
+  if (dias === 0) return { texto: "Vence hoy", tono: "error" };
+  if (dias === 1) return { texto: "Vence mañana", tono: "aviso" };
+  if (dias <= 7) return { texto: `Quedan ${dias} días`, tono: "aviso" };
+  return { texto: `Quedan ${dias} días`, tono: "neutro" };
+}
+
+/** Palabras que se leen en voz alta por minuto (ritmo tranquilo de vídeo divulgativo) */
+export const PALABRAS_POR_MINUTO = 150;
+
+/** Palabras del texto que se dice (gancho, desarrollo y llamada a la acción) y cuánto se tarda */
+export function tiempoLectura(textos: string[]): { palabras: number; segundos: number } {
+  const palabras = textos.join(" ").split(/\s+/).filter(Boolean).length;
+  return { palabras, segundos: Math.round((palabras / PALABRAS_POR_MINUTO) * 60) };
+}
+
+/** 95 → «1 min 35 s», 40 → «40 s» */
+export function textoDuracion(segundos: number): string {
+  if (segundos < 60) return `${segundos} s`;
+  const min = Math.floor(segundos / 60);
+  const s = segundos % 60;
+  return s ? `${min} min ${s} s` : `${min} min`;
+}

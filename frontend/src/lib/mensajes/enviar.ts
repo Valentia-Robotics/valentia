@@ -108,7 +108,14 @@ async function avisarAlEquipo(
     where: otroId
       ? { id: otroId }
       : { rol: { in: ROLES_EQUIPO.map((r) => r.rol) }, id: { not: yo.id } },
-    select: { id: true, nombre: true, email: true, rol: true },
+    select: {
+      id: true,
+      nombre: true,
+      email: true,
+      rol: true,
+      tambienEditor: true,
+      rolFemenino: true,
+    },
   });
   const porId = new Map(destinos.map((d) => [d.id, d]));
   await avisarPorPush(

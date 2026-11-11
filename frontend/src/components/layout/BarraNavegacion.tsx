@@ -161,8 +161,15 @@ export function BarraNavegacion() {
                       ? [{ href: "/admin", etiqueta: "Panel de administración" }]
                       : []),
                     ...(sesion.user.rol === "EDITOR"
-                      ? [{ href: "/editor", etiqueta: "Panel de editor" }]
-                      : []),
+                      ? [
+                          {
+                            href: "/editor",
+                            etiqueta: `Panel de ${sesion.user.rolFemenino ? "editora" : "editor"}`,
+                          },
+                        ]
+                      : sesion.user.tambienEditor
+                        ? [{ href: "/editor", etiqueta: "Mis guiones" }]
+                        : []),
                     ...(sesion.user.rol === "HARDWARE"
                       ? [{ href: "/hardware", etiqueta: "Mi espacio de hardware" }]
                       : []),

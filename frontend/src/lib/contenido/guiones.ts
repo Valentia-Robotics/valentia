@@ -9,12 +9,15 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { Prisma as PrismaValores } from "@/generated/prisma/client";
 import type { EstadoGuion, OrigenGuion } from "@/generated/prisma/enums";
+import { FILTRO_EDITORES } from "@/config/equipo";
 import {
   CATEGORIAS_INICIALES,
   ESTADOS_ASIGNABLES,
   ESTADOS_DE_TRABAJO,
   ESTADOS_DEL_EDITOR,
   ESTADOS_EDITABLES,
+  ESTADOS_EDITABLES_AUTOR,
+  ESTADOS_PROPIOS,
   exigeComentario,
   puedeCambiar,
   type ActorGuion,
@@ -27,6 +30,30 @@ export class ErrorGuion extends Error {}
 
 /** id null = no es una persona (n8n): su nombre queda en el historial */
 type Autor = { id: string | null; nombre: string };
+
+/**
+ * Ideas de un editor que todavía son solo suyas (borrador o archivada): administración no las ve
+ * ni las toca hasta que él las envía a revisión.
+ */
+const PRIVADO: Prisma.GuionWhereInput = {
+  origen: "EDITOR",
+  estado: { in: ["BORRADOR", "DESCARTADO"] },
+};
+
+/** Las ideas propias de un editor mientras nadie se las ha asignado */
+const ideasDe = (autorId: string): Prisma.GuionWhereInput => ({
+  creadoPorId: autorId,
+  origen: "EDITOR",
+  editorId: null,
+});
+
+/** Lo que un editor ve: lo que tiene asignado y sus ideas propias */
+const delEditor = (editorId: string): Prisma.GuionWhereInput => ({
+  OR: [
+    { editorId, estado: { in: ESTADOS_DEL_EDITOR } },
+    { ...ideasDe(editorId), estado: { in: ESTADOS_PROPIOS } },
+  ],
+});
 
 /** Las categorías. La primera vez que se piden, crea la lista inicial. */
 export async function categoriasGuion(soloActivas = false) {
@@ -55,8 +82,9 @@ interface Automatico {
 }
 
 /**
- * Crea un guion. Es la única puerta de entrada: el panel (borrador, MANUAL) y n8n (pendiente de
- * aprobación, IA, con sus escenas). Ninguno llega a un editor sin que el admin lo apruebe.
+ * Crea un guion. Es la única puerta de entrada: el panel (borrador, MANUAL), las ideas propias de
+ * los editores (borrador, EDITOR) y n8n (pendiente de aprobación, IA, con sus escenas). Ninguno se
+ * asigna a un editor sin que el admin lo apruebe.
  */
 export function crearGuion(
   datos: DatosGuion,
@@ -97,7 +125,7 @@ export function crearGuion(
 /** Cambia el texto de un guion. Devuelve false si ya no está en un estado editable. */
 export async function actualizarGuion(id: string, datos: DatosGuion): Promise<boolean> {
   const { count } = await db.guion.updateMany({
-    where: { id, estado: { in: ESTADOS_EDITABLES } },
+    where: { id, estado: { in: ESTADOS_EDITABLES }, NOT: PRIVADO },
     data: datos,
   });
   return count > 0;
@@ -113,9 +141,17 @@ interface Cambio {
   datos?: Prisma.GuionUncheckedUpdateManyInput;
 }
 
-/** Cambia el estado si las reglas lo permiten. Un editor solo puede mover sus propios guiones. */
+/**
+ * Cambia el estado si las reglas lo permiten. Un editor solo mueve los guiones que tiene asignados;
+ * el autor, sus ideas propias sin asignar; y administración, todo menos las ideas aún privadas.
+ */
 export function cambiarEstado({ guionId, a, actor, autor, comentario, datos }: Cambio) {
-  const soloSuyo = actor === "EDITOR" ? { editorId: autor.id ?? "" } : {};
+  const soloSuyo: Prisma.GuionWhereInput =
+    actor === "EDITOR"
+      ? { editorId: autor.id ?? "" }
+      : actor === "AUTOR"
+        ? ideasDe(autor.id ?? "")
+        : { NOT: PRIVADO };
   return transaccion(async (tx) => {
     const guion = await tx.guion.findFirst({
       where: { id: guionId, ...soloSuyo },
@@ -158,7 +194,10 @@ export function asignarGuion(guionId: string, editorId: string, autor: Autor) {
         where: { id: guionId },
         select: { estado: true, editorId: true, editor: { select: { nombre: true } } },
       }),
-      tx.usuario.findFirst({ where: { id: editorId, rol: "EDITOR" }, select: { nombre: true } }),
+      tx.usuario.findFirst({
+        where: { id: editorId, ...FILTRO_EDITORES },
+        select: { nombre: true },
+      }),
     ]);
     if (!guion) throw new ErrorGuion("No encontramos ese guion.");
     if (!editor) throw new ErrorGuion("Esa persona no es editora.");
@@ -256,8 +295,9 @@ export function buscarGuiones(filtros: {
   origen?: OrigenGuion;
 }) {
   return db.guion.findMany({
-    // Los descartados solo salen si se piden con el filtro de estado
-    where: { ...filtros, estado: filtros.estado ?? { not: "DESCARTADO" } },
+    // Los descartados solo salen si se piden con el filtro de estado. Las ideas de los editores
+    // que aún son solo suyas no salen nunca
+    where: { ...filtros, estado: filtros.estado ?? { not: "DESCARTADO" }, NOT: PRIVADO },
     orderBy: { fechaLimite: "asc" },
     take: 1000,
     select: {
@@ -268,27 +308,31 @@ export function buscarGuiones(filtros: {
       fechaLimite: true,
       categoria: { select: { nombre: true } },
       editor: { select: { nombre: true } },
+      creadoPor: { select: { nombre: true } },
       // Solo lo que sale en la lista (las escenas pueden ser largas)
       automatico: { select: { relevancia: true, fuente: { select: { medio: true } } } },
     },
   });
 }
 
+/** Un guion para administración (null si no existe o es una idea de un editor aún privada) */
 export function guionParaAdmin(id: string) {
-  return db.guion.findUnique({
-    where: { id },
+  return db.guion.findFirst({
+    where: { id, NOT: PRIVADO },
     include: {
       categoria: { select: { nombre: true } },
       kit: { select: { nombre: true, slug: true } },
-      editor: { select: { nombre: true, email: true } },
+      editor: { select: { nombre: true, email: true, rolFemenino: true } },
+      creadoPor: { select: { id: true, nombre: true } },
       historial: { orderBy: { fecha: "desc" } },
     },
   });
 }
 
+/** A quién se puede asignar un guion: los editores y los admins que también editan */
 export function editores() {
   return db.usuario.findMany({
-    where: { rol: "EDITOR" },
+    where: FILTRO_EDITORES,
     orderBy: { nombre: "asc" },
     select: { id: true, nombre: true, email: true },
   });
@@ -315,7 +359,7 @@ export async function datosParaMetricas() {
   ]);
   const ids = [...new Set(eventos.flatMap((e) => (e.editorId ? [e.editorId] : [])))];
   const personas = await db.usuario.findMany({
-    where: { OR: [{ rol: "EDITOR" }, { id: { in: ids } }] },
+    where: { OR: [...FILTRO_EDITORES.OR, { id: { in: ids } }] },
     select: { id: true, nombre: true, email: true },
     orderBy: { nombre: "asc" },
   });
@@ -324,24 +368,33 @@ export async function datosParaMetricas() {
 
 /* ---------- Panel de editor: siempre filtrado por su id ---------- */
 
+/** «Mis guiones»: lo asignado y las ideas propias, por fecha límite */
 export function guionesDelEditor(editorId: string) {
   return db.guion.findMany({
-    where: { editorId, estado: { in: ESTADOS_DEL_EDITOR } },
+    where: delEditor(editorId),
     orderBy: { fechaLimite: "asc" },
+    take: 1000,
     select: {
       id: true,
       titulo: true,
       estado: true,
+      origen: true,
+      editorId: true,
       fechaLimite: true,
+      plataforma: true,
+      plataformaOtra: true,
+      duracionObjetivo: true,
+      pasosHechos: true,
+      actualizadoEn: true,
       categoria: { select: { nombre: true } },
     },
   });
 }
 
-/** Un guion del editor, o null si no existe o es de otra persona */
+/** Un guion del editor (asignado o idea suya), o null si no existe o es de otra persona */
 export function guionDelEditor(id: string, editorId: string) {
   return db.guion.findFirst({
-    where: { id, editorId, estado: { in: ESTADOS_DEL_EDITOR } },
+    where: { id, ...delEditor(editorId) },
     include: {
       categoria: { select: { nombre: true } },
       kit: { select: { nombre: true, slug: true } },
@@ -355,11 +408,74 @@ export function guionDelEditor(id: string, editorId: string) {
   });
 }
 
-/** La zona de trabajo del editor: lo único del guion que puede escribir */
+/** Una idea propia nueva: empieza en borrador y solo la ve quien la escribe */
+export function crearIdeaPropia(datos: DatosGuion, autor: { id: string; nombre: string }) {
+  return crearGuion(datos, autor, "EDITOR");
+}
+
+/** Cambia el texto de una idea propia (solo en borrador). false si ya no se puede. */
+export async function actualizarIdeaPropia(id: string, autorId: string, datos: DatosGuion) {
+  const { count } = await db.guion.updateMany({
+    where: { id, ...ideasDe(autorId), estado: { in: ESTADOS_EDITABLES_AUTOR } },
+    data: datos,
+  });
+  return count > 0;
+}
+
+/**
+ * La zona de trabajo del editor: sus notas. En lo asignado, mientras lo trabaja; en sus ideas,
+ * mientras no estén archivadas.
+ */
 export async function guardarNotasEditor(id: string, editorId: string, notasEditor: string) {
   const { count } = await db.guion.updateMany({
-    where: { id, editorId, estado: { in: ESTADOS_DE_TRABAJO } },
+    where: {
+      id,
+      OR: [
+        { editorId, estado: { in: ESTADOS_DE_TRABAJO } },
+        {
+          ...ideasDe(editorId),
+          estado: { in: ["BORRADOR", "PENDIENTE_APROBACION", "APROBADO"] },
+        },
+      ],
+    },
     data: { notasEditor },
   });
   return count > 0;
+}
+
+/** Los pasos de edición hechos (ya limpios). Solo en lo asignado y mientras lo trabaja. */
+export async function guardarPasosEditor(id: string, editorId: string, pasosHechos: string[]) {
+  const { count } = await db.guion.updateMany({
+    where: { id, editorId, estado: { in: ESTADOS_DE_TRABAJO } },
+    data: { pasosHechos },
+  });
+  return count > 0;
+}
+
+/**
+ * Hace una idea propia nueva a partir de un guion que el editor puede ver (para reutilizar uno
+ * que funcionó). Si la fecha límite ya pasó, la nueva vence en una semana. null si no lo encuentra.
+ */
+export async function duplicarComoIdea(id: string, autor: { id: string; nombre: string }) {
+  const original = await db.guion.findFirst({ where: { id, ...delEditor(autor.id) } });
+  if (!original) return null;
+  const enUnaSemana = new Date();
+  enUnaSemana.setUTCDate(enUnaSemana.getUTCDate() + 7);
+  enUnaSemana.setUTCHours(12, 0, 0, 0);
+  return crearIdeaPropia(
+    {
+      titulo: `Copia de ${original.titulo}`.slice(0, 140),
+      categoriaId: original.categoriaId,
+      plataforma: original.plataforma,
+      plataformaOtra: original.plataformaOtra,
+      duracionObjetivo: original.duracionObjetivo,
+      gancho: original.gancho,
+      desarrollo: original.desarrollo,
+      llamadaAccion: original.llamadaAccion,
+      notasVisuales: original.notasVisuales,
+      kitId: original.kitId,
+      fechaLimite: original.fechaLimite > new Date() ? original.fechaLimite : enUnaSemana,
+    },
+    autor,
+  );
 }

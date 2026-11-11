@@ -4,8 +4,12 @@ import {
   ESTADOS_DEL_EDITOR,
   ESTADOS_EDITABLES,
   exigeComentario,
+  limpiarPasos,
   ORDEN_ESTADOS,
   puedeCambiar,
+  textoDuracion,
+  tiempoLectura,
+  urgenciaGuion,
 } from "./estadosGuion";
 
 describe("flujo de los guiones", () => {
@@ -51,5 +55,43 @@ describe("flujo de los guiones", () => {
   it("devolver una entrega exige comentario", () => {
     expect(exigeComentario("ENTREGADO", "EN_PROGRESO")).toBe(true);
     expect(exigeComentario("ENTREGADO", "COMPLETADO")).toBe(false);
+  });
+});
+
+describe("ideas propias del editor y su espacio de trabajo", () => {
+  it("el autor envía, retira, archiva y recupera; nunca aprueba", () => {
+    expect(puedeCambiar("BORRADOR", "PENDIENTE_APROBACION", "AUTOR")).toBe(true);
+    expect(puedeCambiar("PENDIENTE_APROBACION", "BORRADOR", "AUTOR")).toBe(true);
+    expect(puedeCambiar("BORRADOR", "DESCARTADO", "AUTOR")).toBe(true);
+    expect(puedeCambiar("DESCARTADO", "BORRADOR", "AUTOR")).toBe(true);
+    expect(puedeCambiar("PENDIENTE_APROBACION", "APROBADO", "AUTOR")).toBe(false);
+    expect(puedeCambiar("APROBADO", "ASIGNADO", "AUTOR")).toBe(false);
+    expect(puedeCambiar("ASIGNADO", "EN_PROGRESO", "AUTOR")).toBe(false);
+  });
+
+  it("los pasos se limpian y se ordenan", () => {
+    expect(limpiarPasos(["revision", "inventado", "leido", "leido"])).toEqual([
+      "leido",
+      "revision",
+    ]);
+  });
+
+  it("dice cuánto queda para la fecha límite", () => {
+    const ahora = new Date("2026-11-10T09:00:00Z");
+    const dia = (d: string) => new Date(`${d}T12:00:00Z`);
+    expect(urgenciaGuion(dia("2026-11-08"), "EN_PROGRESO", ahora)?.texto).toBe("Retrasado 2 días");
+    expect(urgenciaGuion(dia("2026-11-10"), "ASIGNADO", ahora)?.texto).toBe("Vence hoy");
+    expect(urgenciaGuion(dia("2026-11-11"), "ASIGNADO", ahora)?.texto).toBe("Vence mañana");
+    expect(urgenciaGuion(dia("2026-11-15"), "ASIGNADO", ahora)?.tono).toBe("aviso");
+    expect(urgenciaGuion(dia("2026-12-15"), "ASIGNADO", ahora)?.tono).toBe("neutro");
+    expect(urgenciaGuion(dia("2026-11-01"), "ENTREGADO", ahora)).toBeNull();
+  });
+
+  it("calcula el tiempo de lectura", () => {
+    const texto = Array.from({ length: 150 }, () => "robot").join(" ");
+    expect(tiempoLectura([texto, "  "])).toEqual({ palabras: 150, segundos: 60 });
+    expect(textoDuracion(40)).toBe("40 s");
+    expect(textoDuracion(95)).toBe("1 min 35 s");
+    expect(textoDuracion(120)).toBe("2 min");
   });
 });

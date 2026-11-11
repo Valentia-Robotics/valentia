@@ -346,6 +346,10 @@ model Usuario {
   ultimaConexionEn  DateTime?
   /// Foto de perfil (dirección pública en el almacén de fotos; null = círculo con la inicial)
   foto              String?
+  /// Solo ADMIN: además administra, trabaja como editor (tiene «Mis guiones» y se le asignan guiones)
+  tambienEditor     Boolean?
+  /// El nombre del puesto en femenino («Editora», «Administradora»); null o false = masculino
+  rolFemenino       Boolean?
 
   cursos         CursoUsuario[]
   codigos        CodigoActivacion[]
@@ -763,6 +767,8 @@ enum PlataformaGuion {
 enum OrigenGuion {
   MANUAL
   IA
+  /// Idea propia de un editor (desde «Mis guiones»): solo la ve él hasta que la envía a revisión
+  EDITOR
 }
 
 /// Temas de los guiones: lista cerrada que el admin puede ampliar (siempre tecnología y robótica)
@@ -804,6 +810,8 @@ model Guion {
   notasEditor      String?
   /// Enlace al vídeo terminado (Drive, YouTube…)
   enlaceVideo      String?
+  /// Pasos de edición que el editor ya ha marcado como hechos (ids de PASOS_EDICION en src/config/estadosGuion.ts)
+  pasosHechos      String[]
   /// Solo en los guiones que llegan de n8n: escenas, noticia de origen y lo que hay que comprobar
   automatico       DatosAutomaticos?
   creadoEn         DateTime          @default(now())

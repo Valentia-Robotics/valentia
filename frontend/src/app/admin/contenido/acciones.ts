@@ -19,11 +19,12 @@ import {
   recuperarGuion,
   ErrorGuion,
 } from "@/lib/contenido/guiones";
+import { leerFormularioGuion } from "@/lib/contenido/formularioGuion";
 import { db } from "@/lib/db";
 import { esId, esquemaId, idsValidos } from "@/lib/ids";
 import { exigirAdminEnAccion } from "@/lib/sesion";
 import { plural } from "@/lib/utils";
-import { esquemaCategoria, esquemaComentario, esquemaGuion } from "@/lib/validaciones/guion";
+import { esquemaCategoria, esquemaComentario } from "@/lib/validaciones/guion";
 
 const NO_ENCONTRADO: EstadoFormulario = { ok: false, mensaje: "No encontramos ese guion." };
 
@@ -42,45 +43,14 @@ export async function guardarGuion(
   const id = texto(formulario, "guionId");
   if (!idsValidos(id)) return NO_ENCONTRADO;
 
-  const datos = esquemaGuion.safeParse({
-    titulo: texto(formulario, "titulo"),
-    categoriaId: texto(formulario, "categoriaId"),
-    plataforma: texto(formulario, "plataforma"),
-    plataformaOtra: texto(formulario, "plataformaOtra"),
-    duracionObjetivo: texto(formulario, "duracionObjetivo"),
-    gancho: texto(formulario, "gancho"),
-    desarrollo: texto(formulario, "desarrollo"),
-    llamadaAccion: texto(formulario, "llamadaAccion"),
-    notasVisuales: texto(formulario, "notasVisuales"),
-    kitId: texto(formulario, "kitId"),
-    fechaLimite: texto(formulario, "fechaLimite"),
-  });
-  if (!datos.success) return conErrores(datos.error);
-  const d = datos.data;
-
   // La categoría tiene que ser de la lista; una desactivada solo vale si el guion ya la tenía
   const actual = id
     ? await db.guion.findUnique({ where: { id }, select: { categoriaId: true } })
     : null;
   if (id && !actual) return NO_ENCONTRADO;
-  const [categoria, kit] = await Promise.all([
-    db.categoriaGuion.findUnique({ where: { id: d.categoriaId }, select: { activa: true } }),
-    d.kitId ? db.kit.findUnique({ where: { id: d.kitId }, select: { id: true } }) : true,
-  ]);
-  if (!categoria || (!categoria.activa && actual?.categoriaId !== d.categoriaId)) {
-    return {
-      ok: false,
-      mensaje: "Revisa los campos marcados en rojo.",
-      errores: { categoriaId: "Elige una categoría de la lista." },
-    };
-  }
-  if (!kit) {
-    return {
-      ok: false,
-      mensaje: "Revisa los campos marcados en rojo.",
-      errores: { kitId: "Ese kit ya no existe." },
-    };
-  }
+  const leido = await leerFormularioGuion(formulario, actual?.categoriaId);
+  if ("error" in leido) return leido.error;
+  const d = leido.datos;
 
   if (!id) {
     const guion = await crearGuion(d, admin);
@@ -128,6 +98,12 @@ export async function cambiarEstadoDeGuion(
     return mensajeDeError(error);
   }
   revalidatePath("/admin/contenido", "layout");
+  revalidatePath("/editor", "layout");
+  // Una idea de editor devuelta a borrador vuelve a ser solo suya: aquí ya no se ve
+  if (a === "BORRADOR") {
+    const devuelta = await db.guion.count({ where: { id: guionId, origen: "EDITOR" } });
+    if (devuelta) redirect("/admin/contenido");
+  }
   return { ok: true, mensaje: "Hecho." };
 }
 

@@ -5,13 +5,39 @@
  */
 import type { Rol } from "@/generated/prisma/enums";
 
-export const ROLES_EQUIPO: { rol: Rol; nombre: string; plural: string }[] = [
-  { rol: "ADMIN", nombre: "Administrador", plural: "Administración" },
-  { rol: "EDITOR", nombre: "Editor", plural: "Editores" },
-  { rol: "HARDWARE", nombre: "Hardware", plural: "Hardware" },
+export const ROLES_EQUIPO: { rol: Rol; nombre: string; femenino: string; plural: string }[] = [
+  { rol: "ADMIN", nombre: "Administrador", femenino: "Administradora", plural: "Administración" },
+  { rol: "EDITOR", nombre: "Editor", femenino: "Editora", plural: "Editores" },
+  { rol: "HARDWARE", nombre: "Hardware", femenino: "Hardware", plural: "Hardware" },
 ];
 
 export const esDelEquipo = (rol: Rol) => ROLES_EQUIPO.some((r) => r.rol === rol);
+
+/**
+ * El nombre del puesto como se enseña: «Editor» o «Editora», según lo que se haya elegido para esa
+ * persona (Usuario.rolFemenino). Un cliente no tiene puesto: devuelve "Cliente".
+ */
+export function nombreRol(rol: Rol, femenino?: boolean | null): string {
+  const datos = ROLES_EQUIPO.find((r) => r.rol === rol);
+  if (!datos) return "Cliente";
+  return femenino ? datos.femenino : datos.nombre;
+}
+
+/** «Editor» o «Editora» (para quien también edita siendo admin) */
+export const nombreEditor = (femenino?: boolean | null) => nombreRol("EDITOR", femenino);
+
+/**
+ * Quién trabaja como editor (tiene «Mis guiones» y se le pueden asignar guiones): el rol EDITOR y
+ * los ADMIN que también editan (Usuario.tambienEditor, se marca en /admin/usuarios).
+ */
+export function puedeEditarGuiones(usuario: { rol: Rol; tambienEditor?: boolean | null }) {
+  return usuario.rol === "EDITOR" || (usuario.rol === "ADMIN" && !!usuario.tambienEditor);
+}
+
+/** Lo mismo como filtro de la base de datos (para listar a quién se puede asignar un guion) */
+export const FILTRO_EDITORES = {
+  OR: [{ rol: "EDITOR" as const }, { rol: "ADMIN" as const, tambienEditor: true }],
+};
 
 /** Cada cuánto se apunta, como mucho, la última conexión (para no escribir en la BD en cada clic) */
 export const MINUTOS_ENTRE_CONEXIONES = 2;

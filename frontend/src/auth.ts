@@ -53,6 +53,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       token.rol = actual.rol;
       token.name = actual.nombre;
       token.picture = actual.foto; // Auth.js la pasa a la sesión como user.image
+      token.tambienEditor = actual.tambienEditor;
+      token.rolFemenino = actual.rolFemenino;
       return token;
     },
   },

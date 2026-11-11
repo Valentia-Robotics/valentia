@@ -23,6 +23,7 @@ import {
   guionParaAdmin,
   kitsParaGuion,
 } from "@/lib/contenido/guiones";
+import { nombreEditor } from "@/config/equipo";
 import { esId } from "@/lib/ids";
 import { exigirAdmin } from "@/lib/sesion";
 
@@ -50,6 +51,8 @@ export default async function GuionAdmin({ params }: Props) {
   const editable = ESTADOS_EDITABLES.includes(guion.estado);
   const asignable = ESTADOS_ASIGNABLES.includes(guion.estado);
   // Solo los automáticos sin editor: un guion manual se corrige, no se tira
+  /** Idea de un editor: volver a borrador se la devuelve (vuelve a ser solo suya) */
+  const ideaEditor = guion.origen === "EDITOR";
   const descartable =
     guion.origen === "IA" && !guion.editorId && ESTADOS_DESCARTABLES.includes(guion.estado);
   const datos = { guionId: guion.id };
@@ -69,7 +72,10 @@ export default async function GuionAdmin({ params }: Props) {
             ) : (
               guion.origen === "IA" && <Insignia tono="acento">Generado con IA</Insignia>
             )}
-            {guion.editor && ` · Editor: ${guion.editor.nombre}`}
+            {guion.origen === "EDITOR" && (
+              <Insignia tono="acento">Idea de {guion.creadoPor?.nombre ?? "un editor"}</Insignia>
+            )}
+            {guion.editor && ` · ${nombreEditor(guion.editor.rolFemenino)}: ${guion.editor.nombre}`}
           </>
         }
         volver={{ href: "/admin/contenido", etiqueta: "Contenido" }}
@@ -143,18 +149,25 @@ export default async function GuionAdmin({ params }: Props) {
                     guionId={guion.id}
                     editores={editores.filter((e) => e.email !== guion.editor?.email)}
                     reasignar={guion.estado !== "APROBADO"}
+                    sugerido={
+                      guion.origen === "EDITOR" && guion.creadoPor ? guion.creadoPor.id : undefined
+                    }
                   />
                 )}
                 {(guion.estado === "PENDIENTE_APROBACION" || guion.estado === "APROBADO") && (
                   <BotonConfirmar
                     accion={cambiarEstadoDeGuion}
                     datos={{ ...datos, a: "BORRADOR" }}
-                    titulo="Volver a borrador"
-                    texto="Podrás corregir el texto, y tendrás que aprobarlo otra vez antes de asignarlo."
-                    confirmar="Sí, volver a borrador"
+                    titulo={ideaEditor ? "Devolver a su autor" : "Volver a borrador"}
+                    texto={
+                      ideaEditor
+                        ? "Vuelve a ser un borrador de quien la propuso: dejarás de verla hasta que te la envíe otra vez. Cuéntale qué cambiar por Mensajes."
+                        : "Podrás corregir el texto, y tendrás que aprobarlo otra vez antes de asignarlo."
+                    }
+                    confirmar={ideaEditor ? "Sí, devolver" : "Sí, volver a borrador"}
                     variante="secundario"
                   >
-                    Corregir (volver a borrador)
+                    {ideaEditor ? "Devolver a su autor" : "Corregir (volver a borrador)"}
                   </BotonConfirmar>
                 )}
                 {descartable && (
