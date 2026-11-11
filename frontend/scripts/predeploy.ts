@@ -5,6 +5,7 @@
  *      si un cambio pudiera borrar datos, se para con un mensaje claro y la web sigue con la versión anterior.
  *   2. renombrar-kits: cambia el slug de los kits renombrados (src/config/kitsRenombrados.ts).
  *   3. seed:prod: crea lo que falte del catálogo de data/catalogo/ (nunca modifica ni borra lo que existe).
+ *   4. fotos-perdidas: quita de las cuentas las fotos de perfil que se perdieron con el disco (si falla, sigue).
  * Si algo falla, el despliegue se cancela y no se publica la versión nueva.
  */
 import { spawnSync } from "node:child_process";
@@ -27,7 +28,7 @@ function main() {
     process.exit(1);
   }
 
-  const esquema = ejecutar("1/3 Esquema de la base de datos", "npx prisma db push --skip-generate");
+  const esquema = ejecutar("1/4 Esquema de la base de datos", "npx prisma db push --skip-generate");
   if (!esquema.ok) {
     if (/data loss|accept-data-loss|perder|loss of data/i.test(esquema.salida)) {
       console.error(
@@ -44,7 +45,7 @@ function main() {
     process.exit(1);
   }
 
-  const renombres = ejecutar("2/3 Kits renombrados", "npx tsx scripts/renombrar-kits.ts");
+  const renombres = ejecutar("2/4 Kits renombrados", "npx tsx scripts/renombrar-kits.ts");
   if (!renombres.ok) {
     console.error(
       "\n✖ No se ha podido cambiar el slug de los kits renombrados (ver el mensaje de arriba). No se publica esta versión.",
@@ -52,13 +53,16 @@ function main() {
     process.exit(1);
   }
 
-  const catalogo = ejecutar("3/3 Catálogo", "npx tsx scripts/seed-prod.ts");
+  const catalogo = ejecutar("3/4 Catálogo", "npx tsx scripts/seed-prod.ts");
   if (!catalogo.ok) {
     console.error(
       "\n✖ No se ha podido cargar el catálogo (ver el mensaje de arriba). No se publica esta versión.",
     );
     process.exit(1);
   }
+  // No es imprescindible: si falla, se avisa y la versión nueva se publica igual
+  const fotos = ejecutar("4/4 Fotos de perfil perdidas", "npx tsx scripts/fotos-perdidas.ts");
+  if (!fotos.ok) console.warn("\n⚠ No se han podido revisar las fotos de perfil (se sigue igual).");
   console.log("\n✔ Pre-despliegue terminado.");
 }
 

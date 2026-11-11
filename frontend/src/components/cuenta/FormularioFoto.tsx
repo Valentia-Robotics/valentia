@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useId, useRef } from "react";
+import { startTransition, useActionState, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cambiarFoto } from "@/app/(cuenta)/cuenta/acciones";
@@ -19,6 +19,8 @@ export function FormularioFoto({ foto, nombre }: { foto: string | null; nombre: 
   const router = useRouter();
   const id = useId();
   const entrada = useRef<HTMLInputElement>(null);
+  // La foto guardada ya no existe (las subidas antes del 11-11-2026 se perdieron): hay que subirla otra vez
+  const [perdida, setPerdida] = useState<string | null>(null);
 
   // Si ha ido bien, renovamos la sesión (el menú pasa a mostrar la foto nueva) y la página
   useEffect(() => {
@@ -39,10 +41,20 @@ export function FormularioFoto({ foto, nombre }: { foto: string | null; nombre: 
   return (
     <div className="max-w-md space-y-4">
       {estado.mensaje && <Aviso tipo={estado.ok ? "exito" : "error"}>{estado.mensaje}</Aviso>}
+      {foto && perdida === foto && !estado.mensaje && (
+        <Aviso tipo="error">
+          Tu foto se ha perdido y los demás no la ven. Súbela otra vez con «Cambiar foto».
+        </Aviso>
+      )}
       <div className="flex items-center gap-5">
         <span className="inline-flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-tinta font-titulo text-2xl text-white">
           {foto ? (
-            <FotoPerfil foto={foto} className="size-full" alternativa={iniciales(nombre)} />
+            <FotoPerfil
+              foto={foto}
+              className="size-full"
+              alternativa={iniciales(nombre)}
+              alFallar={() => setPerdida(foto)}
+            />
           ) : (
             iniciales(nombre)
           )}

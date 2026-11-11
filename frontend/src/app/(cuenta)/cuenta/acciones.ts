@@ -15,7 +15,6 @@ import { enviarCorreo } from "@/lib/correo";
 import { plantillaContrasenaCambiada } from "@/lib/correo/plantillas";
 import { ErrorImagen, hayArchivo } from "@/lib/almacenamiento";
 import { borrarFotoPerfil, subirFotoPerfil } from "@/lib/almacenamiento/fotoPerfil";
-import { ErrorAlmacenPrivado } from "@/lib/almacenamiento/privado";
 import { db } from "@/lib/db";
 import { registrarIntento } from "@/lib/limite";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -97,13 +96,9 @@ export async function cambiarFoto(
   let foto: string | null = null;
   if (!quitar && hayArchivo(archivo)) {
     try {
-      foto = await subirFotoPerfil(archivo);
+      foto = await subirFotoPerfil(usuario.id, archivo);
     } catch (error) {
       if (error instanceof ErrorImagen) return { ok: false, errores: { foto: error.message } };
-      if (error instanceof ErrorAlmacenPrivado) {
-        console.error("[foto de perfil]", error.message);
-        return { ok: false, mensaje: "Ahora mismo no se pueden guardar fotos. Prueba más tarde." };
-      }
       throw error;
     }
   }

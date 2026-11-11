@@ -347,7 +347,7 @@ model Usuario {
   /// Última vez que alguien del equipo (editor, admin…) usó la web con la sesión abierta.
   /// Solo se apunta a los roles de src/config/equipo.ts, como mucho una vez cada 2 minutos
   ultimaConexionEn  DateTime?
-  /// Foto de perfil (dirección pública en el almacén de fotos; null = círculo con la inicial)
+  /// Foto de perfil: /api/fotos-perfil/<id de FotoPerfil> (null = círculo con la inicial)
   foto              String?
   /// Solo ADMIN: además administra, trabaja como editor (tiene «Mis guiones» y se le asignan guiones)
   tambienEditor     Boolean?
@@ -371,6 +371,7 @@ model Usuario {
   cambiosGuion     CambioEstadoGuion[]
 
   archivosHardware ArchivoHardware[]
+  fotosPerfil      FotoPerfil[]
   carpetasHardware CarpetaHardware[]
 
   mensajesEquipo MensajeEquipo[]
@@ -469,6 +470,19 @@ model AjustesPush {
   clavePublica String
   clavePrivada String
   creadoEn     DateTime @default(now())
+}
+
+/// Foto de perfil, guardada en la propia base de datos (WebP de 192 px, unos 10 KB): así no depende de
+/// ningún almacén de archivos y la ve todo el equipo. Se sirve en /api/fotos-perfil/<id>.
+model FotoPerfil {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String   @db.ObjectId
+  /// La imagen (WebP)
+  datos     Bytes
+  creadaEn  DateTime @default(now())
+
+  @@index([usuarioId])
 }
 
 /// Un archivo del espacio personal de alguien de hardware (lo ven él y los administradores).

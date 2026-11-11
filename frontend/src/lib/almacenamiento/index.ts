@@ -46,7 +46,7 @@ export function hayArchivo(valor: FormDataEntryValue | null): valor is File {
  */
 export async function prepararImagen(
   archivo: File,
-  { cuadrada }: { cuadrada?: number } = {},
+  { cuadrada, calidad = 85 }: { cuadrada?: number; calidad?: number } = {},
 ): Promise<Buffer> {
   if (!TIPOS_IMAGEN.includes(archivo.type)) {
     throw new ErrorImagen("La foto tiene que ser JPG, PNG o WebP.");
@@ -64,7 +64,7 @@ export async function prepararImagen(
           ? { width: cuadrada, height: cuadrada, fit: "cover", position: "attention" }
           : { width: LADO_MAXIMO, height: LADO_MAXIMO, fit: "inside", withoutEnlargement: true },
       )
-      .webp({ quality: 85 })
+      .webp({ quality: calidad })
       .toBuffer();
   } catch {
     throw new ErrorImagen("No hemos podido leer la foto. ¿Seguro que es una imagen?");

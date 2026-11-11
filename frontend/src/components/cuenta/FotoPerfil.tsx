@@ -13,10 +13,13 @@ export function FotoPerfil({
   foto,
   className,
   alternativa = null,
+  alFallar,
 }: {
   foto: string;
   className?: string;
   alternativa?: ReactNode;
+  /** Se llama si la foto no carga (en «Mi cuenta», para pedir que la vuelva a subir) */
+  alFallar?: () => void;
 }) {
   // Se guarda qué foto falló: si cambia la foto, se vuelve a intentar
   const [fallida, setFallida] = useState<string | null>(null);
@@ -28,7 +31,11 @@ export function FotoPerfil({
       width={96}
       height={96}
       unoptimized
-      onError={() => setFallida(foto)}
+      decoding="async"
+      onError={() => {
+        setFallida(foto);
+        alFallar?.();
+      }}
       className={cn("rounded-full object-cover", className)}
     />
   );
