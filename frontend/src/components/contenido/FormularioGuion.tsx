@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { guardarGuion } from "@/app/admin/contenido/acciones";
+import { guardarIdea } from "@/app/editor/acciones";
 import { Aviso } from "@/components/admin/Aviso";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { AreaAdmin, CampoAdmin, SelectorAdmin } from "@/components/admin/campos";
@@ -23,17 +24,22 @@ interface Guion {
   fechaLimite: Date;
 }
 
-/** Crear o corregir un guion (solo el admin, y solo antes de aprobarlo) */
+/**
+ * Crear o corregir un guion: administración (antes de aprobarlo) o un editor con sus ideas propias
+ * (`idea`, mientras son borrador).
+ */
 export function FormularioGuion({
   guion,
   categorias,
   kits,
+  idea = false,
 }: {
   guion?: Guion;
   categorias: { id: string; nombre: string }[];
   kits: { id: string; nombre: string }[];
+  idea?: boolean;
 }) {
-  const { estado, alEnviar, enviando, error } = useFormulario(guardarGuion);
+  const { estado, alEnviar, enviando, error } = useFormulario(idea ? guardarIdea : guardarGuion);
   const [plataforma, setPlataforma] = useState(guion?.plataforma ?? "");
 
   return (
@@ -130,7 +136,13 @@ export function FormularioGuion({
         error={error("notasVisuales")}
       />
       <BotonAdmin type="submit" disabled={enviando}>
-        {enviando ? "Guardando…" : guion ? "Guardar cambios" : "Crear guion"}
+        {enviando
+          ? "Guardando…"
+          : guion
+            ? "Guardar cambios"
+            : idea
+              ? "Guardar idea"
+              : "Crear guion"}
       </BotonAdmin>
     </form>
   );

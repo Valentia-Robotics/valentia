@@ -12,12 +12,24 @@ import type { NextAuthConfig } from "next-auth";
  * (página de error) en vez de a la portada. Auth.js lee AUTH_URL en cada petición.
  * Solo en producción: en desarrollo así se puede entrar también desde el móvil con la IP local.
  */
-if (process.env.NODE_ENV === "production" && !process.env.AUTH_URL && process.env.NEXT_PUBLIC_SITE_URL) {
+if (
+  process.env.NODE_ENV === "production" &&
+  !process.env.AUTH_URL &&
+  process.env.NEXT_PUBLIC_SITE_URL
+) {
   process.env.AUTH_URL = process.env.NEXT_PUBLIC_SITE_URL;
 }
 
 /** Rutas que necesitan haber iniciado sesión */
-export const RUTAS_PROTEGIDAS = ["/cursos", "/cuenta", "/admin", "/editor", "/hardware", "/mensajes", "/stock"];
+export const RUTAS_PROTEGIDAS = [
+  "/cursos",
+  "/cuenta",
+  "/admin",
+  "/editor",
+  "/hardware",
+  "/mensajes",
+  "/stock",
+];
 
 export const authConfig = {
   // Nuestras propias páginas en lugar de las que trae Auth.js
@@ -50,6 +62,8 @@ export const authConfig = {
     session({ session, token }) {
       if (token.sub) session.user.id = token.sub;
       session.user.rol = token.rol;
+      session.user.tambienEditor = token.tambienEditor;
+      session.user.rolFemenino = token.rolFemenino;
       return session;
     },
   },

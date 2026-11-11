@@ -25,7 +25,13 @@ export default async function LayoutMensajes({ children }: { children: ReactNode
 
   return (
     <div className="flex h-dvh flex-col bg-niebla lg:flex-row">
-      <MenuAdmin nombre={yo.nombre} email={yo.email} zona={zona} />
+      <MenuAdmin
+        nombre={yo.nombre}
+        email={yo.email}
+        zona={zona}
+        tambienEditor={!!yo.tambienEditor}
+        femenino={!!yo.rolFemenino}
+      />
       <main id="contenido" className="flex min-h-0 min-w-0 flex-1 flex-col">
         {children}
       </main>

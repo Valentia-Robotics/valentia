@@ -26,6 +26,7 @@ vi.mock("@/lib/db", () => ({
 import {
   actualizarGuion,
   asignarGuion,
+  buscarGuiones,
   cambiarEstado,
   descartarGuion,
   ErrorGuion,
@@ -54,12 +55,17 @@ describe("asignar", () => {
     },
   );
 
-  it("solo a alguien con rol EDITOR", async () => {
+  it("solo a alguien que trabaja como editor (rol EDITOR o admin que también edita)", async () => {
     bd.guion.findUnique.mockResolvedValue({ estado: "APROBADO", editorId: null, editor: null });
     bd.usuario.findFirst.mockResolvedValue(null);
     await expect(asignarGuion("g", "clara", admin)).rejects.toBeInstanceOf(ErrorGuion);
     expect(bd.usuario.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "clara", rol: "EDITOR" } }),
+      expect.objectContaining({
+        where: {
+          id: "clara",
+          OR: [{ rol: "EDITOR" }, { rol: "ADMIN", tambienEditor: true }],
+        },
+      }),
     );
     expect(bd.guion.updateMany).not.toHaveBeenCalled();
   });
@@ -147,18 +153,51 @@ describe("lo que puede tocar cada uno", () => {
     ]);
   });
 
-  it("la zona de trabajo es del editor del guion, y solo escribe sus notas", async () => {
+  it("la zona de trabajo es del editor del guion (o de la autora de la idea), y solo escribe sus notas", async () => {
     await guardarNotasEditor("g", "ana", "mis notas");
     const { where, data } = bd.guion.updateMany.mock.calls[0][0];
-    expect(where).toMatchObject({ id: "g", editorId: "ana" });
+    expect(where.id).toBe("g");
+    expect(where.OR).toEqual([
+      expect.objectContaining({ editorId: "ana" }),
+      expect.objectContaining({ creadoPorId: "ana", origen: "EDITOR", editorId: null }),
+    ]);
     expect(data).toEqual({ notasEditor: "mis notas" });
   });
 
-  it("las lecturas del editor siempre van filtradas por su id", async () => {
+  it("las lecturas del editor siempre van filtradas por su id: lo asignado y sus ideas", async () => {
     await guionesDelEditor("ana");
     await guionDelEditor("g", "ana");
-    expect(bd.guion.findMany.mock.calls[0][0].where.editorId).toBe("ana");
-    expect(bd.guion.findFirst.mock.calls[0][0].where).toMatchObject({ id: "g", editorId: "ana" });
+    const suyos = [
+      expect.objectContaining({ editorId: "ana" }),
+      expect.objectContaining({ creadoPorId: "ana", origen: "EDITOR", editorId: null }),
+    ];
+    expect(bd.guion.findMany.mock.calls[0][0].where.OR).toEqual(suyos);
+    expect(bd.guion.findFirst.mock.calls[0][0].where).toMatchObject({ id: "g" });
+    expect(bd.guion.findFirst.mock.calls[0][0].where.OR).toEqual(suyos);
+  });
+
+  it("la autora mueve su idea solo si es suya y aún no está asignada", async () => {
+    bd.guion.findFirst.mockResolvedValue({ estado: "BORRADOR", editorId: null });
+    await cambiarEstado({
+      guionId: "g",
+      a: "PENDIENTE_APROBACION",
+      actor: "AUTOR",
+      autor: { id: "ana", nombre: "Ana" },
+    });
+    expect(bd.guion.findFirst.mock.calls[0][0].where).toMatchObject({
+      id: "g",
+      creadoPorId: "ana",
+      origen: "EDITOR",
+      editorId: null,
+    });
+  });
+
+  it("administración no ve ni toca las ideas que aún son privadas", async () => {
+    await buscarGuiones({});
+    expect(bd.guion.findMany.mock.calls[0][0].where.NOT).toEqual({
+      origen: "EDITOR",
+      estado: { in: ["BORRADOR", "DESCARTADO"] },
+    });
   });
 });
 

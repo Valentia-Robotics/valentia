@@ -23,7 +23,13 @@ export default async function LayoutStock({ children }: { children: ReactNode })
 
   return (
     <div className="flex flex-1 flex-col bg-niebla lg:flex-row">
-      <MenuAdmin nombre={yo.nombre} email={yo.email} zona={zona} />
+      <MenuAdmin
+        nombre={yo.nombre}
+        email={yo.email}
+        zona={zona}
+        tambienEditor={!!yo.tambienEditor}
+        femenino={!!yo.rolFemenino}
+      />
       <main id="contenido" className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-10">
         <div className="mx-auto max-w-6xl">
           <TransicionPagina>{children}</TransicionPagina>

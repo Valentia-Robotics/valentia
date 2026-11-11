@@ -261,12 +261,16 @@ export default async function ContenidoAdmin({ searchParams }: Props) {
   );
 }
 
-/** 🤖 Automático (n8n) con su relevancia y medio; «IA» si es otro guion generado con IA */
+/**
+ * 🤖 Automático (n8n) con su relevancia y medio; «IA» si es otro guion generado con IA; «Idea de Ana»
+ * si lo propuso un editor
+ */
 function EtiquetaOrigen({
   guion,
 }: {
   guion: {
     origen: string;
+    creadoPor: { nombre: string } | null;
     automatico: { relevancia: number | null; fuente: { medio: string | null } } | null;
   };
 }) {
@@ -277,6 +281,9 @@ function EtiquetaOrigen({
         medio={guion.automatico.fuente.medio}
       />
     );
+  }
+  if (guion.origen === "EDITOR") {
+    return <Insignia tono="acento">Idea de {guion.creadoPor?.nombre ?? "un editor"}</Insignia>;
   }
   return guion.origen === "IA" ? <Insignia tono="acento">IA</Insignia> : null;
 }

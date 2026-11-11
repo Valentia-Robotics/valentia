@@ -15,6 +15,8 @@ const datosUsuario = {
   nombre: true,
   email: true,
   rol: true,
+  tambienEditor: true,
+  rolFemenino: true,
   creadoEn: true,
   ultimaConexionEn: true,
   dispositivos: ultimoDispositivo,
