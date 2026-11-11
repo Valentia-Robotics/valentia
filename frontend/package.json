@@ -12,6 +12,7 @@
     "format:check": "prettier --check .",
     "marca": "node scripts/generar-marca.mjs",
     "fotos:piezas": "node scripts/fotos-piezas.mjs",
+    "modelos:glb": "node scripts/modelos-glb.mjs",
     "setup": "prisma db push && prisma db seed",
     "db:generate": "prisma generate",
     "db:catalogo": "tsx scripts/cargar-catalogo.ts",

@@ -1,11 +1,9 @@
 "use client";
 
-import { Maximize2, Minimize2, Minus, Plus, RotateCcw, Ruler } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { Modelo3D } from "@/config/modelos3d";
-import { textoMedida } from "@/config/modelos3d";
 import { cn } from "@/lib/utils";
-import type { ControlVisor, Medidas } from "@/lib/visor3d/escenaVisor";
+import type { ControlVisor } from "@/lib/visor3d/escenaVisor";
 
 interface Props {
   modelo: Modelo3D;
@@ -18,8 +16,9 @@ interface Props {
 type Estado = "cargando" | "listo" | "error";
 
 /**
- * VISOR 3D DE UNA PIEZA: girar (arrastrar), acercar (rueda o pellizco), ver las medidas reales y
- * ponerlo a pantalla completa. three.js se descarga solo cuando el visor aparece en pantalla.
+ * VISOR 3D DE UNA PIEZA, lo más limpio posible (Jesse: «demasiado detalle y texto»): la pieza gira sola,
+ * se gira arrastrando y se acerca con la rueda o dos dedos, y un solo botón «Medidas» enseña su tamaño real.
+ * three.js se descarga solo cuando el visor aparece en pantalla.
  */
 export function Visor3D({ modelo, nombre, alternativa, className }: Props) {
   const marco = useRef<HTMLDivElement>(null);
@@ -27,10 +26,7 @@ export function Visor3D({ modelo, nombre, alternativa, className }: Props) {
   const control = useRef<ControlVisor | null>(null);
   const [estado, setEstado] = useState<Estado>("cargando");
   const [progreso, setProgreso] = useState(0);
-  const [medidas, setMedidas] = useState<Medidas | null>(null);
   const [verMedidas, setVerMedidas] = useState(false);
-  const [tocado, setTocado] = useState(false);
-  const [completa, setCompleta] = useState(false);
 
   useEffect(() => {
     const contenedor = lienzo.current;
@@ -48,11 +44,9 @@ export function Visor3D({ modelo, nombre, alternativa, className }: Props) {
           if (!hayWebGL()) throw new Error("sin WebGL");
           visor = await crearVisor(contenedor, modelo, {
             alProgreso: (f) => !cancelado && setProgreso(f),
-            alTocar: () => !cancelado && setTocado(true),
           });
           if (cancelado) return visor.destruir();
           control.current = visor;
-          setMedidas(visor.medidas);
           setEstado("listo");
         } catch (error) {
           console.warn("[visor3d] No se pudo abrir el modelo", modelo.url, error);
@@ -71,30 +65,13 @@ export function Visor3D({ modelo, nombre, alternativa, className }: Props) {
     };
   }, [modelo]);
 
-  // Pantalla completa (si el navegador no la deja, el botón no hace nada)
-  useEffect(() => {
-    const alCambiar = () => setCompleta(document.fullscreenElement === marco.current);
-    document.addEventListener("fullscreenchange", alCambiar);
-    return () => document.removeEventListener("fullscreenchange", alCambiar);
-  }, []);
-  const alternarCompleta = () => {
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void marco.current?.requestFullscreen?.().catch(() => {});
-  };
-
   if (estado === "error") return <>{alternativa}</>;
 
-  const boton =
-    "grid size-9 place-items-center rounded-control bg-white/90 text-tinta shadow-sm ring-1 ring-linea backdrop-blur transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-acento";
-
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={className}>
       <div
         ref={marco}
-        className={cn(
-          "relative aspect-square w-full overflow-hidden rounded-tarjeta bg-niebla",
-          completa && "aspect-auto rounded-none",
-        )}
+        className="relative aspect-square w-full overflow-hidden rounded-tarjeta bg-[radial-gradient(ellipse_at_50%_40%,#ffffff_0%,#f4f4f2_55%,#e9e9e5_100%)]"
         role="img"
         aria-label={`Modelo 3D de ${nombre}. Arrastra para girarlo.`}
       >
@@ -109,86 +86,30 @@ export function Visor3D({ modelo, nombre, alternativa, className }: Props) {
                   style={{ width: `${Math.round(progreso * 100)}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-gris">Cargando en 3D…</p>
             </div>
           </div>
         )}
 
+        {/* Un solo botón discreto: las medidas. Girar y acercar se hacen con el dedo o el ratón */}
         {estado === "listo" && (
-          <>
-            {!tocado && (
-              <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs text-gris">
-                Arrastra para girar · rueda o pellizco para acercar
-              </p>
+          <button
+            type="button"
+            className={cn(
+              "absolute right-3 bottom-3 rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors",
+              verMedidas
+                ? "bg-tinta text-white ring-tinta"
+                : "bg-white/80 text-tinta ring-linea backdrop-blur hover:bg-white",
             )}
-            <div className="absolute top-2 right-2 flex flex-col gap-1.5">
-              <button
-                type="button"
-                className={cn(
-                  boton,
-                  verMedidas && "bg-acento text-white ring-acento hover:bg-acento",
-                )}
-                aria-pressed={verMedidas}
-                aria-label="Ver medidas"
-                title="Ver medidas"
-                onClick={() => {
-                  control.current?.verMedidas(!verMedidas);
-                  setVerMedidas(!verMedidas);
-                }}
-              >
-                <Ruler aria-hidden="true" className="size-4" />
-              </button>
-              <button
-                type="button"
-                className={boton}
-                aria-label="Acercar"
-                title="Acercar"
-                onClick={() => control.current?.acercar(1.3)}
-              >
-                <Plus aria-hidden="true" className="size-4" />
-              </button>
-              <button
-                type="button"
-                className={boton}
-                aria-label="Alejar"
-                title="Alejar"
-                onClick={() => control.current?.acercar(1 / 1.3)}
-              >
-                <Minus aria-hidden="true" className="size-4" />
-              </button>
-              <button
-                type="button"
-                className={boton}
-                aria-label="Volver a la vista inicial"
-                title="Volver a la vista inicial"
-                onClick={() => control.current?.reencuadrar()}
-              >
-                <RotateCcw aria-hidden="true" className="size-4" />
-              </button>
-              <button
-                type="button"
-                className={boton}
-                aria-label={completa ? "Salir de pantalla completa" : "Pantalla completa"}
-                title={completa ? "Salir de pantalla completa" : "Pantalla completa"}
-                onClick={alternarCompleta}
-              >
-                {completa ? (
-                  <Minimize2 aria-hidden="true" className="size-4" />
-                ) : (
-                  <Maximize2 aria-hidden="true" className="size-4" />
-                )}
-              </button>
-            </div>
-          </>
+            aria-pressed={verMedidas}
+            onClick={() => {
+              control.current?.verMedidas(!verMedidas);
+              setVerMedidas(!verMedidas);
+            }}
+          >
+            Medidas
+          </button>
         )}
       </div>
-
-      {medidas && (
-        <p className="text-center font-mono text-xs text-gris">
-          {textoMedida(medidas.ancho)} × {textoMedida(medidas.fondo)} × {textoMedida(medidas.alto)}
-          <span className="sr-only"> (ancho, fondo y alto)</span>
-        </p>
-      )}
     </div>
   );
 }

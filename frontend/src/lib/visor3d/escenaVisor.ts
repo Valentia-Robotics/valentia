@@ -129,7 +129,7 @@ function etiqueta(texto: string): CSS2DObject {
   const div = document.createElement("div");
   div.textContent = texto;
   div.className =
-    "pointer-events-none rounded-control bg-tinta/85 px-1.5 py-0.5 font-mono text-[11px] whitespace-nowrap text-white";
+    "pointer-events-none rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-tinta shadow-sm";
   return new CSS2DObject(div);
 }
 
@@ -208,16 +208,16 @@ export async function crearVisor(
   const cajaMedidas = new Group();
   const aristas = new LineSegments(
     new EdgesGeometry(new BoxGeometry(tam.x, tam.y, tam.z)),
-    new LineBasicMaterial({ color: 0x2d4bff, transparent: true, opacity: 0.7 }),
+    new LineBasicMaterial({ color: 0x0b0b0b, transparent: true, opacity: 0.25 }),
   );
   aristas.position.set(0, tam.y / 2, 0);
   cajaMedidas.add(aristas);
-  const ancho = etiqueta(`${textoMedida(medidas.ancho)} ancho`);
+  const ancho = etiqueta(`${textoMedida(medidas.ancho)}`);
   ancho.position.set(0, 0, tam.z / 2);
-  const fondo = etiqueta(`${textoMedida(medidas.fondo)} fondo`);
+  const fondo = etiqueta(`${textoMedida(medidas.fondo)}`);
   fondo.position.set(tam.x / 2, 0, 0);
-  const alto = etiqueta(`${textoMedida(medidas.alto)} alto`);
-  alto.position.set(tam.x / 2, tam.y / 2, tam.z / 2);
+  const alto = etiqueta(`${textoMedida(medidas.alto)}`);
+  alto.position.set(-tam.x / 2, tam.y / 2, tam.z / 2);
   cajaMedidas.add(ancho, fondo, alto);
   cajaMedidas.visible = false;
   escena.add(cajaMedidas);
@@ -230,7 +230,7 @@ export async function crearVisor(
     .add(
       new Vector3(0.55, 0.42, 0.72)
         .normalize()
-        .multiplyScalar((r / Math.sin((35 * Math.PI) / 360)) * 1.3),
+        .multiplyScalar((r / Math.sin((35 * Math.PI) / 360)) * 1.08),
     );
   camara.position.copy(posicionInicial);
 

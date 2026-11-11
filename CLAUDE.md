@@ -25,7 +25,11 @@ y sale solo: `src/lib/modelos3d.ts` lee la carpeta (en dev en cada petición) y 
 al navegador. Ajustes opcionales (unidad, color, brillo, metal, giro) en `AJUSTES_MODELOS` (`src/config/modelos3d.ts` + test).
 `Visor3D` (three.js con `import()`, solo dibuja cuando algo cambia; girar, zoom, medidas ancho × fondo × alto en mm con
 CSS2DRenderer, pantalla completa; si falla o no hay WebGL, la foto). `FotoOModelo` («3D · Foto») en el detalle del
-configurador y en `/componentes/[slug]`; la tarjeta del configurador lleva la marca «3D». Guía: `public/modelos/componentes/LEEME.md`.
+configurador y en `/componentes/[slug]` (Jesse: «demasiado detalle y texto» → sin pestañas ni botones: la pieza gira sola y un
+solo botón «Medidas»). Mientras llegan los de Alonso, `npm run modelos:glb` guarda las piezas de las fotos
+(`scripts/fotos-piezas/modelos.ts`, en cm → mm) como .glb (comprimidas con `npx @gltf-transform/cli optimize … --compress
+meshopt --texture-compress webp`: 10 MB → 1,3 MB). Guía: `public/modelos/componentes/LEEME.md`.
+**Criterios de Jesse y nota de 0 a 10 antes de enseñarle nada: `CRITERIOS_DISENO.md` (solo se enseña lo que saca un 10).**
 
 ### Foto de perfil en grande (11-11-2026, rama `claude/project-thread-51a75i`; petición de Jesse)
 
