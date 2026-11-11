@@ -56,6 +56,7 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "ultimaConexionEn" },
     { campo: "foto" },
     { campo: "tambienEditor" },
+    { campo: "tambienHardware" },
     { campo: "rolFemenino" },
   ],
   Verificacion: [

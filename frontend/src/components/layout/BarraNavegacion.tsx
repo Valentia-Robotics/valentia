@@ -170,7 +170,7 @@ export function BarraNavegacion() {
                       : sesion.user.tambienEditor
                         ? [{ href: "/editor", etiqueta: "Mis guiones" }]
                         : []),
-                    ...(sesion.user.rol === "HARDWARE"
+                    ...(sesion.user.rol === "HARDWARE" || sesion.user.tambienHardware
                       ? [{ href: "/hardware", etiqueta: "Mi espacio de hardware" }]
                       : []),
                     ...(sesion.user.rol && esDelEquipo(sesion.user.rol)

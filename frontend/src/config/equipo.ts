@@ -53,6 +53,19 @@ export const FILTRO_EDITORES = {
   OR: [{ rol: "EDITOR" as const }, { rol: { in: ROLES_ADMINISTRACION }, tambienEditor: true }],
 };
 
+/**
+ * Quién tiene espacio de archivos de hardware (/hardware): el rol HARDWARE y los ADMIN y SIGMA que
+ * también trabajan en hardware (Usuario.tambienHardware, se marca en /admin/usuarios).
+ */
+export function tieneEspacioHardware(usuario: { rol: Rol; tambienHardware?: boolean | null }) {
+  return usuario.rol === "HARDWARE" || (tieneAccesoAdmin(usuario.rol) && !!usuario.tambienHardware);
+}
+
+/** Lo mismo como filtro de la base de datos (la lista de /admin/hardware) */
+export const FILTRO_HARDWARE = {
+  OR: [{ rol: "HARDWARE" as const }, { rol: { in: ROLES_ADMINISTRACION }, tambienHardware: true }],
+};
+
 /** Cada cuánto se apunta, como mucho, la última conexión (para no escribir en la BD en cada clic) */
 export const MINUTOS_ENTRE_CONEXIONES = 2;
 

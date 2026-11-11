@@ -157,6 +157,7 @@ export async function comprobarSesion(
   nombre: string;
   foto: string | null;
   tambienEditor: boolean;
+  tambienHardware: boolean;
   rolFemenino: boolean;
 } | null> {
   const dispositivo = await db.dispositivoConfianza.findUnique({
@@ -172,6 +173,7 @@ export async function comprobarSesion(
           nombre: true,
           foto: true,
           tambienEditor: true,
+          tambienHardware: true,
           rolFemenino: true,
           emailVerificadoEn: true,
           ultimaConexionEn: true,
@@ -203,6 +205,7 @@ export async function comprobarSesion(
     nombre: dispositivo.usuario.nombre,
     foto: dispositivo.usuario.foto,
     tambienEditor: !!dispositivo.usuario.tambienEditor,
+    tambienHardware: !!dispositivo.usuario.tambienHardware,
     rolFemenino: !!dispositivo.usuario.rolFemenino,
   };
 }

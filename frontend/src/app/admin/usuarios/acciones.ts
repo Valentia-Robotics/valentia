@@ -114,7 +114,7 @@ export async function cambiarRolTrabajo(
     // Hardware: sus archivos se quedan; la administración los sigue viendo en /admin/hardware
     await db.usuario.updateMany({
       where: { id: usuarioId, rol },
-      data: { rol: "CLIENTE", tambienEditor: false },
+      data: { rol: "CLIENTE", tambienEditor: false, tambienHardware: false },
     });
   }
 
@@ -151,6 +151,36 @@ export async function cambiarTambienEditor(
   await db.usuario.update({ where: { id: usuarioId }, data: { tambienEditor: dar } });
   refrescar();
   revalidatePath("/editor", "layout");
+  return { ok: true };
+}
+
+/**
+ * Un administrador que además trabaja en hardware: tiene su propio espacio de archivos (/hardware,
+ * «Mi espacio») y sale en /admin/hardware. Datos: usuarioId y dar ("si" | "no"). Quitarlo NO borra
+ * sus archivos: siguen en /admin/hardware.
+ */
+export async function cambiarTambienHardware(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  const yo = await exigirAdminEnAccion();
+  const usuarioId = texto(formulario, "usuarioId");
+  const dar = texto(formulario, "dar") === "si";
+  if (!esId(usuarioId)) return NO_ENCONTRADA;
+
+  const usuario = await db.usuario.findUnique({
+    where: { id: usuarioId },
+    select: { id: true, rol: true },
+  });
+  if (!usuario) return NO_ENCONTRADA;
+  if (!tieneAccesoAdmin(usuario.rol)) {
+    return { ok: false, mensaje: "Solo a un administrador o sigma se le da «también hardware»." };
+  }
+  if (!puedeTocar(yo, usuario)) return SOLO_ADMIN;
+  await db.usuario.update({ where: { id: usuarioId }, data: { tambienHardware: dar } });
+  refrescar();
+  revalidatePath("/hardware", "layout");
+  revalidatePath("/admin/hardware", "layout");
   return { ok: true };
 }
 

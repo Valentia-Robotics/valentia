@@ -18,6 +18,14 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Admin que también es de hardware (11-11-2026, rama `claude/project-thread-ujau3u`; petición de Jesse)
+
+Como «también editor»: `Usuario.tambienHardware` (solo ADMIN o SIGMA, en `OPCIONALES`). Se da en `/admin/usuarios`
+(«Hacer también hardware» → `cambiarTambienHardware`; quitarlo no borra archivos). `tieneEspacioHardware(usuario)` y
+`FILTRO_HARDWARE` en `src/config/equipo.ts` (+ test): `exigirHardware`, subir y crear carpetas, la lista de
+`/admin/hardware` y los menús. Ese admin entra en `/hardware` con su menú del panel (sale «Mi espacio» tras «Hardware»);
+sin `dueno`/`duenoId`, la API y las acciones usan el espacio de quien llama. Va en la sesión (`tambienHardware`).
+
 ### GIFs en el chat (11-11-2026, rama `claude/project-thread-mu0to6`; petición de Jesse)
 
 Botón **GIF** (`SelectorGifs`, junto a los emojis): GIFs del momento + buscador; al tocar uno se envía solo. Buscan en

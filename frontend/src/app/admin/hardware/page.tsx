@@ -4,7 +4,13 @@ import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
 import { Insignia } from "@/components/admin/Insignia";
 import { Tabla } from "@/components/admin/Tabla";
-import { enLinea, textoConexion } from "@/config/equipo";
+import {
+  enLinea,
+  nombreRol,
+  textoConexion,
+  tieneAccesoAdmin,
+  tieneEspacioHardware,
+} from "@/config/equipo";
 import { CUOTA_BYTES_PERSONA, tamanoLegible } from "@/config/hardware";
 import { personasHardware } from "@/lib/hardware/archivos";
 import { exigirAdmin } from "@/lib/sesion";
@@ -22,7 +28,7 @@ export default async function HardwareAdmin() {
     <>
       <Cabecera
         titulo="Hardware"
-        descripcion={`${plural(personas.length, "persona", "personas")}. Cada una tiene su espacio de archivos: solo lo ven ella y la administración. El rol se da desde Usuarios.`}
+        descripcion={`${plural(personas.length, "persona", "personas")}. Cada una tiene su espacio de archivos: solo lo ven ella y la administración. El rol (o «también hardware» a un administrador) se da desde Usuarios.`}
       />
       <Caja sinRelleno>
         <Tabla
@@ -48,7 +54,10 @@ export default async function HardwareAdmin() {
                 >
                   {p.nombre}
                 </Link>{" "}
-                {p.rol !== "HARDWARE" && <Insignia>Ya no es de hardware</Insignia>}
+                {tieneAccesoAdmin(p.rol) && p.tambienHardware && (
+                  <Insignia tono="aviso">{nombreRol(p.rol, p.rolFemenino)}</Insignia>
+                )}{" "}
+                {!tieneEspacioHardware(p) && <Insignia>Ya no es de hardware</Insignia>}
                 <p className="text-xs text-gris">{p.email}</p>
               </td>
               <td className="tabular-nums">{p.archivos}</td>

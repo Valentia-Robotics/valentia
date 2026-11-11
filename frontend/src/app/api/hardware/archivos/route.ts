@@ -41,8 +41,9 @@ export async function POST(peticion: Request) {
   try {
     const archivo = await subirArchivo({
       usuario,
-      // Alguien de hardware solo sube a su espacio; un admin dice a cuál
-      duenoId: usuario.rol === "HARDWARE" ? usuario.id : (parametros.get("dueno") ?? ""),
+      // Alguien de hardware solo sube a su espacio; un admin dice a cuál (sin decirlo, al suyo:
+      // un admin con «también hardware» sube desde /hardware)
+      duenoId: usuario.rol === "HARDWARE" ? usuario.id : parametros.get("dueno") || usuario.id,
       nombre,
       carpeta: parametros.get("carpeta") ?? "",
       tipo: peticion.headers.get("content-type") ?? "",

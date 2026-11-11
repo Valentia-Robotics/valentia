@@ -28,6 +28,7 @@ export default async function LayoutStock({ children }: { children: ReactNode })
         email={yo.email}
         zona={zona}
         tambienEditor={!!yo.tambienEditor}
+        tambienHardware={!!yo.tambienHardware}
         femenino={!!yo.rolFemenino}
       />
       <main id="contenido" className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-10">

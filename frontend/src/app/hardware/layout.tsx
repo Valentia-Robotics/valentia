@@ -19,7 +19,18 @@ export default async function LayoutHardware({ children }: { children: ReactNode
 
   return (
     <div className="flex flex-1 flex-col bg-niebla lg:flex-row">
-      <MenuAdmin nombre={persona.nombre} email={persona.email} zona="hardware" />
+      {/* Un admin con «también hardware» sigue viendo su menú del panel (con «Mi espacio») */}
+      {persona.rol === "HARDWARE" ? (
+        <MenuAdmin nombre={persona.nombre} email={persona.email} zona="hardware" />
+      ) : (
+        <MenuAdmin
+          nombre={persona.nombre}
+          email={persona.email}
+          tambienEditor={!!persona.tambienEditor}
+          tambienHardware
+          femenino={!!persona.rolFemenino}
+        />
+      )}
       <main id="contenido" className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-10">
         <div className="mx-auto max-w-6xl">
           <TransicionPagina>{children}</TransicionPagina>
