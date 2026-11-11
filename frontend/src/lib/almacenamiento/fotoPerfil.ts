@@ -17,8 +17,11 @@ import { borrarPrivado } from "./privado";
 
 /** Dirección con la que la web enseña las fotos de perfil */
 export const PREFIJO_FOTO_PERFIL = "/api/fotos-perfil/";
-/** Lado de la foto, en píxeles (cuadrada). Se enseña a 44-80 px: 192 se ve nítida en pantallas retina */
-export const LADO_FOTO_PERFIL = 192;
+/**
+ * Lado de la foto, en píxeles (cuadrada). Se enseña a 28-80 px, pero al pulsarla se ve en grande
+ * (FotoAmpliable, hasta 512 px): con 512 se ve nítida (~20-40 KB). Las subidas antes del 11-11-2026 tienen 192.
+ */
+export const LADO_FOTO_PERFIL = 512;
 
 /** Lo que va tras /api/fotos-perfil/: un id de la BD (fotos nuevas) o un nombre del almacén privado (antiguas) */
 export type FotoEnRuta = { tipo: "bd"; id: string } | { tipo: "almacen"; clave: string } | null;

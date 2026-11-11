@@ -5,7 +5,7 @@ import { ROLES_EQUIPO, enLinea } from "@/config/equipo";
 import { cuandoEnLista } from "@/config/mensajes";
 import type { Conversacion } from "@/lib/mensajes/mensajes";
 import { cn } from "@/lib/utils";
-import { FotoPerfil } from "@/components/cuenta/FotoPerfil";
+import { FotoAmpliable } from "@/components/cuenta/FotoAmpliable";
 
 /** Iniciales para el circulito de cada persona: «Dani Pérez» → «DP» */
 export function iniciales(nombre: string) {
@@ -20,7 +20,7 @@ export function iniciales(nombre: string) {
 export const nombreRol = (rol: string | null) =>
   ROLES_EQUIPO.find((r) => r.rol === rol)?.nombre ?? "Ya no está en el equipo";
 
-/** El circulito con las iniciales (o el icono del grupo para el General) */
+/** El circulito con la foto o las iniciales (o el icono del grupo para el General). La foto se amplía al pulsarla */
 export function Avatar({
   nombre,
   foto,
@@ -45,7 +45,13 @@ export function Avatar({
       {general ? (
         <Users aria-hidden="true" className="size-5" />
       ) : foto ? (
-        <FotoPerfil foto={foto} className="size-full" alternativa={iniciales(nombre)} />
+        // Al pulsarla se ve en grande (también en la lista: abre la foto, no el chat)
+        <FotoAmpliable
+          foto={foto}
+          nombre={nombre}
+          className="size-full"
+          alternativa={iniciales(nombre)}
+        />
       ) : (
         iniciales(nombre)
       )}
