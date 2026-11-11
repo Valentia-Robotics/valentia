@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CATEGORIAS_EMOJI } from "./emojis";
 import {
   CANAL_GENERAL,
   calcularRecordatorio,
@@ -13,7 +14,7 @@ import {
   problemaMensaje,
   resumenMensaje,
   tamanoEnChat,
-  GRUPOS_EMOJI,
+  buscarEmojis,
   MAX_BYTES_IMAGEN,
   textoDia,
   trozosConEnlaces,
@@ -130,7 +131,20 @@ describe("mensajes del equipo", () => {
     expect(tamanoEnChat(null, null)).toEqual({ ancho: 320, alto: 240 });
   });
 
-  it("los emojis no se repiten dentro de un grupo (cada botón es único)", () => {
-    for (const grupo of GRUPOS_EMOJI) expect(new Set(grupo.emojis).size).toBe(grupo.emojis.length);
+  it("están todos los emojis, sin repetir dentro de cada categoría", () => {
+    const total = CATEGORIAS_EMOJI.reduce((n, c) => n + c.emojis.length, 0);
+    expect(total).toBeGreaterThan(1500);
+    for (const c of CATEGORIAS_EMOJI) {
+      const solo = c.emojis.map(([e]) => e);
+      expect(new Set(solo).size).toBe(solo.length);
+    }
+  });
+
+  it("se buscan en español, sin importar tildes ni mayúsculas", () => {
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "robot")).toContain("🤖");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "Corazón")).toContain("❤️");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "pizza")).toContain("🍕");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "españa")).toContain("🇪🇸");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "")).toEqual([]);
   });
 });

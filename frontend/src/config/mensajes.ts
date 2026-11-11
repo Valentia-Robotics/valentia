@@ -105,132 +105,37 @@ export function tamanoEnChat(
   };
 }
 
-/* ---------- Emojis (sin librerías: los que dibuja el propio móvil u ordenador) ---------- */
+/* ---------- Emojis (la lista completa está en src/config/emojis.ts) ---------- */
 
-export const GRUPOS_EMOJI: { nombre: string; icono: string; emojis: string[] }[] = [
-  {
-    nombre: "Caras",
-    icono: "😀",
-    emojis: [
-      ..."😀😃😄😁😆😅🤣😂🙂😉😊😇🥰😍🤩😘😋😜🤪🤗🤭🤫🤔🫡🤐😐😑😶🙄😏😬😌😔😴😷🤒🤯🥳😎🤓🧐😕😟😮😲😳🥺😢😭😱😤😡🤬💀🤡👻👽🤖",
-    ],
-  },
-  {
-    nombre: "Gestos",
-    icono: "👍",
-    emojis: [..."👍👎👌🤌✌🤞🤟🤘🤙👈👉👆👇☝✋🤚🖐👋👏🙌🫶👐🤲🤝🙏💪🦾✍👀🧠"],
-  },
-  {
-    nombre: "Corazones",
-    icono: "❤️",
-    emojis: [
-      "❤️",
-      "🧡",
-      "💛",
-      "💚",
-      "💙",
-      "💜",
-      "🖤",
-      "🤍",
-      "💔",
-      "❣️",
-      "💕",
-      "💞",
-      "💖",
-      "💯",
-      "💥",
-      "💫",
-      "⭐",
-      "🌟",
-      "✨",
-      "🔥",
-      "🎉",
-      "🎊",
-      "🏆",
-      "🥇",
-      "🎯",
-    ],
-  },
-  {
-    nombre: "Trabajo",
-    icono: "🛠️",
-    emojis: [
-      "✅",
-      "☑️",
-      "✔️",
-      "❌",
-      "⚠️",
-      "❗",
-      "❓",
-      "⏰",
-      "⏳",
-      "📅",
-      "📌",
-      "📎",
-      "📝",
-      "📋",
-      "📦",
-      "🚚",
-      "💶",
-      "💡",
-      "🔋",
-      "🔌",
-      "⚙️",
-      "🛠️",
-      "🔧",
-      "🔩",
-      "🧲",
-      "🪛",
-      "💻",
-      "🖥️",
-      "⌨️",
-      "🖨️",
-      "📱",
-      "📷",
-      "🎥",
-      "📣",
-      "📈",
-      "📉",
-      "🚀",
-      "🤖",
-      "🦾",
-      "🚗",
-    ],
-  },
-  {
-    nombre: "Comida y más",
-    icono: "☕",
-    emojis: [
-      "☕",
-      "🍕",
-      "🍔",
-      "🍟",
-      "🌮",
-      "🍩",
-      "🍪",
-      "🎂",
-      "🍺",
-      "🥤",
-      "🍎",
-      "🌞",
-      "🌙",
-      "🌧️",
-      "❄️",
-      "🌈",
-      "🐶",
-      "🐱",
-      "🦊",
-      "🐢",
-      "🌱",
-      "🌍",
-      "⚽",
-      "🎮",
-      "🎧",
-      "🎁",
-      "🙈",
-    ],
-  },
-];
+/** Quita tildes y pasa a minúsculas: «Corazón» y «corazon» buscan lo mismo */
+export const textoBusqueda = (texto: string) =>
+  texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+/**
+ * Busca emojis por sus palabras en español («corazon», «robot», «fiesta»…). Primero los que
+ * tienen una palabra que EMPIEZA por lo buscado; después los que solo la contienen.
+ */
+export function buscarEmojis(
+  categorias: { emojis: [string, string][] }[],
+  texto: string,
+  maximo = 160,
+): string[] {
+  const buscado = textoBusqueda(texto);
+  if (!buscado) return [];
+  const empiezan: string[] = [];
+  const contienen: string[] = [];
+  for (const { emojis } of categorias) {
+    for (const [emoji, palabras] of emojis) {
+      if (palabras.startsWith(buscado) || palabras.includes(` ${buscado}`)) empiezan.push(emoji);
+      else if (palabras.includes(buscado)) contienen.push(emoji);
+    }
+  }
+  return [...new Set([...empiezan, ...contienen])].slice(0, maximo);
+}
 
 /**
  * Trozos de un mensaje para enseñar los enlaces como enlaces (sin HTML: React escapa el resto).

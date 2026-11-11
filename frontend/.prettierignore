@@ -14,3 +14,4 @@ src/lib/tarjetaLaser/glifos.json
 
 # Catálogo exportado (EJSON con su propio formato: npm run catalogo:exportar)
 data/catalogo
+src/config/emojis.ts
