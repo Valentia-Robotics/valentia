@@ -201,7 +201,9 @@ que las fotos) y cada espacio lo ven **solo su dueño y los ADMIN**.
 - Carpetas vacías (Jesse, 11-11-2026): modelo `CarpetaHardware` (dueño + ruta, único) para que una carpeta salga aunque
   no tenga archivos (`verCarpeta(…, guardadas)`). Se crean con «Nueva carpeta» (`NuevaCarpeta`), al subir una carpeta
   (todas sus subcarpetas; las vacías solo arrastrando: `webkitdirectory` se las salta) y al borrar el último archivo.
-  Solo se borra una carpeta vacía (`borrarCarpeta`). Se pueden elegir varias carpetas una detrás de otra (se suman).
+  «Borrar» en cada carpeta: `borrarCarpeta` borra todo lo de dentro (almacén y lista; la de arriba se queda). Se pueden
+  elegir varias carpetas una detrás de otra (se suman). Subir un archivo igual (nombre, carpeta y tamaño) no lo repite
+  (la API responde 200 con `repetido`): volver a subir una carpeta entera solo trae lo que faltaba.
 - Rutas con `path.resolve` dinámico: llevar `/* turbopackIgnore: true */`; sin él, `next dev` vigila todo el proyecto y la
   página se recarga sin parar (pasó con `enDisco`).
 - Guía para el usuario: DESPLIEGUE.md §6 quinquies.

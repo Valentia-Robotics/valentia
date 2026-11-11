@@ -152,8 +152,8 @@ async function guardarRutas(duenoId: string, todas: string[]) {
 }
 
 /**
- * Borra una carpeta VACÍA (y sus subcarpetas, también vacías). Si hay algún archivo dentro no la
- * borra: primero hay que borrar los archivos (así nunca se pierde nada sin querer).
+ * Borra una carpeta con TODO lo que lleva dentro (archivos y subcarpetas), del almacén y de la
+ * lista. La carpeta de arriba se queda. Devuelve cuántos archivos se han borrado.
  */
 export async function borrarCarpeta(usuario: UsuarioActual, duenoId: string, ruta: string) {
   if (!esId(duenoId) || !puedeUsarEspacio(usuario, duenoId)) {
@@ -161,12 +161,22 @@ export async function borrarCarpeta(usuario: UsuarioActual, duenoId: string, rut
   }
   const carpeta = limpiarCarpeta(ruta);
   if (!carpeta) throw new ErrorArchivo("Esa carpeta no existe.");
-  const conArchivos = await db.archivoHardware.findMany({
-    where: { duenoId, carpeta: { startsWith: carpeta } },
-    select: { carpeta: true },
-  });
-  if (conArchivos.some((a) => estaDentroDe(a.carpeta, carpeta))) {
-    throw new ErrorArchivo("La carpeta tiene archivos dentro: bórralos antes.");
+  const archivos = (
+    await db.archivoHardware.findMany({
+      where: { duenoId, carpeta: { startsWith: carpeta } },
+      select: { id: true, carpeta: true, clave: true },
+    })
+  ).filter((a) => estaDentroDe(a.carpeta, carpeta));
+  // Uno a uno: primero del almacén y luego de la lista. Si el almacén falla a mitad, lo que
+  // queda sigue en la lista (nada se pierde de vista) y se puede volver a intentar
+  for (const archivo of archivos) {
+    try {
+      await borrarPrivado(archivo.clave);
+    } catch (error) {
+      if (error instanceof ErrorAlmacenPrivado) throw new ErrorArchivo(error.message);
+      throw error;
+    }
+    await db.archivoHardware.delete({ where: { id: archivo.id } });
   }
   const guardadas = await db.carpetaHardware.findMany({
     where: { duenoId, ruta: { startsWith: carpeta } },
@@ -174,6 +184,10 @@ export async function borrarCarpeta(usuario: UsuarioActual, duenoId: string, rut
   });
   const ids = guardadas.filter((c) => estaDentroDe(c.ruta, carpeta)).map((c) => c.id);
   await db.carpetaHardware.deleteMany({ where: { id: { in: ids } } });
+  // La carpeta de arriba no desaparece aunque se quede vacía
+  const arriba = carpeta.split("/").slice(0, -1).join("/");
+  if (arriba) await guardarRutas(duenoId, conCarpetasDeArriba([arriba]));
+  return archivos.length;
 }
 
 /** Para el panel: cada persona de hardware (o con archivos) con lo que tiene y su última conexión */
@@ -236,6 +250,14 @@ export async function subirArchivo(datos: {
   if (contenido.length > MAXIMO_BYTES_ARCHIVO) {
     throw new ErrorArchivo(`El archivo pesa más de ${MAXIMO_MB_ARCHIVO} MB.`);
   }
+  // Si ya está el mismo archivo (mismo nombre, carpeta y tamaño), no se sube otra vez: así se puede
+  // volver a subir una carpeta entera para traer lo que faltaba sin repetir lo que ya estaba
+  const nombre = limpiarNombreArchivo(datos.nombre);
+  const igual = await db.archivoHardware.findFirst({
+    where: { duenoId, carpeta, nombre, tamano: contenido.length },
+    select: { id: true, nombre: true },
+  });
+  if (igual) return { ...igual, repetido: true };
   const usados = await espacioUsado(duenoId);
   if (usados + contenido.length > CUOTA_BYTES_PERSONA) {
     throw new ErrorArchivo(
@@ -253,10 +275,10 @@ export async function subirArchivo(datos: {
     throw error;
   }
   try {
-    return await db.archivoHardware.create({
+    const creado = await db.archivoHardware.create({
       data: {
         duenoId,
-        nombre: limpiarNombreArchivo(datos.nombre),
+        nombre,
         carpeta,
         clave,
         tamano: contenido.length,
@@ -265,6 +287,7 @@ export async function subirArchivo(datos: {
       },
       select: { id: true, nombre: true },
     });
+    return { ...creado, repetido: false };
   } catch (error) {
     await borrarPrivado(clave).catch(() => {});
     throw error;

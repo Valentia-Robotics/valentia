@@ -238,6 +238,7 @@ export function SubirArchivos({
 
     const fallos: string[] = [];
     let subidos = 0;
+    let repetidos = 0;
     for (const [i, { archivo, ruta }] of elegidos.entries()) {
       const prefijo = elegidos.length > 1 ? `(${i + 1} de ${elegidos.length}) ` : "";
       const carpeta = carpetaDeRuta(base, ruta);
@@ -261,7 +262,9 @@ export function SubirArchivos({
         setProgreso(`${prefijo}Subiendo ${ruta}… ${Math.round(f * 100)} %`),
       );
       if (!error) {
-        subidos++;
+        // 200 = ya estaba igual (mismo nombre, carpeta y tamaño) y no se ha vuelto a subir
+        if (status === 200) repetidos++;
+        else subidos++;
         continue;
       }
       fallos.push(`${ruta}: ${error}`);
@@ -295,14 +298,22 @@ export function SubirArchivos({
           ]
         : fallos,
     );
-    if (subidos > 0 || carpetasGuardadas) {
-      setHecho(
+    if (subidos > 0 || repetidos > 0 || carpetasGuardadas) {
+      const partes = [
         subidos === 0
-          ? "Carpetas creadas."
+          ? carpetasGuardadas
+            ? "Carpetas creadas."
+            : ""
           : subidos === 1
             ? "Archivo subido."
             : `${subidos} archivos subidos.`,
-      );
+        repetidos === 0
+          ? ""
+          : repetidos === 1
+            ? "1 ya estaba y no se ha repetido."
+            : `${repetidos} ya estaban y no se han repetido.`,
+      ];
+      setHecho(partes.filter(Boolean).join(" "));
       setSeleccion(null);
       router.refresh();
     }

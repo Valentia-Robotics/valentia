@@ -49,7 +49,10 @@ export async function POST(peticion: Request) {
     });
     revalidatePath("/hardware");
     revalidatePath("/admin/hardware", "layout");
-    return respuesta({ ok: true, id: archivo.id, nombre: archivo.nombre }, 201);
+    return respuesta(
+      { ok: true, id: archivo.id, nombre: archivo.nombre, repetido: archivo.repetido },
+      archivo.repetido ? 200 : 201,
+    );
   } catch (error) {
     if (error instanceof ErrorArchivo) return respuesta({ error: error.message }, 400);
     console.error("[hardware] No se ha podido subir un archivo.", error);

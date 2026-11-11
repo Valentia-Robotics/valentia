@@ -60,7 +60,7 @@ export async function crearCarpetasVaciasHardware(
   return { error: null };
 }
 
-/** Borra una carpeta vacía (con archivos dentro no se puede) */
+/** Borra una carpeta con todo lo que lleva dentro (archivos y subcarpetas) */
 export async function borrarCarpetaHardware(
   _anterior: EstadoFormulario,
   formulario: FormData,
