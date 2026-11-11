@@ -17,9 +17,13 @@ export const MAX_CARACTERES_MENSAJE = 4000;
 /** Mensajes que se cargan de cada chat (los más recientes) */
 export const MENSAJES_POR_CHAT = 200;
 
-/** Cada cuánto se miran los mensajes nuevos con el chat abierto, y el contador del menú */
-export const SEGUNDOS_REFRESCO_CHAT = 10;
-export const SEGUNDOS_REFRESCO_CONTADOR = 45;
+/**
+ * Cada cuánto mira el chat abierto si hay algo nuevo. Es una pregunta pequeña (una «huella» del
+ * chat): solo cuando cambia se vuelve a pedir la página entera. Así llega casi al momento sin
+ * cargar el servidor. El contador del menú va más despacio.
+ */
+export const SEGUNDOS_REFRESCO_CHAT = 3;
+export const SEGUNDOS_REFRESCO_CONTADOR = 5;
 
 /** El canal privado entre dos personas: el mismo sin importar quién lo abra */
 export function canalPrivado(a: string, b: string): string {
@@ -52,12 +56,85 @@ export function limpiarMensaje(texto: string): string {
     .trim();
 }
 
-/** Por qué no se puede enviar un mensaje, o null si está bien */
-export function problemaMensaje(texto: string): string | null {
-  if (!texto) return "Escribe algo antes de enviar.";
+/** Por qué no se puede enviar un mensaje, o null si está bien. Con imagen, el texto puede ir vacío */
+export function problemaMensaje(texto: string, conImagen = false): string | null {
+  if (!texto && !conImagen) return "Escribe algo antes de enviar.";
   if (texto.length > MAX_CARACTERES_MENSAJE)
     return `El mensaje es muy largo (máximo ${MAX_CARACTERES_MENSAJE} caracteres).`;
   return null;
+}
+
+/* ---------- Imágenes (Jesse, 11-11-2026: SOLO imágenes; otros archivos, en /hardware) ---------- */
+
+/** Tipos de imagen que se aceptan (se comprueba también el contenido en el servidor) */
+export const TIPOS_IMAGEN_MENSAJE = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+/** Lo más que puede pesar la foto ANTES de reducirla (las del móvil rondan 3-8 MB) */
+export const MAX_MB_IMAGEN = 15;
+export const MAX_BYTES_IMAGEN = MAX_MB_IMAGEN * 1024 * 1024;
+
+/** Lado más largo de la imagen guardada (se reduce y se pasa a WebP: pesa mucho menos) */
+export const LADO_IMAGEN_MENSAJE = 1600;
+
+/** Por qué no vale una imagen elegida en el navegador, o null si vale */
+export function problemaImagen(archivo: { type: string; size: number }): string | null {
+  if (!TIPOS_IMAGEN_MENSAJE.includes(archivo.type))
+    return "Solo se pueden enviar imágenes JPG, PNG, WebP o GIF.";
+  if (archivo.size > MAX_BYTES_IMAGEN)
+    return `La imagen pesa demasiado (máximo ${MAX_MB_IMAGEN} MB).`;
+  return null;
+}
+
+/** Lo que sale de un mensaje en la lista de chats o en un correo: el texto, o «📷 Foto» */
+export function resumenMensaje(texto: string, conImagen: boolean): string {
+  if (!conImagen) return texto;
+  return texto ? `📷 ${texto}` : "📷 Foto";
+}
+
+/** Tamaño con el que se reserva el hueco de una imagen en el chat (para que no salte al cargar) */
+export function tamanoEnChat(
+  ancho: number | null,
+  alto: number | null,
+  maximo = 320,
+): { ancho: number; alto: number } {
+  if (!ancho || !alto) return { ancho: maximo, alto: Math.round(maximo * 0.75) };
+  const escala = Math.min(1, maximo / Math.max(ancho, alto));
+  return {
+    ancho: Math.max(1, Math.round(ancho * escala)),
+    alto: Math.max(1, Math.round(alto * escala)),
+  };
+}
+
+/* ---------- Emojis (la lista completa está en src/config/emojis.ts) ---------- */
+
+/** Quita tildes y pasa a minúsculas: «Corazón» y «corazon» buscan lo mismo */
+export const textoBusqueda = (texto: string) =>
+  texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+/**
+ * Busca emojis por sus palabras en español («corazon», «robot», «fiesta»…). Primero los que
+ * tienen una palabra que EMPIEZA por lo buscado; después los que solo la contienen.
+ */
+export function buscarEmojis(
+  categorias: { emojis: [string, string][] }[],
+  texto: string,
+  maximo = 160,
+): string[] {
+  const buscado = textoBusqueda(texto);
+  if (!buscado) return [];
+  const empiezan: string[] = [];
+  const contienen: string[] = [];
+  for (const { emojis } of categorias) {
+    for (const [emoji, palabras] of emojis) {
+      if (palabras.startsWith(buscado) || palabras.includes(` ${buscado}`)) empiezan.push(emoji);
+      else if (palabras.includes(buscado)) contienen.push(emoji);
+    }
+  }
+  return [...new Set([...empiezan, ...contienen])].slice(0, maximo);
 }
 
 /**
@@ -150,6 +227,8 @@ export const RECORDATORIOS = [
   { valor: "entrega", nombre: "A la hora de entrega", minutosAntes: 0 },
   { valor: "15m", nombre: "15 minutos antes", minutosAntes: 15 },
   { valor: "1h", nombre: "1 hora antes", minutosAntes: 60 },
+  { valor: "4h", nombre: "4 horas antes", minutosAntes: 4 * 60 },
+  { valor: "10h", nombre: "10 horas antes", minutosAntes: 10 * 60 },
   { valor: "1d", nombre: "1 día antes", minutosAntes: 24 * 60 },
   { valor: "otra", nombre: "Otro día y hora…" },
 ] as const;

@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, Download, FileText, Folder, HardDrive } from "lucide-react";
-import { borrarArchivoHardware } from "@/app/hardware/acciones";
+import { borrarArchivoHardware, borrarCarpetaHardware } from "@/app/hardware/acciones";
 import { Aviso } from "@/components/admin/Aviso";
 import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Caja } from "@/components/admin/Caja";
@@ -17,6 +17,7 @@ import { fechaHora } from "@/lib/admin/formato";
 import { almacenPrivadoListo } from "@/lib/almacenamiento/privado";
 import { verEspacio } from "@/lib/hardware/archivos";
 import { cn } from "@/lib/utils";
+import { NuevaCarpeta } from "./NuevaCarpeta";
 import { SubirArchivos } from "./SubirArchivos";
 
 /**
@@ -42,12 +43,12 @@ export async function EspacioArchivos({
   pagina: string;
   carpeta?: string;
 }) {
-  const { archivos, usados, carpetas } = await verEspacio(duenoId);
+  const { archivos, usados, carpetas, guardadas } = await verEspacio(duenoId);
   const porcentaje = Math.min(100, Math.round((usados / CUOTA_BYTES_PERSONA) * 100));
   const listo = almacenPrivadoListo();
   // Una carpeta rara en la dirección (a mano o ya borrada) → la principal
   const ruta = limpiarCarpeta(carpeta) ?? "";
-  const vista = verCarpeta(archivos, ruta);
+  const vista = verCarpeta(archivos, ruta, guardadas);
   const migas = migasDeCarpeta(ruta);
   const enlace = (r: string) => (r ? `${pagina}?${new URLSearchParams({ carpeta: r })}` : pagina);
 
@@ -135,8 +136,15 @@ export async function EspacioArchivos({
               )}
             </Fragment>
           ))}
-          <span className="ml-auto text-xs text-gris tabular-nums">
-            {archivos.length === 1 ? "1 archivo en total" : `${archivos.length} archivos en total`}
+          <span className="ml-auto flex flex-wrap items-center gap-3 text-xs text-gris tabular-nums">
+            {puedeSubir && (
+              <NuevaCarpeta duenoId={paraAdmin ? duenoId : undefined} dentro={ruta} key={ruta} />
+            )}
+            <span>
+              {archivos.length === 1
+                ? "1 archivo en total"
+                : `${archivos.length} archivos en total`}
+            </span>
           </span>
         </nav>
         <Tabla
@@ -170,9 +178,30 @@ export async function EspacioArchivos({
               </td>
               <td className="whitespace-nowrap text-gris tabular-nums">{tamanoLegible(c.bytes)}</td>
               <td className="text-gris">
-                {c.archivos === 1 ? "1 archivo" : `${c.archivos} archivos`}
+                {c.archivos === 0
+                  ? "Vacía"
+                  : c.archivos === 1
+                    ? "1 archivo"
+                    : `${c.archivos} archivos`}
               </td>
-              <td />
+              <td>
+                <div className="flex justify-end">
+                  <BotonConfirmar
+                    accion={borrarCarpetaHardware}
+                    datos={{ ruta: c.ruta, duenoId }}
+                    titulo="Borrar carpeta"
+                    texto={
+                      c.archivos === 0
+                        ? `La carpeta «${c.nombre}» está vacía y se borrará (con sus subcarpetas).`
+                        : `Se borrará la carpeta «${c.nombre}» con todo lo que tiene dentro: ${c.archivos === 1 ? "1 archivo" : `${c.archivos} archivos`} (${tamanoLegible(c.bytes)}) y sus subcarpetas. No se puede deshacer.`
+                    }
+                    variante="peligro"
+                    pequeno
+                  >
+                    Borrar
+                  </BotonConfirmar>
+                </div>
+              </td>
             </tr>
           ))}
           {vista.archivos.map((a) => (

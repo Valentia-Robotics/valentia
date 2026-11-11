@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Chat } from "@/components/mensajes/Chat";
 import { PantallaMensajes } from "@/components/mensajes/PantallaMensajes";
 import { esDelEquipo } from "@/config/equipo";
-import { abrirChat, companeros, listarConversaciones } from "@/lib/mensajes/mensajes";
+import { abrirChat, companeros, huellaChat, listarConversaciones } from "@/lib/mensajes/mensajes";
 import { exigirUsuario } from "@/lib/sesion";
 
 export const metadata: Metadata = { title: "Chat" };
@@ -20,7 +20,10 @@ export default async function PaginaChat({ params }: Props) {
   // Primero se abre (y se marca como leído), así la lista ya sale sin su número
   const abierto = await abrirChat(yo, chat);
   if (!abierto) notFound();
-  const conversaciones = await listarConversaciones(yo);
+  const [conversaciones, huella] = await Promise.all([
+    listarConversaciones(yo),
+    huellaChat(yo, chat),
+  ]);
   const esta = conversaciones.find((c) => c.ruta === chat);
   // Para elegir a quién va una tarea: en el General, todo el equipo; en un privado, los dos
   const yoMismo = { id: yo.id, nombre: `${yo.nombre} (tú)` };
@@ -42,7 +45,9 @@ export default async function PaginaChat({ params }: Props) {
         soyAdmin={yo.rol === "ADMIN"}
         puedeEscribir={abierto.puedeEscribir}
         mensajes={abierto.mensajes}
+        huella={huella}
         personas={personas}
+        lecturas={abierto.lecturas}
       />
     </PantallaMensajes>
   );

@@ -1,11 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
+import {
+  useId,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+  type MouseEvent,
+} from "react";
 import { FileUp, FolderUp, Upload, X } from "lucide-react";
 import { Aviso } from "@/components/admin/Aviso";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { CampoAdmin } from "@/components/admin/campos";
+import { crearCarpetasVaciasHardware } from "@/app/hardware/acciones";
 import {
   carpetaDeRuta,
   esArchivoDelSistema,
@@ -28,6 +36,11 @@ interface Elegido {
 interface Seleccion {
   tipo: "archivos" | "carpeta";
   elegidos: Elegido[];
+  /**
+   * Todas las carpetas de lo elegido ("Coche", "Coche/PCB"…), también las vacías: se guardan para
+   * que se vean en el espacio aunque no lleven archivos
+   */
+  carpetas: string[];
   /** Archivos del sistema que se han dejado fuera (.DS_Store, Thumbs.db…) */
   ignorados: number;
 }
@@ -63,8 +76,15 @@ function enviar(
   });
 }
 
-/** Lee todo lo que hay dentro de una carpeta arrastrada (el navegador lo da a trozos de 100) */
-async function leerEntrada(entrada: FileSystemEntry, salida: Elegido[]): Promise<void> {
+/**
+ * Lee todo lo que hay dentro de una carpeta arrastrada (el navegador lo da a trozos de 100).
+ * Apunta también cada carpeta en `carpetas`, aunque esté vacía.
+ */
+async function leerEntrada(
+  entrada: FileSystemEntry,
+  salida: Elegido[],
+  carpetas: string[],
+): Promise<void> {
   if (entrada.isFile) {
     const archivo = await new Promise<File>((ok, mal) =>
       (entrada as FileSystemFileEntry).file(ok, mal),
@@ -73,18 +93,71 @@ async function leerEntrada(entrada: FileSystemEntry, salida: Elegido[]): Promise
     return;
   }
   if (!entrada.isDirectory) return;
+  carpetas.push(entrada.fullPath.replace(/^\/+/, ""));
   const lector = (entrada as FileSystemDirectoryEntry).createReader();
   for (;;) {
     const trozo = await new Promise<FileSystemEntry[]>((ok, mal) => lector.readEntries(ok, mal));
     if (trozo.length === 0) break;
-    for (const hija of trozo) await leerEntrada(hija, salida);
+    for (const hija of trozo) await leerEntrada(hija, salida, carpetas);
+  }
+}
+
+/** Lo mínimo de la API del navegador para abrir carpetas (Chrome y Edge; TypeScript aún no la trae) */
+interface CarpetaDelNavegador {
+  kind: "directory";
+  name: string;
+  values(): AsyncIterable<CarpetaDelNavegador | ArchivoDelNavegador>;
+}
+interface ArchivoDelNavegador {
+  kind: "file";
+  name: string;
+  getFile(): Promise<File>;
+}
+type ConSelectorDeCarpetas = Window & {
+  showDirectoryPicker?: (opciones?: { mode?: "read" }) => Promise<CarpetaDelNavegador>;
+};
+
+/**
+ * Lee una carpeta abierta con showDirectoryPicker. A diferencia del <input webkitdirectory>, esta
+ * forma SÍ ve las carpetas vacías (el input solo da archivos). Las carpetas ocultas (.git…) no se abren.
+ */
+async function leerCarpetaDelNavegador(
+  carpeta: CarpetaDelNavegador,
+  ruta: string,
+  salida: Elegido[],
+  carpetas: string[],
+): Promise<void> {
+  carpetas.push(ruta);
+  for await (const hija of carpeta.values()) {
+    const rutaHija = `${ruta}/${hija.name}`;
+    if (hija.kind === "file") {
+      salida.push({ archivo: await hija.getFile(), ruta: rutaHija });
+    } else if (!hija.name.startsWith(".")) {
+      await leerCarpetaDelNavegador(hija, rutaHija, salida, carpetas);
+    }
   }
 }
 
 /** Separa los archivos útiles de los que crea solo el ordenador */
-function prepararSeleccion(tipo: Seleccion["tipo"], todos: Elegido[]): Seleccion {
+function prepararSeleccion(
+  tipo: Seleccion["tipo"],
+  todos: Elegido[],
+  carpetasVistas: string[] = [],
+): Seleccion {
   const elegidos = todos.filter((e) => !esArchivoDelSistema(e.ruta));
-  return { tipo, elegidos, ignorados: todos.length - elegidos.length };
+  // Las carpetas de la ruta de cada archivo (también de los que no se suben: una carpeta con solo
+  // un .DS_Store se ve vacía) y las que ha visto el navegador; sin las ocultas (.git…)
+  const carpetas = new Set<string>();
+  for (const ruta of [...todos.map((e) => e.ruta), ...carpetasVistas.map((c) => `${c}/x`)]) {
+    const partes = ruta.split("/").slice(0, -1);
+    for (let i = 1; i <= partes.length; i++) carpetas.add(partes.slice(0, i).join("/"));
+  }
+  return {
+    tipo,
+    elegidos,
+    carpetas: [...carpetas].filter((c) => c && !esArchivoDelSistema(`${c}/x`)),
+    ignorados: todos.length - elegidos.length,
+  };
 }
 
 /**
@@ -99,6 +172,7 @@ function juntarSelecciones(antes: Seleccion | null, nueva: Seleccion): Seleccion
   return {
     tipo: antes.tipo === "carpeta" || nueva.tipo === "carpeta" ? "carpeta" : "archivos",
     elegidos: [...porRuta.values()],
+    carpetas: [...new Set([...antes.carpetas, ...nueva.carpetas])],
     ignorados: antes.ignorados + nueva.ignorados,
   };
 }
@@ -153,6 +227,30 @@ export function SubirArchivos({
     else setErrores(["Esa carpeta está vacía."]);
   }
 
+  /**
+   * «Elegir carpeta»: si el navegador sabe abrir carpetas (Chrome, Edge), se usa esa ventana, que
+   * también trae las subcarpetas vacías. Si no (Firefox, Safari), sigue el input de siempre.
+   */
+  async function abrirCarpeta(e: MouseEvent<HTMLLabelElement>) {
+    const selector = (window as ConSelectorDeCarpetas).showDirectoryPicker;
+    if (!selector || subiendo) return;
+    e.preventDefault();
+    let carpeta: CarpetaDelNavegador;
+    try {
+      carpeta = await selector.call(window, { mode: "read" });
+    } catch {
+      return; // ha cerrado la ventana sin elegir
+    }
+    const lista: Elegido[] = [];
+    const vistas: string[] = [];
+    try {
+      await leerCarpetaDelNavegador(carpeta, carpeta.name, lista, vistas);
+    } catch {
+      return setErrores(["No se ha podido leer esa carpeta. Prueba a arrastrarla aquí."]);
+    }
+    elegir(prepararSeleccion("carpeta", lista, vistas));
+  }
+
   async function alSoltar(e: DragEvent<HTMLFormElement>) {
     e.preventDefault();
     setEncima(false);
@@ -168,14 +266,17 @@ export function SubirArchivos({
       return;
     }
     const lista: Elegido[] = [];
+    const vistas: string[] = [];
     try {
-      for (const entrada of entradas) await leerEntrada(entrada, lista);
+      for (const entrada of entradas) await leerEntrada(entrada, lista, vistas);
     } catch {
       return setErrores(["No se ha podido leer lo que has arrastrado. Prueba con los botones."]);
     }
-    if (lista.length === 0) return setErrores(["Lo que has arrastrado está vacío."]);
+    if (lista.length === 0 && vistas.length === 0) {
+      return setErrores(["Lo que has arrastrado está vacío."]);
+    }
     const conCarpeta = entradas.some((entrada) => entrada.isDirectory);
-    elegir(prepararSeleccion(conCarpeta ? "carpeta" : "archivos", lista));
+    elegir(prepararSeleccion(conCarpeta ? "carpeta" : "archivos", lista, vistas));
   }
 
   async function alEnviar(evento: FormEvent<HTMLFormElement>) {
@@ -183,7 +284,7 @@ export function SubirArchivos({
     const base = String(new FormData(evento.currentTarget).get("carpeta") ?? "");
     setErrores([]);
     setHecho(null);
-    if (!seleccion || seleccion.elegidos.length === 0) {
+    if (!seleccion || (seleccion.elegidos.length === 0 && seleccion.carpetas.length === 0)) {
       return setErrores(["Elige al menos un archivo o una carpeta."]);
     }
     const { elegidos, tipo } = seleccion;
@@ -204,6 +305,7 @@ export function SubirArchivos({
 
     const fallos: string[] = [];
     let subidos = 0;
+    let repetidos = 0;
     for (const [i, { archivo, ruta }] of elegidos.entries()) {
       const prefijo = elegidos.length > 1 ? `(${i + 1} de ${elegidos.length}) ` : "";
       const carpeta = carpetaDeRuta(base, ruta);
@@ -227,7 +329,9 @@ export function SubirArchivos({
         setProgreso(`${prefijo}Subiendo ${ruta}… ${Math.round(f * 100)} %`),
       );
       if (!error) {
-        subidos++;
+        // 200 = ya estaba igual (mismo nombre, carpeta y tamaño) y no se ha vuelto a subir
+        if (status === 200) repetidos++;
+        else subidos++;
         continue;
       }
       fallos.push(`${ruta}: ${error}`);
@@ -235,6 +339,21 @@ export function SubirArchivos({
       if (status === 403 || status === 404 || status === 429) {
         fallos.push(`Se ha parado la subida: faltaban ${elegidos.length - i - 1} archivos.`);
         break;
+      }
+    }
+    // Las carpetas (también las vacías) se guardan para que salgan en el espacio
+    let carpetasGuardadas = false;
+    const rutasCarpetas = seleccion.carpetas
+      .map((c) => carpetaDeRuta(base, `${c}/x`))
+      .filter((c): c is string => Boolean(c));
+    if (rutasCarpetas.length > 0) {
+      setProgreso("Guardando las carpetas…");
+      try {
+        const { error } = await crearCarpetasVaciasHardware(duenoId ?? "", rutasCarpetas);
+        if (error) fallos.push(`Carpetas: ${error}`);
+        else carpetasGuardadas = true;
+      } catch {
+        fallos.push("No se han podido guardar las carpetas vacías. Vuelve a probar.");
       }
     }
     setProgreso(null);
@@ -246,8 +365,22 @@ export function SubirArchivos({
           ]
         : fallos,
     );
-    if (subidos > 0) {
-      setHecho(subidos === 1 ? "Archivo subido." : `${subidos} archivos subidos.`);
+    if (subidos > 0 || repetidos > 0 || carpetasGuardadas) {
+      const partes = [
+        subidos === 0
+          ? carpetasGuardadas
+            ? "Carpetas creadas."
+            : ""
+          : subidos === 1
+            ? "Archivo subido."
+            : `${subidos} archivos subidos.`,
+        repetidos === 0
+          ? ""
+          : repetidos === 1
+            ? "1 ya estaba y no se ha repetido."
+            : `${repetidos} ya estaban y no se han repetido.`,
+      ];
+      setHecho(partes.filter(Boolean).join(" "));
       setSeleccion(null);
       router.refresh();
     }
@@ -255,11 +388,12 @@ export function SubirArchivos({
 
   // Las carpetas elegidas (la primera parte de la ruta de los archivos que van en carpeta)
   const raices = [
-    ...new Set(
-      (seleccion?.elegidos ?? [])
+    ...new Set([
+      ...(seleccion?.elegidos ?? [])
         .filter((e) => e.ruta.includes("/"))
         .map((e) => e.ruta.split("/")[0]),
-    ),
+      ...(seleccion?.carpetas ?? []).map((c) => c.split("/")[0]),
+    ]),
   ];
 
   /** Quita de lo elegido una de las carpetas (si se eligió una de más) */
@@ -267,7 +401,8 @@ export function SubirArchivos({
     setSeleccion((antes) => {
       if (!antes) return null;
       const elegidos = antes.elegidos.filter((e) => !e.ruta.startsWith(`${raiz}/`));
-      return elegidos.length > 0 ? { ...antes, elegidos } : null;
+      const carpetas = antes.carpetas.filter((c) => c !== raiz && !c.startsWith(`${raiz}/`));
+      return elegidos.length > 0 || carpetas.length > 0 ? { ...antes, elegidos, carpetas } : null;
     });
   }
   const pesoElegido = seleccion?.elegidos.reduce((suma, e) => suma + e.archivo.size, 0) ?? 0;
@@ -315,6 +450,7 @@ export function SubirArchivos({
             />
             <label
               htmlFor={idCarpeta}
+              onClick={abrirCarpeta}
               className={cn(
                 claseBoton,
                 "bg-white text-tinta ring-1 ring-linea hover:ring-tinta/40",
@@ -337,7 +473,8 @@ export function SubirArchivos({
           <p className="mt-1.5 text-xs text-gris">
             También puedes arrastrar archivos o carpetas aquí. Hasta {MAXIMO_MB_ARCHIVO} MB cada
             archivo; una carpeta se sube con todas sus subcarpetas (hasta {MAXIMO_ARCHIVOS_CARPETA}{" "}
-            archivos). Para subir varias carpetas, elígelas una detrás de otra: se van sumando.
+            archivos). Para subir varias carpetas, elígelas una detrás de otra: se van sumando. Las
+            carpetas vacías también se crean (en Firefox y Safari, solo arrastrándolas).
           </p>
         </div>
         <div>

@@ -8,20 +8,24 @@
  *     abrir con alguien que sigue en el equipo.
  */
 import "server-only";
+import { createHash } from "node:crypto";
 import {
   CANAL_GENERAL,
   MENSAJES_POR_CHAT,
   canalDeRuta,
   personasDelCanal,
+  resumenMensaje,
   type DatosTarea,
   type Estado,
   type Prioridad,
 } from "@/config/mensajes";
 import { esDelEquipo, ROLES_EQUIPO } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
+import { borrarPrivado } from "@/lib/almacenamiento/privado";
 import { db } from "@/lib/db";
 import { esId } from "@/lib/ids";
 import type { UsuarioActual } from "@/lib/sesion";
+import type { ImagenGuardada } from "./imagenes";
 
 export class ErrorMensaje extends Error {}
 
@@ -70,6 +74,8 @@ export interface Mensaje {
   autorNombre: string;
   texto: string;
   creadoEn: Date;
+  /** Si lleva imagen, su tamaño (para reservar el hueco). La imagen se pide a /api/mensajes/imagen/<id> */
+  imagen: { ancho: number | null; alto: number | null } | null;
   esTarea: boolean;
   estadoTarea: Estado;
   prioridad: Prioridad | null;
@@ -96,7 +102,43 @@ const camposMensaje = {
   recordarEn: true,
   hechaEn: true,
   hechaPor: true,
+  imagenClave: true,
+  imagenAncho: true,
+  imagenAlto: true,
 } as const;
+
+/** De la fila de la BD a lo que ve la pantalla: la clave del almacén nunca sale del servidor */
+function aMensaje<
+  T extends { imagenClave: string | null; imagenAncho: number | null; imagenAlto: number | null },
+>({ imagenClave, imagenAncho, imagenAlto, ...resto }: T) {
+  return {
+    ...resto,
+    imagen: imagenClave ? { ancho: imagenAncho, alto: imagenAlto } : null,
+  };
+}
+
+/** Hasta cuándo ha leído el chat cada una de las OTRAS personas que lo ven (para los tics azules) */
+export interface LecturaDeOtro {
+  id: string;
+  nombre: string;
+  /** Milisegundos; 0 = no lo ha abierto nunca */
+  leidoHasta: number;
+}
+
+async function lecturasDeOtros(
+  yo: UsuarioActual,
+  canal: string,
+  otro: { id: string; nombre: string } | null,
+): Promise<LecturaDeOtro[]> {
+  const personas = otro ? [otro] : await companeros(yo);
+  if (personas.length === 0) return [];
+  const lecturas = await db.lecturaCanal.findMany({
+    where: { canal, usuarioId: { in: personas.map((p) => p.id) } },
+    select: { usuarioId: true, leidoHasta: true },
+  });
+  const hasta = new Map(lecturas.map((l) => [l.usuarioId, l.leidoHasta.getTime()]));
+  return personas.map((p) => ({ id: p.id, nombre: p.nombre, leidoHasta: hasta.get(p.id) ?? 0 }));
+}
 
 /**
  * Abre un chat desde su dirección (/mensajes/<ruta>): sus últimos mensajes y, de paso, lo marca
@@ -124,7 +166,8 @@ export async function abrirChat(yo: UsuarioActual, ruta: string) {
     take: MENSAJES_POR_CHAT,
   });
   await marcarLeido(yo, canal);
-  return { canal, ...datos, mensajes: recientes.reverse() };
+  const lecturas = await lecturasDeOtros(yo, canal, datos.otro);
+  return { canal, ...datos, mensajes: recientes.reverse().map(aMensaje), lecturas };
 }
 
 /** Apunta que «yo» ha leído el canal hasta ahora */
@@ -254,7 +297,13 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
         db.mensajeEquipo.findFirst({
           where: { canal },
           orderBy: { creadoEn: "desc" },
-          select: { texto: true, autorNombre: true, autorId: true, creadoEn: true },
+          select: {
+            texto: true,
+            autorNombre: true,
+            autorId: true,
+            creadoEn: true,
+            imagenClave: true,
+          },
         }),
       ),
     ),
@@ -271,7 +320,7 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
       noLeidos: noLeidos.get(c.canal) ?? 0,
       ultimo: u
         ? {
-            texto: u.texto,
+            texto: resumenMensaje(u.texto, !!u.imagenClave),
             autorNombre: u.autorNombre,
             mio: u.autorId === yo.id,
             creadoEn: u.creadoEn,
@@ -297,6 +346,7 @@ export async function escribirMensaje(
   canal: string,
   texto: string,
   tarea: DatosTarea | null,
+  imagen: ImagenGuardada | null = null,
 ) {
   const { otro, puedeEscribir } = await comprobarCanal(yo, canal);
   if (!puedeEscribir) throw new ErrorMensaje("Esta persona ya no está en el equipo.");
@@ -324,6 +374,11 @@ export async function escribirMensaje(
       autorId: yo.id,
       autorNombre: yo.nombre,
       texto,
+      ...(imagen && {
+        imagenClave: imagen.clave,
+        imagenAncho: imagen.ancho,
+        imagenAlto: imagen.alto,
+      }),
       ...(tarea && {
         esTarea: true,
         prioridad: tarea.prioridad,
@@ -355,7 +410,14 @@ async function mensajeVisible(yo: UsuarioActual, mensajeId: string) {
   if (!esId(mensajeId)) throw new ErrorMensaje("Ese mensaje no existe.");
   const mensaje = await db.mensajeEquipo.findUnique({
     where: { id: mensajeId },
-    select: { id: true, canal: true, autorId: true, esTarea: true, responsableId: true },
+    select: {
+      id: true,
+      canal: true,
+      autorId: true,
+      esTarea: true,
+      responsableId: true,
+      imagenClave: true,
+    },
   });
   if (!mensaje) throw new ErrorMensaje("Ese mensaje no existe.");
   await comprobarCanal(yo, mensaje.canal);
@@ -450,6 +512,42 @@ export async function misAlarmas(yo: UsuarioActual) {
   return tareas.map((t) => ({ ...t, ruta: rutaDeCanal(t.canal, yo.id) }));
 }
 
+/**
+ * El último mensaje que me han escrito y aún no he leído (para la tarjeta «Nuevo mensaje de…» y
+ * el sonido). null si lo tengo todo leído.
+ */
+export async function ultimoSinLeer(yo: UsuarioActual) {
+  if (!esDelEquipo(yo.rol)) return null;
+  const [recientes, lecturas] = await Promise.all([
+    db.mensajeEquipo.findMany({
+      where: { AND: [filtroMisCanales(yo), { NOT: { autorId: yo.id } }] },
+      select: {
+        id: true,
+        canal: true,
+        texto: true,
+        autorNombre: true,
+        creadoEn: true,
+        imagenClave: true,
+      },
+      orderBy: { creadoEn: "desc" },
+      take: 20,
+    }),
+    db.lecturaCanal.findMany({
+      where: { usuarioId: yo.id },
+      select: { canal: true, leidoHasta: true },
+    }),
+  ]);
+  const leido = new Map(lecturas.map((l) => [l.canal, l.leidoHasta.getTime()]));
+  const m = recientes.find((r) => r.creadoEn.getTime() > (leido.get(r.canal) ?? 0));
+  if (!m) return null;
+  return {
+    id: m.id,
+    de: m.autorNombre,
+    texto: resumenMensaje(m.texto, !!m.imagenClave).slice(0, 140),
+    ruta: rutaDeCanal(m.canal, yo.id),
+  };
+}
+
 /** La dirección /mensajes/<ruta> de un canal para «yo» */
 export function rutaDeCanal(canal: string, miId: string): string {
   const personas = personasDelCanal(canal);
@@ -497,7 +595,7 @@ export async function recordatoriosPorEnviar() {
       select: { email: true, nombre: true, rol: true },
     });
     if (!destino || !esDelEquipo(destino.rol)) continue;
-    listos.push({ ...t, destino, ruta: rutaDeCanal(t.canal, destinoId) });
+    listos.push({ ...t, destino, destinoId, ruta: rutaDeCanal(t.canal, destinoId) });
   }
   return listos;
 }
@@ -524,7 +622,11 @@ export async function listarTareas(yo: UsuarioActual): Promise<TareaEnLista[]> {
   const nombres = new Map(personas.map((p) => [p.id, p.nombre]));
   return tareas.map(({ canal, ...t }) => {
     const ruta = rutaDeCanal(canal, yo.id);
-    return { ...t, ruta, chat: ruta === CANAL_GENERAL ? "General" : (nombres.get(ruta) ?? "—") };
+    return {
+      ...aMensaje(t),
+      ruta,
+      chat: ruta === CANAL_GENERAL ? "General" : (nombres.get(ruta) ?? "—"),
+    };
   });
 }
 
@@ -535,5 +637,87 @@ export async function borrarMensaje(yo: UsuarioActual, mensajeId: string) {
     mensaje.autorId === yo.id || (mensaje.canal === CANAL_GENERAL && yo.rol === "ADMIN");
   if (!puede) throw new ErrorMensaje("Solo puedes borrar tus mensajes.");
   await db.mensajeEquipo.delete({ where: { id: mensaje.id } });
+  // La imagen también se borra del almacén (si falla, el mensaje ya no existe y nadie puede verla)
+  if (mensaje.imagenClave) {
+    await borrarPrivado(mensaje.imagenClave).catch((error) =>
+      console.error("[mensajes] No se ha podido borrar una imagen del almacén.", error),
+    );
+  }
   return mensaje.canal;
+}
+
+/**
+ * La clave de la imagen de un mensaje, si «yo» puede ver ese chat (si no, null: la ruta da 404).
+ * Sirve tanto para el General como para los privados: mismas reglas que leer los mensajes.
+ */
+export async function imagenVisible(yo: UsuarioActual, mensajeId: string) {
+  try {
+    const mensaje = await mensajeVisible(yo, mensajeId);
+    return mensaje.imagenClave;
+  } catch (error) {
+    if (error instanceof ErrorMensaje) return null;
+    throw error;
+  }
+}
+
+/**
+ * La «huella» de un chat: cambia cuando llega o se borra un mensaje, cuando cambia una tarea o
+ * cuando hay algo nuevo en otro chat (el número sin leer). El chat abierto la pide cada pocos
+ * segundos y solo recarga si cambia: casi al momento y sin pedir la página entera cada vez.
+ */
+export async function huellaChat(yo: UsuarioActual, ruta: string): Promise<string | null> {
+  const canal = canalDeRuta(ruta, yo.id);
+  if (!canal) return null;
+  try {
+    await comprobarCanal(yo, canal);
+  } catch (error) {
+    if (error instanceof ErrorMensaje) return null;
+    throw error;
+  }
+  const [cuantos, ultimo, tareas, sinLeer, leidos] = await Promise.all([
+    db.mensajeEquipo.count({ where: { canal } }),
+    db.mensajeEquipo.findFirst({
+      where: { canal },
+      orderBy: { creadoEn: "desc" },
+      select: { id: true },
+    }),
+    db.mensajeEquipo.findMany({
+      where: { canal, esTarea: true },
+      select: { estadoTarea: true, prioridad: true, hechaEn: true },
+      orderBy: { creadoEn: "desc" },
+      take: MENSAJES_POR_CHAT,
+    }),
+    totalNoLeidos(yo),
+    leidosDeLosMios(yo, canal),
+  ]);
+  const estados = tareas
+    .map((t) => `${t.estadoTarea[0]}${t.prioridad?.[0] ?? "-"}${t.hechaEn?.getTime() ?? ""}`)
+    .join("");
+  return createHash("sha1")
+    .update(`${cuantos}.${ultimo?.id ?? ""}.${sinLeer}.${estados}.${leidos}`)
+    .digest("base64url")
+    .slice(0, 16);
+}
+
+/**
+ * Para la huella: cuántos de MIS últimos mensajes ha leído cada una de las otras personas. Solo
+ * cambia cuando alguien lee algo mío (los tics se ponen azules), no cada vez que abre el chat:
+ * así dos personas con el mismo chat abierto no se recargan la una a la otra sin parar.
+ */
+async function leidosDeLosMios(yo: UsuarioActual, canal: string): Promise<string> {
+  const mios = await db.mensajeEquipo.findMany({
+    where: { canal, autorId: yo.id },
+    select: { creadoEn: true },
+    orderBy: { creadoEn: "desc" },
+    take: MENSAJES_POR_CHAT,
+  });
+  if (mios.length === 0) return "";
+  const lecturas = await db.lecturaCanal.findMany({
+    where: { canal, NOT: { usuarioId: yo.id } },
+    select: { usuarioId: true, leidoHasta: true },
+    orderBy: { usuarioId: "asc" },
+  });
+  return lecturas
+    .map((l) => `${l.usuarioId.slice(-6)}:${mios.filter((m) => m.creadoEn <= l.leidoHasta).length}`)
+    .join(",");
 }

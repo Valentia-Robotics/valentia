@@ -13,6 +13,7 @@ import "server-only";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { AwsClient } from "aws4fetch";
+import { subirConTamano } from "./subirS3";
 
 /** Error con un mensaje que se puede enseñar tal cual */
 export class ErrorAlmacenPrivado extends Error {}
@@ -78,11 +79,7 @@ export async function guardarPrivado(clave: string, datos: Buffer, tipo: string)
   }
   if (enLaNube()) {
     const { cliente, url } = nube();
-    const respuesta = await cliente.fetch(url(clave), {
-      method: "PUT",
-      body: new Uint8Array(datos),
-      headers: { "Content-Type": tipo },
-    });
+    const respuesta = await subirConTamano(cliente, url(clave), datos, { "Content-Type": tipo });
     if (!respuesta.ok) {
       throw new ErrorAlmacenPrivado(`El almacén ha rechazado el archivo (${respuesta.status}).`);
     }

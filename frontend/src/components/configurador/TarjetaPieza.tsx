@@ -35,7 +35,7 @@ export function TarjetaPieza({ componente, enRobot, alAnadir, alVerDetalle }: Pr
       <div className="bg-niebla p-4">
         <Image
           src={componente.imagen}
-          alt=""
+          alt={componente.nombre}
           width={240}
           height={240}
           unoptimized

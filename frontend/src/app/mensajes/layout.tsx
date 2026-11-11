@@ -8,6 +8,9 @@ import { exigirUsuario } from "@/lib/sesion";
 export const metadata: Metadata = {
   title: { default: "Mensajes", template: "%s · Mensajes · Valentia" },
   robots: { index: false, follow: false },
+  // Al añadirla a la pantalla de inicio desde aquí, el icono abre los mensajes (src/app/equipo.webmanifest)
+  manifest: "/equipo.webmanifest",
+  appleWebApp: { capable: true, title: "Valentia Equipo", statusBarStyle: "default" },
 };
 
 /**

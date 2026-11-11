@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CATEGORIAS_EMOJI } from "./emojis";
 import {
   CANAL_GENERAL,
   calcularRecordatorio,
@@ -9,7 +10,12 @@ import {
   limpiarMensaje,
   MAX_CARACTERES_MENSAJE,
   personasDelCanal,
+  problemaImagen,
   problemaMensaje,
+  resumenMensaje,
+  tamanoEnChat,
+  buscarEmojis,
+  MAX_BYTES_IMAGEN,
   textoDia,
   trozosConEnlaces,
 } from "./mensajes";
@@ -60,6 +66,8 @@ describe("mensajes del equipo", () => {
     const entrega = new Date("2026-11-10T17:00:00Z");
     expect(calcularRecordatorio("", entrega, null)).toBeNull();
     expect(calcularRecordatorio("1h", entrega, null)).toEqual(new Date("2026-11-10T16:00:00Z"));
+    expect(calcularRecordatorio("4h", entrega, null)).toEqual(new Date("2026-11-10T13:00:00Z"));
+    expect(calcularRecordatorio("10h", entrega, null)).toEqual(new Date("2026-11-10T07:00:00Z"));
     expect(calcularRecordatorio("entrega", entrega, null)).toEqual(entrega);
     expect(typeof calcularRecordatorio("15m", null, null)).toBe("string"); // falta la entrega
     const otra = new Date("2026-11-10T08:00:00Z");
@@ -96,5 +104,47 @@ describe("mensajes del equipo", () => {
     expect(vencida(ayer, "PENDIENTE", ahora)).toBe(true);
     expect(vencida(ayer, "HECHA", ahora)).toBe(false);
     expect(vencida(null, "PENDIENTE", ahora)).toBe(false);
+  });
+
+  it("un mensaje con imagen puede ir sin texto; uno sin imagen, no", () => {
+    expect(problemaMensaje("", true)).toBeNull();
+    expect(problemaMensaje("")).not.toBeNull();
+  });
+
+  it("solo se aceptan imágenes JPG, PNG, WebP o GIF que no pesen demasiado", () => {
+    expect(problemaImagen({ type: "image/jpeg", size: 3_000_000 })).toBeNull();
+    expect(problemaImagen({ type: "image/gif", size: 1000 })).toBeNull();
+    expect(problemaImagen({ type: "application/pdf", size: 1000 })).toMatch(/Solo/);
+    expect(problemaImagen({ type: "image/svg+xml", size: 1000 })).toMatch(/Solo/);
+    expect(problemaImagen({ type: "image/png", size: MAX_BYTES_IMAGEN + 1 })).toMatch(/pesa/);
+  });
+
+  it("en la lista de chats, una imagen sale como «📷 Foto»", () => {
+    expect(resumenMensaje("", true)).toBe("📷 Foto");
+    expect(resumenMensaje("Mira", true)).toBe("📷 Mira");
+    expect(resumenMensaje("Hola", false)).toBe("Hola");
+  });
+
+  it("el hueco de la imagen guarda su forma y no pasa del máximo", () => {
+    expect(tamanoEnChat(1600, 1067)).toEqual({ ancho: 320, alto: 213 });
+    expect(tamanoEnChat(100, 50)).toEqual({ ancho: 100, alto: 50 });
+    expect(tamanoEnChat(null, null)).toEqual({ ancho: 320, alto: 240 });
+  });
+
+  it("están todos los emojis, sin repetir dentro de cada categoría", () => {
+    const total = CATEGORIAS_EMOJI.reduce((n, c) => n + c.emojis.length, 0);
+    expect(total).toBeGreaterThan(1500);
+    for (const c of CATEGORIAS_EMOJI) {
+      const solo = c.emojis.map(([e]) => e);
+      expect(new Set(solo).size).toBe(solo.length);
+    }
+  });
+
+  it("se buscan en español, sin importar tildes ni mayúsculas", () => {
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "robot")).toContain("🤖");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "Corazón")).toContain("❤️");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "pizza")).toContain("🍕");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "españa")).toContain("🇪🇸");
+    expect(buscarEmojis(CATEGORIAS_EMOJI, "")).toEqual([]);
   });
 });

@@ -368,9 +368,11 @@ model Usuario {
   cambiosGuion     CambioEstadoGuion[]
 
   archivosHardware ArchivoHardware[]
+  carpetasHardware CarpetaHardware[]
 
   mensajesEquipo MensajeEquipo[]
   lecturasCanal  LecturaCanal[]
+  avisosPush     SuscripcionPush[]
 }
 
 /// Un mensaje de los chats del equipo (/mensajes): el «General» o una conversación privada entre dos.
@@ -383,8 +385,14 @@ model MensajeEquipo {
   autorId     String?  @db.ObjectId
   /// Nombre del autor cuando lo escribió
   autorNombre String
+  /// Puede ir vacío si el mensaje es solo una imagen
   texto       String
   creadoEn    DateTime @default(now())
+
+  /// ---- Imagen (opcional): siempre WebP en el almacén PRIVADO; solo la ven quienes ven el chat ----
+  imagenClave String?
+  imagenAncho Int?
+  imagenAlto  Int?
 
   /// ---- Si es una TAREA (como en Notion): estado, prioridad, entrega, responsable y recordatorio ----
   esTarea               Boolean         @default(false)
@@ -432,6 +440,34 @@ model LecturaCanal {
   @@unique([usuarioId, canal])
 }
 
+/// Un móvil u ordenador del equipo que ha dicho «sí» a las notificaciones de los mensajes (Web Push).
+/// Los datos los da el navegador; con ellos se le manda el aviso aunque la web esté cerrada.
+/// Si el navegador responde que ya no vale (lo desinstalaron, quitaron el permiso…), se borra solo.
+model SuscripcionPush {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String   @db.ObjectId
+  /// La dirección del servicio de avisos del navegador (Google, Apple, Mozilla…)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  /// «iPhone · Safari», «Android · Chrome»… (para verlo en la lista)
+  aparato   String
+  creadaEn  DateTime @default(now())
+  usadaEn   DateTime @default(now())
+
+  @@index([usuarioId])
+}
+
+/// Las claves VAPID de los avisos push, creadas solas la primera vez (fila única «push»).
+/// Si existen las variables VAPID_CLAVE_PUBLICA y VAPID_CLAVE_PRIVADA, mandan ellas.
+model AjustesPush {
+  id           String   @id @map("_id")
+  clavePublica String
+  clavePrivada String
+  creadoEn     DateTime @default(now())
+}
+
 /// Un archivo del espacio personal de alguien de hardware (lo ven él y los administradores).
 /// El contenido está en el almacén privado (src/lib/almacenamiento/privado.ts), nunca en una dirección pública.
 model ArchivoHardware {
@@ -453,6 +489,19 @@ model ArchivoHardware {
   subidoEn        DateTime @default(now())
 
   @@index([duenoId, carpeta])
+}
+
+/// Carpeta de un espacio de hardware guardada aparte, para que se vea aunque esté vacía
+/// (creada con «Nueva carpeta» o subida sin archivos). Las que tienen archivos salen igual sin fila.
+model CarpetaHardware {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  dueno    Usuario  @relation(fields: [duenoId], references: [id], onDelete: Cascade)
+  duenoId  String   @db.ObjectId
+  /// Ruta completa dentro del espacio, ya limpia: "programas/coche"
+  ruta     String
+  creadaEn DateTime @default(now())
+
+  @@unique([duenoId, ruta])
 }
 
 /// Para qué se ha enviado un código por email
@@ -948,20 +997,20 @@ model LlamadaBlog {
 
 /// Cada cambio del stock hecho a mano en /stock (quién, qué y cuánto), para saber de dónde sale cada número
 model MovimientoStock {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   /// "kit" o "componente"
-  tipo        String
-  productoId  String   @db.ObjectId
+  tipo          String
+  productoId    String   @db.ObjectId
   /// Nombre del producto en ese momento (si luego se borra, el registro se sigue entendiendo)
-  nombre      String
-  antes       Int
-  despues     Int
+  nombre        String
+  antes         Int
+  despues       Int
   minimoAntes   Int?
   minimoDespues Int?
   /// Si cambió la casilla «Ya hemos pedido más» (null = no cambió)
-  reposicion  Boolean?
-  autorNombre String
-  creadoEn    DateTime @default(now())
+  reposicion    Boolean?
+  autorNombre   String
+  creadoEn      DateTime @default(now())
 
   @@index([creadoEn])
   @@index([productoId, creadoEn])
@@ -975,26 +1024,26 @@ enum TipoMovimiento {
 }
 
 model MovimientoDinero {
-  id               String         @id @default(auto()) @map("_id") @db.ObjectId
-  tipo             TipoMovimiento
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  tipo            TipoMovimiento
   /// Qué es: "Compra de 50 motores TT", "Taller en el colegio X"…
-  concepto         String
+  concepto        String
   /// Slug de la categoría (lista en src/config/finanzas.ts)
-  categoria        String
+  categoria       String
   /// Importe total en céntimos, IVA incluido (siempre positivo: el tipo dice si entra o sale)
-  importeCentimos  Int
+  importeCentimos Int
   /// Porcentaje de IVA (0, 4, 10 o 21) y el IVA que va dentro del importe, en céntimos
-  ivaPorcentaje    Int            @default(0)
-  ivaCentimos      Int            @default(0)
+  ivaPorcentaje   Int            @default(0)
+  ivaCentimos     Int            @default(0)
   /// Día del ingreso o del gasto (a las 12:00 UTC, así no cambia de día en España)
-  fecha            DateTime
+  fecha           DateTime
   /// Proveedor o cliente (opcional, "" si no se pone)
-  contraparte      String         @default("")
-  notas            String         @default("")
+  contraparte     String         @default("")
+  notas           String         @default("")
   /// Nombre de quien lo apuntó (para saberlo aunque se borre la cuenta)
-  creadoPor        String         @default("")
-  creadoEn         DateTime       @default(now())
-  actualizadoEn    DateTime       @default(now()) @updatedAt
+  creadoPor       String         @default("")
+  creadoEn        DateTime       @default(now())
+  actualizadoEn   DateTime       @default(now()) @updatedAt
 
   @@index([fecha])
   @@index([tipo, fecha])

@@ -18,6 +18,46 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Avisos al momento y tics de leído en el chat del equipo (11-11-2026, rama `claude/project-thread-5axrg6`; petición de Jesse)
+
+- **Web Push** (paquete `web-push`): `public/sw.js` (service worker sin caché: enseña el aviso, pone el número del icono y
+  avisa a las pestañas abiertas con `postMessage` → miran ya). Modelo `SuscripcionPush` (uno por aparato; 404/410 → se
+  borra) y `AjustesPush` (fila «push»: claves VAPID creadas solas; las variables `VAPID_CLAVE_*` mandan si existen).
+  Envío en `src/lib/push/push.ts`, textos en `src/config/push.ts` (+ test), navegador en `src/lib/push/cliente.ts`,
+  API `/api/push` (GET clave, POST, DELETE) y `/api/push/prueba`. Al enviar (`enviarYAvisar`, con `after`): privado → la
+  otra persona; General → todo el equipo menos el autor.
+- Página `/mensajes/avisos` (`PanelAvisos`): activar, probar, desactivar y guía Android/iPhone/ordenador. En iPhone
+  solo funciona instalada: manifest propio `/equipo.webmanifest` (start_url `/mensajes`) en el layout de `/mensajes`.
+- `AvisosEquipo` (en `MenuAdmin`): contador cada 5 s (`SEGUNDOS_REFRESCO_CONTADOR`), `ultimo` sin leer → «tilín» +
+  tarjeta «Nuevo mensaje de…», título «(3) …» que parpadea con la pestaña escondida, número en el icono
+  (`setAppBadge`) y cartel para activar los avisos (se esconde 3 días).
+- Recordatorios a su hora sin nadie conectado: `src/instrumentation.ts` → `relojRecordatorios` llama cada minuto a
+  `POST /api/mensajes/recordatorios` con `claveInterna` (HMAC de `AUTH_SECRET`). En `next dev`, solo con
+  `RECORDATORIOS_EN_DESARROLLO=si`.
+- **Tics** (`Chat`): reloj = enviándose · un tic gris = no salió (se queda con «Reintentar»/«Quitar») · dos grises =
+  enviado · dos azules = leído (General: por todos; al tocarlos, quién sí y quién no). Sale de `LecturaCanal`
+  (`lecturas` en `abrirChat`). La huella solo cuenta cuántos de MIS mensajes ha leído cada uno (`leidosDeLosMios`):
+  si contara cada lectura, dos chats abiertos se recargarían el uno al otro sin parar.
+- Probado con MongoDB en Docker, 3 personas, un servicio de push falso que descifra los avisos y el service worker con
+  `ServiceWorker.deliverPushMessage` (en la nube no se puede suscribir de verdad: Google está bloqueado).
+
+### Chat del equipo: emojis, imágenes y entrega casi al momento (11-11-2026, rama `claude/project-thread-49bp2y`; petición de Jesse)
+
+- Jesse cambia su decisión del 09-11: en los chats se pueden mandar **SOLO imágenes** (JPG, PNG, WebP, GIF; 15 MB antes de
+  reducir). Otros archivos, siguen en `/hardware`. `POST /api/mensajes/enviar` (multipart: chat, texto, imagen, tarea) →
+  `enviarYAvisar` (`src/lib/mensajes/enviar.ts`, mismo camino que la acción de solo texto) → `guardarImagenMensaje`
+  (`imagenes.ts`: sharp comprueba el contenido, 1600 px, WebP, sin EXIF; GIF animado sigue animado) en el almacén PRIVADO
+  (`mensajes/<azar>.webp`). Campos `MensajeEquipo.imagenClave/imagenAncho/imagenAlto`. Se ve por
+  `GET /api/mensajes/imagen/<id del mensaje>` (mismas reglas que leer el chat: un privado, solo sus dos personas; 404 a los
+  demás). Borrar el mensaje borra la imagen. Límite `imagenEquipo` 60/hora. Elegir, pegar (Ctrl+V) o arrastrar.
+- Emojis (Jesse pidió más el 11-11): `SelectorEmojis` con TODOS (~1.870, `CATEGORIAS_EMOJI` en `config/emojis.ts`, generado
+  de emojibase-data 16 con palabras en español; hasta Unicode 15) en 9 categorías + Recientes (localStorage) y buscador
+  (`buscarEmojis` en `config/mensajes.ts`, sin tildes). La lista se descarga solo al abrir el selector (`import()`).
+  Todo en UNA lista con títulos (como WhatsApp); las pestañas son iconos de lucide, NO emojis (Jesse: si no, parece que solo hay esos).
+- Entrega: el chat abierto pide `GET /api/mensajes/huella?chat=` cada 3 s (count + último + tareas + no leídos, en un hash)
+  y solo hace `router.refresh()` si cambia (antes: la página entera cada 10 s). Botón «Mensajes nuevos» si estás leyendo
+  arriba; hueco de la imagen reservado (no salta el scroll). Probado con MongoDB local (Docker) y 3 roles + un cliente.
+
 ### Nombre y foto de perfil (10-11-2026, rama `claude/project-thread-1gb5rz`; petición de Jesse)
 
 «Mi cuenta» → «Tu perfil»: cambiar el nombre (`cambiarNombre`) y poner o quitar la foto (`cambiarFoto`: se sube sola al
@@ -197,6 +237,12 @@ que las fotos) y cada espacio lo ven **solo su dueño y los ADMIN**.
   (`webkitdirectory`, hasta 500) y acepta arrastrar archivos o carpetas. Cada archivo va a `carpetaDeRuta(base, ruta)`
   (sus subcarpetas se recrean); se saltan los del sistema (`esArchivoDelSistema`). Máximo 8 niveles; límite
   `hardwareSubida` 1000/hora.
+- Carpetas vacías (Jesse, 11-11-2026): modelo `CarpetaHardware` (dueño + ruta, único) para que una carpeta salga aunque
+  no tenga archivos (`verCarpeta(…, guardadas)`). Se crean con «Nueva carpeta» (`NuevaCarpeta`), al subir una carpeta
+  (todas sus subcarpetas, también las vacías: «Elegir carpeta» usa `showDirectoryPicker` en Chrome/Edge; `webkitdirectory`, el de Firefox/Safari, se las salta) y al borrar el último archivo.
+  «Borrar» en cada carpeta: `borrarCarpeta` borra todo lo de dentro (almacén y lista; la de arriba se queda). Se pueden
+  elegir varias carpetas una detrás de otra (se suman). Subir un archivo igual (nombre, carpeta y tamaño) no lo repite
+  (la API responde 200 con `repetido`): volver a subir una carpeta entera solo trae lo que faltaba.
 - Rutas con `path.resolve` dinámico: llevar `/* turbopackIgnore: true */`; sin él, `next dev` vigila todo el proyecto y la
   página se recarga sin parar (pasó con `enDisco`).
 - Guía para el usuario: DESPLIEGUE.md §6 quinquies.

@@ -15,6 +15,7 @@
  */
 import "server-only";
 import { AwsClient } from "aws4fetch";
+import { subirConTamano } from "./subirS3";
 import type { Almacen } from "./tipos";
 
 function configuracion() {
@@ -57,14 +58,10 @@ function urlObjeto(c: ReturnType<typeof configuracion>, ruta: string) {
 export const almacenNube: Almacen = {
   async guardar(ruta, datos, tipoContenido) {
     const { c, cliente } = conexion();
-    const respuesta = await cliente.fetch(urlObjeto(c, ruta), {
-      method: "PUT",
-      body: new Uint8Array(datos),
-      headers: {
-        "Content-Type": tipoContenido,
-        // El nombre de cada foto es único: el navegador puede guardarla para siempre
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
+    const respuesta = await subirConTamano(cliente, urlObjeto(c, ruta), datos, {
+      "Content-Type": tipoContenido,
+      // El nombre de cada foto es único: el navegador puede guardarla para siempre
+      "Cache-Control": "public, max-age=31536000, immutable",
     });
     if (!respuesta.ok) {
       throw new Error(`El almacén en la nube ha rechazado la foto (${respuesta.status}).`);

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   cabeceraDescarga,
   carpetaDeRuta,
+  conCarpetasDeArriba,
+  estaDentroDe,
   esArchivoDelSistema,
   limpiarCarpeta,
   limpiarNombreArchivo,
@@ -74,6 +76,27 @@ describe("espacios de hardware", () => {
       { nombre: "Coche", ruta: "Coche" },
       { nombre: "PCB", ruta: "Coche/PCB" },
     ]);
+  });
+
+  it("enseña también las carpetas vacías", () => {
+    const archivos = [{ nombre: "pieza.f3d", carpeta: "diseños/fusion 360", tamano: 7 }];
+    const guardadas = ["diseños", "programas", "programas/coche", "diseños/fusion 360"];
+    const raiz = verCarpeta(archivos, "", guardadas);
+    expect(raiz.carpetas).toEqual([
+      { nombre: "diseños", ruta: "diseños", archivos: 1, bytes: 7 },
+      { nombre: "programas", ruta: "programas", archivos: 0, bytes: 0 },
+    ]);
+    expect(verCarpeta(archivos, "programas", guardadas).carpetas).toEqual([
+      { nombre: "coche", ruta: "programas/coche", archivos: 0, bytes: 0 },
+    ]);
+    expect(verCarpeta(archivos, "programas/coche", guardadas)).toEqual({
+      carpetas: [],
+      archivos: [],
+    });
+    expect(conCarpetasDeArriba(["a/b/c", "a/d"])).toEqual(["a", "a/b", "a/b/c", "a/d"]);
+    expect(estaDentroDe("Coche/PCB", "Coche")).toBe(true);
+    expect(estaDentroDe("Coche", "Coche")).toBe(true);
+    expect(estaDentroDe("Cochera", "Coche")).toBe(false);
   });
 
   it("dice los tamaños en español", () => {
