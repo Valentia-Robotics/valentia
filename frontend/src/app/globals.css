@@ -25,7 +25,9 @@
   --color-acento-claro: #7a8cff; /* Acento para usar SOBRE fondos oscuros */
 
   /* ---------- Portada (estilo «taller»: campos de color, píxeles, líneas de puntos) ---------- */
-  --color-cielo: #d3daff; /* Campo de color de la portada (azul claro; texto tinta encima: 15:1) */
+  --color-placa: #0c3a24; /* Verde de placa de circuito (máscara de soldadura): fondo de las cabeceras, texto blanco encima (12:1) */
+  --color-placa-claro: #155c39; /* Verde de placa con luz (brillo del fondo) */
+  --color-cobre: #d8a743; /* Cobre/oro de las pistas y los pads de la placa (nunca texto pequeño) */
   --color-salvia: #e6ebe5; /* Fondo de las tablas de la portada */
   --color-senal: #ffc21a; /* Amarillo de las ruedas del coche: píxeles y detalles (nunca texto) */
   --radius-recto: 2px; /* Esquinas casi rectas de la portada */
@@ -385,18 +387,18 @@
 }
 
 /*
- * CAMPO AZUL de las cabeceras (CampoPixeles encima): el azul claro se funde con el blanco de la
- * sección de abajo, sin raya. Se queda azul hasta casi el final para que el texto no pierda fondo.
+ * CAMPO DE PLACA de las cabeceras (CampoPixeles encima): verde oscuro de placa de circuito, con
+ * un poco de luz arriba a la derecha (donde va el chip). El texto de encima va en blanco.
  */
-.campo-cielo {
-  background-image: linear-gradient(
-    to bottom in oklab,
-    var(--color-cielo) 0%,
-    var(--color-cielo) 62%,
-    color-mix(in oklab, var(--color-cielo) 70%, white) 78%,
-    color-mix(in oklab, var(--color-cielo) 30%, white) 90%,
-    white 100%
-  );
+.campo-placa {
+  background-color: var(--color-placa);
+  background-image:
+    radial-gradient(
+      ellipse 70% 90% at 82% 35%,
+      color-mix(in oklab, var(--color-placa-claro) 75%, transparent) 0%,
+      transparent 70%
+    ),
+    linear-gradient(to bottom, transparent 70%, color-mix(in oklab, black 22%, transparent) 100%);
 }
 
 /* Máscaras del dibujo de la placa: se desvanece en el borde en lugar de cortarse */

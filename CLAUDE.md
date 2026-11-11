@@ -42,6 +42,16 @@ cerró su API en 2026. Reglas puras en `src/config/gifs.ts` (+ test), servidor e
 `*.giphy.com`, 15 MB) y lo guarda como imagen del chat (WebP animado, almacén privado): mismos tics, avisos y
 permisos. CSP `img-src` con `https://*.giphy.com` (vistas previas). `GIPHY_API_URL` solo para pruebas (GIPHY falso).
 
+### Cabeceras verdes de placa de ordenador (11-11-2026, rama `diseno/placa-verde`; petición del usuario)
+
+El campo azul de las cabeceras pasa a **placa de circuito verde oscuro** (`.campo-placa`, tokens `placa`, `placa-claro`
+y `cobre`; `cielo` ya no existe) en portada, `CabeceraPagina`, `TarjetaCuenta`, `/activar` y la foto de las fichas
+(`bg-placa`). **El texto encima va en BLANCO** (`text-white`, `Etiqueta oscura`, botón `punteado-claro`); la regla del
+borde es cobre/blanco/amarillo y la sombra de las tarjetas del login, cobre. `CampoPixeles` (paleta `placa`): pistas de
+cobre, chip negro «VR-01 ESP32» con patas plateadas y contorno impreso «U1», pads, vías y engranajes dorados, resistencias
+y condensadores con su nombre (R1, C1…; `pintarPiezas`, nunca encima de pistas, texto o robot), robot impreso en blanco y
+«VALENTIA ROBOTICS · REV 2.6». La variante `final` (bloque negro) sigue en azul (paleta `oscuro`).
+
 ### Valor de las acciones (11-11-2026, rama `feature/valor-acciones`; petición del usuario)
 
 `/admin/acciones` (ADMIN y SIGMA, en el menú tras «Finanzas»). **3.000 acciones; reparto FIJO** en `src/config/acciones.ts`

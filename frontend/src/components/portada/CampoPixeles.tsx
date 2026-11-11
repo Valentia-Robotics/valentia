@@ -4,10 +4,11 @@ import { useEffect, useRef } from "react";
 
 /**
  * CAMPO DE PÍXELES: el «dibujo vivo» de los campos de color (portada, cabeceras, login, final).
- * Es una PLACA DE CIRCUITO vista de cerca: un chip con sus patas, pistas de cobre que salen de él
- * (rectas y a 45°, como en una placa de verdad) por las que corren señales, LEDs que parpadean,
- * un robot de píxeles que flota y dos engranajes que giran. Todo nace de una rejilla de puntos que
- * se va apagando hacia el texto, y el borde de abajo se difumina (sin cortes).
+ * Es una PLACA DE CIRCUITO de ordenador vista de cerca (verde, como las de verdad): un chip negro
+ * con patas plateadas, pistas de cobre que salen de él (rectas y a 45°) por las que corren señales,
+ * pads y vías dorados, resistencias y condensadores, letras impresas en blanco (U1, R3, C2…), LEDs
+ * que parpadean, un robot de píxeles que flota y dos engranajes que giran. Todo nace de una rejilla
+ * de puntos que se va apagando hacia el texto, y el borde de abajo se difumina (sin cortes).
  * Al mover el ratón, el cursor deja una pista de circuito que se apaga sola (la «estela»).
  *
  * Es un <canvas> decorativo (aria-hidden): no lleva texto. Se para cuando no se ve y, con
@@ -20,27 +21,57 @@ import { useEffect, useRef } from "react";
 
 type Variante = "portada" | "final" | "cabecera";
 
-/** Colores de cada variante (azul circuito, blanco y el amarillo de las ruedas) */
-const PALETAS = {
-  claro: {
-    pista: "rgba(45, 75, 255, 0.55)",
-    cuerpo: "#2d4bff",
-    pata: "rgba(11, 11, 11, 0.55)",
-    punto: "45, 75, 255",
+/**
+ * Colores de cada variante.
+ *   placa  → cabeceras y portada: placa verde con cobre, chips negros y letras blancas
+ *   oscuro → bloque final (sobre negro): el azul circuito de siempre
+ */
+type Paleta = {
+  pista: string;
+  /** Pads, vías y engranajes */
+  pad: string;
+  chip: string;
+  pata: string;
+  punto: string;
+  claro: string;
+  brillo: string;
+  hueco: string;
+  /** Letras y dibujos impresos en la placa (la «serigrafía») */
+  serigrafia: string;
+  robot: string;
+  pantallaRobot: string;
+  estela: string;
+};
+const PALETAS: Record<"placa" | "oscuro", Paleta> = {
+  placa: {
+    pista: "rgba(216, 167, 67, 0.62)",
+    pad: "#d8a743",
+    chip: "#141816",
+    pata: "#c4cad0",
+    punto: "140, 220, 170",
     claro: "#ffffff",
-    brillo: "#ffc21a",
-    huecoPad: "#d3daff",
+    brillo: "#ffe066",
+    hueco: "#06200f",
+    serigrafia: "rgba(240, 246, 242, 0.82)",
+    robot: "rgba(240, 246, 242, 0.92)",
+    pantallaRobot: "#0c3a24",
+    estela: "#d8a743",
   },
   oscuro: {
     pista: "rgba(122, 140, 255, 0.5)",
-    cuerpo: "#2d4bff",
+    pad: "#2d4bff",
+    chip: "#2d4bff",
     pata: "rgba(255, 255, 255, 0.45)",
     punto: "122, 140, 255",
     claro: "#ffffff",
     brillo: "#ffc21a",
-    huecoPad: "#0b0b0b",
+    hueco: "#0b0b0b",
+    serigrafia: "rgba(255, 255, 255, 0.5)",
+    robot: "#2d4bff",
+    pantallaRobot: "#ffffff",
+    estela: "#2d4bff",
   },
-} as const;
+};
 
 /**
  * Robot de píxeles (11 × 11): # cuerpo, s pantalla de la cara, o ojos, m boca, a luz de la antena.
@@ -113,7 +144,9 @@ export function CampoPixeles({
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const color = PALETAS[variante === "final" ? "oscuro" : "claro"];
+    const color = PALETAS[variante === "final" ? "oscuro" : "placa"];
+    /** Las piezas y letras de placa de ordenador solo en la placa verde (no en el bloque final) */
+    const esPlaca = variante !== "final";
 
     // Números «al azar» pero siempre iguales: el dibujo no cambia entre visitas
     let semilla = 7;
@@ -312,11 +345,11 @@ export function CampoPixeles({
           // Pad: anillo con agujero
           fctx.beginPath();
           fctx.arc((fin.x + 0.5) * celda, (fin.y + 0.5) * celda, celda * 0.42, 0, Math.PI * 2);
-          fctx.fillStyle = color.cuerpo;
+          fctx.fillStyle = color.pad;
           fctx.fill();
           fctx.beginPath();
           fctx.arc((fin.x + 0.5) * celda, (fin.y + 0.5) * celda, celda * 0.17, 0, Math.PI * 2);
-          fctx.fillStyle = color.huecoPad;
+          fctx.fillStyle = color.hueco;
           fctx.fill();
         }
       }
@@ -338,7 +371,7 @@ export function CampoPixeles({
           fctx.fillRect(x0 - largoPata, centroY - grueso / 2, largoPata, grueso);
           fctx.fillRect(x0 + lado, centroY - grueso / 2, largoPata, grueso);
         }
-        fctx.fillStyle = color.cuerpo;
+        fctx.fillStyle = color.chip;
         fctx.fillRect(x0, y0, lado, lado);
         // Borde interior más claro: le da volumen
         fctx.strokeStyle = "rgba(255,255,255,0.25)";
@@ -348,10 +381,143 @@ export function CampoPixeles({
         fctx.arc(x0 + celda * 0.9, y0 + celda * 0.9, celda * 0.28, 0, Math.PI * 2);
         fctx.fillStyle = "rgba(255,255,255,0.55)";
         fctx.fill();
-        if (chip.lado >= 5) {
+        if (esPlaca) {
+          // Texto grabado en el chip, contorno impreso alrededor y su nombre (U1, U2…)
+          if (chip.lado >= 5) {
+            fctx.fillStyle = "rgba(255,255,255,0.5)";
+            fctx.font = `600 ${Math.round(celda * 0.85)}px ui-monospace, monospace`;
+            fctx.textAlign = "center";
+            fctx.textBaseline = "middle";
+            fctx.fillText("VR-01", x0 + lado / 2, y0 + lado * 0.5);
+            fctx.fillStyle = "rgba(255,255,255,0.3)";
+            fctx.font = `${Math.round(celda * 0.6)}px ui-monospace, monospace`;
+            fctx.fillText("ESP32", x0 + lado / 2, y0 + lado * 0.7);
+          }
+          const margen = celda * 1.5;
+          fctx.strokeStyle = color.serigrafia;
+          fctx.lineWidth = 1;
+          fctx.setLineDash([celda * 0.5, celda * 0.35]);
+          fctx.strokeRect(x0 - margen, y0 - margen, lado + margen * 2, lado + margen * 2);
+          fctx.setLineDash([]);
+          serigrafia(`U${chips.indexOf(chip) + 1}`, x0 - margen, y0 - margen - celda * 0.5, "left");
+        } else if (chip.lado >= 5) {
           fctx.fillStyle = "rgba(255,255,255,0.35)";
           fctx.fillRect(x0 + lado * 0.3, y0 + lado * 0.55, lado * 0.45, 2);
           fctx.fillRect(x0 + lado * 0.3, y0 + lado * 0.68, lado * 0.3, 2);
+        }
+      }
+      if (esPlaca) pintarPiezas(columnas, filas);
+    }
+
+    /** Letras impresas en la placa (nombres de las piezas, como en una placa de verdad) */
+    function serigrafia(texto: string, x: number, y: number, alinear: CanvasTextAlign = "center") {
+      fctx.fillStyle = color.serigrafia;
+      fctx.font = `600 ${Math.max(8, Math.round(celda * 0.62))}px ui-monospace, monospace`;
+      fctx.textAlign = alinear;
+      fctx.textBaseline = "middle";
+      fctx.fillText(texto, x, y);
+    }
+
+    /**
+     * Piezas pequeñas de placa de ordenador, en los huecos libres junto al chip: resistencias
+     * (negras), condensadores (marrones) con sus extremos dorados y su nombre impreso, y vías
+     * (agujeritos dorados). Nunca encima de una pista, del chip, del texto o del robot.
+     */
+    function pintarPiezas(columnas: number, filas: number) {
+      const usadas = new Set<string>();
+      const marcar = (c: number, f: number) => usadas.add(`${c},${f}`);
+      const libre = (c: number, f: number) =>
+        c >= 1 &&
+        f >= 1 &&
+        c < columnas - 1 &&
+        f < filas - 1 &&
+        !usadas.has(`${c},${f}`) &&
+        !zonaTexto(c, f, columnas, filas) &&
+        !ocupado(c, f);
+
+      // Lo que ya hay: chips (con su contorno impreso) y pistas
+      for (const chip of chips) {
+        const r = Math.ceil(chip.lado / 2) + 3;
+        for (let f = chip.cy - r; f <= chip.cy + r; f++)
+          for (let c = chip.cx - r; c <= chip.cx + r; c++) marcar(c, f);
+      }
+      for (const pista of pistas) {
+        const total = Math.ceil(pista.largo * 2);
+        for (let i = 0; i <= total; i++) {
+          const q = puntoEn(pista, (i / total) * pista.largo);
+          for (let df = -1; df <= 1; df++)
+            for (let dc = -1; dc <= 1; dc++) marcar(Math.round(q.x) + dc, Math.round(q.y) + df);
+        }
+      }
+
+      let resistencias = 0;
+      let condensadores = 0;
+      const maximo = estrecho ? 3 : 9;
+      for (let intento = 0; intento < 160 && resistencias + condensadores < maximo; intento++) {
+        const chip = chips[Math.floor(azar() * chips.length)];
+        const alcance = chip.lado * (estrecho ? 2.2 : 3);
+        const c = Math.round(chip.cx + (azar() * 2 - 1) * alcance);
+        const f = Math.round(chip.cy + (azar() * 2 - 1) * alcance);
+        const tumbada = azar() < 0.6;
+        const esCondensador = azar() < 0.4;
+        // La pieza ocupa 3 celdas (y su nombre, una más); se deja una de aire alrededor
+        const celdas: [number, number][] = [];
+        for (let k = -1; k <= 3; k++)
+          for (let l = -2; l <= 1; l++) celdas.push(tumbada ? [c + k, f + l] : [c + l, f + k]);
+        if (!celdas.every(([cc, ff]) => libre(cc, ff)) || cercania(c, f) < 0.15) continue;
+        celdas.forEach(([cc, ff]) => marcar(cc, ff));
+
+        const largo = celda * 2.4;
+        const grueso = celda * 0.95;
+        const x = (c + 0.5) * celda + (tumbada ? celda * 1 - largo / 2 : -grueso / 2);
+        const y = (f + 0.5) * celda + (tumbada ? -grueso / 2 : celda * 1 - largo / 2);
+        const an = tumbada ? largo : grueso;
+        const al = tumbada ? grueso : largo;
+        const punta = celda * 0.5;
+        // Extremos dorados (donde se suelda) y cuerpo
+        fctx.fillStyle = color.pad;
+        fctx.fillRect(x, y, an, al);
+        fctx.fillStyle = esCondensador ? "#a87a4b" : "#121212";
+        if (tumbada) fctx.fillRect(x + punta, y, an - punta * 2, al);
+        else fctx.fillRect(x, y + punta, an, al - punta * 2);
+        if (!esCondensador) {
+          // El número de la resistencia, en blanco muy pequeño
+          fctx.fillStyle = "rgba(255,255,255,0.55)";
+          fctx.fillRect(x + an / 2 - celda * 0.35, y + al / 2 - 0.75, celda * 0.7, 1.5);
+        }
+        const nombre = esCondensador ? `C${++condensadores}` : `R${++resistencias}`;
+        if (tumbada) serigrafia(nombre, x + an / 2, y - celda * 0.7);
+        else serigrafia(nombre, x - celda * 0.9, y + al / 2);
+      }
+
+      // Vías: agujeritos que llevan la señal al otro lado de la placa
+      const vias = Math.round((columnas * filas) / (estrecho ? 160 : 110));
+      for (let i = 0; i < vias * 4 && i < 600; i++) {
+        const c = Math.floor(azar() * columnas);
+        const f = Math.floor(azar() * filas);
+        if (!libre(c, f) || azar() > cercania(c, f) * 1.4) continue;
+        marcar(c, f);
+        fctx.beginPath();
+        fctx.arc((c + 0.5) * celda, (f + 0.5) * celda, celda * 0.3, 0, Math.PI * 2);
+        fctx.fillStyle = color.pad;
+        fctx.fill();
+        fctx.beginPath();
+        fctx.arc((c + 0.5) * celda, (f + 0.5) * celda, celda * 0.12, 0, Math.PI * 2);
+        fctx.fillStyle = color.hueco;
+        fctx.fill();
+      }
+
+      // Nombre y versión de la placa, impresos debajo del chip principal (como en las de verdad)
+      const principal = chips[0];
+      if (principal && !estrecho) {
+        const f = principal.cy + Math.ceil(principal.lado / 2) + 5;
+        const c = principal.cx;
+        if (!zonaTexto(c - 6, f, columnas, filas) && f < filas - 2) {
+          const texto = "VALENTIA ROBOTICS · REV 2.6";
+          fctx.font = `600 ${Math.max(8, Math.round(celda * 0.62))}px ui-monospace, monospace`;
+          // Que no se corte en el borde derecho
+          const mitad = fctx.measureText(texto).width / 2;
+          serigrafia(texto, Math.min((c + 0.5) * celda, ancho - celda - mitad), (f + 0.5) * celda);
         }
       }
     }
@@ -385,11 +551,11 @@ export function CampoPixeles({
         ctx!.lineTo(Math.cos(a1) * r, Math.sin(a1) * r);
       }
       ctx!.closePath();
-      ctx!.fillStyle = color.cuerpo;
+      ctx!.fillStyle = color.pad;
       ctx!.fill();
       ctx!.beginPath();
       ctx!.arc(0, 0, radio * 0.32, 0, Math.PI * 2);
-      ctx!.fillStyle = color.huecoPad;
+      ctx!.fillStyle = color.hueco;
       ctx!.fill();
       ctx!.restore();
     }
@@ -457,11 +623,11 @@ export function CampoPixeles({
           const parpadeo = !quieto && t % 4 < 0.15;
           const antena = quieto || Math.sin(t * 3) > 0;
           const colores: Record<string, string> = {
-            "#": color.cuerpo,
-            s: color.claro,
-            o: parpadeo ? color.claro : color.cuerpo,
-            m: color.cuerpo,
-            a: antena ? color.brillo : color.cuerpo,
+            "#": color.robot,
+            s: color.pantallaRobot,
+            o: parpadeo ? color.pantallaRobot : esPlaca ? color.brillo : color.robot,
+            m: color.robot,
+            a: antena ? color.brillo : color.robot,
           };
           ROBOT.forEach((fila, f) => {
             for (let c = 0; c < fila.length; c++) {
@@ -492,7 +658,7 @@ export function CampoPixeles({
           const a = estela[i - 1];
           const b = estela[i];
           ctx!.globalAlpha = Math.max(0, Math.min(a.vida, b.vida)) * 0.85;
-          ctx!.strokeStyle = color.cuerpo;
+          ctx!.strokeStyle = color.estela;
           ctx!.beginPath();
           ctx!.moveTo(a.x * celda + c2, a.y * celda + c2);
           ctx!.lineTo(b.x * celda + c2, b.y * celda + c2);

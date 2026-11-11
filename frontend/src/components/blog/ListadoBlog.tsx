@@ -68,7 +68,7 @@ export async function ListadoBlog({ categoria, pagina }: { categoria?: string; p
       >
         <a
           href="/blog/rss.xml"
-          className="inline-flex items-center gap-1.5 font-mono text-xs text-tinta/70 hover:text-tinta"
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-white/70 hover:text-white"
         >
           <Rss aria-hidden="true" className="size-4" />
           RSS

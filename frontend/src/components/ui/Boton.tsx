@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
  *   peligro    → rojo, para confirmar algo que no se puede deshacer
  *   bloque     → negro y recto (portada): al pasar el ratón se levanta con una sombra azul
  *   punteado   → recto, con borde de puntos (acción secundaria de la portada)
+ *   punteado-claro → igual, en blanco, sobre la placa verde de la portada
  */
 type Variante =
   | "primario"
@@ -27,7 +28,8 @@ type Variante =
   | "enlace-claro"
   | "peligro"
   | "bloque"
-  | "punteado";
+  | "punteado"
+  | "punteado-claro";
 type Tamano = "md" | "lg" | "xl";
 
 const estilosVariante: Record<Variante, string> = {
@@ -47,6 +49,8 @@ const estilosVariante: Record<Variante, string> = {
     "rounded-recto! bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)]",
   punteado:
     "rounded-recto! border border-dotted border-tinta text-tinta hover:border-solid hover:bg-white/60",
+  "punteado-claro":
+    "rounded-recto! border border-dotted border-white text-white hover:border-solid hover:bg-white/10",
 };
 
 const estilosTamano: Record<Tamano, string> = {
