@@ -9,7 +9,12 @@ import {
   limpiarMensaje,
   MAX_CARACTERES_MENSAJE,
   personasDelCanal,
+  problemaImagen,
   problemaMensaje,
+  resumenMensaje,
+  tamanoEnChat,
+  GRUPOS_EMOJI,
+  MAX_BYTES_IMAGEN,
   textoDia,
   trozosConEnlaces,
 } from "./mensajes";
@@ -98,5 +103,34 @@ describe("mensajes del equipo", () => {
     expect(vencida(ayer, "PENDIENTE", ahora)).toBe(true);
     expect(vencida(ayer, "HECHA", ahora)).toBe(false);
     expect(vencida(null, "PENDIENTE", ahora)).toBe(false);
+  });
+
+  it("un mensaje con imagen puede ir sin texto; uno sin imagen, no", () => {
+    expect(problemaMensaje("", true)).toBeNull();
+    expect(problemaMensaje("")).not.toBeNull();
+  });
+
+  it("solo se aceptan imágenes JPG, PNG, WebP o GIF que no pesen demasiado", () => {
+    expect(problemaImagen({ type: "image/jpeg", size: 3_000_000 })).toBeNull();
+    expect(problemaImagen({ type: "image/gif", size: 1000 })).toBeNull();
+    expect(problemaImagen({ type: "application/pdf", size: 1000 })).toMatch(/Solo/);
+    expect(problemaImagen({ type: "image/svg+xml", size: 1000 })).toMatch(/Solo/);
+    expect(problemaImagen({ type: "image/png", size: MAX_BYTES_IMAGEN + 1 })).toMatch(/pesa/);
+  });
+
+  it("en la lista de chats, una imagen sale como «📷 Foto»", () => {
+    expect(resumenMensaje("", true)).toBe("📷 Foto");
+    expect(resumenMensaje("Mira", true)).toBe("📷 Mira");
+    expect(resumenMensaje("Hola", false)).toBe("Hola");
+  });
+
+  it("el hueco de la imagen guarda su forma y no pasa del máximo", () => {
+    expect(tamanoEnChat(1600, 1067)).toEqual({ ancho: 320, alto: 213 });
+    expect(tamanoEnChat(100, 50)).toEqual({ ancho: 100, alto: 50 });
+    expect(tamanoEnChat(null, null)).toEqual({ ancho: 320, alto: 240 });
+  });
+
+  it("los emojis no se repiten dentro de un grupo (cada botón es único)", () => {
+    for (const grupo of GRUPOS_EMOJI) expect(new Set(grupo.emojis).size).toBe(grupo.emojis.length);
   });
 });

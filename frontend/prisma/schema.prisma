@@ -380,8 +380,14 @@ model MensajeEquipo {
   autorId     String?  @db.ObjectId
   /// Nombre del autor cuando lo escribió
   autorNombre String
+  /// Puede ir vacío si el mensaje es solo una imagen
   texto       String
   creadoEn    DateTime @default(now())
+
+  /// ---- Imagen (opcional): siempre WebP en el almacén PRIVADO; solo la ven quienes ven el chat ----
+  imagenClave String?
+  imagenAncho Int?
+  imagenAlto  Int?
 
   /// ---- Si es una TAREA (como en Notion): estado, prioridad, entrega, responsable y recordatorio ----
   esTarea               Boolean         @default(false)

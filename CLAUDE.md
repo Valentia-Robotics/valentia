@@ -18,6 +18,20 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Chat del equipo: emojis, imágenes y entrega casi al momento (11-11-2026, rama `claude/project-thread-49bp2y`; petición de Jesse)
+
+- Jesse cambia su decisión del 09-11: en los chats se pueden mandar **SOLO imágenes** (JPG, PNG, WebP, GIF; 15 MB antes de
+  reducir). Otros archivos, siguen en `/hardware`. `POST /api/mensajes/enviar` (multipart: chat, texto, imagen, tarea) →
+  `enviarYAvisar` (`src/lib/mensajes/enviar.ts`, mismo camino que la acción de solo texto) → `guardarImagenMensaje`
+  (`imagenes.ts`: sharp comprueba el contenido, 1600 px, WebP, sin EXIF; GIF animado sigue animado) en el almacén PRIVADO
+  (`mensajes/<azar>.webp`). Campos `MensajeEquipo.imagenClave/imagenAncho/imagenAlto`. Se ve por
+  `GET /api/mensajes/imagen/<id del mensaje>` (mismas reglas que leer el chat: un privado, solo sus dos personas; 404 a los
+  demás). Borrar el mensaje borra la imagen. Límite `imagenEquipo` 60/hora. Elegir, pegar (Ctrl+V) o arrastrar.
+- Emojis: `SelectorEmojis` (sin librerías, `GRUPOS_EMOJI` en `config/mensajes.ts`, recientes en localStorage).
+- Entrega: el chat abierto pide `GET /api/mensajes/huella?chat=` cada 3 s (count + último + tareas + no leídos, en un hash)
+  y solo hace `router.refresh()` si cambia (antes: la página entera cada 10 s). Botón «Mensajes nuevos» si estás leyendo
+  arriba; hueco de la imagen reservado (no salta el scroll). Probado con MongoDB local (Docker) y 3 roles + un cliente.
+
 ### Nombre y foto de perfil (10-11-2026, rama `claude/project-thread-1gb5rz`; petición de Jesse)
 
 «Mi cuenta» → «Tu perfil»: cambiar el nombre (`cambiarNombre`) y poner o quitar la foto (`cambiarFoto`: se sube sola al
