@@ -16,6 +16,7 @@ const datosUsuario = {
   email: true,
   rol: true,
   tambienEditor: true,
+  tambienHardware: true,
   rolFemenino: true,
   creadoEn: true,
   ultimaConexionEn: true,

@@ -30,6 +30,7 @@ export default async function LayoutMensajes({ children }: { children: ReactNode
         email={yo.email}
         zona={zona}
         tambienEditor={!!yo.tambienEditor}
+        tambienHardware={!!yo.tambienHardware}
         femenino={!!yo.rolFemenino}
       />
       <main id="contenido" className="flex min-h-0 min-w-0 flex-1 flex-col">

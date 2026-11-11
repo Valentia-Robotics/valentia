@@ -63,6 +63,7 @@ export const authConfig = {
       if (token.sub) session.user.id = token.sub;
       session.user.rol = token.rol;
       session.user.tambienEditor = token.tambienEditor;
+      session.user.tambienHardware = token.tambienHardware;
       session.user.rolFemenino = token.rolFemenino;
       return session;
     },

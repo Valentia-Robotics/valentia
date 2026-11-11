@@ -24,6 +24,7 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
         nombre={admin.nombre}
         email={admin.email}
         tambienEditor={!!admin.tambienEditor}
+        tambienHardware={!!admin.tambienHardware}
         femenino={!!admin.rolFemenino}
       />
       <main id="contenido" className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-10 print:p-0">

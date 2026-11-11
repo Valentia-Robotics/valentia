@@ -8,7 +8,7 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { auth } from "@/auth";
-import { puedeEditarGuiones, tieneAccesoAdmin } from "@/config/equipo";
+import { puedeEditarGuiones, tieneAccesoAdmin, tieneEspacioHardware } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
 
@@ -19,6 +19,8 @@ export interface UsuarioActual {
   rol: Rol;
   /** Solo ADMIN: también trabaja como editor */
   tambienEditor: boolean | null;
+  /** Solo ADMIN o SIGMA: también tiene espacio de hardware */
+  tambienHardware: boolean | null;
   /** El nombre del puesto en femenino («Editora») */
   rolFemenino: boolean | null;
 }
@@ -36,6 +38,7 @@ export const obtenerUsuario = cache(async (): Promise<UsuarioActual | null> => {
       email: true,
       rol: true,
       tambienEditor: true,
+      tambienHardware: true,
       rolFemenino: true,
     },
   });
@@ -74,7 +77,7 @@ export async function exigirEditor(volver = "/editor"): Promise<UsuarioActual> {
  */
 export async function exigirHardware(volver = "/hardware"): Promise<UsuarioActual> {
   const usuario = await exigirUsuario(volver);
-  if (usuario.rol !== "HARDWARE") notFound();
+  if (!tieneEspacioHardware(usuario)) notFound();
   return usuario;
 }
 

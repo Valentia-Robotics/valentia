@@ -114,6 +114,7 @@ async function avisarAlEquipo(
       email: true,
       rol: true,
       tambienEditor: true,
+      tambienHardware: true,
       rolFemenino: true,
     },
   });

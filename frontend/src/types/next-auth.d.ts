@@ -10,6 +10,8 @@ declare module "next-auth" {
       rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE" | "SIGMA";
       /** ADMIN que también trabaja como editor (enlace a «Mis guiones») */
       tambienEditor?: boolean;
+      /** ADMIN o SIGMA que también tiene espacio de hardware (enlace a «Mi espacio de hardware») */
+      tambienHardware?: boolean;
       /** El puesto se dice en femenino («Panel de editora») */
       rolFemenino?: boolean;
     } & DefaultSession["user"];
@@ -26,6 +28,7 @@ declare module "@auth/core/jwt" {
     rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE" | "SIGMA";
     dispositivoId?: string;
     tambienEditor?: boolean;
+    tambienHardware?: boolean;
     rolFemenino?: boolean;
     /** Cuándo se abrió la sesión (milisegundos): al cerrar sesión, las anteriores dejan de valer */
     abiertaEn?: number;

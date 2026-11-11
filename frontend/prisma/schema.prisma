@@ -351,6 +351,7 @@ model Usuario {
   foto              String?
   /// Solo ADMIN: además administra, trabaja como editor (tiene «Mis guiones» y se le asignan guiones)
   tambienEditor     Boolean?
+  tambienHardware   Boolean?
   /// El nombre del puesto en femenino («Editora», «Administradora»); null o false = masculino
   rolFemenino       Boolean?
 

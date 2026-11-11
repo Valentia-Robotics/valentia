@@ -20,7 +20,12 @@ import { fecha } from "@/lib/admin/formato";
 import { buscarUsuarios } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
 import type { Rol } from "@/generated/prisma/enums";
-import { cambiarFormaPuesto, cambiarRolTrabajo, cambiarTambienEditor } from "./acciones";
+import {
+  cambiarFormaPuesto,
+  cambiarRolTrabajo,
+  cambiarTambienEditor,
+  cambiarTambienHardware,
+} from "./acciones";
 import { plural } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Usuarios" };
@@ -88,6 +93,9 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                       <Insignia tono="aviso">
                         También {nombreEditor(u.rolFemenino).toLowerCase()}
                       </Insignia>
+                    )}{" "}
+                    {tieneAccesoAdmin(u.rol) && u.tambienHardware && (
+                      <Insignia tono="aviso">También hardware</Insignia>
                     )}
                   </p>
                   <p className="text-xs text-gris">{u.email}</p>
@@ -143,6 +151,7 @@ interface UsuarioFila {
   nombre: string;
   rol: Rol;
   tambienEditor: boolean | null;
+  tambienHardware: boolean | null;
   rolFemenino: boolean | null;
 }
 
@@ -150,7 +159,8 @@ interface UsuarioFila {
  * Botones de cada fila:
  *   - Cliente: hacer editor, hacer editora o hacer hardware.
  *   - Editor o hardware: quitar el puesto (vuelve a cliente). Una persona, un rol.
- *   - Administrador o sigma: hacerle también editor/editora, o quitárselo. Su rol de admin no se toca aquí.
+ *   - Administrador o sigma: hacerle también editor/editora o también hardware (su propio espacio de
+ *     archivos), o quitárselo. Su rol de admin no se toca aquí.
  *   - Editor y administrador: cambiar cómo se dice su puesto (masculino o femenino).
  *   - Sigma: solo un ADMIN lo da («Hacer sigma» en un cliente) o lo quita. Un sigma no ve botones en
  *     las cuentas de administración (ADMIN u otro sigma), salvo en la suya.
@@ -200,6 +210,29 @@ function BotonesRol({ usuario, yo }: { usuario: UsuarioFila; yo: { id: string; r
             confirmar="Sí, hacer"
           >
             Hacer también {editorA}
+          </BotonConfirmar>
+        )}
+        {usuario.tambienHardware ? (
+          <BotonConfirmar
+            {...comun}
+            accion={cambiarTambienHardware}
+            datos={{ usuarioId, dar: "no" }}
+            titulo="Quitar «también hardware»"
+            texto={`${nombre} sigue siendo ${puestoAdmin}, pero deja de tener «Mi espacio». Sus archivos no se borran: siguen en Hardware.`}
+            confirmar="Sí, quitar"
+          >
+            Quitar hardware
+          </BotonConfirmar>
+        ) : (
+          <BotonConfirmar
+            {...comun}
+            accion={cambiarTambienHardware}
+            datos={{ usuarioId, dar: "si" }}
+            titulo="Hacer también hardware"
+            texto={`${nombre} sigue siendo ${puestoAdmin} y, además, tendrá su propio espacio de archivos («Mi espacio»), como el equipo de hardware.`}
+            confirmar="Sí, hacer"
+          >
+            Hacer también hardware
           </BotonConfirmar>
         )}
         {botonForma}

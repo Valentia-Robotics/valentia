@@ -25,6 +25,14 @@ En Mensajes, pulsar la foto de alguien (lista de chats, cabecera del chat, Gener
 `role="button"` + ventana en `<body>` con `createPortal`). Sin foto (o si no carga), no hace nada. Fotos nuevas a 512 px
 (`LADO_FOTO_PERFIL`; antes 192, esas se ven algo borrosas en grande hasta que se vuelvan a subir).
 
+### Admin que también es de hardware (11-11-2026, rama `claude/project-thread-ujau3u`; petición de Jesse)
+
+Como «también editor»: `Usuario.tambienHardware` (solo ADMIN o SIGMA, en `OPCIONALES`). Se da en `/admin/usuarios`
+(«Hacer también hardware» → `cambiarTambienHardware`; quitarlo no borra archivos). `tieneEspacioHardware(usuario)` y
+`FILTRO_HARDWARE` en `src/config/equipo.ts` (+ test): `exigirHardware`, subir y crear carpetas, la lista de
+`/admin/hardware` y los menús. Ese admin entra en `/hardware` con su menú del panel (sale «Mi espacio» tras «Hardware»);
+sin `dueno`/`duenoId`, la API y las acciones usan el espacio de quien llama. Va en la sesión (`tambienHardware`).
+
 ### GIFs en el chat (11-11-2026, rama `claude/project-thread-mu0to6`; petición de Jesse)
 
 Botón **GIF** (`SelectorGifs`, junto a los emojis): GIFs del momento + buscador; al tocar uno se envía solo. Buscan en

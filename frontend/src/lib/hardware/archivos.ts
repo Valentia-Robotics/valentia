@@ -2,11 +2,12 @@
  * ESPACIOS DE ARCHIVOS DEL EQUIPO DE HARDWARE (base de datos + almacén privado)
  * Quién puede qué:
  *   - Alguien con rol HARDWARE: ver, subir, descargar y borrar en SU espacio.
+ *   - Un ADMIN o SIGMA con «también hardware» tiene además su propio espacio (sale en /hardware).
  *   - Un ADMIN: lo mismo en el espacio de cualquiera.
  *   - Nadie más (tampoco otra persona de hardware).
  * Todas las rutas y acciones pasan por aquí: los permisos se comprueban en un solo sitio.
  */
-import { tieneAccesoAdmin } from "@/config/equipo";
+import { FILTRO_HARDWARE, tieneAccesoAdmin, tieneEspacioHardware } from "@/config/equipo";
 import "server-only";
 import { randomBytes } from "node:crypto";
 import {
@@ -48,7 +49,7 @@ export async function espacioUsado(duenoId: string): Promise<number> {
   return suma._sum.tamano ?? 0;
 }
 
-/** El dueño de un espacio: alguien con el rol HARDWARE, o que lo tuvo y aún tiene archivos */
+/** El dueño de un espacio: alguien de hardware (rol o «también hardware»), o que lo fue y aún tiene archivos */
 export async function duenoDeEspacio(duenoId: string) {
   if (!esId(duenoId)) return null;
   const dueno = await db.usuario.findUnique({
@@ -58,10 +59,11 @@ export async function duenoDeEspacio(duenoId: string) {
       nombre: true,
       email: true,
       rol: true,
+      tambienHardware: true,
       _count: { select: { archivosHardware: true } },
     },
   });
-  if (!dueno || (dueno.rol !== "HARDWARE" && dueno._count.archivosHardware === 0)) return null;
+  if (!dueno || (!tieneEspacioHardware(dueno) && dueno._count.archivosHardware === 0)) return null;
   return dueno;
 }
 
@@ -97,8 +99,11 @@ async function exigirEspacioActivo(usuario: UsuarioActual, duenoId: string) {
   if (!esId(duenoId) || !puedeUsarEspacio(usuario, duenoId)) {
     throw new ErrorArchivo("No puedes cambiar este espacio.");
   }
-  const dueno = await db.usuario.findUnique({ where: { id: duenoId }, select: { rol: true } });
-  if (dueno?.rol !== "HARDWARE") {
+  const dueno = await db.usuario.findUnique({
+    where: { id: duenoId },
+    select: { rol: true, tambienHardware: true },
+  });
+  if (!dueno || !tieneEspacioHardware(dueno)) {
     throw new ErrorArchivo(
       "Esta persona ya no es del equipo de hardware: no se pueden crear carpetas.",
     );
@@ -199,13 +204,15 @@ export async function personasHardware() {
     _count: { _all: true },
   });
   const personas = await db.usuario.findMany({
-    where: { OR: [{ rol: "HARDWARE" }, { id: { in: conArchivos.map((c) => c.duenoId) } }] },
+    where: { OR: [...FILTRO_HARDWARE.OR, { id: { in: conArchivos.map((c) => c.duenoId) } }] },
     orderBy: { nombre: "asc" },
     select: {
       id: true,
       nombre: true,
       email: true,
       rol: true,
+      tambienHardware: true,
+      rolFemenino: true,
       ultimaConexionEn: true,
       dispositivos: ultimoDispositivo,
     },
@@ -235,8 +242,11 @@ export async function subirArchivo(datos: {
   if (!esId(duenoId) || !puedeUsarEspacio(usuario, duenoId)) {
     throw new ErrorArchivo("No puedes subir archivos a este espacio.");
   }
-  const dueno = await db.usuario.findUnique({ where: { id: duenoId }, select: { rol: true } });
-  if (dueno?.rol !== "HARDWARE") {
+  const dueno = await db.usuario.findUnique({
+    where: { id: duenoId },
+    select: { rol: true, tambienHardware: true },
+  });
+  if (!dueno || !tieneEspacioHardware(dueno)) {
     throw new ErrorArchivo(
       "Esta persona ya no es del equipo de hardware: no se pueden subir archivos nuevos.",
     );
