@@ -39,12 +39,14 @@ guardaba en disco algo que debe durar (los correos de `.correos-dev/` son de des
 
 ### Fotos de perfil que todos ven (11-11-2026, rama `claude/project-thread-n22cf7`; petición de Jesse)
 
-Las fotos de perfil iban al almacén de fotos del panel, que en Render es el disco (`ALMACEN_PROVEEDOR` local, sin R2
-público): se vaciaba en cada publicación y la foto desaparecía; quien la subió la seguía viendo por la caché del
-navegador. Ahora van al almacén PRIVADO (`perfiles/<azar>.webp`, el mismo bucket que las imágenes del chat) y se ven en
-`GET /api/fotos-perfil/<nombre>` (cualquiera con sesión; nombre comprobado con `claveFotoPerfil`). Lógica en
-`src/lib/almacenamiento/fotoPerfil.ts` (+ test). `FotoPerfil` es de cliente: si una foto no carga (las antiguas
-`/subidas/…`), enseña las iniciales. En el General sale la foto de quien escribe junto a sus mensajes.
+Las fotos de perfil iban al disco de Render (se vaciaba en cada publicación; quien la subió la seguía viendo por la caché
+del navegador). Primer arreglo (PR #95): almacén privado R2. Segundo (Jesse seguía sin verlas): **se guardan en la propia
+BD**, modelo `FotoPerfil` (WebP 192 px, calidad 80, ~2-10 KB; cascada al borrar la cuenta), `Usuario.foto` =
+`/api/fotos-perfil/<id>`. La ruta (cualquiera con sesión, caché privada de un año: cada foto nueva tiene otra
+dirección) también sirve las de R2 (`<azar>.webp`, `leerRutaFoto`). Lógica en `src/lib/almacenamiento/fotoPerfil.ts`
+(+ test). `FotoPerfil` es de cliente: si no carga, iniciales; en «Mi cuenta» avisa «Tu foto se ha perdido».
+El pre-despliegue (paso 4, `scripts/fotos-perdidas.ts`, no bloquea) pone a null las `/subidas/perfiles/…` en Render.
+En el General sale la foto de quien escribe junto a sus mensajes.
 
 ### Avisos al momento y tics de leído en el chat del equipo (11-11-2026, rama `claude/project-thread-5axrg6`; petición de Jesse)
 

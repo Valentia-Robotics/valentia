@@ -1,33 +1,40 @@
 /**
- * Fotos de perfil: se guardan en el almacén privado y se enseñan con /api/fotos-perfil/…,
- * así las ve todo el equipo aunque el disco del servidor se vacíe al publicar.
+ * Fotos de perfil: se guardan en la base de datos (pequeñas) y se enseñan con /api/fotos-perfil/<id>,
+ * así las ve todo el equipo sin depender de ningún almacén de archivos.
  */
-import { mkdtemp, readdir, rm } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import sharp from "sharp";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-let carpeta: string;
-let modulo: typeof import("./fotoPerfil");
+const guardadas = new Map<string, Uint8Array>();
+let siguiente = 0;
+vi.mock("@/lib/db", () => ({
+  db: {
+    fotoPerfil: {
+      create: vi.fn(async ({ data }: { data: { datos: Uint8Array } }) => {
+        const id = (++siguiente).toString(16).padStart(24, "a");
+        guardadas.set(id, data.datos);
+        return { id };
+      }),
+      deleteMany: vi.fn(async ({ where }: { where: { id: string } }) => {
+        guardadas.delete(where.id);
+        return { count: 1 };
+      }),
+    },
+  },
+}));
+const borrarPrivado = vi.fn(async (clave: string) => void clave);
+vi.mock("./privado", () => ({ borrarPrivado: (clave: string) => borrarPrivado(clave) }));
 
-beforeAll(async () => {
-  carpeta = await mkdtemp(path.join(os.tmpdir(), "fotos-perfil-"));
-  vi.stubEnv("ALMACEN_PRIVADO_CARPETA", carpeta);
-  vi.stubEnv("ALMACEN_PRIVADO_BUCKET", "");
-  modulo = await import("./fotoPerfil");
-});
+const { subirFotoPerfil, borrarFotoPerfil, leerRutaFoto, PREFIJO_FOTO_PERFIL, LADO_FOTO_PERFIL } =
+  await import("./fotoPerfil");
 
-afterAll(async () => {
-  vi.unstubAllEnvs();
-  await rm(carpeta, { recursive: true, force: true });
-});
+beforeEach(() => guardadas.clear());
 
 async function fotoDePrueba() {
   const png = await sharp({
-    create: { width: 600, height: 400, channels: 3, background: "#2D4BFF" },
+    create: { width: 1200, height: 800, channels: 3, background: "#2D4BFF" },
   })
     .png()
     .toBuffer();
@@ -35,26 +42,33 @@ async function fotoDePrueba() {
 }
 
 describe("fotos de perfil", () => {
-  it("se guarda en el almacén privado, cuadrada, y se borra", async () => {
-    const url = await modulo.subirFotoPerfil(await fotoDePrueba());
-    expect(url.startsWith(modulo.PREFIJO_FOTO_PERFIL)).toBe(true);
+  it("se guarda en la BD, cuadrada, pequeña, y se borra", async () => {
+    const url = await subirFotoPerfil("0123456789abcdef01234567", await fotoDePrueba());
+    expect(url.startsWith(PREFIJO_FOTO_PERFIL)).toBe(true);
+    const ruta = leerRutaFoto(url.slice(PREFIJO_FOTO_PERFIL.length));
+    expect(ruta?.tipo).toBe("bd");
 
-    const clave = modulo.claveFotoPerfil(url.slice(modulo.PREFIJO_FOTO_PERFIL.length));
-    expect(clave).toMatch(/^perfiles\//);
-    const guardada = path.join(carpeta, clave!);
-    const { width, height, format } = await sharp(guardada).metadata();
-    expect([width, height, format]).toEqual([256, 256, "webp"]);
+    const datos = [...guardadas.values()][0];
+    const { width, height, format } = await sharp(datos).metadata();
+    expect([width, height, format]).toEqual([LADO_FOTO_PERFIL, LADO_FOTO_PERFIL, "webp"]);
+    expect(datos.length).toBeLessThan(30_000);
 
-    await modulo.borrarFotoPerfil(url);
-    expect(await readdir(path.join(carpeta, "perfiles"))).toEqual([]);
+    await borrarFotoPerfil(url);
+    expect(guardadas.size).toBe(0);
   });
 
-  it("no deja pedir otras rutas del almacén", () => {
-    expect(modulo.claveFotoPerfil("../hardware/plano.pdf")).toBeNull();
-    expect(modulo.claveFotoPerfil("mensajes%2Fabc.webp")).toBeNull();
-    expect(modulo.claveFotoPerfil("abc.webp")).toBeNull();
-    expect(modulo.claveFotoPerfil("mhb2k9x0-0123456789ab.webp")).toBe(
-      "perfiles/mhb2k9x0-0123456789ab.webp",
-    );
+  it("las del almacén privado (antiguas) se siguen reconociendo y borrando", async () => {
+    expect(leerRutaFoto("mhb2k9x0-0123456789ab.webp")).toEqual({
+      tipo: "almacen",
+      clave: "perfiles/mhb2k9x0-0123456789ab.webp",
+    });
+    await borrarFotoPerfil(`${PREFIJO_FOTO_PERFIL}mhb2k9x0-0123456789ab.webp`);
+    expect(borrarPrivado).toHaveBeenCalledWith("perfiles/mhb2k9x0-0123456789ab.webp");
+  });
+
+  it("no deja pedir otras rutas", () => {
+    expect(leerRutaFoto("../hardware/plano.pdf")).toBeNull();
+    expect(leerRutaFoto("mensajes%2Fabc.webp")).toBeNull();
+    expect(leerRutaFoto("abc")).toBeNull();
   });
 });
