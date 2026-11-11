@@ -184,6 +184,10 @@ que las fotos) y cada espacio lo ven **solo su dueño y los ADMIN**.
   (`webkitdirectory`, hasta 500) y acepta arrastrar archivos o carpetas. Cada archivo va a `carpetaDeRuta(base, ruta)`
   (sus subcarpetas se recrean); se saltan los del sistema (`esArchivoDelSistema`). Máximo 8 niveles; límite
   `hardwareSubida` 1000/hora.
+- Carpetas vacías (Jesse, 11-11-2026): modelo `CarpetaHardware` (dueño + ruta, único) para que una carpeta salga aunque
+  no tenga archivos (`verCarpeta(…, guardadas)`). Se crean con «Nueva carpeta» (`NuevaCarpeta`), al subir una carpeta
+  (todas sus subcarpetas; las vacías solo arrastrando: `webkitdirectory` se las salta) y al borrar el último archivo.
+  Solo se borra una carpeta vacía (`borrarCarpeta`). Se pueden elegir varias carpetas una detrás de otra (se suman).
 - Rutas con `path.resolve` dinámico: llevar `/* turbopackIgnore: true */`; sin él, `next dev` vigila todo el proyecto y la
   página se recarga sin parar (pasó con `enDisco`).
 - Guía para el usuario: DESPLIEGUE.md §6 quinquies.
