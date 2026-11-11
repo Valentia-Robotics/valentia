@@ -54,6 +54,8 @@ export const LIMITES = {
   hardwareSubida: { maximo: 1000, minutos: 60 },
   /** Mensajes del equipo (por persona): de sobra para charlar, frena un bucle o un abuso */
   mensajeEquipo: { maximo: 300, minutos: 60 },
+  /** Imágenes en los mensajes del equipo (por persona): cada una se procesa con sharp */
+  imagenEquipo: { maximo: 60, minutos: 60 },
   /** Cambiar la foto de perfil (por usuario) */
   fotoPerfil: { maximo: 20, minutos: 60 },
 } as const;
