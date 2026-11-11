@@ -2,6 +2,7 @@
  * Descarga de la lista de espera en CSV (se abre con Excel o Google Sheets).
  * Solo para ADMIN: sin permiso, 404.
  */
+import { tieneAccesoAdmin } from "@/config/equipo";
 import { db } from "@/lib/db";
 import { obtenerUsuario } from "@/lib/sesion";
 
@@ -13,7 +14,7 @@ function celda(valor: string): string {
 
 export async function GET() {
   const usuario = await obtenerUsuario();
-  if (usuario?.rol !== "ADMIN") return new Response("No encontrado", { status: 404 });
+  if (!tieneAccesoAdmin(usuario?.rol)) return new Response("No encontrado", { status: 404 });
 
   const filas = await db.listaEspera.findMany({ orderBy: { creadoEn: "asc" } });
   const lineas = [

@@ -7,11 +7,25 @@ import type { Rol } from "@/generated/prisma/enums";
 
 export const ROLES_EQUIPO: { rol: Rol; nombre: string; femenino: string; plural: string }[] = [
   { rol: "ADMIN", nombre: "Administrador", femenino: "Administradora", plural: "Administración" },
+  { rol: "SIGMA", nombre: "Sigma", femenino: "Sigma", plural: "Sigma" },
   { rol: "EDITOR", nombre: "Editor", femenino: "Editora", plural: "Editores" },
   { rol: "HARDWARE", nombre: "Hardware", femenino: "Hardware", plural: "Hardware" },
 ];
 
 export const esDelEquipo = (rol: Rol) => ROLES_EQUIPO.some((r) => r.rol === rol);
+
+/**
+ * Quién entra en el panel de administración con todos sus accesos: ADMIN y SIGMA.
+ * SIGMA está por debajo de ADMIN solo en una cosa: las cuentas de administración. No cambia nada
+ * de un ADMIN ni de otro SIGMA, y el rol SIGMA solo lo da o lo quita un ADMIN (esJefe).
+ */
+export const tieneAccesoAdmin = (rol: Rol | null | undefined) => rol === "ADMIN" || rol === "SIGMA";
+
+/** El escalón de arriba: solo ADMIN (dar o quitar SIGMA y tocar cuentas de administración) */
+export const esJefe = (rol: Rol | null | undefined) => rol === "ADMIN";
+
+/** Los roles con acceso al panel, como filtro de la base de datos */
+export const ROLES_ADMINISTRACION: Rol[] = ["ADMIN", "SIGMA"];
 
 /**
  * El nombre del puesto como se enseña: «Editor» o «Editora», según lo que se haya elegido para esa
@@ -28,15 +42,15 @@ export const nombreEditor = (femenino?: boolean | null) => nombreRol("EDITOR", f
 
 /**
  * Quién trabaja como editor (tiene «Mis guiones» y se le pueden asignar guiones): el rol EDITOR y
- * los ADMIN que también editan (Usuario.tambienEditor, se marca en /admin/usuarios).
+ * los ADMIN y SIGMA que también editan (Usuario.tambienEditor, se marca en /admin/usuarios).
  */
 export function puedeEditarGuiones(usuario: { rol: Rol; tambienEditor?: boolean | null }) {
-  return usuario.rol === "EDITOR" || (usuario.rol === "ADMIN" && !!usuario.tambienEditor);
+  return usuario.rol === "EDITOR" || (tieneAccesoAdmin(usuario.rol) && !!usuario.tambienEditor);
 }
 
 /** Lo mismo como filtro de la base de datos (para listar a quién se puede asignar un guion) */
 export const FILTRO_EDITORES = {
-  OR: [{ rol: "EDITOR" as const }, { rol: "ADMIN" as const, tambienEditor: true }],
+  OR: [{ rol: "EDITOR" as const }, { rol: { in: ROLES_ADMINISTRACION }, tambienEditor: true }],
 };
 
 /** Cada cuánto se apunta, como mucho, la última conexión (para no escribir en la BD en cada clic) */

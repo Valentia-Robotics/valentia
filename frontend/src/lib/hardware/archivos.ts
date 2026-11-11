@@ -6,6 +6,7 @@
  *   - Nadie más (tampoco otra persona de hardware).
  * Todas las rutas y acciones pasan por aquí: los permisos se comprueban en un solo sitio.
  */
+import { tieneAccesoAdmin } from "@/config/equipo";
 import "server-only";
 import { randomBytes } from "node:crypto";
 import {
@@ -35,7 +36,7 @@ export class ErrorArchivo extends Error {}
 
 /** ¿Puede esta persona entrar en el espacio de `duenoId`? */
 export function puedeUsarEspacio(usuario: Pick<UsuarioActual, "id" | "rol">, duenoId: string) {
-  return usuario.rol === "ADMIN" || (usuario.rol === "HARDWARE" && usuario.id === duenoId);
+  return tieneAccesoAdmin(usuario.rol) || (usuario.rol === "HARDWARE" && usuario.id === duenoId);
 }
 
 /** Bytes que ocupa el espacio de una persona */

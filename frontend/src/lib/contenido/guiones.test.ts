@@ -63,7 +63,7 @@ describe("asignar", () => {
       expect.objectContaining({
         where: {
           id: "clara",
-          OR: [{ rol: "EDITOR" }, { rol: "ADMIN", tambienEditor: true }],
+          OR: [{ rol: "EDITOR" }, { rol: { in: ["ADMIN", "SIGMA"] }, tambienEditor: true }],
         },
       }),
     );

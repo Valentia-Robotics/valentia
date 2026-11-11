@@ -15,7 +15,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { FotoPerfil } from "@/components/cuenta/FotoPerfil";
 import { useEffect, useRef, useState } from "react";
-import { esDelEquipo } from "@/config/equipo";
+import { esDelEquipo, tieneAccesoAdmin } from "@/config/equipo";
 import { enSeccion } from "@/config/marca";
 import { cn } from "@/lib/utils";
 
@@ -109,7 +109,7 @@ export function MenuUsuario() {
           <ElementoMenu href="/cuenta" icono={UserRound} alPulsar={cerrar}>
             Mi cuenta
           </ElementoMenu>
-          {sesion.user.rol === "ADMIN" && (
+          {tieneAccesoAdmin(sesion.user.rol) && (
             <ElementoMenu href="/admin" icono={LayoutDashboard} alPulsar={cerrar}>
               Panel de administración
             </ElementoMenu>

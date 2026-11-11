@@ -1,3 +1,4 @@
+import { tieneAccesoAdmin } from "@/config/equipo";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { MenuAdmin } from "@/components/admin/MenuAdmin";
@@ -24,7 +25,7 @@ export default async function LayoutEditor({ children }: { children: ReactNode }
       <MenuAdmin
         nombre={editor.nombre}
         email={editor.email}
-        zona={editor.rol === "ADMIN" ? "admin" : "editor"}
+        zona={tieneAccesoAdmin(editor.rol) ? "admin" : "editor"}
         tambienEditor={!!editor.tambienEditor}
         femenino={!!editor.rolFemenino}
       />

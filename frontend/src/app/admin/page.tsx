@@ -1,3 +1,4 @@
+import { tieneAccesoAdmin } from "@/config/equipo";
 import Link from "next/link";
 import { BookOpen, Boxes, PackageSearch, QrCode, ShoppingBag, UserPlus, Users } from "lucide-react";
 import { Cabecera } from "@/components/admin/Cabecera";
@@ -142,7 +143,11 @@ export default async function InicioAdmin() {
                 <div className="min-w-0">
                   <p className="truncate font-medium">
                     {usuario.nombre}{" "}
-                    {usuario.rol === "ADMIN" && <Insignia tono="acento">Admin</Insignia>}
+                    {tieneAccesoAdmin(usuario.rol) && (
+                      <Insignia tono="acento">
+                        {usuario.rol === "SIGMA" ? "Sigma" : "Admin"}
+                      </Insignia>
+                    )}
                   </p>
                   <p className="truncate text-xs text-gris">{usuario.email}</p>
                 </div>

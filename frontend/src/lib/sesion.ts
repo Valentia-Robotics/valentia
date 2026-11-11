@@ -8,7 +8,7 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { auth } from "@/auth";
-import { puedeEditarGuiones } from "@/config/equipo";
+import { puedeEditarGuiones, tieneAccesoAdmin } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
 
@@ -51,11 +51,11 @@ export async function exigirUsuario(volver: string): Promise<UsuarioActual> {
 /**
  * Solo para el panel /admin. Se llama en CADA página y en CADA acción del panel.
  *   - Sin sesión → al login (y después vuelve).
- *   - Con sesión pero sin ser ADMIN → página 404, como si el panel no existiera.
+ *   - Con sesión pero sin ser ADMIN o SIGMA (tieneAccesoAdmin) → página 404, como si el panel no existiera.
  */
 export async function exigirAdmin(volver = "/admin"): Promise<UsuarioActual> {
   const usuario = await exigirUsuario(volver);
-  if (usuario.rol !== "ADMIN") notFound();
+  if (!tieneAccesoAdmin(usuario.rol)) notFound();
   return usuario;
 }
 
@@ -92,7 +92,7 @@ export class SinPermiso extends Error {
  */
 export async function exigirAdminEnAccion(): Promise<UsuarioActual> {
   const usuario = await obtenerUsuario();
-  if (usuario?.rol !== "ADMIN") throw new SinPermiso();
+  if (!tieneAccesoAdmin(usuario?.rol)) throw new SinPermiso();
   return usuario;
 }
 

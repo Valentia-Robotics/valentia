@@ -7,7 +7,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
+      rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE" | "SIGMA";
       /** ADMIN que también trabaja como editor (enlace a «Mis guiones») */
       tambienEditor?: boolean;
       /** El puesto se dice en femenino («Panel de editora») */
@@ -15,7 +15,7 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
   interface User {
-    rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
+    rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE" | "SIGMA";
     /** El dispositivo de confianza al que va unida la sesión */
     dispositivoId?: string;
   }
@@ -23,7 +23,7 @@ declare module "next-auth" {
 
 declare module "@auth/core/jwt" {
   interface JWT {
-    rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE";
+    rol?: "CLIENTE" | "ADMIN" | "EDITOR" | "HARDWARE" | "SIGMA";
     dispositivoId?: string;
     tambienEditor?: boolean;
     rolFemenino?: boolean;

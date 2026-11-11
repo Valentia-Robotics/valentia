@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { enLinea, esDelEquipo, nombreRol, puedeEditarGuiones, textoConexion } from "./equipo";
+import {
+  enLinea,
+  esDelEquipo,
+  esJefe,
+  nombreRol,
+  puedeEditarGuiones,
+  textoConexion,
+  tieneAccesoAdmin,
+} from "./equipo";
 
 // 9 nov 2026, 15:00 en Madrid (14:00 UTC)
 const ahora = new Date("2026-11-09T14:00:00Z");
@@ -45,5 +53,27 @@ describe("puestos en masculino o femenino y admins que también editan", () => {
     expect(puedeEditarGuiones({ rol: "ADMIN", tambienEditor: null })).toBe(false);
     expect(puedeEditarGuiones({ rol: "HARDWARE", tambienEditor: true })).toBe(false);
     expect(puedeEditarGuiones({ rol: "CLIENTE" })).toBe(false);
+    expect(puedeEditarGuiones({ rol: "SIGMA", tambienEditor: true })).toBe(true);
+    expect(puedeEditarGuiones({ rol: "SIGMA" })).toBe(false);
+  });
+});
+
+describe("sigma: los accesos de un admin, pero por debajo", () => {
+  it("entra en el panel como un admin; los demás roles no", () => {
+    expect(tieneAccesoAdmin("ADMIN")).toBe(true);
+    expect(tieneAccesoAdmin("SIGMA")).toBe(true);
+    for (const rol of ["CLIENTE", "EDITOR", "HARDWARE", null, undefined] as const) {
+      expect(tieneAccesoAdmin(rol)).toBe(false);
+    }
+  });
+
+  it("solo ADMIN es el escalón de arriba", () => {
+    expect(esJefe("ADMIN")).toBe(true);
+    expect(esJefe("SIGMA")).toBe(false);
+  });
+
+  it("es del equipo y se llama «Sigma»", () => {
+    expect(esDelEquipo("SIGMA")).toBe(true);
+    expect(nombreRol("SIGMA", true)).toBe("Sigma");
   });
 });
