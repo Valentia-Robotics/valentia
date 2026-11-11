@@ -43,7 +43,7 @@ export function InicioConfigurador({ kits, alEmpezarDesdeCero, alEmpezarDesdeKit
             >
               <Image
                 src={kit.imagen}
-                alt=""
+                alt={kit.nombre}
                 width={200}
                 height={150}
                 unoptimized

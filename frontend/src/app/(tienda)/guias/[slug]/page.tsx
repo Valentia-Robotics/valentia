@@ -119,7 +119,7 @@ export default async function PaginaGuia({ params }: Props) {
                   >
                     <Image
                       src={kit.imagen}
-                      alt=""
+                      alt={kit.nombre}
                       width={120}
                       height={90}
                       unoptimized
@@ -143,7 +143,7 @@ export default async function PaginaGuia({ params }: Props) {
                   >
                     <Image
                       src={c.imagen}
-                      alt=""
+                      alt={c.nombre}
                       width={80}
                       height={80}
                       unoptimized

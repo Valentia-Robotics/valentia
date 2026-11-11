@@ -174,7 +174,7 @@ export default async function PaginaComponente({ params }: Props) {
                   >
                     <Image
                       src={kit.imagen}
-                      alt=""
+                      alt={kit.nombre}
                       width={400}
                       height={300}
                       unoptimized

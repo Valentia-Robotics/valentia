@@ -9,21 +9,33 @@ import { Etiqueta } from "./Etiqueta";
 import { PIEZAS_ROBOT, type PiezaRobot } from "./piezasRobot";
 
 /** Foto de estudio de cada pieza (las mismas del configurador) y su dato técnico */
-const FOTOS: Record<PiezaRobot["id"], { src: string; dato: string }> = {
+/** `alt` describe la foto: Bing avisa de las imágenes sin texto alternativo */
+const FOTOS: Record<PiezaRobot["id"], { src: string; alt: string; dato: string }> = {
   chasis: {
     src: "/images/componentes/chasis-coche-2wd.svg",
+    alt: "Chasis de metacrilato del coche robótico con dos ruedas y rueda loca",
     dato: "metacrilato · 2 ruedas + rueda loca",
   },
-  placa: { src: "/images/componentes/esp32-devkit.svg", dato: "ESP32 · wifi + bluetooth" },
+  placa: {
+    src: "/images/componentes/esp32-devkit.svg",
+    alt: "Placa ESP32 con wifi y bluetooth, el cerebro del robot",
+    dato: "ESP32 · wifi + bluetooth",
+  },
   motores: {
     src: "/images/componentes/motor-dc-reductora.svg",
+    alt: "Motor DC con reductora para mover las ruedas",
     dato: "motor DC con reductora · 3-6 V",
   },
   sensores: {
     src: "/images/componentes/sensor-ultrasonidos-hc-sr04.svg",
+    alt: "Sensor de ultrasonidos HC-SR04 para detectar obstáculos",
     dato: "ultrasonidos + sensores de línea",
   },
-  bateria: { src: "/images/componentes/bateria-18650-2s.svg", dato: "2 × 18650 recargables" },
+  bateria: {
+    src: "/images/componentes/bateria-18650-2s.svg",
+    alt: "Portabaterías con dos baterías recargables 18650",
+    dato: "2 × 18650 recargables",
+  },
 };
 
 /** Cada cuánto pasa el «escáner» a la pieza siguiente */
@@ -123,7 +135,7 @@ export function PiezasPortada() {
                   )}
                   <Image
                     src={foto.src}
-                    alt=""
+                    alt={foto.alt}
                     width={grande ? 360 : 200}
                     height={grande ? 360 : 200}
                     unoptimized
