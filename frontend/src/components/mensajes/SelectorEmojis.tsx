@@ -1,7 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Search, Smile } from "lucide-react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
+import {
+  Clock,
+  Flag,
+  Hand,
+  Lightbulb,
+  PawPrint,
+  Pizza,
+  Plane,
+  Search,
+  Shapes,
+  Smile,
+  Volleyball,
+} from "lucide-react";
 import { buscarEmojis } from "@/config/mensajes";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +21,22 @@ type Categorias = typeof import("@/config/emojis").CATEGORIAS_EMOJI;
 
 const CLAVE_RECIENTES = "valentia-emojis-recientes";
 const MAX_RECIENTES = 32;
+
+/**
+ * Iconos de las pestañas, en el orden de CATEGORIAS_EMOJI. Son dibujos de línea y no emojis para
+ * que se distingan de los emojis que se pueden elegir (Jesse creía que solo había esos).
+ */
+const ICONOS: ComponentType<{ className?: string }>[] = [
+  Smile,
+  Hand,
+  PawPrint,
+  Pizza,
+  Plane,
+  Volleyball,
+  Lightbulb,
+  Shapes,
+  Flag,
+];
 
 function leerRecientes(): string[] {
   try {
@@ -20,10 +48,11 @@ function leerRecientes(): string[] {
 }
 
 /**
- * EL BOTÓN DE EMOJIS del chat: abre un panel con TODOS los emojis (casi 1.900) por categorías,
- * un buscador en español («corazon», «robot», «fiesta»…) y los últimos que has usado. Al tocar
- * uno se mete en el texto donde esté el cursor. La lista se descarga solo la primera vez que se
- * abre (src/config/emojis.ts). Los dibuja el propio móvil u ordenador.
+ * EL BOTÓN DE EMOJIS del chat: abre un panel con TODOS los emojis (casi 1.900) en una sola lista
+ * con títulos (Recientes, Caras, Personas…), como en WhatsApp: las pestañas de arriba solo saltan
+ * a cada parte. Buscador en español («corazon», «robot», «fiesta»…). Al tocar un emoji se mete en
+ * el texto donde esté el cursor. La lista se descarga solo la primera vez que se abre
+ * (src/config/emojis.ts). Los dibuja el propio móvil u ordenador.
  */
 export function SelectorEmojis({ elegir }: { elegir: (emoji: string) => void }) {
   const [abierto, setAbierto] = useState(false);
@@ -32,7 +61,7 @@ export function SelectorEmojis({ elegir }: { elegir: (emoji: string) => void }) 
   const [recientes, setRecientes] = useState<string[]>([]);
   const [categorias, setCategorias] = useState<Categorias | null>(null);
   const caja = useRef<HTMLDivElement>(null);
-  const rejilla = useRef<HTMLDivElement>(null);
+  const lista = useRef<HTMLDivElement>(null);
 
   // Se cierra al tocar fuera o con Escape
   useEffect(() => {
@@ -62,10 +91,26 @@ export function SelectorEmojis({ elegir }: { elegir: (emoji: string) => void }) 
     setAbierto((v) => !v);
   };
 
-  const cambiarGrupo = (indice: number) => {
+  // Las pestañas saltan a su parte de la lista (si estabas buscando, se borra la búsqueda)
+  const irA = (indice: number) => {
     setGrupo(indice);
     setBusqueda("");
-    rejilla.current?.scrollTo({ top: 0 });
+    requestAnimationFrame(() => {
+      const contenedor = lista.current;
+      const seccion = contenedor?.querySelector<HTMLElement>(`[data-parte="${indice}"]`);
+      if (contenedor && seccion) contenedor.scrollTo({ top: seccion.offsetTop });
+    });
+  };
+
+  // Al bajar por la lista se marca la pestaña de la parte que estás viendo
+  const alDesplazar = () => {
+    const contenedor = lista.current;
+    if (!contenedor || busqueda.trim() !== "") return;
+    let actual = grupo;
+    for (const seccion of contenedor.querySelectorAll<HTMLElement>("[data-parte]")) {
+      if (seccion.offsetTop <= contenedor.scrollTop + 8) actual = Number(seccion.dataset.parte);
+    }
+    if (actual !== grupo) setGrupo(actual);
   };
 
   const usar = (emoji: string) => {
@@ -79,16 +124,32 @@ export function SelectorEmojis({ elegir }: { elegir: (emoji: string) => void }) 
     }
   };
 
-  const pestanas = [
-    ...(recientes.length > 0 ? [{ indice: -1, icono: "🕘", nombre: "Recientes" }] : []),
-    ...(categorias ?? []).map((g, indice) => ({ indice, icono: g.icono, nombre: g.nombre })),
+  // Recientes primero y luego todas las categorías, una detrás de otra
+  const partes = [
+    ...(recientes.length > 0
+      ? [{ indice: -1, nombre: "Recientes", Icono: Clock, emojis: recientes }]
+      : []),
+    ...(categorias ?? []).map((g, indice) => ({
+      indice,
+      nombre: g.nombre,
+      Icono: ICONOS[indice] ?? Shapes,
+      emojis: g.emojis.map(([e]) => e),
+    })),
   ];
   const buscando = busqueda.trim() !== "";
-  const emojis = buscando
-    ? buscarEmojis(categorias ?? [], busqueda)
-    : grupo === -1
-      ? recientes
-      : (categorias?.[grupo]?.emojis.map(([e]) => e) ?? []);
+  const resultados = buscando ? buscarEmojis(categorias ?? [], busqueda) : [];
+
+  const boton = (e: string) => (
+    <button
+      key={e}
+      type="button"
+      onClick={() => usar(e)}
+      aria-label={e}
+      className="inline-flex aspect-square items-center justify-center rounded-md text-2xl leading-none hover:bg-niebla"
+    >
+      {e}
+    </button>
+  );
 
   return (
     <div ref={caja} className="shrink-0 sm:relative">
@@ -109,7 +170,7 @@ export function SelectorEmojis({ elegir }: { elegir: (emoji: string) => void }) 
         <div
           role="dialog"
           aria-label="Elegir emoji"
-          className="animate-tarjeta absolute bottom-full left-3 z-20 mb-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-xl border border-linea bg-white shadow-xl sm:left-0"
+          className="absolute bottom-full left-3 z-20 mb-2 w-[min(22rem,calc(100vw-1.5rem))] animate-tarjeta rounded-xl border border-linea bg-white shadow-xl sm:left-0"
         >
           <div className="p-1.5 pb-0">
             <label className="flex items-center gap-2 rounded-lg bg-niebla px-2.5">
@@ -126,51 +187,58 @@ export function SelectorEmojis({ elegir }: { elegir: (emoji: string) => void }) 
           </div>
           <div
             role="tablist"
-            className="flex gap-0.5 overflow-x-auto border-b border-linea p-1.5 [scrollbar-width:none]"
+            aria-label="Categorías"
+            className="flex [scrollbar-width:none] gap-0.5 overflow-x-auto border-b border-linea p-1.5"
           >
-            {pestanas.map((p) => (
+            {partes.map(({ indice, nombre, Icono }) => (
               <button
-                key={p.indice}
+                key={indice}
                 type="button"
                 role="tab"
-                aria-selected={!buscando && grupo === p.indice}
-                aria-label={p.nombre}
-                title={p.nombre}
-                onClick={() => cambiarGrupo(p.indice)}
+                aria-selected={!buscando && grupo === indice}
+                aria-label={nombre}
+                title={nombre}
+                onClick={() => irA(indice)}
                 className={cn(
-                  "inline-flex size-9 shrink-0 items-center justify-center rounded-md text-lg",
-                  !buscando && grupo === p.indice ? "bg-niebla" : "hover:bg-niebla/60",
+                  "inline-flex size-9 shrink-0 items-center justify-center rounded-md",
+                  !buscando && grupo === indice
+                    ? "bg-niebla text-acento"
+                    : "text-gris hover:bg-niebla/60 hover:text-tinta",
                 )}
               >
-                {p.icono}
+                <Icono className="size-[1.1rem]" />
               </button>
             ))}
           </div>
           <div
-            ref={rejilla}
-            role="tabpanel"
-            aria-label={buscando ? "Resultados" : pestanas.find((p) => p.indice === grupo)?.nombre}
-            className="grid max-h-60 grid-cols-8 content-start gap-0.5 overflow-y-auto overscroll-contain p-1.5"
+            ref={lista}
+            onScroll={alDesplazar}
+            className="relative max-h-72 overflow-y-auto overscroll-contain px-1.5 pb-1.5"
           >
-            {!categorias && grupo !== -1 && (
-              <p className="col-span-8 py-6 text-center text-sm text-gris">Cargando emojis…</p>
-            )}
-            {categorias && buscando && emojis.length === 0 && (
-              <p className="col-span-8 py-6 text-center text-sm text-gris">
-                No hay ningún emoji con «{busqueda.trim()}».
-              </p>
-            )}
-            {emojis.map((e) => (
-              <button
-                key={e}
-                type="button"
-                onClick={() => usar(e)}
-                aria-label={e}
-                className="inline-flex aspect-square items-center justify-center rounded-md text-2xl leading-none hover:bg-niebla"
-              >
-                {e}
-              </button>
-            ))}
+            {!categorias && <p className="py-6 text-center text-sm text-gris">Cargando emojis…</p>}
+            {buscando
+              ? categorias &&
+                (resultados.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-gris">
+                    No hay ningún emoji con «{busqueda.trim()}».
+                  </p>
+                ) : (
+                  <div
+                    role="group"
+                    aria-label="Resultados"
+                    className="grid grid-cols-8 gap-0.5 pt-1.5"
+                  >
+                    {resultados.map(boton)}
+                  </div>
+                ))
+              : partes.map((parte) => (
+                  <section key={parte.indice} data-parte={parte.indice} aria-label={parte.nombre}>
+                    <h3 className="sticky top-0 z-10 bg-white/95 px-1 pt-2 pb-1 text-xs font-medium text-gris">
+                      {parte.nombre}
+                    </h3>
+                    <div className="grid grid-cols-8 gap-0.5">{parte.emojis.map(boton)}</div>
+                  </section>
+                ))}
           </div>
         </div>
       )}
