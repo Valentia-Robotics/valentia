@@ -34,16 +34,14 @@ export function hayArchivo(valor: FormDataEntryValue | null): valor is File {
 }
 
 /**
- * Comprueba la foto, la reduce (máximo 1600 px de lado), la convierte a WebP (pesa mucho menos)
- * y la guarda. Devuelve la dirección pública de la imagen.
- * "carpeta" agrupa las fotos: "componentes", "kits"…
+ * Comprueba la foto, la reduce (máximo 1600 px de lado) y la convierte a WebP (pesa mucho menos).
  * Con "cuadrada" (píxeles), la recorta en un cuadrado de ese lado (fotos de perfil).
+ * Devuelve los bytes del WebP, todavía sin guardar.
  */
-export async function subirImagen(
+export async function prepararImagen(
   archivo: File,
-  carpeta: string,
   { cuadrada }: { cuadrada?: number } = {},
-): Promise<string> {
+): Promise<Buffer> {
   if (!TIPOS_IMAGEN.includes(archivo.type)) {
     throw new ErrorImagen("La foto tiene que ser JPG, PNG o WebP.");
   }
@@ -51,10 +49,9 @@ export async function subirImagen(
     throw new ErrorImagen(`La foto pesa demasiado (máximo ${MAXIMO_MB} MB).`);
   }
 
-  let datos: Buffer;
   try {
     // limitInputPixels: rechaza imágenes gigantes hechas para colgar el servidor (40 megapíxeles)
-    datos = await sharp(Buffer.from(await archivo.arrayBuffer()), { limitInputPixels: 40_000_000 })
+    return await sharp(Buffer.from(await archivo.arrayBuffer()), { limitInputPixels: 40_000_000 })
       .rotate() // respeta la orientación de las fotos hechas con el móvil
       .resize(
         cuadrada
@@ -66,10 +63,24 @@ export async function subirImagen(
   } catch {
     throw new ErrorImagen("No hemos podido leer la foto. ¿Seguro que es una imagen?");
   }
+}
 
-  // Nombre al azar: nadie puede adivinarlo ni pisar una foto que ya existe
-  const nombre = `${Date.now().toString(36)}-${randomBytes(6).toString("hex")}.webp`;
-  return almacen().guardar(`${carpeta}/${nombre}`, datos, "image/webp");
+/** Nombre al azar: nadie puede adivinarlo ni pisar una foto que ya existe */
+export function nombreAlAzar(): string {
+  return `${Date.now().toString(36)}-${randomBytes(6).toString("hex")}.webp`;
+}
+
+/**
+ * Prepara la foto (ver prepararImagen) y la guarda. Devuelve la dirección pública de la imagen.
+ * "carpeta" agrupa las fotos: "componentes", "kits"…
+ */
+export async function subirImagen(
+  archivo: File,
+  carpeta: string,
+  opciones: { cuadrada?: number } = {},
+): Promise<string> {
+  const datos = await prepararImagen(archivo, opciones);
+  return almacen().guardar(`${carpeta}/${nombreAlAzar()}`, datos, "image/webp");
 }
 
 /** Borra una foto subida. Las imágenes de muestra (/images/…) nunca se borran. */

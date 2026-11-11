@@ -26,18 +26,26 @@ export function Avatar({
   foto,
   general,
   conectado,
+  pequeno,
 }: {
   nombre: string;
   foto?: string | null;
   general?: boolean;
   conectado?: boolean;
+  /** 28 px en vez de 44 (junto a los mensajes del General) */
+  pequeno?: boolean;
 }) {
   return (
-    <span className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-tinta text-sm font-medium text-white">
+    <span
+      className={cn(
+        "relative inline-flex shrink-0 items-center justify-center rounded-full bg-tinta font-medium text-white",
+        pequeno ? "size-7 text-[11px]" : "size-11 text-sm",
+      )}
+    >
       {general ? (
         <Users aria-hidden="true" className="size-5" />
       ) : foto ? (
-        <FotoPerfil foto={foto} className="size-full" />
+        <FotoPerfil foto={foto} className="size-full" alternativa={iniciales(nombre)} />
       ) : (
         iniciales(nombre)
       )}

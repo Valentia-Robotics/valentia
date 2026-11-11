@@ -41,7 +41,11 @@ export function FormularioFoto({ foto, nombre }: { foto: string | null; nombre: 
       {estado.mensaje && <Aviso tipo={estado.ok ? "exito" : "error"}>{estado.mensaje}</Aviso>}
       <div className="flex items-center gap-5">
         <span className="inline-flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-tinta font-titulo text-2xl text-white">
-          {foto ? <FotoPerfil foto={foto} className="size-full" /> : iniciales(nombre)}
+          {foto ? (
+            <FotoPerfil foto={foto} className="size-full" alternativa={iniciales(nombre)} />
+          ) : (
+            iniciales(nombre)
+          )}
         </span>
         <div className="min-w-0 text-sm">
           <div className="flex flex-wrap gap-2">

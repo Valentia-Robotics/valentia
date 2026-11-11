@@ -13,7 +13,9 @@ import { revalidatePath } from "next/cache";
 import { erroresDeZod, type EstadoFormulario } from "@/lib/admin/formularios";
 import { enviarCorreo } from "@/lib/correo";
 import { plantillaContrasenaCambiada } from "@/lib/correo/plantillas";
-import { ErrorImagen, borrarImagen, hayArchivo, subirImagen } from "@/lib/almacenamiento";
+import { ErrorImagen, hayArchivo } from "@/lib/almacenamiento";
+import { borrarFotoPerfil, subirFotoPerfil } from "@/lib/almacenamiento/fotoPerfil";
+import { ErrorAlmacenPrivado } from "@/lib/almacenamiento/privado";
 import { db } from "@/lib/db";
 import { registrarIntento } from "@/lib/limite";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -95,9 +97,13 @@ export async function cambiarFoto(
   let foto: string | null = null;
   if (!quitar && hayArchivo(archivo)) {
     try {
-      foto = await subirImagen(archivo, "perfiles", { cuadrada: 256 });
+      foto = await subirFotoPerfil(archivo);
     } catch (error) {
       if (error instanceof ErrorImagen) return { ok: false, errores: { foto: error.message } };
+      if (error instanceof ErrorAlmacenPrivado) {
+        console.error("[foto de perfil]", error.message);
+        return { ok: false, mensaje: "Ahora mismo no se pueden guardar fotos. Prueba más tarde." };
+      }
       throw error;
     }
   }
@@ -107,7 +113,7 @@ export async function cambiarFoto(
     select: { foto: true },
   });
   await db.usuario.update({ where: { id: usuario.id }, data: { foto } });
-  await borrarImagen(antes.foto).catch(() => {}); // si ya no estaba, da igual
+  await borrarFotoPerfil(antes.foto).catch(() => {}); // si ya no estaba, da igual
   revalidatePath("/", "layout");
   return { ok: true, mensaje: quitar ? "Foto quitada." : "Foto cambiada." };
 }
