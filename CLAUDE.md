@@ -76,6 +76,14 @@ Campo nuevo `Usuario.foto` (opcional, en `OPCIONALES`). `comprobarSesion` devuel
 `MenuUsuario`, el menú móvil y los chats de `/mensajes` (`Avatar` con `foto`). Hacer ADMIN a alguien sigue siendo
 `npm run admin -- email` (en Render: Shell), no desde el panel.
 
+### Leyes de Gestalt en la tienda (11-11-2026, rama `diseno/gestalt`; petición del usuario)
+
+- Semejanza: kits, componentes y piezas del configurador comparten aspecto (`TARJETA_TIENDA` en
+  `components/ui/tarjeta.ts`). Tarjeta nueva de la tienda → usarlo.
+- Región común: precio + acción en un pie con línea de puntos (`PIE_TARJETA`).
+- Proximidad: en la ficha del kit, el precio va junto a los botones de compra, no encima de los puntos fuertes.
+- Continuidad: en «Cómo funciona» la línea de puntos de los 3 pasos es una sola en pantallas anchas.
+
 ### «Mis guiones», admin que también edita y «Editora» (10-11-2026, rama `feature/mis-guiones`; petición del usuario)
 
 - `/editor` es el espacio de trabajo: lo asignado + **ideas propias** (origen `EDITOR`, `creadoPorId` = autor,
