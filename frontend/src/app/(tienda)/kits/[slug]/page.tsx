@@ -107,8 +107,8 @@ export default async function PaginaKit({ params }: Props) {
           </Link>
 
           <div className="mt-6 grid items-center gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
-            {/* La foto, sobre el campo azul con píxeles (como las cabeceras de la web) */}
-            <div className="relative isolate overflow-hidden rounded-tarjeta bg-cielo p-6 sm:p-10">
+            {/* La foto, sobre la placa verde (como las cabeceras de la web) */}
+            <div className="relative isolate overflow-hidden rounded-tarjeta bg-placa p-6 sm:p-10">
               <CampoPixeles variante="cabecera" />
               <FotoKitViaje slug={kit.slug}>
                 <Image

@@ -4,7 +4,7 @@ import { Etiqueta } from "@/components/portada/Etiqueta";
 import { cn } from "@/lib/utils";
 
 /**
- * CABECERA DE CADA PÁGINA (estilo «taller», el mismo de la portada): campo azul claro a todo el
+ * CABECERA DE CADA PÁGINA (estilo «taller», el mismo de la portada): campo verde de placa a todo el
  * ancho con píxeles vivos, regla de colores en el borde, etiqueta técnica, titular de cartel y
  * entradilla en serif. Así todas las páginas se sienten de la misma web.
  * Va FUERA del <Contenedor> de la página (ocupa todo el ancho).
@@ -25,10 +25,10 @@ export function CabeceraPagina({
   children?: ReactNode;
 }) {
   return (
-    <section className="campo-cielo relative isolate overflow-hidden">
+    <section className="campo-placa relative isolate overflow-hidden text-white">
       <CampoPixeles variante="cabecera" />
       <div aria-hidden="true" className="absolute inset-y-5 left-3 flex w-1.5 flex-col sm:left-5">
-        <span className="flex-[5] bg-acento" />
+        <span className="flex-[5] bg-cobre" />
         <span className="flex-[2] bg-white" />
         <span className="flex-[3] bg-senal" />
       </div>
@@ -38,7 +38,7 @@ export function CabeceraPagina({
           compacta ? "pt-10 pb-12 sm:pt-14 sm:pb-16" : "pt-14 pb-20 sm:pt-20 sm:pb-28",
         )}
       >
-        {etiqueta && <Etiqueta>{etiqueta}</Etiqueta>}
+        {etiqueta && <Etiqueta oscura>{etiqueta}</Etiqueta>}
         <h1
           className={cn(
             "titular-cartel max-w-3xl font-medium",

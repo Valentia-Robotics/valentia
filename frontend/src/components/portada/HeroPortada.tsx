@@ -6,7 +6,7 @@ import { Etiqueta, PalabrasQueSuben } from "./Etiqueta";
 /**
  * PRIMERA PANTALLA DE LA PORTADA: un campo de color con píxeles vivos (CampoPixeles), el titular
  * en grande y las dos puertas de entrada. Debajo van los kits (KitsPortada).
- * La raya de colores de la izquierda es la «regla» del taller: azul, blanco y amarillo.
+ * La raya de colores de la izquierda es la «regla» del taller: cobre, blanco y amarillo.
  */
 export function HeroPortada({
   cifras,
@@ -14,17 +14,17 @@ export function HeroPortada({
   cifras: { kits: number; componentes: number; lecciones: number };
 }) {
   return (
-    <section aria-labelledby="titulo-portada" className="campo-cielo relative isolate overflow-hidden">
+    <section aria-labelledby="titulo-portada" className="campo-placa relative isolate overflow-hidden text-white">
       <CampoPixeles />
       {/* Regla de colores del borde izquierdo */}
       <div aria-hidden="true" className="absolute inset-y-6 left-3 flex w-1.5 flex-col sm:left-5">
-        <span className="flex-[5] bg-acento" />
+        <span className="flex-[5] bg-cobre" />
         <span className="flex-[2] bg-white" />
         <span className="flex-[3] bg-senal" />
       </div>
 
       <div className="relative mx-auto flex min-h-[min(88svh,52rem)] max-w-6xl flex-col justify-center px-8 pt-14 pb-36 sm:px-12 sm:pb-40 lg:pb-28">
-        <Etiqueta>Kits de robótica · con curso en vídeo</Etiqueta>
+        <Etiqueta oscura>Kits de robótica · con curso en vídeo</Etiqueta>
         <h1
           id="titulo-portada"
           className="titular-cartel mt-6 max-w-4xl text-[3.4rem] font-medium sm:text-8xl lg:text-[8.5rem]"
@@ -40,11 +40,11 @@ export function HeroPortada({
           <Boton href="/kits" variante="bloque" tamano="lg">
             Ver los kits
           </Boton>
-          <Boton href="/configurador" variante="punteado" tamano="lg">
+          <Boton href="/configurador" variante="punteado-claro" tamano="lg">
             Crear mi robot
           </Boton>
         </div>
-        <p className="mt-10 font-mono text-xs text-tinta/70">
+        <p className="mt-10 font-mono text-xs text-white/70">
           ↳ {formatearNumero(cifras.kits)} kits · {formatearNumero(cifras.componentes)} piezas
           sueltas · {formatearNumero(cifras.lecciones)} lecciones en vídeo
         </p>
