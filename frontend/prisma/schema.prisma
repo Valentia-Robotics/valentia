@@ -368,6 +368,7 @@ model Usuario {
 
   mensajesEquipo MensajeEquipo[]
   lecturasCanal  LecturaCanal[]
+  avisosPush     SuscripcionPush[]
 }
 
 /// Un mensaje de los chats del equipo (/mensajes): el «General» o una conversación privada entre dos.
@@ -433,6 +434,34 @@ model LecturaCanal {
   leidoHasta DateTime
 
   @@unique([usuarioId, canal])
+}
+
+/// Un móvil u ordenador del equipo que ha dicho «sí» a las notificaciones de los mensajes (Web Push).
+/// Los datos los da el navegador; con ellos se le manda el aviso aunque la web esté cerrada.
+/// Si el navegador responde que ya no vale (lo desinstalaron, quitaron el permiso…), se borra solo.
+model SuscripcionPush {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String   @db.ObjectId
+  /// La dirección del servicio de avisos del navegador (Google, Apple, Mozilla…)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  /// «iPhone · Safari», «Android · Chrome»… (para verlo en la lista)
+  aparato   String
+  creadaEn  DateTime @default(now())
+  usadaEn   DateTime @default(now())
+
+  @@index([usuarioId])
+}
+
+/// Las claves VAPID de los avisos push, creadas solas la primera vez (fila única «push»).
+/// Si existen las variables VAPID_CLAVE_PUBLICA y VAPID_CLAVE_PRIVADA, mandan ellas.
+model AjustesPush {
+  id           String   @id @map("_id")
+  clavePublica String
+  clavePrivada String
+  creadoEn     DateTime @default(now())
 }
 
 /// Un archivo del espacio personal de alguien de hardware (lo ven él y los administradores).

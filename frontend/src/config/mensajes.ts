@@ -23,7 +23,7 @@ export const MENSAJES_POR_CHAT = 200;
  * cargar el servidor. El contador del menú va más despacio.
  */
 export const SEGUNDOS_REFRESCO_CHAT = 3;
-export const SEGUNDOS_REFRESCO_CONTADOR = 45;
+export const SEGUNDOS_REFRESCO_CONTADOR = 5;
 
 /** El canal privado entre dos personas: el mismo sin importar quién lo abra */
 export function canalPrivado(a: string, b: string): string {

@@ -339,6 +339,20 @@ y después de comprobar quién es. Mientras no lo configures, la web dice «falt
 
 Límites (en `src/config/hardware.ts`): 50 MB por archivo y 2 GB por persona. Quitar el rol no borra sus archivos.
 
+## 6 sexies. Avisos de los mensajes en el móvil (Web Push)
+
+**No hay que añadir nada en Render.** Las claves que firman los avisos (VAPID) se crean solas la
+primera vez y se guardan en la base de datos. Cada persona del equipo lo activa en sus aparatos
+desde **Mensajes → Avisos** (ahí está la guía para Android, iPhone y ordenador). En el iPhone hay
+que añadir antes la web a la pantalla de inicio (iOS 16.4 o más nuevo).
+
+Opcional (solo si algún día quieres fijarlas tú): `VAPID_CLAVE_PUBLICA`, `VAPID_CLAVE_PRIVADA` y
+`VAPID_CONTACTO` (`mailto:tu@correo` o la dirección de la web). Si las cambias, todos tienen que
+volver a pulsar «Activar avisos».
+
+Los recordatorios de tareas suenan a su hora aunque nadie tenga la web abierta: el servidor lo
+mira solo cada minuto (usa `AUTH_SECRET`, que ya existe).
+
 ## 7. Copias de seguridad
 
 El plan **M0 no hace copias automáticas**. Desde tu ordenador, con tu IP añadida temporalmente (§4):

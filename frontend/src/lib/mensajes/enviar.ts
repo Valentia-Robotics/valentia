@@ -4,7 +4,8 @@
  * las mismas comprobaciones y los mismos avisos en los dos casos.
  */
 import "server-only";
-import { enLinea } from "@/config/equipo";
+import { after } from "next/server";
+import { enLinea, ROLES_EQUIPO } from "@/config/equipo";
 import {
   canalDeRuta,
   leerDatosTarea,
@@ -15,10 +16,12 @@ import {
 import { enviarCorreo } from "@/lib/correo";
 import { plantillaMensajeEquipo } from "@/lib/correo/plantillas";
 import { db } from "@/lib/db";
+import { avisoDeMensaje } from "@/config/push";
 import { registrarIntento } from "@/lib/limite";
+import { avisarPorPush } from "@/lib/push/push";
 import type { UsuarioActual } from "@/lib/sesion";
 import { guardarImagenMensaje } from "./imagenes";
-import { ErrorMensaje, escribirMensaje } from "./mensajes";
+import { ErrorMensaje, escribirMensaje, totalNoLeidos } from "./mensajes";
 
 /** Lo que manda el cuadro de «Tarea» del chat (las fechas, ya en ISO desde la hora del navegador) */
 export interface TareaNueva {
@@ -57,6 +60,18 @@ export async function enviarYAvisar(
     guardada,
   );
 
+  // Aviso push al momento (como WhatsApp) a todos los que ven el chat menos a mí. Después de
+  // responder, para que quien envía no espere
+  const conImagen = !!guardada;
+  after(() =>
+    avisarAlEquipo(yo, otro?.id ?? null, {
+      texto,
+      conImagen,
+      esTarea: !!datosTarea,
+      responsableId: responsable?.id ?? null,
+    }),
+  );
+
   // Correo: en un privado, con el primero sin leer; y a quien le encargan una tarea en el General.
   // Nunca si está conectado ahora mismo (ya lo ve en la web)
   const avisar =
@@ -80,5 +95,37 @@ export async function enviarYAvisar(
       esTarea: !!datosTarea,
       ruta: otro ? yo.id : "general",
     }),
+  );
+}
+
+/** Manda el aviso push del mensaje nuevo: en un privado, a la otra persona; en el General, a todos */
+async function avisarAlEquipo(
+  yo: UsuarioActual,
+  otroId: string | null,
+  datos: { texto: string; conImagen: boolean; esTarea: boolean; responsableId: string | null },
+) {
+  const destinos = await db.usuario.findMany({
+    where: otroId
+      ? { id: otroId }
+      : { rol: { in: ROLES_EQUIPO.map((r) => r.rol) }, id: { not: yo.id } },
+    select: { id: true, nombre: true, email: true, rol: true },
+  });
+  const porId = new Map(destinos.map((d) => [d.id, d]));
+  await avisarPorPush(
+    destinos.map((d) => d.id),
+    async (id) => {
+      const persona = porId.get(id)!;
+      return {
+        ...avisoDeMensaje({
+          de: yo.nombre,
+          texto: datos.texto,
+          conImagen: datos.conImagen,
+          esTarea: datos.esTarea,
+          tareaParaTi: datos.responsableId === id,
+          ruta: otroId ? yo.id : "general",
+        }),
+        total: await totalNoLeidos(persona).catch(() => undefined),
+      };
+    },
   );
 }

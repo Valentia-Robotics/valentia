@@ -17,11 +17,15 @@ import {
 } from "react";
 import {
   ArrowDown,
+  Check,
+  CheckCheck,
   ChevronLeft,
+  Clock3,
   ClipboardList,
   ImagePlus,
   ListTodo,
   SendHorizontal,
+  RotateCw,
   Trash2,
   X,
 } from "lucide-react";
@@ -39,7 +43,7 @@ import {
   trozosConEnlaces,
 } from "@/config/mensajes";
 import type { Rol } from "@/generated/prisma/enums";
-import type { Mensaje } from "@/lib/mensajes/mensajes";
+import type { LecturaDeOtro, Mensaje } from "@/lib/mensajes/mensajes";
 import { cn } from "@/lib/utils";
 import {
   OpcionesTarea,
@@ -65,10 +69,21 @@ interface Props {
   huella: string | null;
   /** Quién puede ver el chat (para elegir el responsable de una tarea) */
   personas: { id: string; nombre: string }[];
+  /** Hasta dónde ha leído cada una de las otras personas (los tics azules) */
+  lecturas: LecturaDeOtro[];
 }
 
 /** Un mensaje en pantalla: el que se está enviando lleva la imagen elegida para verla ya */
-type MensajeChat = Mensaje & { vistaPrevia?: string };
+type MensajeChat = Mensaje & { vistaPrevia?: string; fallo?: string };
+
+/** Lo necesario para volver a mandar un mensaje que no salió */
+interface Envio {
+  idLocal: string;
+  texto: string;
+  imagen: { archivo: File; url: string } | null;
+  tarea: OpcionesTareaValor | null;
+  creadoEn: Date;
+}
 
 /** «Todo el equipo: administración, editores y hardware» (sale solo con cada rol nuevo) */
 const TODO_EL_EQUIPO = (() => {
@@ -99,10 +114,23 @@ async function enviarConImagen(
   }
 }
 
+/** Un nombre propio para cada envío (solo en esta pantalla) */
+const idLocalNuevo = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
 /** UN CHAT ABIERTO, como en WhatsApp: burbujas, separadores de día y el cuadro para escribir */
 export function Chat(props: Props) {
-  const { ruta, titulo, foto, rol, ultimaConexionEn, miId, soyAdmin, puedeEscribir, personas } =
-    props;
+  const {
+    ruta,
+    titulo,
+    foto,
+    rol,
+    ultimaConexionEn,
+    miId,
+    soyAdmin,
+    puedeEscribir,
+    personas,
+    lecturas,
+  } = props;
   const general = ruta === "general";
   const router = useRouter();
   const [texto, setTexto] = useState("");
@@ -117,6 +145,10 @@ export function Chat(props: Props) {
   const [imagen, setImagen] = useState<{ archivo: File; url: string } | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
   const [hayNuevos, setHayNuevos] = useState(false);
+  // Los mensajes que no han salido (un tic gris y «Reintentar»), solo en esta pantalla
+  const [fallidos, setFallidos] = useState<(Envio & { error: string })[]>([]);
+  // En el General: de qué mensaje mío se está mirando quién lo ha leído
+  const [verLectura, setVerLectura] = useState<string | null>(null);
   const [, empezar] = useTransition();
   // El mensaje sale al momento (en gris claro) mientras se guarda
   const [mensajes, anadirPendiente] = useOptimistic<MensajeChat[], MensajeChat>(
@@ -128,6 +160,30 @@ export function Chat(props: Props) {
   const elegirArchivo = useRef<HTMLInputElement>(null);
   const pegadoAbajo = useRef(true);
   const ultimoVisto = useRef(props.mensajes.at(-1)?.id);
+
+  // Los mensajes que no salieron van al final, con su aviso
+  const enPantalla: MensajeChat[] = [
+    ...mensajes,
+    ...fallidos.map((f) => ({
+      id: `fallido-${f.idLocal}`,
+      autorId: miId,
+      autorNombre: "",
+      texto: f.texto,
+      imagen: f.imagen ? { ancho: null, alto: null } : null,
+      vistaPrevia: f.imagen?.url,
+      creadoEn: f.creadoEn,
+      esTarea: !!f.tarea,
+      estadoTarea: "PENDIENTE" as const,
+      prioridad: null,
+      entregaEn: null,
+      responsableId: null,
+      responsableNombre: null,
+      recordarEn: null,
+      hechaEn: null,
+      hechaPor: null,
+      fallo: f.error,
+    })),
+  ];
 
   // ¿Hay algo nuevo? Se pregunta la «huella» del chat cada pocos segundos (pregunta pequeña) y
   // solo si cambia se recargan los mensajes. También nada más volver a la pestaña.
@@ -159,13 +215,19 @@ export function Chat(props: Props) {
     };
     const id = setInterval(mirar, SEGUNDOS_REFRESCO_CHAT * 1000);
     const alVolver = () => void mirar();
+    // Un aviso push (llega al momento): se mira ya, sin esperar a la siguiente vuelta
+    const alAvisoPush = (evento: MessageEvent) => {
+      if ((evento.data as { tipo?: string } | null)?.tipo === "aviso-push") void mirar();
+    };
     document.addEventListener("visibilitychange", alVolver);
     window.addEventListener("focus", alVolver);
+    navigator.serviceWorker?.addEventListener("message", alAvisoPush);
     return () => {
       vivo = false;
       clearInterval(id);
       document.removeEventListener("visibilitychange", alVolver);
       window.removeEventListener("focus", alVolver);
+      navigator.serviceWorker?.removeEventListener("message", alAvisoPush);
     };
   }, [router, ruta]);
 
@@ -177,7 +239,7 @@ export function Chat(props: Props) {
 
   // Cuando llega un mensaje: si estabas abajo, se baja; si estabas leyendo arriba, sale el botón
   // «Mensajes nuevos» (así no te mueve la pantalla mientras lees)
-  const idUltimo = mensajes.at(-1)?.id;
+  const idUltimo = enPantalla.at(-1)?.id;
   useEffect(() => {
     if (idUltimo === ultimoVisto.current) return;
     ultimoVisto.current = idUltimo;
@@ -267,30 +329,21 @@ export function Chat(props: Props) {
     });
   };
 
-  const enviar = () => {
-    const limpio = texto.trim();
-    if (!limpio && !imagen) return;
-    const tarea = esTarea ? opciones : null;
-    const conImagen = imagen;
-    setError(null);
-    setTexto("");
-    setEsTarea(false);
-    setOpciones(opcionesVacias(responsablePorDefecto));
-    // La vista previa se queda para el mensaje que se está enviando: no se suelta aún
-    if (conImagen) setImagen(null);
+  /** Manda un mensaje (nuevo o reintento). Si no sale, se queda en el chat con «Reintentar» */
+  const mandar = (envio: Envio) => {
     pegadoAbajo.current = true;
     setHayNuevos(false);
     empezar(async () => {
-      const responsable = personas.find((p) => p.id === tarea?.responsableId);
+      const responsable = personas.find((p) => p.id === envio.tarea?.responsableId);
       anadirPendiente({
-        id: `pendiente-${Date.now()}`,
+        id: `pendiente-${envio.idLocal}`,
         autorId: miId,
         autorNombre: "",
-        texto: limpio,
-        imagen: conImagen ? { ancho: null, alto: null } : null,
-        vistaPrevia: conImagen?.url,
-        creadoEn: new Date(),
-        esTarea: !!tarea,
+        texto: envio.texto,
+        imagen: envio.imagen ? { ancho: null, alto: null } : null,
+        vistaPrevia: envio.imagen?.url,
+        creadoEn: envio.creadoEn,
+        esTarea: !!envio.tarea,
         estadoTarea: "PENDIENTE",
         prioridad: null,
         entregaEn: null,
@@ -300,26 +353,60 @@ export function Chat(props: Props) {
         hechaEn: null,
         hechaPor: null,
       });
-      const datosTarea = tarea && tareaParaEnviar(tarea);
-      const respuesta = conImagen
-        ? await enviarConImagen(ruta, limpio, conImagen.archivo, datosTarea)
-        : await enviarMensaje(ruta, limpio, datosTarea);
+      const datosTarea = envio.tarea && tareaParaEnviar(envio.tarea);
+      let respuesta: Respuesta;
+      try {
+        respuesta = envio.imagen
+          ? await enviarConImagen(ruta, envio.texto, envio.imagen.archivo, datosTarea)
+          : await enviarMensaje(ruta, envio.texto, datosTarea);
+      } catch {
+        respuesta = { ok: false, mensaje: "Sin conexión: no se ha podido enviar." };
+      }
       if (!respuesta.ok) {
-        // Lo escrito (y la imagen) vuelve al cuadro para corregirlo
-        setError(respuesta.mensaje ?? "No se ha podido enviar.");
-        setTexto(limpio);
-        if (conImagen)
-          setImagen({ archivo: conImagen.archivo, url: URL.createObjectURL(conImagen.archivo) });
-        if (tarea) {
-          setEsTarea(true);
-          setOpciones(tarea);
-        }
+        // Se queda en el chat con un tic gris, como en WhatsApp, para volver a mandarlo
+        setFallidos((lista) => [
+          ...lista,
+          { ...envio, error: respuesta.mensaje ?? "No se ha podido enviar." },
+        ]);
+        return;
       }
       router.refresh();
       // La vista previa ya no hace falta cuando llega la imagen de verdad
-      if (conImagen) setTimeout(() => URL.revokeObjectURL(conImagen.url), 10_000);
+      const url = envio.imagen?.url;
+      if (url) setTimeout(() => URL.revokeObjectURL(url), 10_000);
     });
     areaTexto.current?.focus();
+  };
+
+  const enviar = () => {
+    const limpio = texto.trim();
+    if (!limpio && !imagen) return;
+    setError(null);
+    setTexto("");
+    setEsTarea(false);
+    setOpciones(opcionesVacias(responsablePorDefecto));
+    // La vista previa se queda para el mensaje que se está enviando: no se suelta aún
+    if (imagen) setImagen(null);
+    mandar({
+      idLocal: idLocalNuevo(),
+      texto: limpio,
+      imagen,
+      tarea: esTarea ? opciones : null,
+      creadoEn: new Date(),
+    });
+  };
+
+  const reintentar = (idLocal: string) => {
+    const envio = fallidos.find((f) => f.idLocal === idLocal);
+    if (!envio) return;
+    setFallidos((lista) => lista.filter((f) => f.idLocal !== idLocal));
+    mandar({ ...envio, creadoEn: new Date() });
+  };
+
+  const descartar = (idLocal: string) => {
+    const envio = fallidos.find((f) => f.idLocal === idLocal);
+    if (envio?.imagen) URL.revokeObjectURL(envio.imagen.url);
+    setFallidos((lista) => lista.filter((f) => f.idLocal !== idLocal));
   };
 
   // Intro envía; Mayús + Intro hace otra línea. En el móvil, Intro siempre hace otra línea
@@ -396,7 +483,7 @@ export function Chat(props: Props) {
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6"
           aria-live="polite"
         >
-          {mensajes.length === 0 && (
+          {enPantalla.length === 0 && (
             <p className="mx-auto mt-10 max-w-xs rounded-lg bg-white px-4 py-3 text-center text-sm text-gris shadow-sm">
               {general
                 ? "Todavía no hay mensajes. Escribe el primero para todo el equipo."
@@ -404,13 +491,15 @@ export function Chat(props: Props) {
             </p>
           )}
           <ol className="mx-auto flex max-w-3xl flex-col gap-1.5">
-            {mensajes.map((m, i) => {
+            {enPantalla.map((m, i) => {
               const mio = m.autorId === miId;
-              const anterior = mensajes[i - 1];
+              const anterior = enPantalla[i - 1];
               const diaNuevo = !anterior || claveDia(anterior.creadoEn) !== claveDia(m.creadoEn);
               const mismoAutor = !diaNuevo && anterior?.autorId === m.autorId;
               const pendiente = m.id.startsWith("pendiente-");
-              const puedeBorrar = !pendiente && (mio || (general && soyAdmin));
+              const fallido = !!m.fallo;
+              const puedeBorrar = !pendiente && !fallido && (mio || (general && soyAdmin));
+              const idLocal = m.id.replace(/^fallido-/, "");
               return (
                 <Fragment key={m.id}>
                   {diaNuevo && (
@@ -430,6 +519,7 @@ export function Chat(props: Props) {
                         "relative rounded-2xl px-3 py-2 text-[15px] shadow-sm",
                         mio ? "rounded-br-md bg-[#E3E8FF]" : "rounded-bl-md bg-white",
                         pendiente && "opacity-60",
+                        fallido && "ring-1 ring-error/40",
                         m.esTarea && "min-w-64 border-l-4",
                         m.esTarea &&
                           (m.prioridad === "ALTA"
@@ -472,10 +562,54 @@ export function Chat(props: Props) {
                           )}
                         </p>
                       )}
-                      <p className="mt-0.5 text-right text-[11px] text-gris">
-                        {pendiente ? "Enviando…" : horaMensaje(m.creadoEn)}
+                      <p className="mt-0.5 flex items-center justify-end gap-1 text-[11px] text-gris">
+                        <span>{horaMensaje(m.creadoEn)}</span>
+                        {mio && (
+                          <Tics
+                            estado={
+                              fallido
+                                ? "fallido"
+                                : pendiente
+                                  ? "enviando"
+                                  : leidoPorTodos(m, lecturas)
+                                    ? "leido"
+                                    : "enviado"
+                            }
+                            general={general}
+                            alPulsar={
+                              general && !pendiente && !fallido
+                                ? () => setVerLectura((v) => (v === m.id ? null : m.id))
+                                : undefined
+                            }
+                          />
+                        )}
                       </p>
                     </div>
+
+                    {general && verLectura === m.id && (
+                      <QuienLoHaLeido mensaje={m} lecturas={lecturas} />
+                    )}
+
+                    {fallido && (
+                      <div className="mt-1 flex flex-wrap items-center justify-end gap-2 text-xs">
+                        <span className="text-error-oscuro">No se ha enviado: {m.fallo}</span>
+                        <button
+                          type="button"
+                          onClick={() => reintentar(idLocal)}
+                          className="inline-flex items-center gap-1 rounded-full bg-acento px-2.5 py-1 font-medium text-white hover:bg-acento-hover"
+                        >
+                          <RotateCw aria-hidden="true" className="size-3.5" />
+                          Reintentar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => descartar(idLocal)}
+                          className="rounded-full border border-linea px-2.5 py-1 text-gris hover:border-tinta hover:text-tinta"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    )}
 
                     {puedeBorrar && (
                       <div className="mt-1 flex items-center gap-2 text-xs">
@@ -655,5 +789,82 @@ function ImagenMensaje({ mensaje, pendiente }: { mensaje: MensajeChat; pendiente
     >
       {foto}
     </a>
+  );
+}
+
+/** ¿Lo han leído todas las demás personas del chat? (en un privado, la otra) */
+function leidoPorTodos(m: Mensaje, lecturas: LecturaDeOtro[]) {
+  const cuando = new Date(m.creadoEn).getTime();
+  return lecturas.length > 0 && lecturas.every((l) => l.leidoHasta >= cuando);
+}
+
+/**
+ * LOS TICS, como en WhatsApp:
+ *   reloj = enviándose · un tic gris = no se ha enviado · dos grises = enviado, sin leer ·
+ *   dos azules = leído (en el General, por todos). En el General, al tocarlos sale quién lo ha leído.
+ */
+function Tics({
+  estado,
+  general,
+  alPulsar,
+}: {
+  estado: "enviando" | "fallido" | "enviado" | "leido";
+  general: boolean;
+  alPulsar?: () => void;
+}) {
+  const textos = {
+    enviando: "Enviando",
+    fallido: "No se ha enviado",
+    enviado: general ? "Enviado. Aún no lo han leído todos" : "Enviado. Aún no lo ha leído",
+    leido: general ? "Leído por todos" : "Leído",
+  };
+  const icono =
+    estado === "enviando" ? (
+      <Clock3 aria-hidden="true" className="size-3.5" />
+    ) : estado === "fallido" ? (
+      <Check aria-hidden="true" className="size-4 text-gris" />
+    ) : (
+      <CheckCheck
+        aria-hidden="true"
+        className={cn("size-4", estado === "leido" ? "text-[#1D9BF0]" : "text-gris")}
+      />
+    );
+  if (!alPulsar)
+    return (
+      <span role="img" aria-label={textos[estado]} title={textos[estado]} className="inline-flex">
+        {icono}
+      </span>
+    );
+  return (
+    <button
+      type="button"
+      onClick={alPulsar}
+      aria-label={`${textos[estado]}. Ver quién lo ha leído`}
+      title="Ver quién lo ha leído"
+      className="-m-1 inline-flex rounded p-1 hover:bg-black/5"
+    >
+      {icono}
+    </button>
+  );
+}
+
+/** En el General: quién ha leído un mensaje mío y a quién le falta */
+function QuienLoHaLeido({ mensaje, lecturas }: { mensaje: Mensaje; lecturas: LecturaDeOtro[] }) {
+  const cuando = new Date(mensaje.creadoEn).getTime();
+  const si = lecturas.filter((l) => l.leidoHasta >= cuando).map((l) => l.nombre);
+  const no = lecturas.filter((l) => l.leidoHasta < cuando).map((l) => l.nombre);
+  return (
+    <div className="mt-1 max-w-xs animate-tarjeta rounded-lg bg-white px-3 py-2 text-xs shadow-sm">
+      <p>
+        <CheckCheck aria-hidden="true" className="mr-1 inline size-3.5 text-[#1D9BF0]" />
+        <strong>Leído por:</strong> {si.length ? si.join(", ") : "nadie todavía"}
+      </p>
+      {no.length > 0 && (
+        <p className="mt-1 text-gris">
+          <CheckCheck aria-hidden="true" className="mr-1 inline size-3.5" />
+          <strong>Sin leer:</strong> {no.join(", ")}
+        </p>
+      )}
+    </div>
   );
 }
