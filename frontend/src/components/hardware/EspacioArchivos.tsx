@@ -185,20 +185,22 @@ export async function EspacioArchivos({
                     : `${c.archivos} archivos`}
               </td>
               <td>
-                {c.archivos === 0 && (
-                  <div className="flex justify-end">
-                    <BotonConfirmar
-                      accion={borrarCarpetaHardware}
-                      datos={{ ruta: c.ruta, duenoId }}
-                      titulo="Borrar carpeta"
-                      texto={`La carpeta «${c.nombre}» está vacía y se borrará (con sus subcarpetas vacías).`}
-                      variante="peligro"
-                      pequeno
-                    >
-                      Borrar
-                    </BotonConfirmar>
-                  </div>
-                )}
+                <div className="flex justify-end">
+                  <BotonConfirmar
+                    accion={borrarCarpetaHardware}
+                    datos={{ ruta: c.ruta, duenoId }}
+                    titulo="Borrar carpeta"
+                    texto={
+                      c.archivos === 0
+                        ? `La carpeta «${c.nombre}» está vacía y se borrará (con sus subcarpetas).`
+                        : `Se borrará la carpeta «${c.nombre}» con todo lo que tiene dentro: ${c.archivos === 1 ? "1 archivo" : `${c.archivos} archivos`} (${tamanoLegible(c.bytes)}) y sus subcarpetas. No se puede deshacer.`
+                    }
+                    variante="peligro"
+                    pequeno
+                  >
+                    Borrar
+                  </BotonConfirmar>
+                </div>
               </td>
             </tr>
           ))}
