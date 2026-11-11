@@ -12,6 +12,7 @@ import { formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 import { maximoDe } from "./useRobot";
 import { textoTienda } from "@/config/stock";
+import { Ver3dPieza } from "./Ver3dPieza";
 
 interface Props {
   componente: ComponenteCatalogo;
@@ -28,7 +29,8 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
 
   return (
     <div className="grid gap-6 p-5 sm:grid-cols-[2fr_3fr] sm:p-6">
-      <div className="self-start rounded-tarjeta bg-niebla p-6">
+      <div className="relative self-start rounded-tarjeta bg-niebla p-6">
+        <Ver3dPieza componente={componente} />
         <Image
           src={componente.imagen}
           alt={`Foto de ${componente.nombre}`}

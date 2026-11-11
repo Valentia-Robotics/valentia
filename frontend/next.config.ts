@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { redireccionesKitsRenombrados } from "./src/config/kitsRenombrados";
+import { origenVisor3d } from "./src/config/visor3d";
 
 const desarrollo = process.env.NODE_ENV === "development";
 
@@ -27,6 +28,7 @@ function origenGiphyPruebas(): string {
  * CONTENT-SECURITY-POLICY: de qué sitios puede cargar cosas la web. Todo lo demás se bloquea.
  *   - Stripe (formulario de pago): js.stripe.com, api.stripe.com y sus marcos.
  *   - Vídeos: YouTube (youtube-nocookie.com) y Vimeo, y sus API para saber cuándo termina el vídeo.
+ *   - El visor 3D de las piezas (Visualizalo, src/config/visor3d.ts): un marco en la ficha de la pieza.
  * 'unsafe-inline' en scripts es necesario para que Next.js pueda generar las páginas estáticas
  * (la alternativa, un "nonce", obligaría a generar todas las páginas en cada visita). Ver SEGURIDAD.md.
  */
@@ -41,7 +43,7 @@ const csp = [
   `img-src 'self' data: blob: https://*.stripe.com https://i.ytimg.com https://i.vimeocdn.com https://images.unsplash.com https://images.pexels.com https://cdn.pixabay.com https://*.giphy.com${origenGiphyPruebas()}${ga("https://*.google-analytics.com https://*.googletagmanager.com")} ${origenFotos()}`.trim(),
   "font-src 'self'",
   `connect-src 'self' https://api.stripe.com https://*.stripe.com https://*.stripe.network https://*.vimeocdn.com${ga("https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com")}${desarrollo ? " ws: wss:" : ""}`,
-  "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://*.stripe.network https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
+  `frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://*.stripe.network https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com ${origenVisor3d()}`,
   "media-src 'self' https:",
   "worker-src 'self' blob:",
   "object-src 'none'",

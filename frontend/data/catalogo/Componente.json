@@ -15,7 +15,7 @@
     "stock": {
       "$numberLong": "40"
     },
-    "imagen": "/images/componentes/arduino-uno-r3.svg",
+    "imagen": "/images/componentes/arduino-uno-r3.webp",
     "voltaje": {
       "$numberDouble": "5.0"
     },
@@ -65,7 +65,7 @@
     "stock": {
       "$numberLong": "35"
     },
-    "imagen": "/images/componentes/esp32-devkit.svg",
+    "imagen": "/images/componentes/esp32-devkit.webp",
     "voltaje": {
       "$numberDouble": "5.0"
     },
@@ -115,7 +115,7 @@
     "stock": {
       "$numberLong": "120"
     },
-    "imagen": "/images/componentes/motor-dc-reductora.svg",
+    "imagen": "/images/componentes/motor-dc-reductora.webp",
     "voltaje": {
       "$numberDouble": "6.0"
     },
@@ -163,7 +163,7 @@
     "stock": {
       "$numberLong": "150"
     },
-    "imagen": "/images/componentes/servo-sg90.svg",
+    "imagen": "/images/componentes/servo-sg90.webp",
     "voltaje": {
       "$numberDouble": "5.0"
     },
@@ -213,7 +213,7 @@
     "stock": {
       "$numberLong": "60"
     },
-    "imagen": "/images/componentes/servo-mg996r.svg",
+    "imagen": "/images/componentes/servo-mg996r.webp",
     "voltaje": {
       "$numberDouble": "6.0"
     },
@@ -263,7 +263,7 @@
     "stock": {
       "$numberLong": "70"
     },
-    "imagen": "/images/componentes/driver-motores-l298n.svg",
+    "imagen": "/images/componentes/driver-motores-l298n.webp",
     "voltaje": {
       "$numberDouble": "12.0"
     },
@@ -316,7 +316,7 @@
     "stock": {
       "$numberLong": "90"
     },
-    "imagen": "/images/componentes/sensor-ultrasonidos-hc-sr04.svg",
+    "imagen": "/images/componentes/sensor-ultrasonidos-hc-sr04.webp",
     "voltaje": {
       "$numberDouble": "5.0"
     },
@@ -369,7 +369,7 @@
     "stock": {
       "$numberLong": "140"
     },
-    "imagen": "/images/componentes/sensor-linea-tcrt5000.svg",
+    "imagen": "/images/componentes/sensor-linea-tcrt5000.webp",
     "voltaje": {
       "$numberDouble": "5.0"
     },
@@ -422,7 +422,7 @@
     "stock": {
       "$numberLong": "55"
     },
-    "imagen": "/images/componentes/sensor-dht22.svg",
+    "imagen": "/images/componentes/sensor-dht22.webp",
     "voltaje": {
       "$numberDouble": "3.3"
     },
@@ -472,7 +472,7 @@
     "stock": {
       "$numberLong": "50"
     },
-    "imagen": "/images/componentes/sensor-presion-bmp280.svg",
+    "imagen": "/images/componentes/sensor-presion-bmp280.webp",
     "voltaje": {
       "$numberDouble": "3.3"
     },
@@ -522,7 +522,7 @@
     "stock": {
       "$numberLong": "110"
     },
-    "imagen": "/images/componentes/sensor-luz-ldr.svg",
+    "imagen": "/images/componentes/sensor-luz-ldr.webp",
     "voltaje": {
       "$numberDouble": "3.3"
     },
@@ -572,7 +572,7 @@
     "stock": {
       "$numberLong": "100"
     },
-    "imagen": "/images/componentes/portapilas-4xaa.svg",
+    "imagen": "/images/componentes/portapilas-4xaa.webp",
     "voltaje": {
       "$numberDouble": "6.0"
     },
@@ -620,7 +620,7 @@
     "stock": {
       "$numberLong": "45"
     },
-    "imagen": "/images/componentes/bateria-18650-2s.svg",
+    "imagen": "/images/componentes/bateria-18650-2s.webp",
     "voltaje": {
       "$numberDouble": "7.4"
     },
@@ -668,7 +668,7 @@
     "stock": {
       "$numberLong": "60"
     },
-    "imagen": "/images/componentes/chasis-coche-2wd.svg",
+    "imagen": "/images/componentes/chasis-coche-2wd.webp",
     "voltaje": {
       "$numberDouble": "0.0"
     },
@@ -716,7 +716,7 @@
     "stock": {
       "$numberLong": "30"
     },
-    "imagen": "/images/componentes/estructura-brazo-4dof.svg",
+    "imagen": "/images/componentes/estructura-brazo-4dof.webp",
     "voltaje": {
       "$numberDouble": "0.0"
     },
@@ -764,7 +764,7 @@
     "stock": {
       "$numberLong": "200"
     },
-    "imagen": "/images/componentes/protoboard-cables.svg",
+    "imagen": "/images/componentes/protoboard-cables.webp",
     "voltaje": {
       "$numberDouble": "0.0"
     },
@@ -812,7 +812,7 @@
     "stock": {
       "$numberLong": "65"
     },
-    "imagen": "/images/componentes/pantalla-oled-096.svg",
+    "imagen": "/images/componentes/pantalla-oled-096.webp",
     "voltaje": {
       "$numberDouble": "3.3"
     },
@@ -862,7 +862,7 @@
     "stock": {
       "$numberLong": "180"
     },
-    "imagen": "/images/componentes/zumbador-activo.svg",
+    "imagen": "/images/componentes/zumbador-activo.webp",
     "voltaje": {
       "$numberDouble": "5.0"
     },
