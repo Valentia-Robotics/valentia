@@ -14,7 +14,7 @@ export function TarjetaKit({ kit }: { kit: KitResumen }) {
         <FotoKitViaje slug={kit.slug}>
           <Image
             src={kit.imagen}
-            alt=""
+            alt={kit.nombre}
             width={800}
             height={600}
             unoptimized

@@ -252,7 +252,7 @@ export default async function PaginaKit({ params }: Props) {
                 >
                   <Image
                     src={componente.imagen}
-                    alt=""
+                    alt={componente.nombre}
                     width={80}
                     height={80}
                     unoptimized
