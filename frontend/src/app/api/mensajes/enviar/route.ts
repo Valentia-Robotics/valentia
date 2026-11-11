@@ -1,7 +1,8 @@
 /**
  * ENVIAR UN MENSAJE CON IMAGEN: POST /api/mensajes/enviar (formulario multipart)
- * Campos: chat (general o el id de la otra persona), texto (puede ir vacío), imagen y, si es una
- * tarea, tarea (sus opciones en JSON). Los mensajes de solo texto van por la acción del chat.
+ * Campos: chat (general o el id de la otra persona), texto (puede ir vacío), imagen (o gif: el id
+ * de un GIF de GIPHY, que el servidor descarga y guarda como imagen) y, si es una tarea, tarea
+ * (sus opciones en JSON). Los mensajes de solo texto van por la acción del chat.
  * Va por /api para no pasar por el proxy (que corta los cuerpos grandes).
  * Mismas reglas que el resto: solo el equipo, y solo en los chats que puede ver cada uno.
  */
@@ -11,6 +12,7 @@ import { MAX_BYTES_IMAGEN, MAX_MB_IMAGEN, TIPOS_IMAGEN_MENSAJE } from "@/config/
 import { ErrorAlmacenPrivado } from "@/lib/almacenamiento/privado";
 import { leerBytes } from "@/lib/cuerpoLimitado";
 import { enviarYAvisar, type TareaNueva } from "@/lib/mensajes/enviar";
+import { descargarGif } from "@/lib/mensajes/gifs";
 import { ErrorMensaje } from "@/lib/mensajes/mensajes";
 import { mismoSitio } from "@/lib/mismoSitio";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -37,11 +39,15 @@ export async function POST(peticion: Request) {
   }
 
   const imagen = formulario.get("imagen");
-  if (!(imagen instanceof File) || imagen.size === 0) {
-    return respuesta({ error: "Falta la imagen." }, 400);
-  }
-  if (!TIPOS_IMAGEN_MENSAJE.includes(imagen.type)) {
-    return respuesta({ error: "Solo se pueden enviar imágenes JPG, PNG, WebP o GIF." }, 400);
+  const gif = formulario.get("gif");
+  const conGif = typeof gif === "string" && gif !== "";
+  if (!conGif) {
+    if (!(imagen instanceof File) || imagen.size === 0) {
+      return respuesta({ error: "Falta la imagen." }, 400);
+    }
+    if (!TIPOS_IMAGEN_MENSAJE.includes(imagen.type)) {
+      return respuesta({ error: "Solo se pueden enviar imágenes JPG, PNG, WebP o GIF." }, 400);
+    }
   }
   let tarea: TareaNueva | null = null;
   const tareaTexto = formulario.get("tarea");
@@ -54,12 +60,15 @@ export async function POST(peticion: Request) {
   }
 
   try {
+    const contenido = conGif
+      ? await descargarGif(gif)
+      : Buffer.from(await (imagen as File).arrayBuffer());
     await enviarYAvisar(
       yo,
       String(formulario.get("chat") ?? ""),
       String(formulario.get("texto") ?? ""),
       tarea,
-      Buffer.from(await imagen.arrayBuffer()),
+      contenido,
     );
   } catch (error) {
     if (error instanceof ErrorMensaje || error instanceof ErrorAlmacenPrivado) {

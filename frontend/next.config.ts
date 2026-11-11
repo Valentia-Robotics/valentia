@@ -13,6 +13,16 @@ function origenFotos(): string {
   }
 }
 
+/** Solo en pruebas: el origen de un GIPHY falso (GIPHY_API_URL), para ver sus GIFs */
+function origenGiphyPruebas(): string {
+  try {
+    const url = process.env.GIPHY_API_URL;
+    return url ? ` ${new URL(url).origin}` : "";
+  } catch {
+    return "";
+  }
+}
+
 /**
  * CONTENT-SECURITY-POLICY: de qué sitios puede cargar cosas la web. Todo lo demás se bloquea.
  *   - Stripe (formulario de pago): js.stripe.com, api.stripe.com y sus marcos.
@@ -28,7 +38,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${desarrollo ? " 'unsafe-eval'" : ""} https://js.stripe.com https://*.js.stripe.com https://www.youtube.com https://player.vimeo.com${ga("https://www.googletagmanager.com")}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://*.stripe.com https://i.ytimg.com https://i.vimeocdn.com https://images.unsplash.com https://images.pexels.com https://cdn.pixabay.com${ga("https://*.google-analytics.com https://*.googletagmanager.com")} ${origenFotos()}`.trim(),
+  `img-src 'self' data: blob: https://*.stripe.com https://i.ytimg.com https://i.vimeocdn.com https://images.unsplash.com https://images.pexels.com https://cdn.pixabay.com https://*.giphy.com${origenGiphyPruebas()}${ga("https://*.google-analytics.com https://*.googletagmanager.com")} ${origenFotos()}`.trim(),
   "font-src 'self'",
   `connect-src 'self' https://api.stripe.com https://*.stripe.com https://*.stripe.network https://*.vimeocdn.com${ga("https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com")}${desarrollo ? " ws: wss:" : ""}`,
   "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://*.stripe.network https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
