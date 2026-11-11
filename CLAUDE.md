@@ -30,6 +30,7 @@ que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empe
 - Emojis (Jesse pidió más el 11-11): `SelectorEmojis` con TODOS (~1.870, `CATEGORIAS_EMOJI` en `config/emojis.ts`, generado
   de emojibase-data 16 con palabras en español; hasta Unicode 15) en 9 categorías + Recientes (localStorage) y buscador
   (`buscarEmojis` en `config/mensajes.ts`, sin tildes). La lista se descarga solo al abrir el selector (`import()`).
+  Todo en UNA lista con títulos (como WhatsApp); las pestañas son iconos de lucide, NO emojis (Jesse: si no, parece que solo hay esos).
 - Entrega: el chat abierto pide `GET /api/mensajes/huella?chat=` cada 3 s (count + último + tareas + no leídos, en un hash)
   y solo hace `router.refresh()` si cambia (antes: la página entera cada 10 s). Botón «Mensajes nuevos» si estás leyendo
   arriba; hueco de la imagen reservado (no salta el scroll). Probado con MongoDB local (Docker) y 3 roles + un cliente.
