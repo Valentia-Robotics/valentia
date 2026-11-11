@@ -7,6 +7,7 @@ import {
   Fragment,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useOptimistic,
   useRef,
   useState,
@@ -68,7 +69,7 @@ interface Props {
   /** La huella del chat cuando se cargó: si el servidor da otra, hay algo nuevo */
   huella: string | null;
   /** Quién puede ver el chat (para elegir el responsable de una tarea) */
-  personas: { id: string; nombre: string }[];
+  personas: { id: string; nombre: string; foto?: string | null }[];
   /** Hasta dónde ha leído cada una de las otras personas (los tics azules) */
   lecturas: LecturaDeOtro[];
 }
@@ -132,6 +133,8 @@ export function Chat(props: Props) {
     lecturas,
   } = props;
   const general = ruta === "general";
+  // La foto de cada persona, para ponerla junto a sus mensajes en el General
+  const fotoDe = useMemo(() => new Map(personas.map((p) => [p.id, p.foto ?? null])), [personas]);
   const router = useRouter();
   const [texto, setTexto] = useState("");
   const [esTarea, setEsTarea] = useState(false);
@@ -512,8 +515,19 @@ export function Chat(props: Props) {
                       "group flex max-w-[85%] flex-col sm:max-w-[70%]",
                       mio ? "items-end self-end" : "items-start self-start",
                       !mismoAutor && "mt-1.5",
+                      // En el General, la foto de quien escribe va a la izquierda (como en un grupo)
+                      general && !mio && "relative pl-9",
                     )}
                   >
+                    {general && !mio && !mismoAutor && (
+                      <span className="absolute top-0 left-0">
+                        <Avatar
+                          nombre={m.autorNombre}
+                          foto={fotoDe.get(m.autorId ?? "") ?? null}
+                          pequeno
+                        />
+                      </span>
+                    )}
                     <div
                       className={cn(
                         "relative rounded-2xl px-3 py-2 text-[15px] shadow-sm",

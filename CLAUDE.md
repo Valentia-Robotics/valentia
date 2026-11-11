@@ -18,6 +18,15 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Fotos de perfil que todos ven (11-11-2026, rama `claude/project-thread-n22cf7`; petición de Jesse)
+
+Las fotos de perfil iban al almacén de fotos del panel, que en Render es el disco (`ALMACEN_PROVEEDOR` local, sin R2
+público): se vaciaba en cada publicación y la foto desaparecía; quien la subió la seguía viendo por la caché del
+navegador. Ahora van al almacén PRIVADO (`perfiles/<azar>.webp`, el mismo bucket que las imágenes del chat) y se ven en
+`GET /api/fotos-perfil/<nombre>` (cualquiera con sesión; nombre comprobado con `claveFotoPerfil`). Lógica en
+`src/lib/almacenamiento/fotoPerfil.ts` (+ test). `FotoPerfil` es de cliente: si una foto no carga (las antiguas
+`/subidas/…`), enseña las iniciales. En el General sale la foto de quien escribe junto a sus mensajes.
+
 ### Avisos al momento y tics de leído en el chat del equipo (11-11-2026, rama `claude/project-thread-5axrg6`; petición de Jesse)
 
 - **Web Push** (paquete `web-push`): `public/sw.js` (service worker sin caché: enseña el aviso, pone el número del icono y

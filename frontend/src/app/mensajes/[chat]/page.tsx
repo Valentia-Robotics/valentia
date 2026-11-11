@@ -27,9 +27,14 @@ export default async function PaginaChat({ params }: Props) {
   const esta = conversaciones.find((c) => c.ruta === chat);
   // Para elegir a quién va una tarea: en el General, todo el equipo; en un privado, los dos
   const yoMismo = { id: yo.id, nombre: `${yo.nombre} (tú)` };
+  const persona = (c: { id: string; nombre: string; foto: string | null }) => ({
+    id: c.id,
+    nombre: c.nombre,
+    foto: c.foto,
+  });
   const personas = abierto.otro
-    ? [{ id: abierto.otro.id, nombre: abierto.otro.nombre }, yoMismo]
-    : [yoMismo, ...(await companeros(yo)).map((c) => ({ id: c.id, nombre: c.nombre }))];
+    ? [persona(abierto.otro), yoMismo]
+    : [yoMismo, ...(await companeros(yo)).map(persona)];
 
   return (
     <PantallaMensajes conversaciones={conversaciones} activa={chat}>

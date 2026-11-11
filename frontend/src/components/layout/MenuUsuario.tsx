@@ -77,7 +77,11 @@ export function MenuUsuario() {
         )}
       >
         {sesion.user.image ? (
-          <FotoPerfil foto={sesion.user.image} className="size-full" />
+          <FotoPerfil
+            foto={sesion.user.image}
+            className="size-full"
+            alternativa={nombre.charAt(0).toUpperCase()}
+          />
         ) : (
           nombre.charAt(0).toUpperCase()
         )}
