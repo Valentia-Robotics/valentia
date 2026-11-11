@@ -11,11 +11,18 @@ import { texto, type EstadoFormulario } from "@/lib/admin/formularios";
 import { borrarArchivo, borrarCarpeta, crearCarpetas, ErrorArchivo } from "@/lib/hardware/archivos";
 import { obtenerUsuario, SinPermiso, type UsuarioActual } from "@/lib/sesion";
 
-/** Quién llama (solo hardware o admin) y de quién es el espacio: alguien de hardware, el suyo */
+/**
+ * Quién llama (solo hardware o admin) y de quién es el espacio: alguien de hardware, el suyo; un
+ * admin, el que diga el formulario o, si no dice ninguno, el suyo (admin con «también hardware»)
+ */
 async function quienYDonde(formulario: FormData): Promise<[UsuarioActual, string]> {
   const usuario = await obtenerUsuario();
-  if (!usuario || (usuario.rol !== "HARDWARE" && !tieneAccesoAdmin(usuario.rol))) throw new SinPermiso();
-  return [usuario, usuario.rol === "HARDWARE" ? usuario.id : texto(formulario, "duenoId")];
+  if (!usuario || (usuario.rol !== "HARDWARE" && !tieneAccesoAdmin(usuario.rol)))
+    throw new SinPermiso();
+  return [
+    usuario,
+    usuario.rol === "HARDWARE" ? usuario.id : texto(formulario, "duenoId") || usuario.id,
+  ];
 }
 
 function refrescar() {
@@ -82,7 +89,8 @@ export async function borrarArchivoHardware(
   formulario: FormData,
 ): Promise<EstadoFormulario> {
   const usuario = await obtenerUsuario();
-  if (!usuario || (usuario.rol !== "HARDWARE" && !tieneAccesoAdmin(usuario.rol))) throw new SinPermiso();
+  if (!usuario || (usuario.rol !== "HARDWARE" && !tieneAccesoAdmin(usuario.rol)))
+    throw new SinPermiso();
   try {
     await borrarArchivo(usuario, texto(formulario, "archivoId"));
   } catch (error) {

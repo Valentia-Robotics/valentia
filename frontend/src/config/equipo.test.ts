@@ -7,6 +7,7 @@ import {
   puedeEditarGuiones,
   textoConexion,
   tieneAccesoAdmin,
+  tieneEspacioHardware,
 } from "./equipo";
 
 // 9 nov 2026, 15:00 en Madrid (14:00 UTC)
@@ -55,6 +56,15 @@ describe("puestos en masculino o femenino y admins que también editan", () => {
     expect(puedeEditarGuiones({ rol: "CLIENTE" })).toBe(false);
     expect(puedeEditarGuiones({ rol: "SIGMA", tambienEditor: true })).toBe(true);
     expect(puedeEditarGuiones({ rol: "SIGMA" })).toBe(false);
+  });
+
+  it("tiene espacio de hardware el rol HARDWARE y el admin que también es de hardware", () => {
+    expect(tieneEspacioHardware({ rol: "HARDWARE" })).toBe(true);
+    expect(tieneEspacioHardware({ rol: "ADMIN", tambienHardware: true })).toBe(true);
+    expect(tieneEspacioHardware({ rol: "SIGMA", tambienHardware: true })).toBe(true);
+    expect(tieneEspacioHardware({ rol: "ADMIN", tambienHardware: null })).toBe(false);
+    expect(tieneEspacioHardware({ rol: "EDITOR", tambienHardware: true })).toBe(false);
+    expect(tieneEspacioHardware({ rol: "CLIENTE", tambienHardware: true })).toBe(false);
   });
 });
 

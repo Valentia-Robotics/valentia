@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { EspacioArchivos } from "@/components/hardware/EspacioArchivos";
+import { tieneEspacioHardware } from "@/config/equipo";
 import { duenoDeEspacio } from "@/lib/hardware/archivos";
 import { exigirAdmin } from "@/lib/sesion";
 
@@ -30,7 +31,7 @@ export default async function EspacioHardwareAdmin({ params, searchParams }: Pro
       <EspacioArchivos
         duenoId={dueno.id}
         paraAdmin
-        puedeSubir={dueno.rol === "HARDWARE"}
+        puedeSubir={tieneEspacioHardware(dueno)}
         pagina={`/admin/hardware/${dueno.id}`}
         carpeta={typeof carpeta === "string" ? carpeta : ""}
       />

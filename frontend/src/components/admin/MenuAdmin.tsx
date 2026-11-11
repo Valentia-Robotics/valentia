@@ -72,12 +72,11 @@ const seccionesEditor: typeof seccionesAdmin = [
   STOCK,
 ];
 
+/** El espacio de archivos propio (también lo tiene el admin con «también hardware») */
+const MI_ESPACIO = { href: "/hardware", etiqueta: "Mi espacio", icono: FolderOpen };
+
 /** La zona de hardware: su espacio de archivos */
-const seccionesHardware: typeof seccionesAdmin = [
-  { href: "/hardware", etiqueta: "Mi espacio", icono: FolderOpen },
-  MENSAJES,
-  STOCK,
-];
+const seccionesHardware: typeof seccionesAdmin = [MI_ESPACIO, MENSAJES, STOCK];
 
 /**
  * Menú del panel de administración.
@@ -89,6 +88,7 @@ export function MenuAdmin({
   email,
   zona = "admin",
   tambienEditor = false,
+  tambienHardware = false,
   femenino = false,
 }: {
   nombre: string;
@@ -96,6 +96,8 @@ export function MenuAdmin({
   zona?: "admin" | "editor" | "hardware";
   /** Administrador que también edita: «Mis guiones» sale en su menú, tras «Contenido» */
   tambienEditor?: boolean;
+  /** Administrador que también es de hardware: «Mi espacio» sale en su menú, tras «Hardware» */
+  tambienHardware?: boolean;
   /** Su puesto en femenino («Editora») */
   femenino?: boolean;
 }) {
@@ -105,9 +107,13 @@ export function MenuAdmin({
       ? seccionesEditor
       : zona === "hardware"
         ? seccionesHardware
-        : tambienEditor
-          ? seccionesAdmin.flatMap((s) => (s.href === "/admin/contenido" ? [s, MIS_GUIONES] : [s]))
-          : seccionesAdmin;
+        : seccionesAdmin.flatMap((s) =>
+            s.href === "/admin/contenido" && tambienEditor
+              ? [s, MIS_GUIONES]
+              : s.href === "/admin/hardware" && tambienHardware
+                ? [s, MI_ESPACIO]
+                : [s],
+          );
   const inicio = secciones[0].href;
   // La primera sección no se marca en las demás (/admin/kits no es «Inicio»; /editor/blog no es
   // «Mis guiones»), salvo las fichas de guion del editor (/editor/<id>)

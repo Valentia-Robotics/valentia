@@ -121,7 +121,7 @@ export function MenuUsuario() {
                 : "Mis guiones"}
             </ElementoMenu>
           )}
-          {sesion.user.rol === "HARDWARE" && (
+          {(sesion.user.rol === "HARDWARE" || sesion.user.tambienHardware) && (
             <ElementoMenu href="/hardware" icono={FolderOpen} alPulsar={cerrar}>
               Mi espacio de hardware
             </ElementoMenu>
