@@ -98,83 +98,87 @@ export function MenuAdmin({
       : ruta === href || ruta.startsWith(`${href}/`);
 
   return (
-    <aside className="border-b border-linea bg-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:border-r lg:border-b-0 print:hidden">
-      <div className="flex items-center justify-between gap-3 px-4 pt-4 lg:block lg:px-5 lg:pt-6">
-        <Link href={inicio} className="inline-flex items-center gap-2">
-          <Logo alto={14} />
-          <span className="rounded bg-tinta px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">
-            {zona === "editor" ? "Editor" : zona === "hardware" ? "Hardware" : "Panel"}
-          </span>
-        </Link>
-        {/* En el móvil, la tienda y cerrar sesión van arriba a la derecha */}
-        <div className="flex items-center gap-3 text-sm text-gris lg:hidden">
-          <Link href="/" className="hover:text-tinta">
-            Ver tienda
+    <>
+      <aside className="border-b border-linea bg-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:border-r lg:border-b-0 print:hidden">
+        <div className="flex items-center justify-between gap-3 px-4 pt-4 lg:block lg:px-5 lg:pt-6">
+          <Link href={inicio} className="inline-flex items-center gap-2">
+            <Logo alto={14} />
+            <span className="rounded bg-tinta px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-white uppercase">
+              {zona === "editor" ? "Editor" : zona === "hardware" ? "Hardware" : "Panel"}
+            </span>
           </Link>
-          <button
-            type="button"
-            onClick={() => signOut({ redirectTo: "/" })}
-            aria-label="Cerrar sesión"
-            className="inline-flex size-8 items-center justify-center rounded-md hover:bg-niebla hover:text-tinta"
-          >
-            <LogOut aria-hidden="true" className="size-4" />
-          </button>
+          {/* En el móvil, la tienda y cerrar sesión van arriba a la derecha */}
+          <div className="flex items-center gap-3 text-sm text-gris lg:hidden">
+            <Link href="/" className="hover:text-tinta">
+              Ver tienda
+            </Link>
+            <button
+              type="button"
+              onClick={() => signOut({ redirectTo: "/" })}
+              aria-label="Cerrar sesión"
+              className="inline-flex size-8 items-center justify-center rounded-md hover:bg-niebla hover:text-tinta"
+            >
+              <LogOut aria-hidden="true" className="size-4" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* En ordenador el menú ocupa justo la altura de la pantalla: si las secciones no caben,
+        {/* En ordenador el menú ocupa justo la altura de la pantalla: si las secciones no caben,
           se desplaza SOLO esta lista (rueda, panel táctil o arrastrando), y «Ver la tienda» y
           «Cerrar sesión» se quedan siempre a la vista abajo. Antes la lista empujaba esa parte
           fuera de la pantalla y la columna fija no dejaba llegar a ella. */}
-      <nav
-        aria-label="Secciones del panel"
-        className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin]"
-      >
-        <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3">
-          {secciones.map(({ href, etiqueta, icono: Icono }) => (
-            <li key={href} className="shrink-0">
-              <Link
-                href={href}
-                aria-current={activa(href) ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors lg:py-1.5",
-                  activa(href)
-                    ? "bg-tinta text-white"
-                    : "text-tinta/80 hover:bg-niebla hover:text-tinta",
-                )}
-              >
-                <Icono aria-hidden="true" className="size-4" strokeWidth={1.8} />
-                {etiqueta}
-                {href === MENSAJES.href && <ContadorMensajes activo={activa(href)} />}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+        <nav
+          aria-label="Secciones del panel"
+          className="mt-3 lg:mt-6 lg:min-h-0 lg:flex-1 lg:[scrollbar-width:thin] lg:overflow-y-auto lg:overscroll-contain"
+        >
+          <ul className="sin-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:px-3">
+            {secciones.map(({ href, etiqueta, icono: Icono }) => (
+              <li key={href} className="shrink-0">
+                <Link
+                  href={href}
+                  aria-current={activa(href) ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors lg:py-1.5",
+                    activa(href)
+                      ? "bg-tinta text-white"
+                      : "text-tinta/80 hover:bg-niebla hover:text-tinta",
+                  )}
+                >
+                  <Icono aria-hidden="true" className="size-4" strokeWidth={1.8} />
+                  {etiqueta}
+                  {href === MENSAJES.href && <ContadorMensajes activo={activa(href)} />}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-      <div className="hidden shrink-0 border-t border-linea p-4 text-sm lg:block">
-        <p className="truncate font-medium">{nombre}</p>
-        <p className="truncate text-xs text-gris">{email}</p>
-        <div className="mt-3 flex flex-col gap-1">
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-gris hover:bg-niebla hover:text-tinta"
-          >
-            <ExternalLink aria-hidden="true" className="size-4" />
-            Ver la tienda
-          </Link>
-          <button
-            type="button"
-            onClick={() => signOut({ redirectTo: "/" })}
-            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-gris hover:bg-niebla hover:text-tinta"
-          >
-            <LogOut aria-hidden="true" className="size-4" />
-            Cerrar sesión
-          </button>
+        <div className="hidden shrink-0 border-t border-linea p-4 text-sm lg:block">
+          <p className="truncate font-medium">{nombre}</p>
+          <p className="truncate text-xs text-gris">{email}</p>
+          <div className="mt-3 flex flex-col gap-1">
+            <Link
+              href="/"
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-gris hover:bg-niebla hover:text-tinta"
+            >
+              <ExternalLink aria-hidden="true" className="size-4" />
+              Ver la tienda
+            </Link>
+            <button
+              type="button"
+              onClick={() => signOut({ redirectTo: "/" })}
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-gris hover:bg-niebla hover:text-tinta"
+            >
+              <LogOut aria-hidden="true" className="size-4" />
+              Cerrar sesión
+            </button>
+          </div>
         </div>
-      </div>
-      {/* Mensajes sin leer y alarmas de tareas (todo el equipo usa este menú) */}
+        {/* Mensajes sin leer y alarmas de tareas (todo el equipo usa este menú) */}
+      </aside>
+      {/* Fuera del menú: el menú es «sticky» y todo lo que va dentro queda por debajo del chat
+        (se veía el cartel pero no se podía pulsar) */}
       <AvisosEquipo email={email} />
-    </aside>
+    </>
   );
 }
