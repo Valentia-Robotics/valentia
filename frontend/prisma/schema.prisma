@@ -1065,3 +1065,18 @@ model MovimientoDinero {
   @@index([fecha])
   @@index([tipo, fecha])
 }
+
+/// Valor de la empresa que escribe a mano un ADMIN o SIGMA en /admin/acciones (por ejemplo, lo
+/// que ofrece un inversor). El último es el que vale; los anteriores quedan como historial.
+model ValoracionEmpresa {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  /// Valor de toda la empresa, en céntimos
+  importeCentimos Int
+  /// De dónde sale el valor ("Oferta de X", "Ronda de amigos"…; "" si no se pone)
+  nota            String   @default("")
+  /// Nombre o email de quien lo apuntó
+  creadoPor       String   @default("")
+  creadoEn        DateTime @default(now())
+
+  @@index([creadoEn])
+}

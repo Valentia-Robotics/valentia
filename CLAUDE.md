@@ -27,6 +27,14 @@ cerró su API en 2026. Reglas puras en `src/config/gifs.ts` (+ test), servidor e
 `*.giphy.com`, 15 MB) y lo guarda como imagen del chat (WebP animado, almacén privado): mismos tics, avisos y
 permisos. CSP `img-src` con `https://*.giphy.com` (vistas previas). `GIPHY_API_URL` solo para pruebas (GIPHY falso).
 
+### Valor de las acciones (11-11-2026, rama `feature/valor-acciones`; petición del usuario)
+
+`/admin/acciones` (ADMIN y SIGMA, en el menú tras «Finanzas»). **3.000 acciones; reparto FIJO** en `src/config/acciones.ts`
+(Diego 50 %, Jesse 49 %, Alonso 1 %; para cambiarlo, cambiar `SOCIOS`) + test. Dos valores: **a mano** (modelo
+`ValoracionEmpresa`: el último manda, los anteriores son historial; se pueden borrar) y **según los números** (beneficio
+de siempre sin IVA de Finanzas + kits y componentes del almacén a precio de venta sin IVA; puede salir negativo).
+Valor de una acción = valor de la empresa / 3.000; cada socio = sus acciones × ese valor.
+
 ### Fotos del panel que no se borran (11-11-2026, rama `claude/project-thread-n5frek`; petición de Jesse)
 
 Las fotos de kits y componentes que se suben en `/admin/kits` y `/admin/componentes` iban al disco de Render
