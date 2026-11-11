@@ -18,6 +18,16 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Fotos del panel que no se borran (11-11-2026, rama `claude/project-thread-n5frek`; petición de Jesse)
+
+Las fotos de kits y componentes que se suben en `/admin/kits` y `/admin/componentes` iban al disco de Render
+(`ALMACEN_PROVEEDOR` local) y se perdían en cada publicación. Ahora, sin bucket público (`nube`) ni disco propio
+(`ALMACEN_LOCAL_CARPETA`), y con `ALMACEN_PRIVADO_BUCKET` o en Render, van al almacén PRIVADO en `publicas/<carpeta>/<azar>.webp`
+(`src/lib/almacenamiento/publicoEnPrivado.ts` + test). La dirección NO cambia (`/subidas/…`): la ruta `/subidas/[...ruta]` mira
+primero el disco y luego el almacén (solo nombres de `nombreAlAzar`, siempre dentro de `publicas/`). Sin almacén en Render,
+subir una foto da error en vez de perderla. Las fotos que ya se perdieron hay que volver a subirlas. Es el único sitio que
+guardaba en disco algo que debe durar (los correos de `.correos-dev/` son de desarrollo).
+
 ### Fotos de perfil que todos ven (11-11-2026, rama `claude/project-thread-n22cf7`; petición de Jesse)
 
 Las fotos de perfil iban al almacén de fotos del panel, que en Render es el disco (`ALMACEN_PROVEEDOR` local, sin R2
