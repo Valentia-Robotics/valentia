@@ -29,7 +29,7 @@ interface Props {
 }
 
 /**
- * CÓMO FUNCIONA: tres pasos como columnas de un cuaderno (número, línea de puntos, texto) y las
+ * CÓMO FUNCIONA: tres pasos como columnas de un cuaderno, unidos por la misma línea (número, línea de puntos, texto) y las
  * cifras reales en grande. Todo alineado a la izquierda, como un cartel, no centrado.
  */
 export function BloqueComoFunciona({ cifras }: Props) {
@@ -61,9 +61,11 @@ export function BloqueComoFunciona({ cifras }: Props) {
           </p>
         </div>
 
-        <ol className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8">
+        {/* Continuidad (Gestalt): en pantallas anchas la línea de puntos de los tres pasos es una
+            sola, de punta a punta, y se lee como un camino: caja → QR → robot */}
+        <ol className="mt-16 grid gap-10 md:grid-cols-3 md:gap-x-0">
           {pasos.map(({ titulo, texto, nota }, i) => (
-            <li key={titulo} className="aparecer group">
+            <li key={titulo} className="aparecer group md:[&>*:not(span)]:pr-8">
               <div className="flex items-baseline justify-between font-mono text-xs text-tinta/60">
                 <span>0{i + 1}</span>
                 <span>{nota}</span>

@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import { Boton } from "@/components/ui/Boton";
-import { formatearPrecio } from "@/lib/utils";
+import { TARJETA_TIENDA } from "@/components/ui/tarjeta";
+import { cn, formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 import { maximoDe } from "./useRobot";
 import { textoTienda } from "@/config/stock";
@@ -25,7 +26,7 @@ export function TarjetaPieza({ componente, enRobot, alAnadir, alVerDetalle }: Pr
   const sinMas = !agotado && enRobot >= maximoDe(componente);
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-tarjeta bg-white shadow-tarjeta ring-1 ring-linea transition-shadow hover:shadow-flotante">
+    <article className={cn("group relative flex flex-col overflow-hidden", TARJETA_TIENDA)}>
       {enRobot > 0 && (
         <span className="absolute top-3 left-3 z-10 rounded-boton bg-acento px-2.5 py-1 text-xs font-semibold text-white">
           {enRobot} en tu robot

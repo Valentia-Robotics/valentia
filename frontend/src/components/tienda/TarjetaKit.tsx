@@ -2,14 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
 import { Etiqueta } from "@/components/ui/Etiqueta";
-import { precioDeKit } from "@/lib/utils";
+import { PIE_TARJETA, TARJETA_TIENDA } from "@/components/ui/tarjeta";
+import { cn, precioDeKit } from "@/lib/utils";
 import type { KitResumen } from "@/lib/catalogo";
 
 /** Tarjeta de un kit para el listado /kits. Toda la tarjeta es un enlace a su ficha. */
 export function TarjetaKit({ kit }: { kit: KitResumen }) {
   return (
     // Al pasar el ratón se levanta con una sombra recta azul (estilo taller)
-    <article className="group relative flex flex-col overflow-hidden rounded-tarjeta bg-white ring-1 ring-tinta/15 transition-[box-shadow,translate] duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-acento)] active:translate-0">
+    <article className={cn("group relative flex flex-col overflow-hidden", TARJETA_TIENDA)}>
       <div className="relative bg-niebla px-6 pt-6 pb-4">
         <FotoKitViaje slug={kit.slug}>
           <Image
@@ -38,7 +39,7 @@ export function TarjetaKit({ kit }: { kit: KitResumen }) {
           Incluye el curso «{kit.curso.titulo}» ({kit.curso._count.lecciones}{" "}
           {kit.curso._count.lecciones === 1 ? "lección" : "lecciones"})
         </p>
-        <div className="mt-5 flex items-center justify-between">
+        <div className={PIE_TARJETA}>
           <span className="text-xl font-medium">{precioDeKit(kit.precioCentimos)}</span>
           <span
             aria-hidden="true"

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { fichaTecnica } from "@/lib/fichaTecnica";
-import { formatearPrecio } from "@/lib/utils";
+import { PIE_TARJETA, TARJETA_TIENDA } from "@/components/ui/tarjeta";
+import { cn, formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 import { textoTienda } from "@/config/stock";
 
@@ -12,7 +13,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
   const agotado = componente.stock === 0;
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-tarjeta bg-white ring-1 ring-tinta/15 transition-[box-shadow,translate] duration-300 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)]">
+    <article className={cn("flex flex-col overflow-hidden", TARJETA_TIENDA)}>
       <Link href={`/componentes/${componente.slug}`} tabIndex={-1} className="block bg-niebla p-6">
         <Image
           src={componente.imagen}
@@ -52,7 +53,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
           </dl>
         </details>
 
-        <div className="mt-5 flex items-center justify-between gap-3">
+        <div className={PIE_TARJETA}>
           <div>
             <p className="text-xl font-medium">{formatearPrecio(componente.precioCentimos)}</p>
             <p className="font-mono text-xs text-gris">

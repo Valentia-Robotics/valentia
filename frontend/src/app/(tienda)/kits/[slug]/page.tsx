@@ -147,11 +147,6 @@ export default async function PaginaKit({ params }: Props) {
                 </a>
               )}
 
-              <p className="mt-6 text-3xl font-medium">{precioDeKit(kit.precioCentimos)}</p>
-              <p className="mt-1 text-sm text-gris">
-                {gratis ? "Sin pago · Se activa al momento" : "IVA incluido · Con curso en vídeo"}
-              </p>
-
               <ul className="mt-6 space-y-2.5">
                 {puntosFuertes.map((punto) => (
                   <li key={punto} className="flex gap-3">
@@ -161,55 +156,64 @@ export default async function PaginaKit({ params }: Props) {
                 ))}
               </ul>
 
-              {gratis ? (
-                <form action={conseguirKitGratis.bind(null, kit.slug)} className="mt-8">
-                  <BotonKitGratis />
-                </form>
-              ) : abierta && kit.stock === 0 ? (
-                // Sin unidades en el almacén (se cuentan en /stock): no se puede comprar, pero sí pedir aviso
-                <div className="mt-8 rounded-tarjeta bg-niebla p-5 sm:p-6">
-                  <p className="font-medium">{textoTienda(0, kit.enReposicion)}</p>
-                  <p className="mt-1 text-sm text-gris">
-                    {kit.enReposicion
-                      ? "Se han agotado las unidades que teníamos y ya estamos preparando más."
-                      : "Ahora mismo no nos quedan unidades de este kit."}{" "}
-                    Déjanos tu email y te escribimos en cuanto vuelva a estar disponible.
-                  </p>
-                  <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
-                </div>
-              ) : abierta ? (
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <BotonAnadirCarrito
-                    articulo={{
-                      id: `kit:${kit.slug}`,
-                      tipo: "kit",
-                      slug: kit.slug,
-                      nombre: kit.nombre,
-                      precioCentimos: kit.precioCentimos,
-                      imagen: kit.imagen,
-                    }}
-                    className="w-full sm:w-auto"
-                  />
-                  <Boton
-                    href={`/configurador?kit=${kit.slug}`}
-                    variante="secundario"
-                    tamano="lg"
-                    className="w-full sm:w-auto"
-                  >
-                    <SlidersHorizontal aria-hidden="true" className="size-5" strokeWidth={1.8} />
-                    Personalizar este kit
-                  </Boton>
-                </div>
-              ) : (
-                <div className="mt-8 rounded-tarjeta bg-niebla p-5 sm:p-6">
-                  <p className="font-medium">Todavía no lo vendemos online.</p>
-                  <p className="mt-1 text-sm text-gris">
-                    Estamos preparando las primeras unidades. Déjanos tu email y te avisamos en
-                    cuanto puedas pedirlo.
-                  </p>
-                  <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
-                </div>
-              )}
+              {/* Proximidad (Gestalt): el precio va pegado a lo que se hace con él (comprar,
+                  conseguirlo o pedir aviso), dentro de su propia zona */}
+              <div className="mt-8 border-t border-dotted border-tinta/25 pt-6">
+                <p className="text-3xl font-medium">{precioDeKit(kit.precioCentimos)}</p>
+                <p className="mt-1 text-sm text-gris">
+                  {gratis ? "Sin pago · Se activa al momento" : "IVA incluido · Con curso en vídeo"}
+                </p>
+
+                {gratis ? (
+                  <form action={conseguirKitGratis.bind(null, kit.slug)} className="mt-5">
+                    <BotonKitGratis />
+                  </form>
+                ) : abierta && kit.stock === 0 ? (
+                  // Sin unidades en el almacén (se cuentan en /stock): no se puede comprar, pero sí pedir aviso
+                  <div className="mt-5 rounded-tarjeta bg-niebla p-5 sm:p-6">
+                    <p className="font-medium">{textoTienda(0, kit.enReposicion)}</p>
+                    <p className="mt-1 text-sm text-gris">
+                      {kit.enReposicion
+                        ? "Se han agotado las unidades que teníamos y ya estamos preparando más."
+                        : "Ahora mismo no nos quedan unidades de este kit."}{" "}
+                      Déjanos tu email y te escribimos en cuanto vuelva a estar disponible.
+                    </p>
+                    <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
+                  </div>
+                ) : abierta ? (
+                  <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                    <BotonAnadirCarrito
+                      articulo={{
+                        id: `kit:${kit.slug}`,
+                        tipo: "kit",
+                        slug: kit.slug,
+                        nombre: kit.nombre,
+                        precioCentimos: kit.precioCentimos,
+                        imagen: kit.imagen,
+                      }}
+                      className="w-full sm:w-auto"
+                    />
+                    <Boton
+                      href={`/configurador?kit=${kit.slug}`}
+                      variante="secundario"
+                      tamano="lg"
+                      className="w-full sm:w-auto"
+                    >
+                      <SlidersHorizontal aria-hidden="true" className="size-5" strokeWidth={1.8} />
+                      Personalizar este kit
+                    </Boton>
+                  </div>
+                ) : (
+                  <div className="mt-5 rounded-tarjeta bg-niebla p-5 sm:p-6">
+                    <p className="font-medium">Todavía no lo vendemos online.</p>
+                    <p className="mt-1 text-sm text-gris">
+                      Estamos preparando las primeras unidades. Déjanos tu email y te avisamos en
+                      cuanto puedas pedirlo.
+                    </p>
+                    <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Contenedor>
