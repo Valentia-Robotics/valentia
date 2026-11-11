@@ -3,6 +3,9 @@
  * Elige el almacén según ALMACEN_PROVEEDOR en .env:
  *   "local" (por defecto) → carpeta subidas/ del proyecto
  *   "nube"                → servicio en la nube (ver nube.ts para activarlo)
+ * Sin bucket público ni disco propio, y con el almacén privado configurado (o en Render), las fotos
+ * van al almacén privado con la misma dirección /subidas/… (ver publicoEnPrivado.ts): el disco de
+ * Render se vacía en cada publicación y las fotos se perdían.
  *
  * El resto de la web solo usa subirImagen() y borrarImagen(): para cambiar de
  * almacén no hay que tocar nada más.
@@ -12,10 +15,13 @@ import { randomBytes } from "node:crypto";
 import sharp from "sharp";
 import { almacenLocal } from "./local";
 import { almacenNube } from "./nube";
+import { ErrorAlmacenPrivado } from "./privado";
+import { almacenPublicoEnPrivado, usarAlmacenPrivadoParaFotos } from "./publicoEnPrivado";
 import type { Almacen } from "./tipos";
 
 function almacen(): Almacen {
-  return process.env.ALMACEN_PROVEEDOR === "nube" ? almacenNube : almacenLocal;
+  if (process.env.ALMACEN_PROVEEDOR === "nube") return almacenNube;
+  return usarAlmacenPrivadoParaFotos() ? almacenPublicoEnPrivado : almacenLocal;
 }
 
 /** Formatos de foto que se aceptan (SVG no: puede llevar código escondido) */
@@ -80,7 +86,13 @@ export async function subirImagen(
   opciones: { cuadrada?: number } = {},
 ): Promise<string> {
   const datos = await prepararImagen(archivo, opciones);
-  return almacen().guardar(`${carpeta}/${nombreAlAzar()}`, datos, "image/webp");
+  try {
+    return await almacen().guardar(`${carpeta}/${nombreAlAzar()}`, datos, "image/webp");
+  } catch (error) {
+    // Por ejemplo, en Render sin bucket: mejor avisar que guardar una foto que se perderá
+    if (error instanceof ErrorAlmacenPrivado) throw new ErrorImagen(error.message);
+    throw error;
+  }
 }
 
 /** Borra una foto subida. Las imágenes de muestra (/images/…) nunca se borran. */

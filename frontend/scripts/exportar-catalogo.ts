@@ -58,6 +58,11 @@ async function main() {
 
     // Fotos: subidas → public/images/catalogo/; las demás tienen que existir en public/
     const carpetaSubidas = path.resolve(process.env.ALMACEN_LOCAL_CARPETA ?? "subidas");
+    // Fotos guardadas con el almacén privado en local (ver src/lib/almacenamiento/publicoEnPrivado.ts)
+    const carpetaPublicas = path.resolve(
+      process.env.ALMACEN_PRIVADO_CARPETA ?? "archivos-privados",
+      "publicas",
+    );
     const avisos: string[] = [];
     let copiadas = 0;
     for (const doc of [...catalogo.Componente, ...catalogo.Kit]) {
@@ -65,7 +70,9 @@ async function main() {
       if (typeof ruta !== "string" || /^https?:\/\//.test(ruta)) continue;
       const nueva = rutaImagenExportada(ruta);
       if (ruta.startsWith(PREFIJO_SUBIDAS)) {
-        const desde = path.join(carpetaSubidas, ruta.slice(PREFIJO_SUBIDAS.length));
+        const relativa = ruta.slice(PREFIJO_SUBIDAS.length);
+        const enSubidas = path.join(carpetaSubidas, relativa);
+        const desde = (await existe(enSubidas)) ? enSubidas : path.join(carpetaPublicas, relativa);
         const hasta = path.join("public", nueva);
         if (await existe(desde)) {
           await mkdir(path.dirname(hasta), { recursive: true });

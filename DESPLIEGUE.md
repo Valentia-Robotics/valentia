@@ -74,7 +74,10 @@ La parte de **Network Access** (quién puede conectarse) se hace en el paso 4, c
 Son iguales que en cualquier hosting; están explicados en el README y en `INFORME.md` §3:
 
 - **Fotos que subes desde el panel de producción**: el disco normal de Render se borra en cada despliegue.
-  Hay dos opciones:
+  **Lo más sencillo (desde el 11-11-2026, no hay que hacer nada más):** si ya tienes `ALMACEN_PRIVADO_BUCKET`
+  (§6 quinquies, el bucket privado del chat y de hardware), las fotos van ahí solas y se siguen viendo en
+  `/subidas/…`. Sin ese bucket, en Render no se deja subir fotos (mejor un aviso que una foto que desaparece).
+  Otras dos opciones:
   - **Disk de Render** (lo que tienes): en el servicio → _Disks_ → un disco montado, por ejemplo, en
     `/var/data`. Variables: `ALMACEN_PROVEEDOR=local` y `ALMACEN_LOCAL_CARPETA=/var/data/subidas`.
     Ojo: el Disk no tiene copia automática; descarga de vez en cuando las fotos importantes.
