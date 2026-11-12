@@ -1,16 +1,13 @@
-import { AvisoApertura } from "@/components/portada/AvisoApertura";
 import { BloqueComoFunciona } from "@/components/portada/BloqueComoFunciona";
 import { BloqueFinal } from "@/components/portada/BloqueFinal";
-import { HeroPortada } from "@/components/portada/HeroPortada";
+import { HeroCoche } from "@/components/portada/HeroCoche";
 import { KitsPortada } from "@/components/portada/KitsPortada";
-import { PiezasPortada } from "@/components/portada/PiezasPortada";
 import { BloqueConfigurador } from "@/components/tienda/BloqueConfigurador";
 import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
-import { Fundido } from "@/components/ui/Fundido";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
-import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
+import { obtenerKits } from "@/lib/catalogo";
 import { datosTienda } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 
@@ -28,44 +25,28 @@ export const metadata: Metadata = metadatosPagina({
 });
 
 /**
- * PÁGINA DE INICIO (estilo «taller»: carteles, campos de color con la placa de circuito, líneas de puntos)
- * Lo primero que se ve después del titular son los kits: es lo que viene a buscar quien entra.
- *   1. Campo de color con el titular y las dos entradas (HeroPortada)
- *      (debajo, mientras la tienda no cobra, un aviso pequeño con «Avísame»)
- *   2. Los kits: el destacado en grande y los demás en una galería de fotos (GaleriaKits)
- *   3. Cómo funciona, en tres pasos, con cifras reales
- *   4. Las cinco piezas de un robot en un mosaico con «escáner»
- *   5. "O elige tú las piezas" → configurador (tramo oscuro)
- *   6. El curso incluido con el QR de la caja
- *   7. Invitación final, sobre negro con la misma placa que el principio
+ * PÁGINA DE INICIO (estilo «estudio»). Un orden claro, una idea por pantalla y nada que aparezca de golpe:
+ *   1. El coche VR1 en 3D con el titular; al bajar se abre y cuenta sus cinco piezas (HeroCoche)
+ *   2. Los kits: una tarjeta por kit
+ *   3. Cómo funciona, en tres pasos
+ *   4. El curso que trae cada kit (la tarjeta QR)
+ *   5. El configurador
+ *   6. Final: lista de espera mientras la tienda no cobra (o «elige tu kit»)
  */
 export default async function Inicio() {
-  const [kits, cifras] = await Promise.all([obtenerKits(), obtenerCifras()]);
-  const estrella = kits.find((k) => k.destacado) ?? kits[0];
+  const kits = await obtenerKits();
   // Los kits gratis (sin piezas) solo salen en /kits: la portada enseña lo que se monta
   const aLaVenta = kits.filter((k) => k.precioCentimos > 0);
   const abierta = compraAbierta();
-  const destacado = estrella && estrella.precioCentimos > 0 ? estrella : aLaVenta[0];
 
   return (
     <>
       <DatosEstructurados datos={datosTienda()} />
-      <HeroPortada cifras={cifras} />
-      {!abierta && <AvisoApertura />}
-      <KitsPortada
-        estrella={destacado}
-        // El destacado ya sale en grande: la galería enseña los demás (sin repetirlo)
-        kits={aLaVenta.filter((k) => k.slug !== destacado?.slug)}
-        compraAbierta={abierta}
-      />
-      <BloqueComoFunciona cifras={cifras} />
-      <PiezasPortada />
-      {/* Un solo paso a oscuro (configurador) y vuelta a claro: la página fluye sin cortes */}
-      <Fundido desde="blanco" hasta="grafito" />
-      <BloqueConfigurador />
-      <Fundido desde="grafito" hasta="blanco" />
+      <HeroCoche compraAbierta={abierta} />
+      <KitsPortada kits={aLaVenta} />
+      <BloqueComoFunciona />
       <BloqueCursoQR />
-      <Fundido desde="blanco" hasta="tinta" corto />
+      <BloqueConfigurador />
       <BloqueFinal compraAbierta={abierta} />
     </>
   );

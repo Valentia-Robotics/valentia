@@ -49,8 +49,8 @@ export function BarraNavegacion() {
         className={cn(
           // En el móvil, desenfoque más corto (el navegador lo rehace en cada paso del scroll) y
           // fondo algo más opaco para que se vea igual
-          "border-b border-dotted border-tinta/25 backdrop-blur-md backdrop-saturate-150 transition-colors lg:backdrop-blur-xl",
-          menuAbierto ? "bg-white" : "bg-white/85 lg:bg-white/75",
+          "border-b border-tinta/8 backdrop-blur-md backdrop-saturate-150 transition-colors lg:backdrop-blur-xl",
+          menuAbierto ? "bg-white" : "bg-white/90 lg:bg-white/80",
         )}
       >
         <div className="mx-auto flex h-nav max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
@@ -60,19 +60,19 @@ export function BarraNavegacion() {
             aria-label={`${marca.nombre}, ir al inicio`}
             className="shrink-0 py-2"
           >
-            <Logo alto={16} prioridad />
+            <Logo alto={17} prioridad />
           </Link>
 
           {/* Enlaces en ordenador: el de la sección actual va en negrita con una raya azul debajo */}
-          <ul className="hidden h-full items-stretch gap-4 md:flex lg:gap-8">
+          <ul className="hidden h-full items-stretch gap-5 md:flex lg:gap-9">
             {enlaces.map((enlace) => (
               <li key={enlace.href} className="flex">
                 <Link
                   href={enlace.href}
                   aria-current={estaActivo(enlace) ? "page" : undefined}
                   className={cn(
-                    "relative flex items-center text-[13px] transition-colors",
-                    "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-acento after:transition-transform",
+                    "relative flex items-center text-[15px] transition-colors",
+                    "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-tinta after:transition-transform after:duration-300",
                     estaActivo(enlace)
                       ? "font-medium text-tinta after:scale-x-100"
                       : "text-tinta/70 after:scale-x-0 hover:text-tinta",
@@ -135,10 +135,7 @@ export function BarraNavegacion() {
                 >
                   {enlace.etiqueta}
                   {estaActivo(enlace) && (
-                    <span
-                      aria-hidden="true"
-                      className="font-sans text-xs font-medium tracking-wide uppercase"
-                    >
+                    <span aria-hidden="true" className="font-sans text-sm">
                       Estás aquí
                     </span>
                   )}

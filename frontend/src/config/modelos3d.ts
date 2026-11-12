@@ -53,6 +53,8 @@ export interface Modelo3D {
 
 /** Carpeta pública (dentro de `public/`) donde van los modelos de los componentes */
 export const CARPETA_MODELOS = "modelos/componentes";
+/** Los kits montados (ficha de cada kit): public/modelos/kits/<slug del kit>.glb */
+export const CARPETA_MODELOS_KITS = "modelos/kits";
 
 /** Color por defecto de un archivo sin color: gris grafito de plástico mate */
 export const COLOR_POR_DEFECTO = "#3a3d42";
@@ -76,6 +78,7 @@ export function formatoDeArchivo(nombre: string): Formato3D | null {
 export function modelosDeArchivos(
   archivos: string[],
   ajustes: Record<string, AjustesModelo3D> = AJUSTES_MODELOS,
+  carpeta: string = CARPETA_MODELOS,
 ): Map<string, Modelo3D> {
   const preferencia: Formato3D[] = ["glb", "gltf", "obj", "stl"];
   const porSlug = new Map<string, { archivo: string; formato: Formato3D }>();
@@ -105,9 +108,9 @@ export function modelosDeArchivos(
         ? archivos.find((x) => x.toLowerCase() === `${slug}.mtl`)
         : null;
     modelos.set(slug, {
-      url: `/${CARPETA_MODELOS}/${archivo}`,
+      url: `/${carpeta}/${archivo}`,
       formato,
-      mtl: mtlArchivo ? `/${CARPETA_MODELOS}/${mtlArchivo}` : null,
+      mtl: mtlArchivo ? `/${carpeta}/${mtlArchivo}` : null,
       escalaMm: MM_POR_UNIDAD[a.unidad ?? "mm"],
       color: a.color ?? COLOR_POR_DEFECTO,
       brillo: Math.min(Math.max(a.brillo ?? 0.35, 0), 1),
