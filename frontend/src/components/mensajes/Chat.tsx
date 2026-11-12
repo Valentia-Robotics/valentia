@@ -46,7 +46,7 @@ import {
 } from "@/config/mensajes";
 import type { GifEncontrado } from "@/config/gifs";
 import type { Rol } from "@/generated/prisma/enums";
-import type { LecturaDeOtro, Mensaje } from "@/lib/mensajes/mensajes";
+import type { LecturaDeOtro, MiembroGrupo, Mensaje } from "@/lib/mensajes/mensajes";
 import { cn } from "@/lib/utils";
 import {
   OpcionesTarea,
@@ -56,6 +56,7 @@ import {
 } from "./OpcionesTarea";
 import { Avatar, nombreRol } from "./PantallaMensajes";
 import { SelectorEmojis } from "./SelectorEmojis";
+import { InfoGrupo } from "./InfoGrupo";
 import { SelectorGifs } from "./SelectorGifs";
 import { TarjetaTarea } from "./TarjetaTarea";
 
@@ -75,6 +76,8 @@ interface Props {
   personas: { id: string; nombre: string; foto?: string | null }[];
   /** Hasta dónde ha leído cada una de las otras personas (los tics azules) */
   lecturas: LecturaDeOtro[];
+  /** Solo en un grupo: quién está dentro (la ventana «Info del grupo») */
+  miembros: MiembroGrupo[];
 }
 
 /** Un mensaje en pantalla: el que se está enviando lleva la imagen elegida para verla ya */
@@ -133,7 +136,9 @@ export function Chat(props: Props) {
     puedeEscribir,
     personas,
     lecturas,
+    miembros,
   } = props;
+  const [verInfo, setVerInfo] = useState(false);
   // «general» = es un grupo (General, Hardware, Edición): varias personas, como en WhatsApp
   const grupo = grupoDe(ruta);
   const general = !!grupo;
@@ -464,13 +469,34 @@ export function Chat(props: Props) {
         >
           <ChevronLeft aria-hidden="true" className="size-5" />
         </Link>
-        <Avatar nombre={titulo} foto={foto} grupo={grupo?.canal} />
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate font-medium">{titulo}</h2>
-          <p className="truncate text-xs text-gris">
-            {grupo ? grupo.descripcion : `${nombreRol(rol)} · ${textoConexion(ultimaConexionEn)}`}
-          </p>
-        </div>
+        {grupo ? (
+          // En un grupo, tocar el nombre abre «Info del grupo» (quién está dentro), como en WhatsApp
+          <button
+            type="button"
+            onClick={() => setVerInfo(true)}
+            aria-label={`Ver quién está en ${titulo}`}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left hover:bg-niebla/60"
+          >
+            <Avatar nombre={titulo} foto={foto} grupo={grupo.canal} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-medium">{titulo}</span>
+              <span className="block truncate text-xs text-gris">
+                {miembros.length > 0 ? `${miembros.length} personas · ` : ""}
+                Toca para ver quién está
+              </span>
+            </span>
+          </button>
+        ) : (
+          <>
+            <Avatar nombre={titulo} foto={foto} />
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate font-medium">{titulo}</h2>
+              <p className="truncate text-xs text-gris">
+                {`${nombreRol(rol)} · ${textoConexion(ultimaConexionEn)}`}
+              </p>
+            </div>
+          </>
+        )}
         <Link
           href="/mensajes/tareas"
           className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gris hover:bg-niebla hover:text-tinta"
@@ -479,6 +505,16 @@ export function Chat(props: Props) {
           <span className="hidden sm:inline">Tareas</span>
         </Link>
       </header>
+
+      {grupo && (
+        <InfoGrupo
+          abierto={verInfo}
+          alCerrar={() => setVerInfo(false)}
+          titulo={titulo}
+          grupo={grupo}
+          miembros={miembros}
+        />
+      )}
 
       <div
         className="relative flex min-h-0 flex-1 flex-col"

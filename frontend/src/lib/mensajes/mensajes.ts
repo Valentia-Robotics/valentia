@@ -22,7 +22,7 @@ import {
   type Estado,
   type Prioridad,
 } from "@/config/mensajes";
-import { esDelEquipo, ROLES_EQUIPO, tieneAccesoAdmin } from "@/config/equipo";
+import { esDelEquipo, puestoCompleto, ROLES_EQUIPO, tieneAccesoAdmin } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
 import { borrarPrivado } from "@/lib/almacenamiento/privado";
 import { db } from "@/lib/db";
@@ -58,6 +58,46 @@ export async function companerosDelGrupo(yo: UsuarioActual, canal: string): Prom
     select: { id: true, nombre: true, foto: true, rol: true, ultimaConexionEn: true },
     orderBy: { nombre: "asc" },
   });
+}
+
+/** Un miembro de un grupo, como se enseña en «Info del grupo» */
+export interface MiembroGrupo {
+  id: string;
+  nombre: string;
+  foto: string | null;
+  /** «Editora», «Administrador · también hardware»… */
+  puesto: string;
+  ultimaConexionEn: Date | null;
+  /** Es quien mira (sale «Tú») */
+  yo: boolean;
+}
+
+/** Todos los que están en un grupo, yo incluido (para «Info del grupo»). [] si no es un grupo mío */
+export async function miembrosDelGrupo(yo: UsuarioActual, canal: string): Promise<MiembroGrupo[]> {
+  const grupo = grupoDe(canal);
+  if (!grupo || !grupo.esMiembro(yo)) return [];
+  const personas = await db.usuario.findMany({
+    where: grupo.filtro,
+    select: {
+      id: true,
+      nombre: true,
+      foto: true,
+      rol: true,
+      rolFemenino: true,
+      tambienEditor: true,
+      tambienHardware: true,
+      ultimaConexionEn: true,
+    },
+    orderBy: { nombre: "asc" },
+  });
+  return personas.map((p) => ({
+    id: p.id,
+    nombre: p.nombre,
+    foto: p.foto,
+    puesto: puestoCompleto(p),
+    ultimaConexionEn: p.ultimaConexionEn,
+    yo: p.id === yo.id,
+  }));
 }
 
 /**
@@ -664,8 +704,7 @@ export async function listarTareas(yo: UsuarioActual): Promise<TareaEnLista[]> {
 /** Borra un mensaje: el suyo, cada uno; en un grupo, un administrador también puede borrar cualquiera */
 export async function borrarMensaje(yo: UsuarioActual, mensajeId: string) {
   const mensaje = await mensajeVisible(yo, mensajeId);
-  const puede =
-    mensaje.autorId === yo.id || (!!grupoDe(mensaje.canal) && tieneAccesoAdmin(yo.rol));
+  const puede = mensaje.autorId === yo.id || (!!grupoDe(mensaje.canal) && tieneAccesoAdmin(yo.rol));
   if (!puede) throw new ErrorMensaje("Solo puedes borrar tus mensajes.");
   await db.mensajeEquipo.delete({ where: { id: mensaje.id } });
   // La imagen también se borra del almacén (si falla, el mensaje ya no existe y nadie puede verla)

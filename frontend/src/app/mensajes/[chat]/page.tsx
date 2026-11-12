@@ -8,6 +8,7 @@ import {
   abrirChat,
   companerosDelGrupo,
   huellaChat,
+  miembrosDelGrupo,
   listarConversaciones,
 } from "@/lib/mensajes/mensajes";
 import { exigirUsuario } from "@/lib/sesion";
@@ -38,6 +39,7 @@ export default async function PaginaChat({ params }: Props) {
     nombre: c.nombre,
     foto: c.foto,
   });
+  const miembros = grupoDe(chat) ? await miembrosDelGrupo(yo, abierto.canal) : [];
   const personas = abierto.otro
     ? [persona(abierto.otro), yoMismo]
     : [yoMismo, ...(await companerosDelGrupo(yo, abierto.canal)).map(persona)];
@@ -58,6 +60,7 @@ export default async function PaginaChat({ params }: Props) {
         mensajes={abierto.mensajes}
         huella={huella}
         personas={personas}
+        miembros={miembros}
         lecturas={abierto.lecturas}
       />
     </PantallaMensajes>

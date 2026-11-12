@@ -68,6 +68,22 @@ describe("puestos en masculino o femenino y admins que también editan", () => {
   });
 });
 
+describe("puesto completo en «Info del grupo»", () => {
+  it("enseña el puesto y, en un admin, en qué más trabaja", async () => {
+    const { puestoCompleto } = await import("./equipo");
+    expect(puestoCompleto({ rol: "EDITOR", rolFemenino: true })).toBe("Editora");
+    expect(puestoCompleto({ rol: "HARDWARE" })).toBe("Hardware");
+    expect(puestoCompleto({ rol: "ADMIN", tambienHardware: true })).toBe(
+      "Administrador · también hardware",
+    );
+    expect(puestoCompleto({ rol: "SIGMA", tambienEditor: true, tambienHardware: true })).toBe(
+      "Sigma · también hardware y editor",
+    );
+    // La marca solo vale para admin y sigma
+    expect(puestoCompleto({ rol: "EDITOR", tambienHardware: true })).toBe("Editor");
+  });
+});
+
 describe("sigma: los accesos de un admin, pero por debajo", () => {
   it("entra en el panel como un admin; los demás roles no", () => {
     expect(tieneAccesoAdmin("ADMIN")).toBe(true);
