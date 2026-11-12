@@ -4,7 +4,7 @@
  * con el fondo transparente y su sombra suave en el suelo.
  */
 import {
-  NeutralToneMapping,
+  ACESFilmicToneMapping,
   Box3,
   DirectionalLight,
   HemisphereLight,
@@ -37,7 +37,7 @@ const renderer = new WebGLRenderer({
   preserveDrawingBuffer: true,
 });
 renderer.setSize(LADO, LADO, false);
-renderer.toneMapping = NeutralToneMapping;
+renderer.toneMapping = ACESFilmicToneMapping;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = VSMShadowMap;
 const pmrem = new PMREMGenerator(renderer);
@@ -50,7 +50,7 @@ function fotografiar(slug: string): string {
 
   const escena = new Scene();
   escena.environment = entorno;
-  escena.environmentIntensity = 1.05;
+  escena.environmentIntensity = 0.85;
 
   // La pieza, centrada y apoyada en el suelo
   const taller = new Taller();
