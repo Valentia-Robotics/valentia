@@ -27,6 +27,9 @@ Visualizalo en un `<iframe>` (`Dialogo posicion="grande"`: pantalla completa en 
 `NEXT_PUBLIC_VISOR_3D_URL` (por defecto `https://www.visualizalo.es`, `/demo/vr-<slug>?ficha=1`) y su origen va en el
 `frame-src` de la CSP (`next.config.ts`): sin él la ventana se queda en blanco. El MG996R va solo con foto, sin 3D.
 **En producción las fotos hay que subirlas en `/admin/componentes`**: `seed:prod` no modifica filas existentes.
+Intercambio de enlaces: la ventana 3D lleva un crédito «Visor 3D de Visualizalo» enlazado, y en el blog los enlaces a
+los dominios de `SOCIOS_ENLACE` (`src/config/blog.ts`; hoy `visualizalo.es`) salen SIN nofollow (`enlaceDeSocio`,
+`markdownAHtml` + test); el resto de externos, con nofollow como siempre. Imágenes de la noticia en `public/images/blog/`.
 
 ### Foto de perfil en grande (11-11-2026, rama `claude/project-thread-51a75i`; petición de Jesse)
 

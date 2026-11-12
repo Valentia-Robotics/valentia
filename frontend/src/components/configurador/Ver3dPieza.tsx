@@ -79,6 +79,19 @@ export function Ver3dPieza({ componente, className }: Props) {
             />
           )}
         </div>
+        {/* Crédito del visor (intercambio con Visualizalo, 12-11-2026): un enlace normal, sin nofollow,
+            como los de SOCIOS_ENLACE del blog. Fuera del marco para no tapar los botones del visor. */}
+        <p className="shrink-0 border-t border-tinta/10 bg-white px-4 py-2 text-right text-xs text-gris">
+          Visor 3D de{" "}
+          <a
+            href="https://www.visualizalo.es"
+            target="_blank"
+            rel="noopener"
+            className="font-medium text-tinta underline-offset-2 hover:underline"
+          >
+            Visualizalo
+          </a>
+        </p>
       </Dialogo>
     </>
   );
