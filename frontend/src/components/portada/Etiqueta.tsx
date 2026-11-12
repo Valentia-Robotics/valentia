@@ -2,8 +2,8 @@ import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Línea pequeña encima de un titular («Cómo funciona», «Elige tu kit»…): dice de qué va el bloque.
- * Letra normal, gris y sin adornos.
+ * Etiqueta técnica de la portada: una fila de puntos y, debajo, el texto en letra de máquina
+ * («Cómo funciona», «Elige tu kit»…). Sustituye a las etiquetas azules en mayúsculas de antes.
  */
 export function Etiqueta({
   children,
@@ -15,7 +15,10 @@ export function Etiqueta({
   className?: string;
 }) {
   return (
-    <p className={cn("text-base", oscura ? "text-white/60" : "text-gris", className)}>{children}</p>
+    <p className={cn("font-mono text-xs", oscura ? "text-gris-claro" : "text-tinta/70", className)}>
+      <span aria-hidden="true" className="linea-puntos block h-1.5 w-14" />
+      <span className="mt-2 block">{children}</span>
+    </p>
   );
 }
 

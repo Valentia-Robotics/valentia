@@ -36,13 +36,11 @@ const ga = (dominios: string) => (analitica ? ` ${dominios}` : "");
 
 const csp = [
   "default-src 'self'",
-  // 'wasm-unsafe-eval': el visor 3D descomprime los .glb (meshopt) con WebAssembly; no permite eval de texto
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${desarrollo ? " 'unsafe-eval'" : ""} https://js.stripe.com https://*.js.stripe.com https://www.youtube.com https://player.vimeo.com${ga("https://www.googletagmanager.com")}`,
+  `script-src 'self' 'unsafe-inline'${desarrollo ? " 'unsafe-eval'" : ""} https://js.stripe.com https://*.js.stripe.com https://www.youtube.com https://player.vimeo.com${ga("https://www.googletagmanager.com")}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: https://*.stripe.com https://i.ytimg.com https://i.vimeocdn.com https://images.unsplash.com https://images.pexels.com https://cdn.pixabay.com https://*.giphy.com${origenGiphyPruebas()}${ga("https://*.google-analytics.com https://*.googletagmanager.com")} ${origenFotos()}`.trim(),
   "font-src 'self'",
-  // blob: las texturas que van dentro de un .glb se leen como blob (son de esta misma página)
-  `connect-src 'self' blob: https://api.stripe.com https://*.stripe.com https://*.stripe.network https://*.vimeocdn.com${ga("https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com")}${desarrollo ? " ws: wss:" : ""}`,
+  `connect-src 'self' https://api.stripe.com https://*.stripe.com https://*.stripe.network https://*.vimeocdn.com${ga("https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com")}${desarrollo ? " ws: wss:" : ""}`,
   "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://*.stripe.network https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
   "media-src 'self' https:",
   "worker-src 'self' blob:",

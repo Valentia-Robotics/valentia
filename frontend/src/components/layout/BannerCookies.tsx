@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Cookie } from "lucide-react";
 import { useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Dialogo } from "@/components/ui/Dialogo";
@@ -29,34 +30,34 @@ export function BannerCookies() {
           aria-label="Aviso de cookies"
           // Con nombre propio se queda quieto y encima mientras cambia la página (globals.css)
           style={{ viewTransitionName: "aviso-cookies" }}
-          // Pequeño y en una esquina: no tapa la página (antes ocupaba media pantalla en el móvil)
-          className="fixed inset-x-3 bottom-3 z-[55] rounded-2xl bg-white p-4 shadow-flotante ring-1 ring-tinta/8 sm:right-auto sm:bottom-5 sm:left-5 sm:max-w-sm print:hidden"
+          className="fixed inset-x-3 bottom-3 z-[55] mx-auto max-w-3xl rounded-tarjeta bg-white p-5 shadow-flotante ring-1 ring-linea sm:p-6 print:hidden"
         >
-          <p className="text-sm leading-relaxed text-tinta/75">
-            Usamos las cookies necesarias para que la web funcione y, si quieres, las de los vídeos
-            de los cursos{hayAnalitica && " y las de Google Analytics"}.{" "}
-            <Link href="/legal/cookies" className="text-tinta underline underline-offset-2">
-              Más información
-            </Link>
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Boton variante="primario" onClick={aceptarTodo} className="rounded-full">
-              Aceptar
-            </Boton>
-            <Boton
-              variante="secundario"
-              onClick={rechazarTodo}
-              className="rounded-full border-solid! border-tinta/20!"
-            >
-              Solo necesarias
-            </Boton>
-            <button
-              type="button"
-              onClick={abrirPanel}
-              className="ml-auto px-2 py-2 text-sm text-gris underline-offset-4 hover:text-tinta hover:underline"
-            >
+          <div className="flex items-start gap-3">
+            <Cookie aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-acento" />
+            <div className="text-sm">
+              <h2 className="font-sans text-base font-semibold">Sobre las cookies</h2>
+              <p className="mt-1 text-gris">
+                Usamos cookies necesarias para que la web funcione (sesión, carrito y pago). Con tu
+                permiso, también cargamos los reproductores de vídeo de YouTube y Vimeo en los
+                cursos, que ponen sus propias cookies
+                {hayAnalitica && ", y Google Analytics para saber qué páginas gustan más"}. No
+                usamos cookies de publicidad.{" "}
+                <Link href="/legal/cookies" className="text-acento underline underline-offset-2">
+                  Más información sobre las cookies
+                </Link>
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <Boton variante="enlace" onClick={abrirPanel} className="sm:mr-auto">
               Configurar
-            </button>
+            </Boton>
+            <Boton variante="primario" onClick={rechazarTodo}>
+              Rechazar opcionales
+            </Boton>
+            <Boton variante="primario" onClick={aceptarTodo}>
+              Aceptar todas
+            </Boton>
           </div>
         </section>
       )}

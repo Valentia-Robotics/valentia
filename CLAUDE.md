@@ -18,24 +18,6 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
-### Rediseño de la tienda pública, estilo «estudio» (11-11-2026, rama `claude/project-thread-qr311s`; petición de Jesse)
-
-Jesse: muy limpio, poco texto, para todas las edades, que no parezca hecho con IA; los paneles internos NO se tocan.
-- `MarcoWeb` envuelve la web pública en `<div class="tienda">`: en `globals.css` el bloque `.tienda { … }` cambia los
-  tokens (radios, papel `estudio` #f2efe9, sin serif ni mono, líneas continuas en vez de puntos) y
-  `@custom-variant tienda` permite `tienda:…` en componentes compartidos (`Boton`). Los paneles no llevan `.tienda`:
-  siguen igual. Estilo nuevo de la tienda → tocar ese bloque, no los tokens generales.
-- Portada: `HeroCoche` (tramo pegajoso de 300svh; el coche VR1 en 3D se abre al bajar y explica 5 piezas;
-  `escenaCoche.ts`, three con `import()`; sin WebGL o con reducir movimiento, la foto) → `KitsPortada` (3 tarjetas
-  iguales) → `BloqueComoFunciona` → `BloqueCursoQR` → `BloqueConfigurador` → `BloqueFinal` (lista de espera).
-  Borrados `HeroPortada`, `PiezasPortada`, `AvisoApertura`, `GaleriaKits`, `CampoPixeles`, `PaisajePixeles`, `Fundido`.
-- `CabeceraPagina` es papel con titular (sin lienzo). Entradas suaves: `.llegar` (al cargar, con `--i`) y `.aparecer`.
-- Ficha del kit: el kit en 3D (`modeloDeKit(slug)` → `public/modelos/kits/<slug>.glb`, de `npm run modelos:glb -- --kits`
-  + compresión meshopt como las piezas), «Qué hay en la caja» con fotos. Kit nuevo → exportar su .glb.
-- CSP (`next.config.ts`): `'wasm-unsafe-eval'` (descompresor meshopt) y `blob:` en `connect-src` (texturas de los .glb);
-  sin ellos el visor 3D no cargaba en producción.
-- Nota de Jesse: 8/10 en `CRITERIOS_DISENO.md`; faltan los modelos reales de Alonso y fotos reales.
-
 ### Visor 3D de las piezas (11-11-2026, rama `claude/project-thread-kanu9n`; petición de Jesse, parte 1 del rediseño de la tienda)
 
 Alonso subirá .obj/.stl de cada componente. Archivo en `public/modelos/componentes/<slug>.(glb|gltf|stl|obj)` (+ `.mtl`)

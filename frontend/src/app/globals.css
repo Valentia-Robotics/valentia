@@ -10,10 +10,6 @@
  */
 @import "tailwindcss";
 
-/* Estilos que solo valen en la web pública (MarcoWeb pone la clase "tienda"): `tienda:rounded-full`.
-   Los paneles internos (admin, editor, hardware, mensajes…) no la llevan y se quedan como están. */
-@custom-variant tienda (.tienda &);
-
 @theme {
   /* ---------- Colores de marca (sacados del logo) ---------- */
   --color-tinta: #0b0b0b; /* El negro del logo. Textos, botones principales, fondos oscuros */
@@ -35,7 +31,6 @@
   --color-salvia: #e6ebe5; /* Fondo de las tablas de la portada */
   --color-senal: #ffc21a; /* Amarillo de las ruedas del coche: píxeles y detalles (nunca texto) */
   --radius-recto: 2px; /* Esquinas casi rectas de la portada */
-  --color-estudio: #f2efe9; /* Papel cálido del estudio de fotos (portada 3D) */
 
   /* ---------- Estados (avisos de compatibilidad, formularios) ---------- */
   --color-exito: #157a42;
@@ -53,8 +48,6 @@
   /* ---------- Sombras ---------- */
   --shadow-tarjeta: 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px rgb(11 11 11 / 0.06);
   --shadow-flotante: 0 12px 40px rgb(11 11 11 / 0.14);
-  /* Tienda: sombra de una tarjeta al pasar el ratón (suave y cálida, como un objeto sobre la mesa) */
-  --shadow-posada: 0 2px 4px rgb(40 30 20 / 0.04), 0 18px 40px -12px rgb(40 30 20 / 0.18);
 
   /* ---------- Movimiento: toda la web frena igual, con una salida rápida y una llegada suave ---------- */
   --ease-suave: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -580,123 +573,5 @@ dialog[open]::backdrop {
   to {
     top: 100%;
     opacity: 0;
-  }
-}
-
-/*
- * ESTUDIO DE LA PORTADA (HeroCoche): luz de ventana sobre papel cálido, más clara donde está el coche
- * y un poco más oscura en los bordes, como un fondo de fotografía de producto.
- */
-.foco-estudio {
-  background:
-    radial-gradient(ellipse 50% 55% at 68% 56%, #fffdf9 0%, transparent 72%),
-    radial-gradient(ellipse 120% 90% at 50% 40%, transparent 55%, rgb(60 45 30 / 0.07) 100%),
-    var(--color-estudio);
-}
-@media (max-width: 1023px) {
-  .foco-estudio {
-    background:
-      radial-gradient(ellipse 80% 40% at 50% 72%, #fffdf9 0%, transparent 70%),
-      radial-gradient(ellipse 140% 90% at 50% 40%, transparent 55%, rgb(60 45 30 / 0.07) 100%),
-      var(--color-estudio);
-  }
-}
-
-/* Raya fina que invita a bajar: se dibuja de arriba abajo, sin rebotes */
-@media (prefers-reduced-motion: no-preference) {
-  .pista-bajar {
-    transform-origin: top;
-    animation: pista-bajar 2.4s var(--ease-suave) infinite;
-  }
-}
-@keyframes pista-bajar {
-  0% {
-    transform: scaleY(0);
-    opacity: 1;
-  }
-  60% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scaleY(1);
-    opacity: 0;
-  }
-}
-
-/*
- * ============================================================
- *  LA TIENDA (web pública) — estilo «estudio», 11-11-2026
- *  Todo lo que ve un cliente va dentro de .tienda (MarcoWeb). Aquí se cambian los tokens solo para
- *  esa zona: esquinas redondas, una sola letra, papel cálido y nada de adornos (puntos, letra de
- *  máquina, sombras rectas). Los paneles internos no llevan .tienda y no cambian.
- *  Criterios de Jesse: CRITERIOS_DISENO.md (limpio, poco texto, para todas las edades).
- * ============================================================
- */
-.tienda {
-  --radius-boton: 999px;
-  --radius-tarjeta: 1.5rem;
-  --radius-control: 0.875rem;
-  --radius-recto: 1.25rem;
-  --spacing-nav: 3.5rem;
-  /* El fondo suave de la tienda es el papel cálido del estudio (antes gris frío y verde salvia) */
-  --color-niebla: var(--color-estudio);
-  --color-salvia: var(--color-estudio);
-  --color-gris: #5f5b55;
-  --color-linea: #e4e0d8;
-  /* Una sola letra para leer: la serif y la de máquina pasan a ser la normal */
-  --font-newsreader: var(--font-inter);
-  --font-jetbrains: var(--font-inter);
-}
-
-/* Titulares: grandes y tranquilos (antes, apretados como un cartel) */
-.tienda .titular-cartel {
-  letter-spacing: -0.03em;
-  line-height: 1.02;
-}
-
-/* Sin puntos: las líneas son finas y continuas */
-.tienda .border-dotted,
-.tienda .border-dashed {
-  border-style: solid;
-}
-.tienda .linea-puntos {
-  background-image: linear-gradient(currentColor, currentColor);
-  background-size: 100% 1px;
-  opacity: 0.35;
-}
-.tienda .etiqueta-taller,
-.tienda .etiqueta-taller-oscura {
-  font-size: 0.9375rem;
-  line-height: 1.4;
-}
-.tienda .etiqueta-taller::before,
-.tienda .etiqueta-taller-oscura::before {
-  display: none;
-}
-
-/* Las cosas llegan con calma al entrar en pantalla: suben muy poco y se aclaran, sin saltos */
-.tienda .aparecer {
-  animation-name: aparecer-calma;
-  animation-range: entry 0% entry 85%;
-}
-@keyframes aparecer-calma {
-  from {
-    opacity: 0;
-    translate: 0 28px;
-  }
-}
-
-/* Entrada al cargar la página (cabeceras): cada bloque llega un poco después del anterior (--i) */
-@media (prefers-reduced-motion: no-preference) {
-  .llegar {
-    animation: llegar-calma 900ms var(--ease-suave) both;
-    animation-delay: calc(var(--i, 0) * 110ms + 80ms);
-  }
-}
-@keyframes llegar-calma {
-  from {
-    opacity: 0;
-    translate: 0 18px;
   }
 }

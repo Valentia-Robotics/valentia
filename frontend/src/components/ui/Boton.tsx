@@ -32,36 +32,25 @@ type Variante =
   | "punteado-claro";
 type Tamano = "md" | "lg" | "xl";
 
-/** En la tienda (clase .tienda) los botones no se «levantan» con sombra recta: solo cambian de tono */
-const CALMA = "tienda:hover:translate-0 tienda:hover:shadow-none";
-
 const estilosVariante: Record<Variante, string> = {
   // Los de relleno se «levantan» al pasar el ratón, con una sombra recta (estilo taller)
   primario:
-    "bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento)] " +
-    CALMA +
-    " tienda:hover:bg-tinta/85",
+    "bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento)]",
   acento:
-    "bg-acento text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-tinta)] " +
-    CALMA +
-    " tienda:hover:bg-acento-hover",
+    "bg-acento text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-tinta)]",
   secundario:
-    "border border-dotted border-tinta/60 text-tinta hover:border-solid hover:border-tinta hover:bg-tinta/5 tienda:border-tinta/25",
+    "border border-dotted border-tinta/60 text-tinta hover:border-solid hover:border-tinta hover:bg-tinta/5",
   claro:
-    "bg-white text-tinta hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento-claro)] " +
-    CALMA +
-    " tienda:hover:bg-white/90",
+    "bg-white text-tinta hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento-claro)]",
   enlace: "text-acento hover:underline underline-offset-4 px-0!",
   "enlace-claro": "text-acento-claro hover:underline underline-offset-4 px-0!",
   peligro: "bg-error text-white hover:bg-error/90",
   bloque:
-    "rounded-recto! bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)] tienda:rounded-boton! " +
-    CALMA +
-    " tienda:hover:bg-tinta/85",
+    "rounded-recto! bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)]",
   punteado:
-    "rounded-recto! border border-dotted border-tinta text-tinta hover:border-solid hover:bg-white/60 tienda:rounded-boton! tienda:border-tinta/25",
+    "rounded-recto! border border-dotted border-tinta text-tinta hover:border-solid hover:bg-white/60",
   "punteado-claro":
-    "rounded-recto! border border-dotted border-white text-white hover:border-solid hover:bg-white/10 tienda:rounded-boton! tienda:border-white/40",
+    "rounded-recto! border border-dotted border-white text-white hover:border-solid hover:bg-white/10",
 };
 
 const estilosTamano: Record<Tamano, string> = {

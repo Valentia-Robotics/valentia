@@ -5,15 +5,14 @@
  */
 import { Box3, Group, Vector3 } from "three";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
-import { KITS, MODELOS } from "./modelos";
+import { MODELOS } from "./modelos";
 import { Taller } from "./taller";
 
 /** Las piezas de modelos.ts están en centímetros: el visor espera milímetros */
 const MM_POR_UNIDAD = 10;
 
 async function exportar(slug: string): Promise<string> {
-  // Un kit montado (KITS) o una pieza suelta (MODELOS)
-  const modelo = KITS[slug] ?? MODELOS[slug];
+  const modelo = MODELOS[slug];
   if (!modelo) throw new Error(`No hay modelo para ${slug}`);
   const taller = new Taller();
   modelo.construir(taller);
@@ -43,4 +42,4 @@ async function exportar(slug: string): Promise<string> {
   return btoa(texto);
 }
 
-Object.assign(window, { exportar, piezas: Object.keys(MODELOS), kits: Object.keys(KITS) });
+Object.assign(window, { exportar, piezas: Object.keys(MODELOS) });
