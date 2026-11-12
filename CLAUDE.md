@@ -51,7 +51,7 @@ degradados `Fundido` (ahora admite `placa`) en cada cambio; `.placa-rejilla` arr
 Quinta tanda (Jesse, 12-11-2026): el cable del ratón ya NO lleva chips ni piezas pegados (solo el cable, y no se dibuja sobre enlaces,
 botones ni campos); los chips fijos van sin desenfoque (opacidad .9). «O elige tú las piezas» es ahora un escenario NEGRO de estudio
 (`tienda/EscenarioPiezas`): un apartado por categoría con su pieza de referencia (`REFERENCIA`), inclinación hacia el ratón y botón
-«Verla en 3D» (`Ver3dPieza`, que no se ha tocado más que el texto). Fundidos blanco → negro → blanco alrededor. El configurador
+«Verla en 3D» (`Ver3dPieza`, que no se ha tocado más que el texto). Fundidos blanco → negro → blanco alrededor. `ChipsFijos` (Jesse, mismo día): solo 3, sobre la placa verde de los kits (`#kits`), nítidos (sin máscara ni opacidad); en fondo blanco o negro no hay chips fijos (el negro del final lleva los suyos de `CampoPixeles`). El configurador
 (`/configurador`) y sus modelos de Alonso no se tocan.
 
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)

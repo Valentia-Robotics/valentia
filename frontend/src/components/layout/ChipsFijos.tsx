@@ -315,10 +315,8 @@ function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | 
       ref={caja}
       className="transition-opacity duration-1000 motion-reduce:transition-none"
       style={{
-        opacity: visible ? 0.9 : 0,
-        // Un pelo de desenfoque y bordes que se funden: que parezca parte del fondo, no una pegatina
-        maskImage: "radial-gradient(ellipse 52% 48% at 50% 38%, #000 58%, transparent 100%)",
-        WebkitMaskImage: "radial-gradient(ellipse 52% 48% at 50% 38%, #000 58%, transparent 100%)",
+        // Nítidos, como serigrafiados en la placa (sin desenfoque ni máscara)
+        opacity: visible ? 1 : 0,
       }}
     >
       <canvas ref={lienzo} style={{ width: ANCHO, height: ALTO }} />
@@ -334,9 +332,14 @@ export function ChipsFijos() {
     const el = capa.current;
     if (!el) return;
     const medir = () => {
-      const alto = el.offsetHeight;
+      // Solo sobre la placa verde de los kits: en fondo blanco o negro no pintan nada
+      const kits = document.getElementById("kits");
       const lista: number[] = [];
-      for (let y = 1000; y < alto - 900 && lista.length < MONTAJES.length; y += 900) lista.push(y);
+      if (kits) {
+        const arriba = kits.getBoundingClientRect().top - el.getBoundingClientRect().top;
+        for (let y = arriba + 260; y < arriba + kits.offsetHeight - 260 && lista.length < 3; y += 520)
+          lista.push(Math.round(y));
+      }
       setAlturas((antes) => (antes.join() === lista.join() ? antes : lista));
     };
     medir();
