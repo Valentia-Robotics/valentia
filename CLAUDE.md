@@ -428,7 +428,7 @@ tarjeta (para contar personas) y solo abren ese curso.
   «BIENVENIDOS A» + logo; detrás pasos, caja con el código (cambia en cada tarjeta) y dirección.
 - `/activar` con código de bienvenida y sesión: se activa solo y redirige a `/cursos/bienvenida-a-valentia`.
   Kit gratis: si ya tenía el curso, el código se gasta igual para contarle (salvo que ya usara otra tarjeta).
-- Vídeo: sigue `PENDIENTE`; se pone en `/admin/cursos` (lección «Te damos la bienvenida»).
+- Vídeo (12-11-2026): `https://www.youtube.com/watch?v=I_bZOpA_rXE` en `data/`; en producción hay que pegarlo en `/admin/cursos` (lección «Te damos la bienvenida»): seed:prod no cambia lo que existe.
 - `/admin/codigos/personas` (enlace «Ver lista» de la caja): quién se registró con tarjeta y botón «Borrar» con
   confirmación (`src/lib/admin/bienvenida.ts`). Solo clientes sin pedidos ni códigos de otros kits (`motivoNoBorrar`);
   al borrar, su tarjeta queda libre otra vez y deja de contar.
@@ -469,7 +469,7 @@ le da el rol** desde `/admin/usuarios` (no hay alta de editores); el guion solo 
 ### Kit gratis de bienvenida (05-11-2026, rama `valentiarobotics/kit-bienvenida`)
 
 Decisión del usuario: un kit de 0 € sin piezas, con un curso de un solo vídeo de bienvenida (`bienvenida-valentia`,
-curso `bienvenida-a-valentia`; vídeo `PENDIENTE`: ponerlo en `/admin/cursos`). Sale en `/kits` con el precio «Gratis»
+curso `bienvenida-a-valentia`; vídeo de YouTube desde el 12-11-2026, ver arriba). Sale en `/kits` con el precio «Gratis»
 (`precioDeKit`) y funciona aunque la compra esté cerrada.
 
 - Gratis = `precioCentimos === 0` y sin piezas (las validaciones del panel y del catálogo exigen las dos cosas juntas).

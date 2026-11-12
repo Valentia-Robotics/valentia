@@ -264,7 +264,7 @@
     },
     "titulo": "Te damos la bienvenida",
     "descripcion": "El equipo de Valentia te da la bienvenida al proyecto.",
-    "videoUrl": "PENDIENTE",
+    "videoUrl": "https://www.youtube.com/watch?v=I_bZOpA_rXE",
     "duracionMin": {
       "$numberLong": "3"
     }
