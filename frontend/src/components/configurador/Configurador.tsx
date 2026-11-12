@@ -6,6 +6,7 @@ import { Dialogo } from "@/components/ui/Dialogo";
 import { categorias } from "@/config/categorias";
 import { useConfigurador } from "@/store/configurador";
 import type { Categoria, ComponenteCatalogo, KitParaConfigurador } from "@/types/catalogo";
+import { BancoPruebas } from "./BancoPruebas";
 import { BarraRobotMovil } from "./BarraRobotMovil";
 import { DetallePieza } from "./DetallePieza";
 import { InicioConfigurador } from "./InicioConfigurador";
@@ -22,9 +23,11 @@ interface Props {
 }
 
 /**
- * CONFIGURADOR estilo quiosco de pedidos.
- *   Ordenador: categorías a la izquierda · tarjetas en el centro · "Tu robot" a la derecha.
- *   Móvil: categorías deslizables arriba · tarjetas · "Tu robot" en una barra abajo.
+ * CONFIGURADOR «banco de pruebas» (PROMPT_REDISENO.md): cada pieza que se añade redibuja el esquema de
+ * bloques y las lecturas de GPIO, corriente y niveles lógicos.
+ *   Ordenador: categorías a la izquierda · esquema y piezas en el centro · lista de materiales,
+ *   lecturas, registro de avisos y total a la derecha.
+ *   Móvil: categorías deslizables arriba · piezas · el montaje (con su esquema) en una barra abajo.
  */
 export function Configurador({ componentes, kits, kitInicial }: Props) {
   const router = useRouter();
@@ -90,10 +93,20 @@ export function Configurador({ componentes, kits, kitInicial }: Props) {
 
         {/* ---------- Zona central: tarjetas ---------- */}
         <div className="min-w-0 px-4 py-6 sm:px-6 lg:p-0">
-          <header>
-            <p className="etiqueta-taller">Configurador</p>
-            <h1 className="mt-1 text-3xl font-medium sm:text-4xl">Monta tu robot pieza a pieza.</h1>
+          <header className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="mono-etiqueta text-gris">
+                <span className="text-acento">{"// "}</span>SEC_04 · Banco de pruebas
+              </p>
+              <h1 className="titular-cartel mt-2 text-4xl font-semibold sm:text-5xl">Configurador.</h1>
+            </div>
+            <p className="max-w-sm text-sm text-gris">
+              Placa, actuadores, sensores y fuente: el esquema y las lecturas se recalculan con cada
+              pieza.
+            </p>
           </header>
+
+          <BancoPruebas robot={robot} className="mt-6 bg-panel max-lg:hidden" />
 
           {mostrarInicio && (
             <div className="mt-6">
@@ -110,21 +123,20 @@ export function Configurador({ componentes, kits, kitInicial }: Props) {
 
           <section aria-labelledby="titulo-categoria" className="mt-8">
             {/* key: al cambiar de categoría, título y tarjetas entran de nuevo con una animación suave */}
-            <div key={`titulo-${categoria}`} className="flex animate-tarjeta items-center gap-3">
-              <infoCategoria.icono
-                aria-hidden="true"
-                className="size-7 text-acento"
-                strokeWidth={1.5}
-              />
-              <h2 id="titulo-categoria" className="text-2xl font-medium">
+            <div key={`titulo-${categoria}`} className="animate-tarjeta">
+              <p className="mono-etiqueta text-gris">
+                CAT_{String(categorias.findIndex((c) => c.id === categoria) + 1).padStart(2, "0")} ·{" "}
+                {piezasCategoria.length} referencias
+              </p>
+              <h2 id="titulo-categoria" className="mt-1 text-2xl font-semibold">
                 {infoCategoria.nombre}
               </h2>
             </div>
-            <p className="mt-1 text-gris">{infoCategoria.descripcion}</p>
+            <p className="mt-1 text-sm text-gris">{infoCategoria.descripcion}</p>
 
             <ul
               key={categoria}
-              className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3"
+              className="mt-5 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3"
             >
               {piezasCategoria.map((componente, i) => (
                 <li
@@ -145,10 +157,10 @@ export function Configurador({ componentes, kits, kitInicial }: Props) {
           </section>
         </div>
 
-        {/* ---------- Panel "Tu robot" (ordenador) ---------- */}
-        <aside aria-label="Tu robot" className="hidden lg:block">
-          <div className="sticky top-[calc(var(--spacing-nav)+1.5rem)] h-[calc(100dvh-var(--spacing-nav)-3rem)] overflow-hidden rounded-tarjeta bg-niebla">
-            <PanelRobot {...propsPanel} className="bg-niebla" />
+        {/* ---------- Panel del montaje (ordenador) ---------- */}
+        <aside aria-label="Montaje" className="hidden lg:block">
+          <div className="sticky top-[calc(var(--spacing-nav)+1.5rem)] h-[calc(100dvh-var(--spacing-nav)-3rem)] overflow-hidden border border-linea bg-panel">
+            <PanelRobot {...propsPanel} className="bg-panel" />
           </div>
         </aside>
       </div>
@@ -158,10 +170,10 @@ export function Configurador({ componentes, kits, kitInicial }: Props) {
       <Dialogo
         abierto={panelMovilAbierto}
         alCerrar={() => setPanelMovilAbierto(false)}
-        titulo="Tu robot"
+        titulo="Montaje"
         posicion="abajo"
       >
-        <PanelRobot {...propsPanel} mostrarTitulo={false} className="bg-white" />
+        <PanelRobot {...propsPanel} mostrarTitulo={false} conEsquema className="bg-carbon" />
       </Dialogo>
 
       {/* ---------- Detalle de una pieza ---------- */}

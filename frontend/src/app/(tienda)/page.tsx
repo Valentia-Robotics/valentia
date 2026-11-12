@@ -1,16 +1,12 @@
-import { AvisoApertura } from "@/components/portada/AvisoApertura";
-import { BloqueComoFunciona } from "@/components/portada/BloqueComoFunciona";
+import { BancoPruebasPortada } from "@/components/portada/BancoPruebasPortada";
 import { BloqueFinal } from "@/components/portada/BloqueFinal";
-import { HeroPortada } from "@/components/portada/HeroPortada";
-import { KitsPortada } from "@/components/portada/KitsPortada";
-import { PiezasPortada } from "@/components/portada/PiezasPortada";
-import { BloqueConfigurador } from "@/components/tienda/BloqueConfigurador";
-import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
+import { DespieceVR1 } from "@/components/portada/DespieceVR1";
+import { FirmwarePortada } from "@/components/portada/FirmwarePortada";
+import { LineaProducto } from "@/components/portada/LineaProducto";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
-import { Fundido } from "@/components/ui/Fundido";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
-import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
+import { obtenerKitsConPiezas } from "@/lib/catalogo";
 import { datosTienda } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 
@@ -23,49 +19,44 @@ export const revalidate = 300;
 
 export const metadata: Metadata = metadatosPagina({
   descripcion:
-    "Kits de robótica para montar en casa, con Arduino o ESP32 y curso en vídeo. No hace falta saber programar, y también es un buen regalo.",
+    "Kits de robótica modular sobre ESP32 y Arduino: chasis de bajo perfil, motores DC con reductora, sensores de línea y ultrasonidos, montaje sin soldadura y curso de firmware en C++.",
   ruta: "/",
 });
 
+/** El kit que se despieza en la portada */
+const SLUG_VR1 = "vr1-starter-kit";
+
 /**
- * PÁGINA DE INICIO (estilo «taller»: carteles, campos de color con la placa de circuito, líneas de puntos)
- * Lo primero que se ve después del titular son los kits: es lo que viene a buscar quien entra.
- *   1. Campo de color con el titular y las dos entradas (HeroPortada)
- *      (debajo, mientras la tienda no cobra, un aviso pequeño con «Avísame»)
- *   2. Los kits: el destacado en grande y los demás en una galería de fotos (GaleriaKits)
- *   3. Cómo funciona, en tres pasos, con cifras reales
- *   4. Las cinco piezas de un robot en un mosaico con «escáner»
- *   5. "O elige tú las piezas" → configurador (tramo oscuro)
- *   6. El curso incluido con el QR de la caja
- *   7. Invitación final, sobre negro con la misma placa que el principio
+ * PÁGINA DE INICIO (estilo industrial, PROMPT_REDISENO.md):
+ *   SEC_00/01 · El VR1 en 3D sobre el escritorio; al bajar se despieza en sus cinco capas (DespieceVR1)
+ *   SEC_02 · Línea de producto: una hoja técnica por kit
+ *   SEC_03 · Banco de pruebas: esquema de bloques y lecturas del VR1 → configurador
+ *   SEC_04 · Firmware real del VR1 y temario del curso
+ *   SEC_05 · Estado de la tienda: lista de espera mientras no se cobra (o «elegir kit»)
+ * Todos los datos salen de la base de datos (piezas, precios, lecciones) o del firmware.
  */
 export default async function Inicio() {
-  const [kits, cifras] = await Promise.all([obtenerKits(), obtenerCifras()]);
-  const estrella = kits.find((k) => k.destacado) ?? kits[0];
+  const kits = await obtenerKitsConPiezas();
   // Los kits gratis (sin piezas) solo salen en /kits: la portada enseña lo que se monta
   const aLaVenta = kits.filter((k) => k.precioCentimos > 0);
+  const vr1 = aLaVenta.find((k) => k.slug === SLUG_VR1);
   const abierta = compraAbierta();
-  const destacado = estrella && estrella.precioCentimos > 0 ? estrella : aLaVenta[0];
 
   return (
     <>
       <DatosEstructurados datos={datosTienda()} />
-      <HeroPortada cifras={cifras} />
-      {!abierta && <AvisoApertura />}
-      <KitsPortada
-        estrella={destacado}
-        // El destacado ya sale en grande: la galería enseña los demás (sin repetirlo)
-        kits={aLaVenta.filter((k) => k.slug !== destacado?.slug)}
+      <DespieceVR1
+        precioCentimos={vr1?.precioCentimos ?? null}
+        bom={(vr1?.piezas ?? []).map((p) => ({
+          cantidad: p.cantidad,
+          nombre: p.componente.nombre,
+        }))}
+        lecciones={vr1?.curso.lecciones.length ?? null}
         compraAbierta={abierta}
       />
-      <BloqueComoFunciona cifras={cifras} />
-      <PiezasPortada />
-      {/* Un solo paso a oscuro (configurador) y vuelta a claro: la página fluye sin cortes */}
-      <Fundido desde="blanco" hasta="grafito" />
-      <BloqueConfigurador />
-      <Fundido desde="grafito" hasta="blanco" />
-      <BloqueCursoQR />
-      <Fundido desde="blanco" hasta="tinta" corto />
+      <LineaProducto kits={aLaVenta} />
+      <BancoPruebasPortada kit={vr1} />
+      <FirmwarePortada kit={vr1} />
       <BloqueFinal compraAbierta={abierta} />
     </>
   );

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
  *   bloque     → negro y recto (portada): al pasar el ratón se levanta con una sombra azul
  *   punteado   → recto, con borde de puntos (acción secundaria de la portada)
  *   punteado-claro → igual, en blanco, sobre la placa verde de la portada
+ * En la tienda, todas se convierten en teclas de consola (ver estilosTienda).
  */
 type Variante =
   | "primario"
@@ -31,6 +32,30 @@ type Variante =
   | "punteado"
   | "punteado-claro";
 type Tamano = "md" | "lg" | "xl";
+
+/*
+ * EN LA TIENDA (clase .tienda, estilo «industrial» de PROMPT_REDISENO.md) los botones son teclas de
+ * consola: esquinas vivas, letra mono en mayúsculas y, al pulsar, bajan 1 px (clase .tecla de
+ * globals.css). El de acción va en naranja de seguridad con texto carbón; los demás, solo contorno.
+ * Los paneles internos no llevan .tienda: ahí siguen los estilos de siempre.
+ */
+const TECLA_ACENTO =
+  "tecla tienda:bg-acento tienda:text-carbon tienda:hover:bg-acento-hover tienda:hover:translate-0 tienda:hover:shadow-none";
+const TECLA_CONTORNO =
+  "tienda:border tienda:border-solid tienda:border-borde-fuerte tienda:bg-transparent tienda:text-tinta tienda:hover:border-tinta tienda:hover:bg-panel-alto tienda:hover:translate-0 tienda:hover:shadow-none";
+
+const estilosTienda: Record<Variante, string> = {
+  primario: TECLA_ACENTO,
+  acento: TECLA_ACENTO,
+  bloque: TECLA_ACENTO,
+  secundario: TECLA_CONTORNO,
+  punteado: TECLA_CONTORNO,
+  "punteado-claro": TECLA_CONTORNO,
+  claro: "tecla tienda:bg-tinta tienda:text-carbon tienda:hover:bg-[#fff] tienda:hover:translate-0 tienda:hover:shadow-none",
+  enlace: "tienda:text-acento",
+  "enlace-claro": "tienda:text-acento",
+  peligro: "tecla tienda:bg-error tienda:text-carbon tienda:hover:bg-error/90",
+};
 
 const estilosVariante: Record<Variante, string> = {
   // Los de relleno se «levantan» al pasar el ratón, con una sombra recta (estilo taller)
@@ -54,10 +79,10 @@ const estilosVariante: Record<Variante, string> = {
 };
 
 const estilosTamano: Record<Tamano, string> = {
-  md: "h-10 px-5 text-sm",
-  lg: "h-12 px-7 text-base",
+  md: "h-10 px-5 text-sm tienda:px-4",
+  lg: "h-12 px-7 text-base tienda:px-6",
   // Tamaño "quiosco": botones grandes y fáciles de pulsar con el dedo
-  xl: "h-16 px-9 text-lg",
+  xl: "h-16 px-9 text-lg tienda:h-14 tienda:px-7",
 };
 
 interface PropsComunes {
@@ -88,8 +113,11 @@ export function Boton({
     // Al pulsar se hunde un poco: la respuesta se nota antes de que cargue nada
     "transition-[background-color,border-color,color,scale,translate,box-shadow] active:scale-[0.97]",
     "disabled:pointer-events-none disabled:opacity-50",
+    // Tienda: tecla de consola (mono, mayúsculas, respuesta instantánea)
+    "tienda:font-mono tienda:text-[13px] tienda:tracking-[0.06em] tienda:uppercase tienda:duration-100 tienda:active:scale-100",
     estilosTamano[tamano],
     estilosVariante[variante],
+    estilosTienda[variante],
     className,
   );
 

@@ -1,13 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Plus } from "lucide-react";
-import { Boton } from "@/components/ui/Boton";
-import { TARJETA_TIENDA } from "@/components/ui/tarjeta";
-import { cn, formatearPrecio } from "@/lib/utils";
+import { textoTienda } from "@/config/stock";
+import { cn, formatearNumero, formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 import { maximoDe } from "./useRobot";
-import { textoTienda } from "@/config/stock";
 import { Ver3dPieza } from "./Ver3dPieza";
 
 interface Props {
@@ -19,68 +16,88 @@ interface Props {
 }
 
 /**
- * Tarjeta grande de una pieza, estilo quiosco: foto, nombre, precio y botón "Añadir".
- * Al pulsar en cualquier otra parte de la tarjeta se abre el detalle.
+ * Pieza del banco de pruebas: referencia, foto sobre rejilla, los datos eléctricos que cuentan para la
+ * compatibilidad (lógica, consumo, GPIO), precio y tecla «+ Añadir». Al pulsar en cualquier otra parte
+ * de la tarjeta se abre el detalle.
  */
-export function TarjetaPieza({ componente, enRobot, alAnadir, alVerDetalle }: Props) {
-  const agotado = componente.stock === 0;
-  const sinMas = !agotado && enRobot >= maximoDe(componente);
+export function TarjetaPieza({ componente: c, enRobot, alAnadir, alVerDetalle }: Props) {
+  const agotado = c.stock === 0;
+  const sinMas = !agotado && enRobot >= maximoDe(c);
+  const datos: [string, string][] = [
+    [
+      c.tipo === "bateria" ? "V" : "Lógica",
+      c.voltajeLogico
+        ? `${formatearNumero(c.voltajeLogico)} V`
+        : c.voltaje
+          ? `${formatearNumero(c.voltaje)} V`
+          : "—",
+    ],
+    [c.tipo === "bateria" ? "I máx." : "mA", c.consumoMa ? formatearNumero(c.consumoMa) : "—"],
+    [c.tipo === "placa" ? "GPIO" : "Pines", c.pines ? String(c.pines) : "—"],
+  ];
 
   return (
-    <article className={cn("group relative flex flex-col overflow-hidden", TARJETA_TIENDA)}>
-      {enRobot > 0 && (
-        <span className="absolute top-3 left-3 z-10 rounded-boton bg-acento px-2.5 py-1 text-xs font-semibold text-white">
-          {enRobot} en tu robot
-        </span>
+    <article
+      className={cn(
+        "group relative flex w-full flex-col border bg-carbon transition-colors duration-150 hover:bg-panel",
+        enRobot > 0 ? "border-acento" : "border-linea hover:border-borde-fuerte",
       )}
-
-      <div className="relative bg-niebla p-4">
-        <Ver3dPieza componente={componente} />
+    >
+      <div className="flex items-center justify-between gap-2 px-3 pt-3">
+        <span className="mono-etiqueta truncate text-[10px] text-gris-claro">{c.slug}</span>
+        {enRobot > 0 && (
+          <span className="mono-etiqueta shrink-0 bg-acento px-1.5 text-[10px] text-carbon">
+            ×{enRobot}
+          </span>
+        )}
+      </div>
+      <div className="rejilla-plano-fina relative mx-3 mt-2 border border-linea bg-panel p-3">
+        <Ver3dPieza componente={c} />
         <Image
-          src={componente.imagen}
-          alt={componente.nombre}
+          src={c.imagen}
+          alt={c.nombre}
           width={240}
           height={240}
           unoptimized
-          className="mx-auto aspect-square h-auto w-full max-w-44 transition-transform duration-300 group-hover:scale-105"
+          className="mx-auto aspect-square h-auto w-full max-w-36"
         />
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-sans text-base leading-snug font-medium">
+      <div className="flex flex-1 flex-col p-3">
+        <h3 className="text-[15px] leading-snug font-semibold">
           {/* Este botón "se estira" para que toda la tarjeta abra el detalle */}
           <button
             type="button"
             onClick={alVerDetalle}
             className="text-left after:absolute after:inset-0"
           >
-            {componente.nombre}
+            {c.nombre}
             <span className="sr-only">, ver detalles</span>
           </button>
         </h3>
-        <p className="mt-1 hidden flex-1 text-sm text-gris sm:block">{componente.resumen}</p>
-        <p className="mt-3 text-lg font-medium">{formatearPrecio(componente.precioCentimos)}</p>
-
-        {/* "relative z-10" pone el botón por encima de la zona que abre el detalle */}
-        <Boton
-          variante="acento"
-          tamano="lg"
-          onClick={alAnadir}
-          disabled={agotado || sinMas}
-          aria-label={`Añadir ${componente.nombre} a tu robot`}
-          className="relative z-10 mt-3 w-full"
-        >
-          {agotado ? (
-            textoTienda(0, componente.enReposicion)
-          ) : sinMas ? (
-            "No hay más"
-          ) : (
-            <>
-              <Plus aria-hidden="true" className="size-5" />
-              Añadir
-            </>
-          )}
-        </Boton>
+        <dl className="mt-3 grid grid-cols-3 border-t border-l border-linea font-mono text-[11px]">
+          {datos.map(([nombre, valor]) => (
+            <div key={nombre} className="border-r border-b border-linea px-1.5 py-1">
+              <dt className="text-[9px] tracking-[0.08em] text-gris uppercase">{nombre}</dt>
+              <dd className="truncate text-tinta">{valor}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+          <span className="font-mono text-[15px] text-tinta tabular-nums">
+            {formatearPrecio(c.precioCentimos)}
+          </span>
+          {/* "relative z-10" pone la tecla por encima de la zona que abre el detalle */}
+          <button
+            type="button"
+            onClick={alAnadir}
+            disabled={agotado || sinMas}
+            aria-label={`Añadir ${c.nombre} a tu robot`}
+            className="tecla mono-etiqueta relative z-10 bg-acento px-3 py-2 text-carbon transition-colors duration-100 hover:bg-acento-hover disabled:bg-panel-alto disabled:text-gris disabled:shadow-none"
+          >
+            {agotado ? textoTienda(0, c.enReposicion) : sinMas ? "Máx." : "+ Añadir"}
+          </button>
+        </div>
       </div>
     </article>
   );

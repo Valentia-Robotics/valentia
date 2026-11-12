@@ -12,12 +12,15 @@ import { cn } from "@/lib/utils";
 import { BotonCarrito } from "./BotonCarrito";
 import { MenuUsuario } from "./MenuUsuario";
 import { FotoPerfil } from "@/components/cuenta/FotoPerfil";
+import { Led } from "@/components/ui/Led";
 
 /**
- * Barra de navegación fija, fina y translúcida (con desenfoque del fondo).
+ * Barra de navegación fija (tienda industrial): carbón translúcido, línea fina abajo, enlaces en
+ * mono con su índice (01 KITS…) y, a la derecha, el LED de estado de la tienda.
  * En móvil, los enlaces se esconden en un menú desplegable.
+ *   tiendaAbierta → LED verde «EN STOCK»; false, ámbar «PREVENTA» (lista de espera); sin dato, sin LED
  */
-export function BarraNavegacion() {
+export function BarraNavegacion({ tiendaAbierta }: { tiendaAbierta?: boolean }) {
   const ruta = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { data: sesion } = useSession();
@@ -49,8 +52,8 @@ export function BarraNavegacion() {
         className={cn(
           // En el móvil, desenfoque más corto (el navegador lo rehace en cada paso del scroll) y
           // fondo algo más opaco para que se vea igual
-          "border-b border-dotted border-tinta/25 backdrop-blur-md backdrop-saturate-150 transition-colors lg:backdrop-blur-xl",
-          menuAbierto ? "bg-white" : "bg-white/85 lg:bg-white/75",
+          "border-b border-linea backdrop-blur-md transition-colors",
+          menuAbierto ? "bg-carbon" : "bg-carbon/88",
         )}
       >
         <div className="mx-auto flex h-nav max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
@@ -60,24 +63,30 @@ export function BarraNavegacion() {
             aria-label={`${marca.nombre}, ir al inicio`}
             className="shrink-0 py-2"
           >
-            <Logo alto={16} prioridad />
+            <Logo alto={16} fondo="oscuro" prioridad />
           </Link>
 
-          {/* Enlaces en ordenador: el de la sección actual va en negrita con una raya azul debajo */}
-          <ul className="hidden h-full items-stretch gap-4 md:flex lg:gap-8">
-            {enlaces.map((enlace) => (
+          {/* Enlaces en ordenador: índice + nombre en mono; el de la sección actual, con raya naranja */}
+          <ul className="hidden h-full items-stretch gap-6 md:flex lg:gap-9">
+            {enlaces.map((enlace, i) => (
               <li key={enlace.href} className="flex">
                 <Link
                   href={enlace.href}
                   aria-current={estaActivo(enlace) ? "page" : undefined}
                   className={cn(
-                    "relative flex items-center text-[13px] transition-colors",
-                    "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-acento after:transition-transform",
+                    "mono-etiqueta relative flex items-center gap-2 transition-colors duration-100",
+                    "after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-acento after:transition-transform after:duration-150",
                     estaActivo(enlace)
-                      ? "font-medium text-tinta after:scale-x-100"
-                      : "text-tinta/70 after:scale-x-0 hover:text-tinta",
+                      ? "text-tinta after:scale-x-100"
+                      : "text-gris after:scale-x-0 hover:text-tinta",
                   )}
                 >
+                  <span
+                    aria-hidden="true"
+                    className={estaActivo(enlace) ? "text-acento" : "text-gris-claro"}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   {enlace.etiqueta}
                 </Link>
               </li>
@@ -85,6 +94,15 @@ export function BarraNavegacion() {
           </ul>
 
           <div className="flex items-center gap-1">
+            {/* El LED va dentro de un span: su propio inline-flex ganaría a «hidden» */}
+            {tiendaAbierta !== undefined && (
+              <span className="mr-3 hidden lg:inline-flex">
+                <Led
+                  estado={tiendaAbierta ? "ok" : "aviso"}
+                  texto={tiendaAbierta ? "En stock" : "Preventa"}
+                />
+              </span>
+            )}
             <BotonCarrito />
             <MenuUsuario />
 
@@ -95,7 +113,7 @@ export function BarraNavegacion() {
               aria-expanded={menuAbierto}
               aria-controls="menu-movil"
               aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
-              className="inline-flex size-10 items-center justify-center rounded-full text-tinta/80 hover:bg-tinta/5 md:hidden"
+              className="inline-flex size-10 items-center justify-center border border-transparent text-tinta/80 hover:border-linea md:hidden"
             >
               {menuAbierto ? (
                 <X aria-hidden="true" className="size-5" strokeWidth={1.6} />
@@ -122,29 +140,32 @@ export function BarraNavegacion() {
               menuAbierto ? "max-h-[calc(100dvh-var(--spacing-nav))] overflow-y-auto" : "opacity-0",
             )}
           >
-            {enlaces.map((enlace) => (
-              <li key={enlace.href}>
+            {enlaces.map((enlace, i) => (
+              <li key={enlace.href} className="border-b border-linea">
                 <Link
                   href={enlace.href}
                   onClick={cerrarMenu}
                   aria-current={estaActivo(enlace) ? "page" : undefined}
                   className={cn(
-                    "-mx-3 flex items-center justify-between rounded-control px-3 py-3 font-titulo text-2xl",
-                    estaActivo(enlace) ? "bg-acento/8 text-acento" : "text-tinta",
+                    "flex items-baseline gap-4 py-4 text-2xl font-semibold tracking-tight",
+                    estaActivo(enlace) ? "text-acento" : "text-tinta",
                   )}
                 >
+                  <span aria-hidden="true" className="font-mono text-xs font-normal text-gris-claro">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   {enlace.etiqueta}
-                  {estaActivo(enlace) && (
-                    <span
-                      aria-hidden="true"
-                      className="font-sans text-xs font-medium tracking-wide uppercase"
-                    >
-                      Estás aquí
-                    </span>
-                  )}
                 </Link>
               </li>
             ))}
+            {tiendaAbierta !== undefined && (
+              <li className="pt-4">
+                <Led
+                  estado={tiendaAbierta ? "ok" : "aviso"}
+                  texto={tiendaAbierta ? "Tienda: en stock" : "Tienda: preventa, lista de espera abierta"}
+                />
+              </li>
+            )}
             <li className="mt-4 mb-4 border-t border-linea pt-4">
               {sesion?.user ? (
                 <>

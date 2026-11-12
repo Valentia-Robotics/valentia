@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bot, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { SelectorCantidad } from "@/components/ui/SelectorCantidad";
@@ -11,6 +10,7 @@ import { useConfigurador } from "@/store/configurador";
 import type { ArticuloCarrito } from "@/types/carrito";
 import type { ComponenteCatalogo, KitParaConfigurador } from "@/types/catalogo";
 import { AvisosCompatibilidad } from "./AvisosCompatibilidad";
+import { EsquemaBloques } from "./EsquemaBloques";
 import { Medidores } from "./Medidores";
 import { maximoDe, type Robot } from "./useRobot";
 
@@ -22,13 +22,15 @@ interface Props {
   alVerPieza: (slug: string) => void;
   /** false cuando el panel va dentro de una ventana que ya tiene su propio título (móvil) */
   mostrarTitulo?: boolean;
+  /** true en el móvil: el esquema de bloques va aquí (en el ordenador está encima de las piezas) */
+  conEsquema?: boolean;
   /** Clases extra; incluye el color de fondo (la barra del total lo hereda) */
   className?: string;
 }
 
 /**
- * Panel "Tu robot": piezas elegidas con botones + y −, avisos de compatibilidad,
- * total en tiempo real y botón grande "Añadir al carrito".
+ * Panel del montaje: lista de materiales con + y −, lecturas (GPIO y corriente), registro de avisos,
+ * total en tiempo real y la tecla «Añadir al carrito».
  */
 export function PanelRobot({
   robot,
@@ -37,6 +39,7 @@ export function PanelRobot({
   alAnadirPieza,
   alVerPieza,
   mostrarTitulo = true,
+  conEsquema = false,
   className,
 }: Props) {
   const kitOrigen = useConfigurador((estado) => estado.kitOrigen);
@@ -60,42 +63,45 @@ export function PanelRobot({
       {/* ---------- Cabecera ---------- */}
       <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5">
         <div>
-          {mostrarTitulo && <h2 className="text-2xl font-medium">Tu robot</h2>}
-          <p className="text-sm text-gris">
-            {vacio ? "Todavía sin piezas" : plural(totalPiezas, "pieza", "piezas")}
-            {kit && !vacio && <> · basado en «{kit.nombre}»</>}
+          {mostrarTitulo && (
+            <h2 className="mono-etiqueta text-gris">
+              <span className="text-acento">{"// "}</span>Lista de materiales
+            </h2>
+          )}
+          <p className="mt-1 font-mono text-[12px] text-tinta">
+            {vacio ? "0 piezas" : plural(totalPiezas, "pieza", "piezas")}
+            {kit && !vacio && <span className="text-gris"> · base: {kit.nombre}</span>}
           </p>
         </div>
         {!vacio && !confirmarVaciar && (
           <button
             type="button"
             onClick={() => setConfirmarVaciar(true)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-boton px-3 py-1.5 text-xs text-gris ring-1 ring-linea transition-colors hover:text-tinta hover:ring-tinta"
+            className="tecla mono-etiqueta shrink-0 border border-borde-fuerte px-2.5 py-1.5 text-gris transition-colors duration-100 hover:text-tinta"
           >
-            <RotateCcw aria-hidden="true" className="size-3.5" />
-            Empezar de nuevo
+            Reset
           </button>
         )}
       </div>
 
       {/* Confirmación en dos pasos para no borrar el robot sin querer */}
       {confirmarVaciar && (
-        <div className="mx-5 mt-3 flex flex-wrap items-center gap-2 rounded-control bg-error/8 p-3 text-sm">
-          <span className="flex-1">¿Quitar todas las piezas?</span>
+        <div className="mx-5 mt-3 flex flex-wrap items-center gap-2 border border-error/50 p-3 text-sm">
+          <span className="flex-1">¿Quitar todas las piezas del banco?</span>
           <button
             type="button"
             onClick={() => {
               vaciar();
               setConfirmarVaciar(false);
             }}
-            className="rounded-boton bg-error px-3 py-1.5 text-xs font-medium text-white"
+            className="mono-etiqueta bg-error px-3 py-1.5 text-carbon"
           >
-            Sí, vaciar
+            Vaciar
           </button>
           <button
             type="button"
             onClick={() => setConfirmarVaciar(false)}
-            className="rounded-boton px-3 py-1.5 text-xs ring-1 ring-linea"
+            className="mono-etiqueta border border-borde-fuerte px-3 py-1.5"
           >
             Cancelar
           </button>
@@ -105,12 +111,12 @@ export function PanelRobot({
       {/* ---------- Piezas + avisos (zona con scroll en ordenador) ---------- */}
       <div className="space-y-5 px-5 py-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         {!robot.hidratado ? (
-          <p className="py-8 text-center text-sm text-gris">Cargando tu robot…</p>
+          <p className="mono-etiqueta py-8 text-center text-gris">Cargando montaje…</p>
         ) : vacio ? (
           <EstadoVacio />
         ) : (
           <>
-            <ul className="divide-y divide-linea">
+            <ul className="border-t border-linea">
               {piezas.map(({ componente, cantidad }) => (
                 <li
                   // La clave cambia al añadir esta pieza, así la animación se repite en cada clic
@@ -120,7 +126,7 @@ export function PanelRobot({
                       : componente.slug
                   }
                   className={cn(
-                    "-mx-2 flex items-center gap-3 rounded-control px-2 py-2.5",
+                    "-mx-2 flex items-center gap-3 border-b border-linea px-2 py-2",
                     ultimaAnadida?.slug === componente.slug && "animate-resaltar",
                   )}
                 >
@@ -135,14 +141,17 @@ export function PanelRobot({
                       width={48}
                       height={48}
                       unoptimized
-                      className="size-12 shrink-0 rounded-control bg-white p-1 ring-1 ring-linea"
+                      className="size-11 shrink-0 border border-linea bg-carbon p-1"
                     />
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium">
+                      <span className="block truncate text-[13px] font-medium">
                         {componente.nombre}
                       </span>
-                      <span className="block text-xs text-gris tabular-nums">
+                      <span className="block font-mono text-[11px] text-gris tabular-nums">
                         {formatearPrecio(componente.precioCentimos * cantidad)}
+                        {componente.consumoMa > 0 && componente.tipo !== "bateria"
+                          ? ` · ${componente.consumoMa * cantidad} mA`
+                          : ""}
                       </span>
                     </span>
                   </button>
@@ -156,6 +165,8 @@ export function PanelRobot({
               ))}
             </ul>
 
+            {conEsquema && <EsquemaBloques piezas={piezas} />}
+
             <Medidores medidores={diagnostico.medidores} />
 
             <AvisosCompatibilidad
@@ -165,9 +176,9 @@ export function PanelRobot({
             />
 
             {esKitExacto && (
-              <p className="rounded-control bg-white p-3 text-sm ring-1 ring-linea">
-                Es el kit «{kit.nombre}» tal cual. Si lo compras como kit, incluye su curso y el
-                código QR.{" "}
+              <p className="border border-linea p-3 text-sm text-gris">
+                Coincide con el kit «{kit.nombre}». Comprado como kit incluye su curso y el código
+                QR.{" "}
                 <Link
                   href={`/kits/${kit.slug}`}
                   className="text-acento underline underline-offset-4"
@@ -183,17 +194,15 @@ export function PanelRobot({
       {/* ---------- Total y compra (siempre visible abajo) ---------- */}
       <div className="sticky bottom-0 shrink-0 border-t border-linea bg-inherit px-5 pt-4 pb-5">
         <div className="flex items-baseline justify-between">
-          <span className="text-gris">Total</span>
-          <span className="font-titulo text-3xl font-medium tabular-nums">
+          <span className="mono-etiqueta text-gris">Total · IVA incl.</span>
+          <span className="font-mono text-2xl text-tinta tabular-nums">
             {formatearPrecio(totalCentimos)}
           </span>
         </div>
-        <p className="text-right text-xs text-gris">IVA incluido</p>
 
         {diagnostico.errores > 0 && (
           <p className="mt-2 text-xs text-error">
-            Así como está, el robot no va a funcionar: mira los avisos. Si aun así lo quieres,
-            puedes comprarlo.
+            Con errores en el registro el montaje no funcionará tal cual. Se puede comprar igualmente.
           </p>
         )}
 
@@ -230,11 +239,10 @@ function crearArticulo(robot: Robot, kit?: KitParaConfigurador): Omit<ArticuloCa
  */
 function EstadoVacio() {
   return (
-    <div className="py-6 text-center">
-      <Bot aria-hidden="true" className="mx-auto size-12 text-gris-claro" strokeWidth={1.2} />
-      <p className="mt-3 font-medium">Tu robot está vacío</p>
-      <p className="mt-1 text-sm text-gris">
-        Elige una placa para empezar, o parte de uno de nuestros kits.
+    <div className="border border-dashed border-borde-fuerte p-5">
+      <p className="mono-etiqueta text-tinta">Banco vacío</p>
+      <p className="mt-1.5 text-sm text-gris">
+        Empieza por la placa (CAT_01) o carga la lista de materiales de un kit.
       </p>
     </div>
   );

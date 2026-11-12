@@ -31,6 +31,43 @@ Intercambio de enlaces: la ventana 3D lleva un crédito «Visor 3D de Visualizal
 los dominios de `SOCIOS_ENLACE` (`src/config/blog.ts`; hoy `visualizalo.es`) salen SIN nofollow (`enlaceDeSocio`,
 `markdownAHtml` + test); el resto de externos, con nofollow como siempre. Imágenes de la noticia en `public/images/blog/`.
 
+### Tienda «industrial» (12-11-2026, rama `claude/project-thread-qr311s`; petición de Jesse, sustituye a «estudio»)
+
+Jesse rechazó el estilo «estudio» (se parecía al del principio) y pidió seguir `PROMPT_REDISENO.md` (prompt maestro:
+grado hardware industrial, carbón #0A0C10 / papel de plano #F4F4F0, UN acento naranja #FF5500, Inter + JetBrains Mono
+para datos, esquinas rectas, líneas finas, cajas CAD con cruces en las esquinas y etiquetas `// SEC_0n`, textos de
+ingeniero; frases prohibidas en el prompt). Los paneles internos NO se tocan.
+- Tokens en `globals.css`, bloque `.tienda { … }` (oscuro); `.tienda .papel` lo vuelve a claro (tinta sobre papel).
+  Piezas: `ui/MarcoCAD` (+ `Cruces`), `ui/Led` (no pasarle `hidden`: su `inline-flex` gana; envolverlo), `ui/TablaDatos`.
+  `cn` NO fusiona clases de Tailwind: dos `display` a la vez → gana el orden del CSS.
+- Portada: `DespieceVR1` (tramo pegajoso de 400svh) → `LineaProducto` (`HojaKit`) → `BancoPruebasPortada` →
+  `FirmwarePortada` (trozo real de `firmware/coche-esp32`) → `BloqueFinal`. Datos de las hojas: `resumenTecnico(piezas)`
+  (motor de compatibilidad) y `obtenerKitsConPiezas()`. Capas del despiece y sus datos: `src/config/despieceVR1.ts`.
+- Despiece (`escenaDespiece.ts`, three con `import()`): de fondo la foto del taller (abuelo y nieta, de Jesse:
+  `public/images/portada/taller-fondo.webp`) pintada en el mismo lienzo con su mapa de profundidad
+  (`taller-profundidad.png`, `node scripts/profundidad-taller.mjs`; si cambia la foto, recolocar sus formas). Paralaje con
+  el ratón (en táctil se mece sola); el coche se apoya en la mesa de la foto (plano que solo recoge sombras, cámara a
+  ≈ 15° como la foto, luz de su ventana) y se mueve con ella. El encaje de la foto (`ENCUADRE`) debe ser el mismo que el
+  `<Image>` de `DespieceVR1`. Al despiezar la foto se desenfoca y se vela. Sin WebGL o con reducir movimiento: foto + PNG.
+- `/kits` y `/componentes`: hojas técnicas en rejilla con bordes por celda (no `gap-px` sobre fondo: las celdas vacías
+  salían grises). Fichas con lista de materiales, esquema de bloques y lecturas. Configurador = «banco de pruebas»:
+  `EsquemaBloques` (alimentación → control → periféricos, líneas por estado), `Lectura` (barra de segmentos),
+  `BancoPruebas`, avisos como registro `[ERR]/[WARN]`. Textos de las reglas en `reglas.ts` (ids sin cambiar).
+- `MarcoWeb` recibe `tiendaAbierta` de los layouts de servidor (no puede importar `compraAbierta`: lo usa `error.tsx`).
+
+### Visor 3D de las piezas (11-11-2026, rama `claude/project-thread-kanu9n`; petición de Jesse, parte 1 del rediseño de la tienda)
+
+Alonso subirá .obj/.stl de cada componente. Archivo en `public/modelos/componentes/<slug>.(glb|gltf|stl|obj)` (+ `.mtl`)
+y sale solo: `src/lib/modelos3d.ts` lee la carpeta (en dev en cada petición) y `ComponenteCatalogo.modelo3d` lo lleva
+al navegador. Ajustes opcionales (unidad, color, brillo, metal, giro) en `AJUSTES_MODELOS` (`src/config/modelos3d.ts` + test).
+`Visor3D` (three.js con `import()`, solo dibuja cuando algo cambia; girar, zoom, medidas ancho × fondo × alto en mm con
+CSS2DRenderer, pantalla completa; si falla o no hay WebGL, la foto). `FotoOModelo` («3D · Foto») en el detalle del
+configurador y en `/componentes/[slug]` (Jesse: «demasiado detalle y texto» → sin pestañas ni botones: la pieza gira sola y un
+solo botón «Medidas»). Mientras llegan los de Alonso, `npm run modelos:glb` guarda las piezas de las fotos
+(`scripts/fotos-piezas/modelos.ts`, en cm → mm) como .glb (comprimidas con `npx @gltf-transform/cli optimize … --compress
+meshopt --texture-compress webp`: 10 MB → 1,3 MB). Guía: `public/modelos/componentes/LEEME.md`.
+**Criterios de Jesse y nota de 0 a 10 antes de enseñarle nada: `CRITERIOS_DISENO.md` (solo se enseña lo que saca un 10).**
+
 ### Foto de perfil en grande (11-11-2026, rama `claude/project-thread-51a75i`; petición de Jesse)
 
 En Mensajes, pulsar la foto de alguien (lista de chats, cabecera del chat, General) la abre en grande:

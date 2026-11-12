@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Cookie } from "lucide-react";
 import { useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Dialogo } from "@/components/ui/Dialogo";
@@ -24,47 +23,50 @@ export function BannerCookies() {
   const mostrarBanner = decididoEn === null && !panelAbierto;
 
   return (
-    <>
+    // Con la clase «tienda» el aviso usa siempre el estilo industrial (también si sale en un panel)
+    <div className="tienda contents">
       {mostrarBanner && (
         <section
           aria-label="Aviso de cookies"
           // Con nombre propio se queda quieto y encima mientras cambia la página (globals.css)
           style={{ viewTransitionName: "aviso-cookies" }}
-          className="fixed inset-x-3 bottom-3 z-[55] mx-auto max-w-3xl rounded-tarjeta bg-white p-5 shadow-flotante ring-1 ring-linea sm:p-6 print:hidden"
+          // Pequeño y en una esquina: no tapa la página (antes ocupaba media pantalla en el móvil)
+          className="fixed inset-x-3 bottom-3 z-[55] border border-borde-fuerte bg-panel p-4 shadow-flotante sm:right-auto sm:bottom-5 sm:left-5 sm:max-w-sm print:hidden"
         >
-          <div className="flex items-start gap-3">
-            <Cookie aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-acento" />
-            <div className="text-sm">
-              <h2 className="font-sans text-base font-semibold">Sobre las cookies</h2>
-              <p className="mt-1 text-gris">
-                Usamos cookies necesarias para que la web funcione (sesión, carrito y pago). Con tu
-                permiso, también cargamos los reproductores de vídeo de YouTube y Vimeo en los
-                cursos, que ponen sus propias cookies
-                {hayAnalitica && ", y Google Analytics para saber qué páginas gustan más"}. No usamos
-                cookies de publicidad.{" "}
-                <Link href="/legal/cookies" className="text-acento underline underline-offset-2">
-                  Más información sobre las cookies
-                </Link>
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <Boton variante="enlace" onClick={abrirPanel} className="sm:mr-auto">
-              Configurar
-            </Boton>
-            <Boton variante="primario" onClick={rechazarTodo}>
-              Rechazar opcionales
-            </Boton>
+          <p className="mono-etiqueta mb-2 text-gris-claro">
+            <span aria-hidden="true" className="text-acento">
+              {"// "}
+            </span>
+            Cookies
+          </p>
+          <p className="text-sm leading-relaxed text-gris">
+            Usamos las cookies necesarias para que la web funcione y, si quieres, las de los vídeos
+            de los cursos{hayAnalitica && " y las de Google Analytics"}.{" "}
+            <Link href="/legal/cookies" className="text-tinta underline underline-offset-2">
+              Más información
+            </Link>
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Boton variante="primario" onClick={aceptarTodo}>
-              Aceptar todas
+              Aceptar
             </Boton>
+            <Boton variante="secundario" onClick={rechazarTodo}>
+              Solo necesarias
+            </Boton>
+            <button
+              type="button"
+              onClick={abrirPanel}
+              className="mono-etiqueta ml-auto px-2 py-2 text-gris underline-offset-4 hover:text-tinta hover:underline"
+            >
+              Configurar
+            </button>
           </div>
         </section>
       )}
       <Dialogo abierto={panelAbierto} alCerrar={cerrarPanel} titulo="Configurar cookies">
         <PanelPreferencias />
       </Dialogo>
-    </>
+    </div>
   );
 }
 
@@ -108,7 +110,10 @@ function PanelPreferencias() {
         <Boton variante="secundario" onClick={() => guardar({ videos: false, analitica: false })}>
           Rechazar opcionales
         </Boton>
-        <Boton variante="primario" onClick={() => guardar({ videos, analitica: hayAnalitica && analitica })}>
+        <Boton
+          variante="primario"
+          onClick={() => guardar({ videos, analitica: hayAnalitica && analitica })}
+        >
           Guardar mi elección
         </Boton>
       </div>
@@ -130,7 +135,7 @@ function Categoria({
   alCambiar?: (activa: boolean) => void;
 }) {
   return (
-    <label className="flex items-start justify-between gap-4 rounded-control bg-niebla p-4">
+    <label className="flex items-start justify-between gap-4 border border-linea bg-carbon p-4">
       <span>
         <span className="block font-medium">{titulo}</span>
         <span className="mt-1 block text-gris">{texto}</span>

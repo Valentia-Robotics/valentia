@@ -11,14 +11,14 @@ const CONTRASENA = "robots2026";
 test("el kit gratis se activa con un clic y no crea ningún pedido", async ({ page }) => {
   await test.step("sale en /kits como «Gratis»", async () => {
     await page.goto("/kits");
-    const tarjeta = page.locator("article", { hasText: "Kit de bienvenida" });
+    const tarjeta = page.locator("li", { hasText: "Kit de bienvenida" });
     await expect(tarjeta.getByText("Gratis", { exact: true })).toBeVisible();
   });
 
   await test.step("su ficha no habla de piezas, carrito ni QR", async () => {
     await page.goto(FICHA);
     await expect(page.getByText("Gratis", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Qué hay en la caja." })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /piezas\. Ninguna soldadura/ })).toHaveCount(0);
     await expect(page.getByRole("button", { name: /carrito/i })).toHaveCount(0);
   });
 

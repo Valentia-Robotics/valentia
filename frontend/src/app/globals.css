@@ -10,6 +10,10 @@
  */
 @import "tailwindcss";
 
+/* Estilos que solo valen en la web pública (MarcoWeb pone la clase "tienda"): `tienda:rounded-full`.
+   Los paneles internos (admin, editor, hardware, mensajes…) no la llevan y se quedan como están. */
+@custom-variant tienda (.tienda &);
+
 @theme {
   /* ---------- Colores de marca (sacados del logo) ---------- */
   --color-tinta: #0b0b0b; /* El negro del logo. Textos, botones principales, fondos oscuros */
@@ -31,6 +35,15 @@
   --color-salvia: #e6ebe5; /* Fondo de las tablas de la portada */
   --color-senal: #ffc21a; /* Amarillo de las ruedas del coche: píxeles y detalles (nunca texto) */
   --radius-recto: 2px; /* Esquinas casi rectas de la portada */
+  --color-estudio: #f2efe9; /* Papel cálido del estudio de fotos (portada 3D) */
+
+  /* ---------- Tienda «industrial» (12-11-2026): superficies de carbón y LED de estado ---------- */
+  --color-carbon: #0a0c10; /* Fondo de la tienda */
+  --color-panel: #111318; /* Superficie: hojas técnicas, tablas */
+  --color-panel-alto: #171a20; /* Superficie al pasar el ratón o seleccionada */
+  --color-borde-fuerte: #3a3f48; /* Contorno de controles y marcas de cruce */
+  --color-led: #00ff66; /* LED de estado «en marcha» (verde fósforo). Nunca texto largo */
+  --color-papel-plano: #f4f4f0; /* Blanco de plano técnico */
 
   /* ---------- Estados (avisos de compatibilidad, formularios) ---------- */
   --color-exito: #157a42;
@@ -48,6 +61,8 @@
   /* ---------- Sombras ---------- */
   --shadow-tarjeta: 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px rgb(11 11 11 / 0.06);
   --shadow-flotante: 0 12px 40px rgb(11 11 11 / 0.14);
+  /* Tienda: sombra de una tarjeta al pasar el ratón (suave y cálida, como un objeto sobre la mesa) */
+  --shadow-posada: 0 2px 4px rgb(40 30 20 / 0.04), 0 18px 40px -12px rgb(40 30 20 / 0.18);
 
   /* ---------- Movimiento: toda la web frena igual, con una salida rápida y una llegada suave ---------- */
   --ease-suave: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -574,4 +589,218 @@ dialog[open]::backdrop {
     top: 100%;
     opacity: 0;
   }
+}
+
+/*
+ * ============================================================
+ *  LA TIENDA (web pública) — estilo «industrial», 12-11-2026
+ *  Petición de Jesse: PROMPT_REDISENO.md (hardware de ingeniería: carbón, un solo acento naranja,
+ *  letra mono para los datos, esquinas vivas, líneas finas, contenedores tipo plano CAD).
+ *  Todo lo que ve un cliente va dentro de .tienda (MarcoWeb). Aquí se cambian los tokens SOLO en esa
+ *  zona: los paneles internos (admin, editor, hardware, mensajes…) no llevan .tienda y no cambian.
+ *  Truco: «blanco» pasa a ser el carbón y «tinta» el texto claro, así cualquier página de la tienda
+ *  (carrito, legales, cuenta…) se vuelve oscura sin reescribirla.
+ * ============================================================
+ */
+:root:has(.tienda > main) {
+  background-color: var(--color-carbon);
+  color-scheme: dark;
+}
+
+.tienda {
+  --color-tinta: #e8e6e0; /* Texto principal (blanco roto, nunca blanco puro) */
+  --color-grafito: #c9c7c0;
+  --color-white: var(--color-carbon);
+  --color-niebla: var(--color-panel);
+  --color-salvia: var(--color-panel);
+  --color-estudio: var(--color-panel);
+  --color-gris: #9a9ea6; /* Texto secundario (contraste 7,4:1 sobre el carbón) */
+  --color-gris-claro: #6b7079;
+  --color-linea: #262a31; /* Líneas de contorno (zinc-800) */
+  --color-acento: #ff5500; /* Naranja de seguridad industrial: el ÚNICO color de acento */
+  --color-acento-hover: #ff6d24;
+  --color-acento-claro: #ff7a3d;
+  --color-exito: var(--color-led);
+  --color-aviso: #ffb020;
+  --color-error: #ff453a;
+  --color-error-oscuro: #ff8078;
+  --color-aviso-oscuro: #ffc35a;
+
+  --radius-boton: 0px;
+  --radius-tarjeta: 0px;
+  --radius-control: 0px;
+  --radius-recto: 0px;
+  --shadow-tarjeta: none;
+  --shadow-flotante: 0 0 0 1px var(--color-borde-fuerte), 0 24px 48px -24px rgb(0 0 0 / 0.8);
+  --shadow-posada: none;
+  --spacing-nav: 3.5rem;
+  /* Movimiento mecánico: rápido y firme, sin rebotes */
+  --ease-suave: cubic-bezier(0.25, 0, 0, 1);
+
+  /* Una letra geométrica para leer (Inter) y una mono para los datos (JetBrains Mono) */
+  --font-jost: var(--font-inter);
+  --font-newsreader: var(--font-inter);
+
+  background-color: var(--color-carbon);
+  color: var(--color-tinta);
+  color-scheme: dark;
+}
+
+.tienda ::selection {
+  background: var(--color-acento);
+  color: var(--color-carbon);
+}
+
+/* Titulares: grandes y con el espaciado muy cerrado */
+.tienda h1,
+.tienda h2 {
+  letter-spacing: -0.045em;
+}
+.tienda h3 {
+  letter-spacing: -0.02em;
+}
+.tienda .titular-cartel {
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+}
+
+/* Sin puntos: líneas finas y continuas */
+.tienda .border-dotted,
+.tienda .border-dashed {
+  border-style: solid;
+}
+.tienda .linea-puntos {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 100% 1px;
+  opacity: 0.25;
+}
+.tienda .etiqueta-taller,
+.tienda .etiqueta-taller-oscura {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gris);
+}
+.tienda .etiqueta-taller::before,
+.tienda .etiqueta-taller-oscura::before {
+  display: none;
+}
+
+/* Etiqueta técnica en mono: «// SEC_01 · SISTEMA», cabeceras de tabla, referencias */
+.mono-etiqueta {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Rejilla de plano técnico (fondo de las secciones grandes) */
+.rejilla-plano {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: -1px -1px;
+}
+.rejilla-plano-fina {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+/* LED de estado: un punto con su halo. El color sale de «color» (text-led, text-aviso…) */
+.led {
+  display: inline-block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.6),
+    0 0 8px currentColor;
+}
+.led-apagado {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--color-borde-fuerte);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .led-parpadeo {
+    animation: led-parpadeo 2.4s steps(1, end) infinite;
+  }
+}
+@keyframes led-parpadeo {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Al entrar en pantalla, los bloques se «enfocan»: llegan de golpe, sin flotar */
+.tienda .aparecer {
+  animation-name: aparecer-mecanico;
+  animation-range: entry 0% entry 60%;
+}
+@keyframes aparecer-mecanico {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+/* Entrada al cargar la página (cabeceras): cada bloque un poco después del anterior (--i) */
+@media (prefers-reduced-motion: no-preference) {
+  .llegar {
+    animation: llegar-mecanico 420ms var(--ease-suave) both;
+    animation-delay: calc(var(--i, 0) * 70ms + 40ms);
+  }
+}
+@keyframes llegar-mecanico {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+/* Tecla de consola: al pulsar baja 1 px y pierde el filo de abajo, como un interruptor */
+.tienda .tecla {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 -2px 0 rgb(0 0 0 / 0.28);
+}
+.tienda .tecla:active {
+  translate: 0 1px;
+  box-shadow: inset 0 2px 0 rgb(0 0 0 / 0.3);
+}
+
+/* Zona de papel de plano (#f4f4f0) dentro de la tienda: la portada del despiece, sobre el escritorio.
+ * Devuelve los tokens a tinta oscura sobre papel, así Boton, TablaDatos y Led funcionan igual. */
+.tienda .papel {
+  --color-tinta: #0a0c10;
+  --color-grafito: #2a2e35;
+  --color-white: var(--color-papel-plano);
+  --color-niebla: #e9e7e0;
+  --color-panel: #e9e7e0;
+  --color-panel-alto: #e1ded6;
+  --color-gris: #50555d; /* 7:1 sobre el papel */
+  --color-gris-claro: #767b83;
+  --color-linea: rgb(10 12 16 / 0.14);
+  --color-borde-fuerte: rgb(10 12 16 / 0.42);
+  --color-aviso: #b26b00;
+  --color-exito: #0d8a3e;
+  color: var(--color-tinta);
+  color-scheme: light;
+}
+.tienda .papel .tecla {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 -2px 0 rgb(0 0 0 / 0.22);
+}
+.tienda .papel .led {
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.25),
+    0 0 6px currentColor;
 }

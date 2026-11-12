@@ -23,10 +23,11 @@ const newsreader = Newsreader({
   display: "swap",
   preload: false,
 });
+// La mono lleva los datos de la tienda (precios, referencias, pines…): dos gruesos
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains",
-  weight: "400",
+  weight: ["400", "500"],
   display: "swap",
   preload: false,
 });

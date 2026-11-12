@@ -1,60 +1,63 @@
 import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
+import { Led } from "@/components/ui/Led";
+import { MarcoCAD } from "@/components/ui/MarcoCAD";
 import { tienda } from "@/config/tienda";
 import { formatearPrecio } from "@/lib/utils";
-import { CampoPixeles } from "./CampoPixeles";
 
 /**
- * Último bloque de la portada: una invitación final a empezar, sobre negro con los mismos píxeles
- * vivos que la primera pantalla (la página empieza y acaba igual).
- * Mientras la tienda no cobra, en su lugar se pide el email para avisar el día que abra.
+ * SEC_05 · ESTADO DE LA TIENDA: una consola con el estado (LED), los datos de envío y, mientras no se
+ * cobra, la lista de espera; con la tienda abierta, el botón para elegir kit.
  */
 export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
-  if (!compraAbierta) {
-    return (
-      <section
-        id="avisame"
-        aria-labelledby="titulo-final"
-        className="relative isolate scroll-mt-nav overflow-hidden bg-tinta pt-20 pb-28 text-white sm:pt-28 sm:pb-36"
-      >
-        <CampoPixeles variante="final" />
-        <Contenedor className="aparecer relative max-w-2xl text-center">
-          <h2 id="titulo-final" className="titular-cartel text-5xl font-medium sm:text-8xl">
-            Abrimos muy pronto.
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl font-serif text-xl leading-snug text-white/75">
-            Estamos montando las primeras cajas y probando cada robot antes de que salga de casa. Si
-            quieres, te mandamos un correo el día que se pueda comprar. Uno, nada más.
-          </p>
-          <FormularioAvisame origen="portada" oscuro className="mx-auto mt-8 max-w-md text-left" />
-        </Contenedor>
-      </section>
-    );
-  }
-
+  const envio = [
+    ["Zona", tienda.envio.nombreZona],
+    ["Plazo", tienda.envio.plazo],
+    ["Envío", formatearPrecio(tienda.envio.costeCentimos)],
+    ["Gratis desde", formatearPrecio(tienda.envio.gratisDesdeCentimos)],
+  ];
   return (
     <section
+      id="avisame"
       aria-labelledby="titulo-final"
-      className="relative isolate overflow-hidden bg-tinta pt-20 pb-28 text-white sm:pt-28 sm:pb-36"
+      className="rejilla-plano scroll-mt-nav border-t border-linea py-20 sm:py-28"
     >
-      <CampoPixeles variante="final" />
-      <Contenedor className="aparecer relative text-center">
-        <h2 id="titulo-final" className="titular-cartel text-5xl font-medium sm:text-8xl">
-          ¿Te animas?
-        </h2>
-        <p className="mx-auto mt-6 max-w-xl font-serif text-xl leading-snug text-white/75">
-          Envío a toda la {tienda.envio.nombreZona} en {tienda.envio.plazo}. Gratis a partir de{" "}
-          {formatearPrecio(tienda.envio.gratisDesdeCentimos)}.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-          <Boton href="/kits" variante="claro" tamano="lg" className="rounded-recto!">
-            Elegir mi kit
-          </Boton>
-          <Boton href="/configurador" variante="enlace-claro" tamano="lg">
-            O elige tú las piezas ›
-          </Boton>
-        </div>
+      <Contenedor className="max-w-4xl">
+        <MarcoCAD
+          etiqueta="SEC_05 · Estado de la tienda"
+          cota={compraAbierta ? "ONLINE" : "PREVENTA"}
+          className="aparecer bg-carbon p-6 pt-9 sm:p-10 sm:pt-12"
+        >
+          <Led
+            estado={compraAbierta ? "ok" : "aviso"}
+            parpadeo={!compraAbierta}
+            texto={compraAbierta ? "Venta abierta · stock disponible" : "Primera tirada en preparación"}
+          />
+          <h2 id="titulo-final" className="titular-cartel mt-5 text-4xl font-semibold sm:text-6xl">
+            {compraAbierta ? "Listo para enviar." : "Apertura de la venta: pronto."}
+          </h2>
+          {compraAbierta ? (
+            <Boton href="/kits" variante="primario" tamano="lg" className="mt-8">
+              Elegir kit
+            </Boton>
+          ) : (
+            <>
+              <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-gris">
+                Déjanos un correo y te escribimos una sola vez: el día que se pueda comprar.
+              </p>
+              <FormularioAvisame origen="portada" className="mt-7 max-w-lg" />
+            </>
+          )}
+          <dl className="mt-10 grid grid-cols-2 border-t border-l border-linea font-mono text-[12px] sm:grid-cols-4">
+            {envio.map(([nombre, valor]) => (
+              <div key={nombre} className="border-r border-b border-linea px-3 py-2.5">
+                <dt className="mono-etiqueta text-[10px] text-gris">{nombre}</dt>
+                <dd className="mt-0.5 text-tinta">{valor}</dd>
+              </div>
+            ))}
+          </dl>
+        </MarcoCAD>
       </Contenedor>
     </section>
   );
