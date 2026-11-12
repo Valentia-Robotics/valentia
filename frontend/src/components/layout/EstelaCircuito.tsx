@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { crearChip, crearPequena, pintarPieza, type Pieza } from "./piezasEstela";
 
 /**
  * ESTELA DE CIRCUITO EN TODA LA WEB PÚBLICA (Jesse, 12-11-2026: «la animación del chip que pasas el
@@ -11,7 +12,9 @@ import { useEffect, useRef } from "react";
  *  - No se pinta donde ya hay un CampoPixeles (titular, cabeceras, bloque final: tienen la suya) ni
  *    en el pie de página: el final de la web se queda como estaba.
  *  - Solo con ratón (en el móvil no hay cursor) y nunca con «reducir movimiento».
- *  - Solo dibuja mientras queda estela: sin mover el ratón no gasta nada.
+ *  - Al pararse el ratón, al final del cable sale un chip (cada vez distinto) y por el camino
+ *    se quedan piezas pequeñas: resistencias, condensadores, LED (piezasEstela.ts).
+ *  - Solo dibuja mientras queda algo vivo: sin mover el ratón no gasta nada.
  */
 const CELDA = 12;
 const VERDE = "#155c39";
@@ -59,7 +62,12 @@ export function EstelaCircuito() {
     if (!window.matchMedia("(pointer: fine)").matches) return;
 
     const estela: Punto[] = [];
+    const piezas: Pieza[] = [];
     let fotograma = 0;
+    /** Hora del último movimiento y si el cable de ahora ya tiene su chip al final */
+    let ultimoMovimiento = 0;
+    let conChip = false;
+    let pasosSinPieza = 0;
 
     function ajustar() {
       const ppp = Math.min(window.devicePixelRatio || 1, 2);
@@ -96,11 +104,26 @@ export function EstelaCircuito() {
       ctx!.globalAlpha = 1;
       for (const p of estela) p.vida -= 0.02;
       while (estela.length && estela[0].vida <= 0) estela.shift();
+
+      // El ratón se ha parado: chip al final del cable (uno por cable)
+      const ahora = performance.now();
+      if (!conChip && cabeza && estela.length > 4 && ahora - ultimoMovimiento > 200) {
+        conChip = true;
+        piezas.push(crearChip(cabeza.x * CELDA + c2, cabeza.y * CELDA + c2, cabeza.color));
+        while (piezas.filter((q) => q.ancho > 30).length > 5) piezas.shift();
+      }
+      for (const p of piezas) {
+        pintarPieza(ctx!, p, dx, dy, ahora / 1000);
+        p.edad++;
+        // Los chips duran algo más que las piezas pequeñas
+        p.vida -= p.ancho > 30 ? 0.009 : 0.016;
+      }
+      for (let i = piezas.length - 1; i >= 0; i--) if (piezas[i].vida <= 0) piezas.splice(i, 1);
     }
 
     const bucle = () => {
       pintar();
-      fotograma = estela.length ? requestAnimationFrame(bucle) : 0;
+      fotograma = estela.length || piezas.length ? requestAnimationFrame(bucle) : 0;
       if (!fotograma) ctx!.clearRect(0, 0, window.innerWidth, window.innerHeight);
     };
     const arrancar = () => {
@@ -138,6 +161,14 @@ export function EstelaCircuito() {
         }
       }
       estela.push({ x, y, vida: 1, color });
+      ultimoMovimiento = performance.now();
+      conChip = false;
+      // De vez en cuando, una pieza pequeña por el camino (orientada como el tramo)
+      if (++pasosSinPieza > 14 && previo && Math.random() < 0.35) {
+        pasosSinPieza = 0;
+        const vertical = Math.abs(y - previo.y) > Math.abs(x - previo.x);
+        piezas.push(crearPequena(x * CELDA + CELDA / 2, y * CELDA + CELDA / 2, color, vertical));
+      }
       if (estela.length > 80) estela.splice(0, estela.length - 80);
       arrancar();
     };

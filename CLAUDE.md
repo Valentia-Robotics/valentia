@@ -34,6 +34,9 @@ si hay portapilas + cable USB + tarjeta QR) y precio. Los demás en `GaleriaKits
 pad) en un lienzo fijo sobre toda la web pública. Verde de placa sobre fondos claros y cobre sobre oscuros (mira el fondo
 bajo el ratón). NO se pinta en el pie ni donde ya hay un `CampoPixeles` (titular, cabeceras, bloque final: Jesse quería el
 final como estaba): el lienzo de `CampoPixeles` lleva `data-campo-pixeles`. Solo con ratón y sin «reducir movimiento».
+Chips (Jesse, mismo día): al pararse el ratón sale un chip al final del cable, distinto cada vez (cuadrado con patas,
+alargado, módulo de color con sensor/pantalla/robot/LED, engranajes), y por el camino resistencias, condensadores, LED y
+vías: `components/layout/piezasEstela.ts` (dibujo en canvas, sin imágenes).
 
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
