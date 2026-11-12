@@ -61,6 +61,8 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "rolFemenino" },
     { campo: "novedades" },
     { campo: "novedadesEn" },
+    { campo: "navegadorRegistro" },
+    { campo: "origenRegistro" },
   ],
   Verificacion: [
     { campo: "usuarioId", relacion: "usuario" },

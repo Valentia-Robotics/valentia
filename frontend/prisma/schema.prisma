@@ -359,6 +359,10 @@ model Usuario {
   novedades         Boolean?
   /// Cuándo dijo que sí o que no (sirve para demostrar el consentimiento, RGPD)
   novedadesEn       DateTime?
+  /// Navegador con el que se registró, por ejemplo "Chrome en Android" (null = cuenta anterior al 12-11-2026)
+  navegadorRegistro String?
+  /// Cómo llegó a la web antes de registrarse: "Código QR de una tarjeta", "Google", "Directo"… (src/config/llegada.ts)
+  origenRegistro    String?
 
   cursos         CursoUsuario[]
   codigos        CodigoActivacion[]
