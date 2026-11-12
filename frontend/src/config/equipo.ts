@@ -37,6 +37,24 @@ export function nombreRol(rol: Rol, femenino?: boolean | null): string {
   return femenino ? datos.femenino : datos.nombre;
 }
 
+/**
+ * El puesto de una persona para enseñarlo en el chat: «Editora», «Hardware», o «Administrador ·
+ * también hardware» si un admin también trabaja en hardware o en edición.
+ */
+export function puestoCompleto(p: {
+  rol: Rol;
+  rolFemenino?: boolean | null;
+  tambienEditor?: boolean | null;
+  tambienHardware?: boolean | null;
+}): string {
+  const tambien: string[] = [];
+  if (tieneAccesoAdmin(p.rol) && p.tambienHardware) tambien.push("hardware");
+  if (tieneAccesoAdmin(p.rol) && p.tambienEditor)
+    tambien.push(nombreEditor(p.rolFemenino).toLowerCase());
+  const base = nombreRol(p.rol, p.rolFemenino);
+  return tambien.length ? `${base} · también ${tambien.join(" y ")}` : base;
+}
+
 /** «Editor» o «Editora» (para quien también edita siendo admin) */
 export const nombreEditor = (femenino?: boolean | null) => nombreRol("EDITOR", femenino);
 
