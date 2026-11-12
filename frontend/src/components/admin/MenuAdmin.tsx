@@ -20,6 +20,7 @@ import {
   PenLine,
   PackageSearch,
   QrCode,
+  Send,
   ShoppingBag,
   Star,
   Users,
@@ -57,6 +58,7 @@ const seccionesAdmin: { href: string; etiqueta: string; icono: LucideIcon }[] = 
   { href: "/admin/hardware", etiqueta: "Hardware", icono: FolderOpen },
   { href: "/admin/resenas", etiqueta: "Reseñas", icono: Star },
   { href: "/admin/lista-espera", etiqueta: "Lista de espera", icono: Mail },
+  { href: "/admin/correos", etiqueta: "Correos a clientes", icono: Send },
   { href: "/admin/usuarios", etiqueta: "Usuarios", icono: Users },
   { href: "/admin/empleados", etiqueta: "Empleados", icono: Clock },
 ];

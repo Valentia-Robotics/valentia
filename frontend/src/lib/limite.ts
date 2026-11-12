@@ -36,6 +36,10 @@ export const LIMITES = {
   recuperar: { maximo: 10, minutos: 15 },
   /** Preparar un pedido en el checkout (por IP): evita bloquear el stock con pedidos falsos */
   checkout: { maximo: 20, minutos: 15 },
+  /** Correos de novedades a los clientes (por admin): frena un doble clic o un error */
+  correoNovedades: { maximo: 5, minutos: 60 * 24 },
+  /** «Mandarme una prueba» de un correo de novedades (por admin) */
+  correoNovedadesPrueba: { maximo: 30, minutos: 60 },
   /** Apuntarse a la lista de espera (por IP) */
   listaEspera: { maximo: 10, minutos: 60 },
   /** Páginas vistas que se cuentan en las estadísticas (por IP) */

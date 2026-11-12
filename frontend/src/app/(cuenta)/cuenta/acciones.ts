@@ -6,6 +6,7 @@
  *   - Cerrar sesión en todos los dispositivos
  *   - Cambiar el nombre y la foto de perfil
  *   - Cambiar la contraseña (se cierran las sesiones de los demás dispositivos)
+ *   - Recibir o no los correos de novedades
  * Cada acción comprueba la sesión: se pueden llamar desde fuera de la web.
  */
 import bcrypt from "bcryptjs";
@@ -21,6 +22,7 @@ import { obtenerUsuario } from "@/lib/sesion";
 import { esquemaCambioContrasena, esquemaCambioNombre } from "@/lib/validaciones/cuenta";
 import { dispositivoDeConfianza, olvidarDispositivos } from "@/lib/verificacion/dispositivos";
 import { esquemaId } from "@/lib/ids";
+import { guardarPreferenciaNovedades } from "@/lib/novedades/novedades";
 
 /** Identificador de un dispositivo o una dirección (cuid) */
 
@@ -168,4 +170,23 @@ export async function eliminarDireccion(id: string): Promise<{ ok: boolean }> {
   const { count } = await db.direccion.deleteMany({ where: { id, usuarioId: usuario.id } });
   revalidatePath("/cuenta");
   return { ok: count === 1 };
+}
+
+/** Correos de novedades: sí o no (desde «Mi cuenta» o la pregunta de «Mis cursos») */
+export async function cambiarNovedades(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  const usuario = await obtenerUsuario();
+  if (!usuario) return { ok: false, mensaje: SIN_SESION };
+  const quiere = formulario.get("quiere") === "si";
+  await guardarPreferenciaNovedades(usuario.id, quiere);
+  revalidatePath("/cuenta");
+  revalidatePath("/cursos");
+  return {
+    ok: true,
+    mensaje: quiere
+      ? "Hecho: te avisaremos por correo cuando haya novedades."
+      : "Hecho: no te mandaremos correos de novedades.",
+  };
 }

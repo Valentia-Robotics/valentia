@@ -10,6 +10,8 @@ export interface Correo {
   html: string;
   /** Versión sin formato, para programas de correo que no muestran HTML */
   texto: string;
+  /** Cabeceras extra (los correos de novedades llevan List-Unsubscribe: el botón «Cancelar suscripción» de Gmail) */
+  cabeceras?: Record<string, string>;
 }
 
 export interface ProveedorCorreo {

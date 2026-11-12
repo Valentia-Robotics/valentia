@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { KeyRound, MapPin, Package, ShieldCheck, UserRound } from "lucide-react";
+import { KeyRound, Mail, MapPin, Package, ShieldCheck, UserRound } from "lucide-react";
 import { FormularioContrasena } from "@/components/cuenta/FormularioContrasena";
 import { FormularioFoto } from "@/components/cuenta/FormularioFoto";
 import { FormularioNombre } from "@/components/cuenta/FormularioNombre";
 import { ListaPedidos } from "@/components/cuenta/ListaPedidos";
+import { PreferenciaNovedades } from "@/components/cuenta/PreferenciaNovedades";
 import { MisDirecciones } from "@/components/cuenta/MisDirecciones";
 import { MisDispositivos, type DispositivoVista } from "@/components/cuenta/MisDispositivos";
 import { Contenedor } from "@/components/ui/Contenedor";
@@ -36,7 +37,7 @@ export default async function PaginaMiCuenta() {
       where: { usuarioId: usuario.id },
       orderBy: [{ predeterminada: "desc" }, { creadoEn: "desc" }],
     }),
-    db.usuario.findUnique({ where: { id: usuario.id }, select: { foto: true } }),
+    db.usuario.findUnique({ where: { id: usuario.id }, select: { foto: true, novedades: true } }),
   ]);
 
   // Preparamos los textos aquí (en el servidor) para que no cambien al cargar la página
@@ -124,6 +125,22 @@ export default async function PaginaMiCuenta() {
           <div className="mt-8">
             <FormularioNombre nombre={usuario.nombre} />
           </div>
+        </section>
+
+        <section
+          id="novedades"
+          aria-labelledby="titulo-novedades"
+          className="mt-14 max-w-2xl scroll-mt-24"
+        >
+          <h2 id="titulo-novedades" className="flex items-center gap-2 text-2xl font-medium">
+            <Mail aria-hidden="true" className="size-6 text-acento" />
+            Correos de novedades
+          </h2>
+          <p className="mt-2 mb-6 text-gris">
+            Te escribimos cuando sacamos un kit nuevo o hay algo que merece la pena contar. Los
+            correos de tus pedidos y de tu cuenta te llegan siempre, elijas lo que elijas.
+          </p>
+          <PreferenciaNovedades quiere={perfil?.novedades ?? null} />
         </section>
 
         <section aria-labelledby="titulo-contrasena" className="mt-14 max-w-2xl">
