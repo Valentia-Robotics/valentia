@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { EstelaCircuito } from "@/components/layout/EstelaCircuito";
 import { BarraNavegacion } from "@/components/layout/BarraNavegacion";
 import { PieDePagina } from "@/components/layout/PieDePagina";
 import { TransicionPagina } from "@/components/layout/TransicionPagina";
@@ -16,6 +17,8 @@ export function MarcoWeb({ children }: { children: ReactNode }) {
         <TransicionPagina>{children}</TransicionPagina>
       </main>
       <PieDePagina />
+      {/* Los «cables» que siguen al ratón por toda la web (no en el pie ni donde ya hay placa animada) */}
+      <EstelaCircuito />
     </>
   );
 }

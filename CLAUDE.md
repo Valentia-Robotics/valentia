@@ -28,6 +28,13 @@ sombra cobre). Destacado: foto, qué hace, edad/nivel/montaje/curso, «Qué trae
 si hay portapilas + cable USB + tarjeta QR) y precio. Los demás en `GaleriaKits`. Sin eslogan. Reglas puras en
 `components/portada/datosKit.ts` (+ test). `obtenerKits` trae las piezas. Choca con el PR #109, que borra `KitsPortada`.
 
+### Cables que siguen al ratón en toda la web (12-11-2026, misma rama; petición de Jesse)
+
+`components/layout/EstelaCircuito` (en `MarcoWeb`): la estela de `CampoPixeles` (pista a 90°/45° que se apaga y acaba en un
+pad) en un lienzo fijo sobre toda la web pública. Verde de placa sobre fondos claros y cobre sobre oscuros (mira el fondo
+bajo el ratón). NO se pinta en el pie ni donde ya hay un `CampoPixeles` (titular, cabeceras, bloque final: Jesse quería el
+final como estaba): el lienzo de `CampoPixeles` lleva `data-campo-pixeles`. Solo con ratón y sin «reducir movimiento».
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,
