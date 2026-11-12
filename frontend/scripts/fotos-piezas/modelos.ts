@@ -545,10 +545,10 @@ export const MODELOS: Record<string, Modelo> = {
   "motor-dc-reductora": {
     encuadre: { elevacion: 28, azimut: 38 },
     construir(t) {
-      const amarillo = plastico(t, 0xe9b910, 0.38);
+      const amarillo = plastico(t, 0xf6b300, 0.38);
       const y = 1.125;
       t.redonda(3.7, 2.25, 1.9, 0.12, amarillo, 0, y, 0);
-      t.caja(3.72, 2.27, 0.03, t.mat({ color: 0xc99d0b, roughness: 0.5 }), 0, y, 0);
+      t.caja(3.72, 2.27, 0.03, t.mat({ color: 0xb87d00, roughness: 0.5 }), 0, y, 0);
       // Eje blanco que atraviesa la caja (sale por los dos lados)
       const blanco = t.mat({ color: 0xf1f1ec, roughness: 0.45 });
       t.cilindro(0.27, 3.4, blanco, -1.1, y, 0, "z", 28);
@@ -687,11 +687,11 @@ export const MODELOS: Record<string, Modelo> = {
     encuadre: { elevacion: 18, azimut: 24 },
     construir(t) {
       const yc = 0.2;
-      const azulLado = t.mat({ color: 0x113d85, roughness: 0.6 });
+      const azulLado = t.mat({ color: 0x0a3fb8, roughness: 0.5 });
       const azulCara = t.mat({ map: texturaSonar(), roughness: 0.5 });
       t.caja(0.53, 0.24, 0.016, t.caras(azulLado, azulCara, 4), 0, yc, 0);
-      const plata = t.mat({ color: 0xd3d6db, metalness: 0.95, roughness: 0.22 });
-      const rejilla = t.mat({ map: texturaRejilla(), metalness: 0.5, roughness: 0.5 });
+      const plata = t.mat({ color: 0xf2f4f7, metalness: 0.9, roughness: 0.24 });
+      const rejilla = t.mat({ map: texturaRejilla(), color: 0xc4c9d0, metalness: 0.85, roughness: 0.3 });
       for (const x of [-0.135, 0.135])
         t.cilindro(0.095, 0.13, [plata, rejilla, plata], x, yc, 0.073, "z", 48);
       t.redonda(0.09, 0.04, 0.02, 0.008, plata, 0, yc + 0.01, 0.018);

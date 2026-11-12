@@ -63,6 +63,11 @@ Séptima tanda (Jesse, 12-11-2026): las fotos de las piezas salen SIEMPRE del re
 técnicas» (`GaleriaKits`): cristal oscuro con filete, foto en ventana clara con marcas de corte y datos como tabla mono.
 Pieza nueva con render → añadir su slug a `CON_RENDER`.
 
+Octava tanda (Jesse, 12-11-2026): renders de las piezas regenerados con colores vivos (`scripts/fotos-piezas/estudio.ts`: tono
+`NeutralToneMapping` en vez de ACES, que desaturaba; luz 1,05; azul del HC-SR04 y amarillo del motor más intensos; «ojos» del
+ultrasonidos de aluminio). El chip negro de los kits (`ChipsFijos`) brilla con un barrido y un LED de estado que late; desde 1360 px
+(a escala 0,72 hasta 1500).
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,

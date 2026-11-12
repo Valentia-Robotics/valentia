@@ -11,7 +11,7 @@ import { pintarPieza, type Pieza, type TipoPieza } from "./piezasEstela";
  * de la estela (piezasEstela.ts).
  *  - No salen en el titular (empiezan a 1000 px) ni en el final de la web (paran 900 px antes del
  *    final del contenido): el bloque del final se queda como estaba.
- *  - Solo en pantallas de 1500 px o más (en las estrechas no hay margen y taparían el texto).
+ *  - Solo en pantallas de 1360 px (a la escala 0,72 hasta 1500) o más (en las estrechas no hay margen y taparían el texto).
  */
 const COBRE = "#d8a743";
 
@@ -250,6 +250,41 @@ function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | 
       ctx!.globalAlpha = 1;
 
       pintarPieza(ctx!, piezaChip, 0, 0, t);
+      if (piezaChip.tipo === "cuadrado") {
+        // Chip vivo: un brillo que barre el encapsulado y un LED de estado que late
+        const l = piezaChip.ancho;
+        const x0 = piezaChip.x - l / 2;
+        const y0 = piezaChip.y - l / 2;
+        ctx!.save();
+        ctx!.beginPath();
+        ctx!.rect(x0, y0, l, l);
+        ctx!.clip();
+        const barrido = ((t * 0.35) % 1.6) - 0.3;
+        const gx = x0 + barrido * l * 1.6;
+        const brillo = ctx!.createLinearGradient(gx - l * 0.25, y0, gx + l * 0.25, y0 + l * 0.5);
+        brillo.addColorStop(0, "rgba(255,255,255,0)");
+        brillo.addColorStop(0.5, "rgba(255,255,255,0.22)");
+        brillo.addColorStop(1, "rgba(255,255,255,0)");
+        ctx!.fillStyle = brillo;
+        ctx!.fillRect(x0, y0, l, l);
+        ctx!.restore();
+        const lx = x0 + l - 8;
+        const ly = y0 + 8;
+        const pulso = 0.55 + 0.45 * Math.sin(t * 3);
+        const halo = ctx!.createRadialGradient(lx, ly, 0, lx, ly, 9);
+        halo.addColorStop(0, "#40d67b");
+        halo.addColorStop(1, "transparent");
+        ctx!.globalAlpha = 0.5 * pulso;
+        ctx!.fillStyle = halo;
+        ctx!.beginPath();
+        ctx!.arc(lx, ly, 9, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.globalAlpha = 1;
+        ctx!.fillStyle = "#5dff9a";
+        ctx!.beginPath();
+        ctx!.arc(lx, ly, 1.8, 0, Math.PI * 2);
+        ctx!.fill();
+      }
       for (const p of piezasPequenas) pintarPieza(ctx!, p, 0, 0, t);
 
       // Luces que respiran: LED sueltos y el del módulo «LED RGB»
@@ -322,7 +357,11 @@ function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | 
         opacity: visible ? 1 : 0,
       }}
     >
-      <canvas ref={lienzo} style={{ width: ANCHO * ESCALA, height: ALTO * ESCALA }} />
+      <canvas
+        ref={lienzo}
+        className="origin-center scale-[0.72] min-[1500px]:scale-100"
+        style={{ width: ANCHO * ESCALA, height: ALTO * ESCALA }}
+      />
     </div>
   );
 }
@@ -340,7 +379,11 @@ export function ChipsFijos() {
       const lista: number[] = [];
       if (kits) {
         const arriba = kits.getBoundingClientRect().top - el.getBoundingClientRect().top;
-        for (let y = arriba + 260; y < arriba + kits.offsetHeight - 260 && lista.length < 3; y += 520)
+        for (
+          let y = arriba + 260;
+          y < arriba + kits.offsetHeight - 260 && lista.length < 3;
+          y += 520
+        )
           lista.push(Math.round(y));
       }
       setAlturas((antes) => (antes.join() === lista.join() ? antes : lista));
@@ -355,7 +398,7 @@ export function ChipsFijos() {
     <div
       ref={capa}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-10 hidden overflow-hidden min-[1500px]:block print:hidden"
+      className="pointer-events-none absolute inset-0 z-10 hidden overflow-hidden min-[1360px]:block print:hidden"
     >
       {alturas.map((y, i) => {
         const lado = i % 2 === 0 ? "izquierda" : "derecha";
