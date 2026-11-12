@@ -13,20 +13,21 @@ import { Caja } from "./Caja";
 import { AreaAdmin, CampoAdmin, SelectorAdmin } from "./campos";
 import { useFormulario } from "./useFormulario";
 
+/** En la vista previa, cada [nombre] sale con este nombre (a cada cliente le saldrá el suyo) */
+const NOMBRE_DE_EJEMPLO = "Ana";
+
 interface Props {
   /** Cuántas personas lo recibirán */
   destinatarios: number;
   /** Para el botón: «Ver el kit» de cada kit visible */
   kits: { slug: string; nombre: string }[];
-  /** Quien escribe (la vista previa sale con su nombre) */
-  nombre: string;
 }
 
 /**
  * Escribir un correo de novedades: asunto, título, texto y un botón opcional.
  * A la derecha, la vista previa tal cual llegará (misma plantilla que el servidor).
  */
-export function FormularioNovedades({ destinatarios, kits, nombre }: Props) {
+export function FormularioNovedades({ destinatarios, kits }: Props) {
   const envio = useFormulario(enviarNovedades);
   const prueba = useFormulario(enviarPrueba);
   const [confirmar, setConfirmar] = useState(false);
@@ -54,7 +55,7 @@ export function FormularioNovedades({ destinatarios, kits, nombre }: Props) {
     () =>
       plantillaNovedades({
         para: "",
-        nombre,
+        nombre: NOMBRE_DE_EJEMPLO,
         asunto: campos.asunto,
         titulo: campos.titulo || "El título de tu correo",
         parrafos: parrafosDeTexto(campos.texto || "Aquí saldrá el texto que escribas."),
@@ -64,7 +65,7 @@ export function FormularioNovedades({ destinatarios, kits, nombre }: Props) {
             : undefined,
         urlBaja: "#",
       }).html,
-    [campos, nombre],
+    [campos],
   );
 
   // Los errores salen del último botón pulsado
@@ -117,7 +118,7 @@ export function FormularioNovedades({ destinatarios, kits, nombre }: Props) {
           />
           <AreaAdmin
             etiqueta="Texto"
-            ayuda="Escribe como hablarías a un amigo. Deja una línea en blanco para empezar otro párrafo. El «Hola, …» se pone solo."
+            ayuda="Escribe como hablarías a un amigo. Deja una línea en blanco para empezar otro párrafo. El «Hola, …» se pone solo con el nombre de cada cliente, y si escribes [nombre] en el asunto, el título o el texto, también se cambia por su nombre."
             rows={9}
             value={campos.texto}
             onChange={cambiar("texto")}
@@ -179,7 +180,7 @@ export function FormularioNovedades({ destinatarios, kits, nombre }: Props) {
         </div>
       </Caja>
 
-      <Caja titulo="Así lo verán" sinRelleno>
+      <Caja titulo="Así lo verán (por ejemplo, para una clienta llamada Ana)" sinRelleno>
         <iframe
           title="Vista previa del correo"
           srcDoc={vista}

@@ -25,7 +25,7 @@ const contrasenaNueva = z
 const nombre = z
   .string()
   .trim()
-  .min(2, "Escribe tu nombre")
+  .min(2, "Escribe tu nombre de usuario (al menos 2 letras)")
   .max(80, "El nombre es demasiado largo");
 
 export const esquemaRegistro = z.object({

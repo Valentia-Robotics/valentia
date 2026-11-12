@@ -96,3 +96,13 @@ export const esquemaCorreoNovedades = z
   });
 
 export type DatosCorreoNovedades = z.infer<typeof esquemaCorreoNovedades>;
+
+/** Primer nombre de la persona («Ana García» → «Ana»); sin nombre, «hola» */
+export function primerNombre(nombre: string): string {
+  return nombre.trim().split(/\s+/)[0] || "hola";
+}
+
+/** Cambia cada [nombre] del texto (también [Nombre] o [NOMBRE]) por el nombre de quien lo recibe */
+export function ponerNombre(texto: string, nombre: string): string {
+  return texto.replace(/\[nombre\]/gi, () => primerNombre(nombre));
+}
