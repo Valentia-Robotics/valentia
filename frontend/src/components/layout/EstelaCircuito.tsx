@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { crearPequena, pintarPieza, type Pieza } from "./piezasEstela";
 
 /**
  * ESTELA DE CIRCUITO EN TODA LA WEB PÚBLICA (Jesse, 12-11-2026: «la animación del chip que pasas el
@@ -11,8 +12,9 @@ import { useEffect, useRef } from "react";
  *  - No se pinta donde ya hay un CampoPixeles (titular, cabeceras, bloque final: tienen la suya) ni
  *    en el pie de página: el final de la web se queda como estaba.
  *  - Solo con ratón (en el móvil no hay cursor) y nunca con «reducir movimiento».
- *  - Solo el cable: sin chips ni piezas pegados al cursor (Jesse, 12-11-2026: más refinado). Tampoco
- *    se dibuja encima de enlaces, botones ni campos. Los chips son los fijos de ChipsFijos.
+ *  - Por el camino se quedan, MUY de vez en cuando, piezas mini (resistencias, diodos, condensadores:
+ *    piezasEstela.ts); sin chips grandes (esos son los fijos de ChipsFijos). Tampoco se dibuja
+ *    encima de enlaces, botones ni campos.
  *  - Solo dibuja mientras queda algo vivo: sin mover el ratón no gasta nada.
  */
 const CELDA = 12;
@@ -64,6 +66,8 @@ export function EstelaCircuito() {
     if (!window.matchMedia("(pointer: fine)").matches) return;
 
     const estela: Punto[] = [];
+    const piezas: Pieza[] = [];
+    let pasosSinPieza = 0;
     let fotograma = 0;
 
     function ajustar() {
@@ -101,11 +105,20 @@ export function EstelaCircuito() {
       ctx!.globalAlpha = 1;
       for (const p of estela) p.vida -= 0.02;
       while (estela.length && estela[0].vida <= 0) estela.shift();
+
+      // Piezas pequeñas que se quedan por el camino: se desvanecen despacio
+      const ahora = performance.now() / 1000;
+      for (const p of piezas) {
+        pintarPieza(ctx!, p, dx, dy, ahora);
+        p.edad++;
+        p.vida -= 0.012;
+      }
+      for (let i = piezas.length - 1; i >= 0; i--) if (piezas[i].vida <= 0) piezas.splice(i, 1);
     }
 
     const bucle = () => {
       pintar();
-      fotograma = estela.length ? requestAnimationFrame(bucle) : 0;
+      fotograma = estela.length || piezas.length ? requestAnimationFrame(bucle) : 0;
       if (!fotograma) ctx!.clearRect(0, 0, window.innerWidth, window.innerHeight);
     };
     const arrancar = () => {
@@ -143,6 +156,12 @@ export function EstelaCircuito() {
         }
       }
       estela.push({ x, y, vida: 1, color });
+      // De vez en cuando (y pocas a la vez), una resistencia, un diodo o un condensador mini
+      if (++pasosSinPieza > 20 && previo && piezas.length < 5 && Math.random() < 0.3) {
+        pasosSinPieza = 0;
+        const vertical = Math.abs(y - previo.y) > Math.abs(x - previo.x);
+        piezas.push(crearPequena(x * CELDA + CELDA / 2, y * CELDA + CELDA / 2, color, vertical));
+      }
       if (estela.length > 80) estela.splice(0, estela.length - 80);
       arrancar();
     };

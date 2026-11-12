@@ -69,6 +69,9 @@ retocan** (se probó a avivar el color con `fotos:piezas` y Jesse lo rechazó: �
 avivan SOLO al mostrarlos con la clase CSS `.render-vivo` (saturación 1,35, contraste 1,06); los ojos plateados del HC-SR04 o el
 amarillo del motor solo se cambian en el modelo de Alonso (visor 3D / sus renders).
 
+Novena tanda (Jesse, 12-11-2026): el cable del ratón vuelve a dejar piezas MINI (resistencias, diodos, condensadores…; máx. 5 a la vez,
+una cada ~20 pasos con probabilidad .3); los chips grandes siguen sin salir del cursor.
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,
