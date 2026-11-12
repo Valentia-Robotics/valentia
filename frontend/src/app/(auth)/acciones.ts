@@ -12,13 +12,16 @@
  * Los mensajes nunca dicen si un email tiene cuenta o no.
  */
 import bcrypt from "bcryptjs";
+import { headers } from "next/headers";
 import { z } from "zod";
+import { origenDeLlegada } from "@/config/llegada";
 import { plantillaIntentoRegistro } from "@/lib/correo/plantillas";
 import { db } from "@/lib/db";
 import { ipDelCliente, registrarIntento } from "@/lib/limite";
 import { esquemaLogin, esquemaRegistro } from "@/lib/validaciones/cuenta";
 import { empezarVerificacion } from "@/lib/verificacion/codigos";
 import { dispositivoDeConfianza } from "@/lib/verificacion/dispositivos";
+import { nombreDispositivo } from "@/lib/verificacion/nombreDispositivo";
 import { abrirSesion } from "@/lib/verificacion/entrar";
 
 export interface EstadoCuenta {
@@ -47,6 +50,15 @@ function erroresPorCampo(error: z.ZodError): EstadoCuenta {
  * igualmente: así la respuesta tarda lo mismo y no se nota si el email existe.
  */
 const HUELLA_FALSA = bcrypt.hashSync("contraseña-que-nadie-tiene", 10);
+
+/** El dominio de la web (para no contar como «otra web» los enlaces internos) */
+function dominioPropio(): string {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").hostname;
+  } catch {
+    return "localhost";
+  }
+}
 
 export async function registrarse(formulario: FormData): Promise<EstadoCuenta> {
   const datos = esquemaRegistro.safeParse({
@@ -88,7 +100,14 @@ export async function registrarse(formulario: FormData): Promise<EstadoCuenta> {
           email,
           motivo: "REGISTRO",
           usuario: await db.usuario.create({
-            data: { nombre, email, contrasenaHash },
+            data: {
+              nombre,
+              email,
+              contrasenaHash,
+              // Para el panel: con qué navegador se registró y cómo llegó (sin IP)
+              navegadorRegistro: nombreDispositivo((await headers()).get("user-agent")),
+              origenRegistro: origenDeLlegada(formulario.get("llegada"), dominioPropio()),
+            },
             select: { id: true, nombre: true },
           }),
         });

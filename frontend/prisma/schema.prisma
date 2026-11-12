@@ -354,6 +354,10 @@ model Usuario {
   tambienHardware   Boolean?
   /// El nombre del puesto en femenino («Editora», «Administradora»); null o false = masculino
   rolFemenino       Boolean?
+  /// Navegador con el que se registró, por ejemplo "Chrome en Android" (null = cuenta anterior al 12-11-2026)
+  navegadorRegistro String?
+  /// Cómo llegó a la web antes de registrarse: "Código QR de una tarjeta", "Google", "Directo"… (src/config/llegada.ts)
+  origenRegistro    String?
 
   cursos         CursoUsuario[]
   codigos        CodigoActivacion[]

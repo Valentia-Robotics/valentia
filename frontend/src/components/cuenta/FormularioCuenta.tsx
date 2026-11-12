@@ -6,6 +6,7 @@ import { useState, type FormEvent } from "react";
 import { iniciarSesion, registrarse, type EstadoCuenta } from "@/app/(auth)/acciones";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
+import { leerLlegada } from "@/components/layout/ApuntarLlegada";
 import { Aviso } from "./Aviso";
 
 interface Props {
@@ -28,6 +29,8 @@ export function FormularioCuenta({ modo, volver }: Props) {
   async function alEnviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     const formulario = new FormData(evento.currentTarget);
+    // Al registrarse: cómo llegó a la web (para el panel; ver src/config/llegada.ts)
+    if (esRegistro) formulario.set("llegada", leerLlegada());
     setEnviando(true);
     setEstado({ ok: false });
 
