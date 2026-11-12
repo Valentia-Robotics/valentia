@@ -47,6 +47,14 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { fusionarMallas } from "./fusionarMallas";
 import { SUELO, crearModeloCoche } from "./modeloCoche";
 import { PIEZAS_ROBOT, type PiezaRobot } from "./piezasRobot";
+import {
+  AJUSTES_CALIDAD,
+  NIVEL_INFERIOR,
+  crearVigilante,
+  type Nivel3D,
+  type NivelCalidad,
+} from "@/lib/visor3d/calidad";
+import { entornoDelTaller, realzarMateriales } from "@/lib/visor3d/realismo";
 import { texturaSombra } from "./texturasRobot";
 
 type IdCapa = PiezaRobot["id"];
@@ -59,6 +67,8 @@ export interface EscenaDespiece {
   abrir(valor: number): void;
   /** La capa de la que se habla: se aclara y la cámara se acerca un poco (null = vista general) */
   enfocar(id: IdCapa | null): void;
+  /** Con qué calidad se está dibujando ahora (puede bajar sola si va a tirones) */
+  calidad(): NivelCalidad;
   /** Pausa el dibujo (cuando no se ve) */
   pausar(pausada: boolean): void;
   destruir(): void;
@@ -148,21 +158,31 @@ const tramo = (desde: number, hasta: number, v: number) =>
 export async function crearEscenaDespiece(
   canvas: HTMLCanvasElement,
   {
-    ligero = false,
+    calidad: calidadInicial = "alta",
     alDibujar,
-  }: { ligero?: boolean; alDibujar?: (anclas: Anclas, apertura: number) => void } = {},
+    alRendirse,
+  }: {
+    /** Calidad de partida (lib/visor3d/calidad.ts); si va a tirones, baja sola */
+    calidad?: Nivel3D;
+    alDibujar?: (anclas: Anclas, apertura: number) => void;
+    /** Ni en «baja» va fluido: la portada debe enseñar la foto fija (la escena ya se ha parado) */
+    alRendirse?: () => void;
+  } = {},
 ): Promise<EscenaDespiece> {
+  let nivel: NivelCalidad = calidadInicial;
+  let ajustes = AJUSTES_CALIDAD[calidadInicial];
+  canvas.dataset.calidad = nivel;
   const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
     alpha: true,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, ligero ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, ajustes.pixeles));
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = ajustes.sombras;
   renderer.shadowMap.type = VSMShadowMap;
 
   const geometrias: BufferGeometry[] = [];
@@ -174,7 +194,8 @@ export async function crearEscenaDespiece(
 
   const escena = new Scene();
   const pmrem = new PMREMGenerator(renderer);
-  const entorno = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  // Reflejos de partida: un estudio genérico. Con calidad media o alta se cambian por los de la foto del taller
+  let entorno = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   escena.environment = entorno;
   escena.environmentIntensity = 0.75;
   await ceder();
@@ -187,9 +208,9 @@ export async function crearEscenaDespiece(
   escena.add(new HemisphereLight(0xfdfbf6, 0xcdb999, 0.85));
   const ventana = new DirectionalLight(0xfff2e0, 2.3);
   ventana.position.set(-3.6, 6.8, 4.6);
-  ventana.castShadow = true;
-  ventana.shadow.mapSize.setScalar(ligero ? 1024 : 2048);
-  ventana.shadow.blurSamples = ligero ? 8 : 16;
+  ventana.castShadow = ajustes.sombras;
+  ventana.shadow.mapSize.setScalar(ajustes.mapaSombras);
+  ventana.shadow.blurSamples = ajustes.muestrasSombra;
   ventana.shadow.radius = 8;
   ventana.shadow.bias = -0.0006;
   Object.assign(ventana.shadow.camera, {
@@ -288,6 +309,18 @@ export async function crearEscenaDespiece(
     cargador.loadAsync(FOTO.url).then(tx),
     cargador.loadAsync(FOTO.profundidad).then(tx),
   ]);
+  if (ajustes.reflejosTaller) {
+    // El metal y los barnices reflejan la ventana y la madera de la foto, no un estudio cualquiera
+    const delTaller = entornoDelTaller(foto.image as HTMLImageElement, pmrem, {
+      luz: [ventana.position.x, ventana.position.y, ventana.position.z],
+      fondo: [-DESDE.x, -0.15, -DESDE.z],
+    });
+    entorno.dispose();
+    entorno = delTaller;
+    escena.environment = entorno;
+    escena.environmentIntensity = 0.9;
+    await ceder();
+  }
   profundidad.generateMipmaps = false;
   profundidad.minFilter = LinearFilter;
   // El mapa también se lee aquí: a qué distancia está la mesa justo donde se apoya el coche
@@ -340,6 +373,17 @@ export async function crearEscenaDespiece(
 
   // ---------------------------------------------------------------- EL COCHE
   const modelo = crearModeloCoche();
+  await ceder();
+  // Materiales que se comportan como los de verdad (antes de fusionar las mallas: van por material)
+  const realce = ajustes.materialesFinos
+    ? realzarMateriales(
+        modelo.raiz,
+        [...[...modelo.piezas.values()].map((p) => p.materiales), modelo.cables.materiales],
+        { anisotropia: Math.min(ajustes.anisotropia, renderer.capabilities.getMaxAnisotropy()) },
+      )
+    : { materiales: [], texturas: [] };
+  realce.materiales.forEach(m);
+  realce.texturas.forEach(tx);
   await ceder();
   const fusionadas = [...modelo.piezas.values(), modelo.cables].flatMap((p) =>
     fusionarMallas(p.grupo),
@@ -451,8 +495,38 @@ export async function crearEscenaDespiece(
   let distancia = ancha ? 1.7 : 1.2; // empieza ya en su sitio (sin acercarse de golpe)
   const anclas = Object.fromEntries(PIEZAS_ROBOT.map((p) => [p.id, { x: 0, y: 0 }])) as Anclas;
 
+  /** Baja un nivel de calidad sin parar la animación (o se rinde y deja la foto fija) */
+  const vigilante = crearVigilante();
+  function bajarCalidad() {
+    if (nivel === "foto") return;
+    nivel = NIVEL_INFERIOR[nivel];
+    canvas.dataset.calidad = nivel;
+    if (nivel === "foto") {
+      cancelAnimationFrame(marco);
+      alRendirse?.();
+      return;
+    }
+    ajustes = AJUSTES_CALIDAD[nivel];
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, ajustes.pixeles));
+    ajustarTamano();
+    if (!ajustes.sombras && renderer.shadowMap.enabled) {
+      renderer.shadowMap.enabled = false;
+      ventana.castShadow = false;
+      // Los sombreadores se rehacen sin la parte de las sombras
+      escena.traverse((o) => {
+        const malla = o as Mesh;
+        if (!malla.isMesh) return;
+        for (const material of [malla.material].flat()) material.needsUpdate = true;
+      });
+    }
+  }
+
   function dibujar(ahora: number) {
     marco = requestAnimationFrame(dibujar);
+    if (vigilante.apuntar(ahora - anterior)) {
+      bajarCalidad();
+      if (nivel === "foto") return;
+    }
     const dt = Math.min((ahora - anterior) / 1000, 0.05);
     anterior = ahora;
 
@@ -579,11 +653,13 @@ export async function crearEscenaDespiece(
     enfocar(id) {
       activa = id;
     },
+    calidad: () => nivel,
     pausar(valor) {
       if (valor === pausada) return;
       pausada = valor;
       cancelAnimationFrame(marco);
-      if (!pausada) {
+      if (!pausada && nivel !== "foto") {
+        vigilante.reiniciar();
         anterior = performance.now();
         marco = requestAnimationFrame(dibujar);
       }

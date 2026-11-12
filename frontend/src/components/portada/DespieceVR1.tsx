@@ -7,6 +7,7 @@ import { Led } from "@/components/ui/Led";
 import { Cruces } from "@/components/ui/MarcoCAD";
 import { TablaDatos } from "@/components/ui/TablaDatos";
 import { CAPAS_VR1 } from "@/config/despieceVR1";
+import { datosDelAparato, elegirCalidad, type NivelCalidad } from "@/lib/visor3d/calidad";
 import { cn, formatearPrecio } from "@/lib/utils";
 import type { Anclas, EscenaDespiece } from "./escenaDespiece";
 
@@ -184,7 +185,14 @@ export function DespieceVR1({
     if (!canvas || !caja) return;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const sinWebgl = !document.createElement("canvas").getContext("webgl2");
-    if (quieto || sinWebgl) {
+    // Calidad según el aparato; ?calidad=alta|media|baja|foto en la dirección la fuerza (para comparar)
+    const pedida = new URLSearchParams(window.location.search).get("calidad");
+    const calidad: NivelCalidad = ["alta", "media", "baja", "foto"].includes(pedida ?? "")
+      ? (pedida as NivelCalidad)
+      : sinWebgl
+        ? "foto"
+        : elegirCalidad(datosDelAparato());
+    if (quieto || sinWebgl || calidad === "foto") {
       const id = requestAnimationFrame(() => setCon3d(false));
       return () => cancelAnimationFrame(id);
     }
@@ -210,8 +218,14 @@ export function DespieceVR1({
       const { crearEscenaDespiece } = await import("./escenaDespiece");
       if (cancelado) return;
       escena = await crearEscenaDespiece(canvas, {
-        ligero: window.innerWidth < 768,
+        calidad,
         alDibujar: disponer,
+        // Ni con la calidad más baja va fluido: la foto fija, que se ve igual de bien
+        alRendirse: () => {
+          escena?.destruir();
+          escena = null;
+          setCon3d(false);
+        },
       });
       if (cancelado) return escena.destruir();
       visible.observe(caja);

@@ -55,6 +55,16 @@ ingeniero; frases prohibidas en el prompt). Los paneles internos NO se tocan.
   `BancoPruebas`, avisos como registro `[ERR]/[WARN]`. Textos de las reglas en `reglas.ts` (ids sin cambiar).
 - `MarcoWeb` recibe `tiendaAbierta` de los layouts de servidor (no puede importar `compraAbierta`: lo usa `error.tsx`).
 
+### 3D más realista y calidad según el aparato (12-11-2026, rama `claude/project-thread-est0jg`; petición de Jesse)
+
+Sobre el despiece del #109. `src/lib/visor3d/calidad.ts` (+ test): `elegirCalidad(datosDelAparato())` → `alta` / `media` /
+`baja` / `foto` (por GPU, memoria, núcleos, táctil y ahorro de datos; `?calidad=` en la dirección la fuerza) y
+`AJUSTES_CALIDAD` (píxeles, sombras, reflejos del taller, materiales finos). `crearVigilante` mide los fotogramas y la escena
+BAJA SOLA de nivel si va a tirones (varios fotogramas seguidos de > 250 ms también cuentan); tras `baja` llama a `alRendirse`
+y la portada enseña la foto fija. `src/lib/visor3d/realismo.ts`: `realzarMateriales` (barniz en placas con serigrafía en
+relieve, pelusa en la goma, rugosidad con huellas en metales) y `entornoDelTaller` (reflejos hechos con la propia foto del
+taller). El coche necesita el modelo real (Fusion/.glb) para el siguiente salto de realismo.
+
 ### Visor 3D de las piezas (11-11-2026, rama `claude/project-thread-kanu9n`; petición de Jesse, parte 1 del rediseño de la tienda)
 
 Alonso subirá .obj/.stl de cada componente. Archivo en `public/modelos/componentes/<slug>.(glb|gltf|stl|obj)` (+ `.mtl`)
