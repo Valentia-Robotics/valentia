@@ -47,7 +47,7 @@ const MONTAJES: Montaje[] = [
   {
     chip: {
       tipo: "modulo",
-      cuerpo: "#1f4fbf",
+      cuerpo: "#1b3a66",
       ancho: 96,
       alto: 56,
       patas: 5,
@@ -73,7 +73,7 @@ const MONTAJES: Montaje[] = [
   {
     chip: {
       tipo: "modulo",
-      cuerpo: "#b3261e",
+      cuerpo: "#6b2420",
       ancho: 90,
       alto: 58,
       patas: 4,
@@ -92,7 +92,7 @@ const MONTAJES: Montaje[] = [
   {
     chip: {
       tipo: "modulo",
-      cuerpo: "#5b2a86",
+      cuerpo: "#1a1a1a",
       ancho: 92,
       alto: 56,
       patas: 6,
