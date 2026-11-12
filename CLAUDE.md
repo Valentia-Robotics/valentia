@@ -48,6 +48,12 @@ Cuarta tanda (Jesse: «que no cambie de repente de color los fondos»): la porta
 degradados `Fundido` (ahora admite `placa`) en cada cambio; `.placa-rejilla` arranca del color exacto donde acaba el titular
 (mezcla en `srgb`, no `oklab`: en oklab salía más oscuro y se veía una línea) y el configurador es `bg-placa` (antes `grafito`).
 
+Quinta tanda (Jesse, 12-11-2026): el cable del ratón ya NO lleva chips ni piezas pegados (solo el cable, y no se dibuja sobre enlaces,
+botones ni campos); los chips fijos van sin desenfoque (opacidad .9). «O elige tú las piezas» es ahora un escenario NEGRO de estudio
+(`tienda/EscenarioPiezas`): un apartado por categoría con su pieza de referencia (`REFERENCIA`), inclinación hacia el ratón y botón
+«Verla en 3D» (`Ver3dPieza`, que no se ha tocado más que el texto). Fundidos blanco → negro → blanco alrededor. El configurador
+(`/configurador`) y sus modelos de Alonso no se tocan.
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,

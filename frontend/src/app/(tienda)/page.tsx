@@ -9,7 +9,7 @@ import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { Fundido } from "@/components/ui/Fundido";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
-import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
+import { obtenerCifras, obtenerComponentes, obtenerKits } from "@/lib/catalogo";
 import { datosTienda } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 
@@ -39,7 +39,11 @@ export const metadata: Metadata = metadatosPagina({
  *   7. Invitación final, sobre negro con la misma placa que el principio
  */
 export default async function Inicio() {
-  const [kits, cifras] = await Promise.all([obtenerKits(), obtenerCifras()]);
+  const [kits, cifras, componentes] = await Promise.all([
+    obtenerKits(),
+    obtenerCifras(),
+    obtenerComponentes(),
+  ]);
   const estrella = kits.find((k) => k.destacado) ?? kits[0];
   // Los kits gratis (sin piezas) solo salen en /kits: la portada enseña lo que se monta
   const aLaVenta = kits.filter((k) => k.precioCentimos > 0);
@@ -60,11 +64,11 @@ export default async function Inicio() {
       <Fundido desde="placa" hasta="blanco" />
       <BloqueComoFunciona cifras={cifras} />
       <PiezasPortada />
-      {/* Recorrido de color: verde (titular y kits) → blanco → verde (configurador) → blanco → negro (final).
+      {/* Recorrido de color: verde (titular y kits) → blanco → negro de estudio (configurador) → blanco → negro (final).
           Cada cambio va con un Fundido: nunca un corte seco de un fondo a otro */}
-      <Fundido desde="blanco" hasta="placa" />
-      <BloqueConfigurador />
-      <Fundido desde="placa" hasta="blanco" />
+      <Fundido desde="blanco" hasta="tinta" />
+      <BloqueConfigurador componentes={componentes} />
+      <Fundido desde="tinta" hasta="blanco" />
       <BloqueCursoQR />
       <Fundido desde="blanco" hasta="tinta" />
       <BloqueFinal compraAbierta={abierta} />

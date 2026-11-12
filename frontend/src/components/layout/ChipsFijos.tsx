@@ -315,9 +315,8 @@ function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | 
       ref={caja}
       className="transition-opacity duration-1000 motion-reduce:transition-none"
       style={{
-        opacity: visible ? 0.62 : 0,
+        opacity: visible ? 0.9 : 0,
         // Un pelo de desenfoque y bordes que se funden: que parezca parte del fondo, no una pegatina
-        filter: "blur(0.35px) saturate(0.85)",
         maskImage: "radial-gradient(ellipse 52% 48% at 50% 38%, #000 58%, transparent 100%)",
         WebkitMaskImage: "radial-gradient(ellipse 52% 48% at 50% 38%, #000 58%, transparent 100%)",
       }}
