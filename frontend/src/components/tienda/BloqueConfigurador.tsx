@@ -13,7 +13,7 @@ export function BloqueConfigurador() {
   return (
     <section
       aria-labelledby="titulo-configurador"
-      className="bg-grafito pt-10 pb-16 text-white diferido sm:pt-14 sm:pb-24"
+      className="bg-placa pt-10 pb-16 text-white diferido sm:pt-14 sm:pb-24"
     >
       <Contenedor>
         <div className="aparecer grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
@@ -38,7 +38,7 @@ export function BloqueConfigurador() {
             <li key={id}>
               <Link
                 href="/configurador"
-                className="group flex h-full flex-col justify-between gap-10 bg-grafito p-5 transition-colors duration-300 hover:bg-acento sm:p-6"
+                className="group flex h-full flex-col justify-between gap-10 bg-placa p-5 transition-colors duration-300 hover:bg-placa-claro sm:p-6"
               >
                 <span className="flex items-start justify-between">
                   <span className="font-mono text-xs text-white/50 group-hover:text-white/80">

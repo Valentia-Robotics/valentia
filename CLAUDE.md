@@ -44,6 +44,10 @@ Tercera tanda (Jesse: «con animación y que peguen con el fondo, no pegotes»):
 pista, LED que respiran, engranajes que giran, ondas del zumbador; ~30 fps y solo mientras se ven; quietos con «reducir
 movimiento») y fundidos con el fondo (opacidad 0,62, desenfoque de 0,35 px, máscara radial, entran con fundido).
 
+Cuarta tanda (Jesse: «que no cambie de repente de color los fondos»): la portada recorre verde → blanco → verde → blanco → negro con
+degradados `Fundido` (ahora admite `placa`) en cada cambio; `.placa-rejilla` arranca del color exacto donde acaba el titular
+(mezcla en `srgb`, no `oklab`: en oklab salía más oscuro y se veía una línea) y el configurador es `bg-placa` (antes `grafito`).
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,

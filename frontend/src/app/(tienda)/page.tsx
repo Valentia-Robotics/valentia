@@ -56,14 +56,17 @@ export default async function Inicio() {
         kits={aLaVenta.filter((k) => k.slug !== destacado?.slug)}
         compraAbierta={abierta}
       />
+      {/* Del verde de placa al blanco, despacio: sin corte entre los kits y lo que sigue */}
+      <Fundido desde="placa" hasta="blanco" />
       <BloqueComoFunciona cifras={cifras} />
       <PiezasPortada />
-      {/* Un solo paso a oscuro (configurador) y vuelta a claro: la página fluye sin cortes */}
-      <Fundido desde="blanco" hasta="grafito" />
+      {/* Recorrido de color: verde (titular y kits) → blanco → verde (configurador) → blanco → negro (final).
+          Cada cambio va con un Fundido: nunca un corte seco de un fondo a otro */}
+      <Fundido desde="blanco" hasta="placa" />
       <BloqueConfigurador />
-      <Fundido desde="grafito" hasta="blanco" />
+      <Fundido desde="placa" hasta="blanco" />
       <BloqueCursoQR />
-      <Fundido desde="blanco" hasta="tinta" corto />
+      <Fundido desde="blanco" hasta="tinta" />
       <BloqueFinal compraAbierta={abierta} />
     </>
   );

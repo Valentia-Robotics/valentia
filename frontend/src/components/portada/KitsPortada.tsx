@@ -44,9 +44,6 @@ export function KitsPortada({
       aria-labelledby="titulo-kits"
       className="placa-rejilla relative isolate overflow-x-clip pt-16 pb-20 text-white sm:pt-20 sm:pb-28"
     >
-      {/* Línea de cobre arriba: separa esta placa de la del titular */}
-      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-cobre/60" />
-
       <Contenedor>
         <div className="aparecer grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
           <div>

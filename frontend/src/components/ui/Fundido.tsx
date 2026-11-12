@@ -6,6 +6,7 @@ const colores = {
   niebla: "var(--color-niebla)",
   tinta: "var(--color-tinta)",
   grafito: "var(--color-grafito)",
+  placa: "var(--color-placa)",
 } as const;
 
 export type ColorFundido = keyof typeof colores;
