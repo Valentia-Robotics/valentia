@@ -5,9 +5,10 @@
  */
 import "server-only";
 import { after } from "next/server";
-import { enLinea, ROLES_EQUIPO } from "@/config/equipo";
+import { enLinea } from "@/config/equipo";
 import {
   canalDeRuta,
+  grupoDe,
   leerDatosTarea,
   limpiarMensaje,
   problemaMensaje,
@@ -64,7 +65,7 @@ export async function enviarYAvisar(
   // responder, para que quien envía no espere
   const conImagen = !!guardada;
   after(() =>
-    avisarAlEquipo(yo, otro?.id ?? null, {
+    avisarAlEquipo(yo, otro?.id ?? null, canal, {
       texto,
       conImagen,
       esTarea: !!datosTarea,
@@ -72,7 +73,7 @@ export async function enviarYAvisar(
     }),
   );
 
-  // Correo: en un privado, con el primero sin leer; y a quien le encargan una tarea en el General.
+  // Correo: en un privado, con el primero sin leer; y a quien le encargan una tarea en un grupo.
   // Nunca si está conectado ahora mismo (ya lo ve en la web)
   const avisar =
     otro && !yaTeniaSinLeer
@@ -93,21 +94,22 @@ export async function enviarYAvisar(
       de: yo.nombre,
       texto: resumenMensaje(texto, !!guardada),
       esTarea: !!datosTarea,
-      ruta: otro ? yo.id : "general",
+      ruta: otro ? yo.id : canal,
     }),
   );
 }
 
-/** Manda el aviso push del mensaje nuevo: en un privado, a la otra persona; en el General, a todos */
+/** Manda el aviso push del mensaje nuevo: en un privado, a la otra persona; en un grupo, a todo el grupo */
 async function avisarAlEquipo(
   yo: UsuarioActual,
   otroId: string | null,
+  canal: string,
   datos: { texto: string; conImagen: boolean; esTarea: boolean; responsableId: string | null },
 ) {
   const destinos = await db.usuario.findMany({
     where: otroId
       ? { id: otroId }
-      : { rol: { in: ROLES_EQUIPO.map((r) => r.rol) }, id: { not: yo.id } },
+      : { AND: [grupoDe(canal)?.filtro ?? { id: { in: [] } }, { id: { not: yo.id } }] },
     select: {
       id: true,
       nombre: true,
@@ -130,7 +132,7 @@ async function avisarAlEquipo(
           conImagen: datos.conImagen,
           esTarea: datos.esTarea,
           tareaParaTi: datos.responsableId === id,
-          ruta: otroId ? yo.id : "general",
+          ruta: otroId ? yo.id : canal,
         }),
         total: await totalNoLeidos(persona).catch(() => undefined),
       };

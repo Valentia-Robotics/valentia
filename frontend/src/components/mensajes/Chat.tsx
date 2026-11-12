@@ -31,12 +31,13 @@ import {
   X,
 } from "lucide-react";
 import { enviarMensaje, quitarMensaje, type Respuesta } from "@/app/mensajes/acciones";
-import { ROLES_EQUIPO, textoConexion } from "@/config/equipo";
+import { textoConexion } from "@/config/equipo";
 import {
   MAX_CARACTERES_MENSAJE,
   SEGUNDOS_REFRESCO_CHAT,
   TIPOS_IMAGEN_MENSAJE,
   claveDia,
+  grupoDe,
   horaMensaje,
   problemaImagen,
   tamanoEnChat,
@@ -90,13 +91,6 @@ interface Envio {
   creadoEn: Date;
 }
 
-/** «Todo el equipo: administración, editores y hardware» (sale solo con cada rol nuevo) */
-const TODO_EL_EQUIPO = (() => {
-  const nombres = ROLES_EQUIPO.map((r) => r.plural.toLowerCase());
-  const ultimo = nombres.pop();
-  return `Todo el equipo: ${nombres.length ? `${nombres.join(", ")} y ${ultimo}` : ultimo}`;
-})();
-
 /**
  * Manda un mensaje con imagen (o con un GIF, por su id) por /api/mensajes/enviar (las acciones no
  * llevan archivos grandes)
@@ -140,14 +134,16 @@ export function Chat(props: Props) {
     personas,
     lecturas,
   } = props;
-  const general = ruta === "general";
-  // La foto de cada persona, para ponerla junto a sus mensajes en el General
+  // «general» = es un grupo (General, Hardware, Edición): varias personas, como en WhatsApp
+  const grupo = grupoDe(ruta);
+  const general = !!grupo;
+  // La foto de cada persona, para ponerla junto a sus mensajes en un grupo
   const fotoDe = useMemo(() => new Map(personas.map((p) => [p.id, p.foto ?? null])), [personas]);
   const router = useRouter();
   const [texto, setTexto] = useState("");
   const [esTarea, setEsTarea] = useState(false);
   // En un privado, la tarea es para la otra persona salvo que se cambie
-  const responsablePorDefecto = ruta === "general" ? "" : ruta;
+  const responsablePorDefecto = general ? "" : ruta;
   const [opciones, setOpciones] = useState<OpcionesTareaValor>(() =>
     opcionesVacias(responsablePorDefecto),
   );
@@ -468,11 +464,11 @@ export function Chat(props: Props) {
         >
           <ChevronLeft aria-hidden="true" className="size-5" />
         </Link>
-        <Avatar nombre={titulo} foto={foto} general={general} />
+        <Avatar nombre={titulo} foto={foto} grupo={grupo?.canal} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-medium">{titulo}</h2>
           <p className="truncate text-xs text-gris">
-            {general ? TODO_EL_EQUIPO : `${nombreRol(rol)} · ${textoConexion(ultimaConexionEn)}`}
+            {grupo ? grupo.descripcion : `${nombreRol(rol)} · ${textoConexion(ultimaConexionEn)}`}
           </p>
         </div>
         <Link
@@ -520,7 +516,7 @@ export function Chat(props: Props) {
           {enPantalla.length === 0 && (
             <p className="mx-auto mt-10 max-w-xs rounded-lg bg-white px-4 py-3 text-center text-sm text-gris shadow-sm">
               {general
-                ? "Todavía no hay mensajes. Escribe el primero para todo el equipo."
+                ? `Todavía no hay mensajes. Escribe el primero para ${grupo!.para}.`
                 : `Todavía no habéis hablado. Lo que escribas aquí solo lo verá ${titulo}.`}
             </p>
           )}

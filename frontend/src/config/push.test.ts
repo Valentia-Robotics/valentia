@@ -42,6 +42,15 @@ describe("avisos push", () => {
       ruta: "general",
     });
     expect(tarea.cuerpo).toBe("📋 Tarea para ti: Montar 5 coches");
+    const hardware = avisoDeMensaje({
+      de: "Dani",
+      texto: "Placas listas",
+      conImagen: false,
+      esTarea: false,
+      tareaParaTi: false,
+      ruta: "hardware",
+    });
+    expect(hardware).toMatchObject({ titulo: "Dani · Hardware", url: "/mensajes/hardware" });
   });
 
   it("recorta los textos largos y junta los espacios", () => {

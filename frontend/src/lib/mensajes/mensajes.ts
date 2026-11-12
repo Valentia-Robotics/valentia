@@ -3,7 +3,8 @@
  *
  * Permisos, en un solo sitio:
  *   - Solo los roles del equipo (src/config/equipo.ts) usan los mensajes. Un cliente, nada.
- *   - El «General» lo leen y escriben todos los del equipo.
+ *   - El «General» lo leen y escriben todos los del equipo; los grupos de cada departamento
+ *     (Hardware, Edición), solo los de ese departamento (GRUPOS en src/config/mensajes.ts).
  *   - Un chat privado solo lo ven sus dos personas (tampoco los administradores) y solo se puede
  *     abrir con alguien que sigue en el equipo.
  */
@@ -13,6 +14,8 @@ import {
   CANAL_GENERAL,
   MENSAJES_POR_CHAT,
   canalDeRuta,
+  grupoDe,
+  gruposDe,
   personasDelCanal,
   resumenMensaje,
   type DatosTarea,
@@ -46,6 +49,17 @@ export async function companeros(yo: UsuarioActual): Promise<Companero[]> {
   });
 }
 
+/** Los que están en un grupo menos yo, por nombre (en el General, todo el equipo) */
+export async function companerosDelGrupo(yo: UsuarioActual, canal: string): Promise<Companero[]> {
+  const grupo = grupoDe(canal);
+  if (!grupo) return [];
+  return db.usuario.findMany({
+    where: { AND: [grupo.filtro, { id: { not: yo.id } }] },
+    select: { id: true, nombre: true, foto: true, rol: true, ultimaConexionEn: true },
+    orderBy: { nombre: "asc" },
+  });
+}
+
 /**
  * Comprueba que «yo» puede usar ese canal. Para un chat privado, que la otra persona siga en el
  * equipo (si ya no lo está, el chat se puede leer pero no escribir). Devuelve la otra persona.
@@ -55,7 +69,11 @@ async function comprobarCanal(
   canal: string,
 ): Promise<{ otro: Companero | null; puedeEscribir: boolean }> {
   if (!esDelEquipo(yo.rol)) throw new ErrorMensaje("Esta sección es solo para el equipo.");
-  if (canal === CANAL_GENERAL) return { otro: null, puedeEscribir: true };
+  const grupo = grupoDe(canal);
+  if (grupo) {
+    if (!grupo.esMiembro(yo)) throw new ErrorMensaje("Este grupo es solo para su equipo.");
+    return { otro: null, puedeEscribir: true };
+  }
   const personas = personasDelCanal(canal);
   if (!personas || !personas.includes(yo.id)) throw new ErrorMensaje("Ese chat no existe.");
   const otroId = personas[0] === yo.id ? personas[1] : personas[0];
@@ -130,7 +148,7 @@ async function lecturasDeOtros(
   canal: string,
   otro: { id: string; nombre: string } | null,
 ): Promise<LecturaDeOtro[]> {
-  const personas = otro ? [otro] : await companeros(yo);
+  const personas = otro ? [otro] : await companerosDelGrupo(yo, canal);
   if (personas.length === 0) return [];
   const lecturas = await db.lecturaCanal.findMany({
     where: { canal, usuarioId: { in: personas.map((p) => p.id) } },
@@ -206,7 +224,10 @@ async function noLeidosPorCanal(yo: UsuarioActual, canales: string[]) {
 export async function totalNoLeidos(yo: UsuarioActual): Promise<number> {
   if (!esDelEquipo(yo.rol)) return 0;
   const otros = await companeros(yo);
-  const canales = [CANAL_GENERAL, ...otros.map((o) => canalDeRuta(o.id, yo.id)!)];
+  const canales = [
+    ...gruposDe(yo).map((g) => g.canal),
+    ...otros.map((o) => canalDeRuta(o.id, yo.id)!),
+  ];
   // También los privados con alguien que ya no está en el equipo
   const conMensajes = await db.mensajeEquipo.findMany({
     where: { canal: { startsWith: "privado:", contains: yo.id } },
@@ -219,7 +240,7 @@ export async function totalNoLeidos(yo: UsuarioActual): Promise<number> {
 }
 
 export interface Conversacion {
-  /** "general" o el id de la otra persona: va en la dirección /mensajes/<ruta> */
+  /** El grupo ("general", "hardware"…) o el id de la otra persona: va en la dirección /mensajes/<ruta> */
   ruta: string;
   nombre: string;
   foto: string | null;
@@ -230,22 +251,23 @@ export interface Conversacion {
 }
 
 /**
- * La lista de chats, como la de WhatsApp: el General arriba y después las conversaciones
+ * La lista de chats, como la de WhatsApp: los grupos arriba (General y los de mi departamento) y después las conversaciones
  * privadas, primero las que tienen mensajes más recientes; luego el resto del equipo por nombre.
  */
 export async function listarConversaciones(yo: UsuarioActual): Promise<Conversacion[]> {
   const otros = await companeros(yo);
+  const grupos = gruposDe(yo);
   const lista: (Conversacion & { canal: string })[] = [
-    {
-      canal: CANAL_GENERAL,
-      ruta: CANAL_GENERAL,
-      nombre: "General",
+    ...grupos.map((g) => ({
+      canal: g.canal,
+      ruta: g.canal,
+      nombre: g.nombre,
       foto: null,
       rol: null,
       ultimaConexionEn: null,
       ultimo: null,
       noLeidos: 0,
-    },
+    })),
     ...otros.map((o) => ({
       canal: canalDeRuta(o.id, yo.id)!,
       ruta: o.id,
@@ -328,13 +350,14 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
         : null,
     };
   });
-  const [general, ...privados] = resultado;
+  const deGrupo = resultado.slice(0, grupos.length);
+  const privados = resultado.slice(grupos.length);
   privados.sort((a, b) => {
     if (a.ultimo && b.ultimo) return b.ultimo.creadoEn.getTime() - a.ultimo.creadoEn.getTime();
     if (a.ultimo || b.ultimo) return a.ultimo ? -1 : 1;
     return a.nombre.localeCompare(b.nombre, "es");
   });
-  return [general, ...privados];
+  return [...deGrupo, ...privados];
 }
 
 /**
@@ -351,7 +374,8 @@ export async function escribirMensaje(
   const { otro, puedeEscribir } = await comprobarCanal(yo, canal);
   if (!puedeEscribir) throw new ErrorMensaje("Esta persona ya no está en el equipo.");
 
-  // El responsable tiene que poder ver el chat: en uno privado, una de sus dos personas
+  // El responsable tiene que poder ver el chat: en uno privado, una de sus dos personas; en un
+  // grupo, alguien de ese grupo
   let responsable: { id: string; nombre: string } | null = null;
   if (tarea?.responsableId) {
     if (tarea.responsableId === yo.id) responsable = { id: yo.id, nombre: yo.nombre };
@@ -359,9 +383,10 @@ export async function escribirMensaje(
     else if (!otro) {
       const persona = await db.usuario.findUnique({
         where: { id: tarea.responsableId },
-        select: { id: true, nombre: true, rol: true },
+        select: { id: true, nombre: true, rol: true, tambienEditor: true, tambienHardware: true },
       });
-      if (persona && esDelEquipo(persona.rol)) responsable = persona;
+      if (persona && grupoDe(canal)?.esMiembro(persona))
+        responsable = { id: persona.id, nombre: persona.nombre };
     }
     if (!responsable) throw new ErrorMensaje("Esa persona no puede ver este chat.");
   }
@@ -481,9 +506,12 @@ export async function cerrarAlarma(yo: UsuarioActual, mensajeId: string) {
   await db.mensajeEquipo.update({ where: { id: tarea.id }, data: { alarmaCerradaEn: new Date() } });
 }
 
-/** Los canales que «yo» puede ver, como filtro: el General y sus chats privados */
+/** Los canales que «yo» puede ver, como filtro: sus grupos y sus chats privados */
 const filtroMisCanales = (yo: UsuarioActual) => ({
-  OR: [{ canal: CANAL_GENERAL }, { canal: { startsWith: "privado:", contains: yo.id } }],
+  OR: [
+    { canal: { in: gruposDe(yo).map((g) => g.canal) } },
+    { canal: { startsWith: "privado:", contains: yo.id } },
+  ],
 });
 
 /** Las alarmas que tienen que sonarme ya */
@@ -551,7 +579,7 @@ export async function ultimoSinLeer(yo: UsuarioActual) {
 /** La dirección /mensajes/<ruta> de un canal para «yo» */
 export function rutaDeCanal(canal: string, miId: string): string {
   const personas = personasDelCanal(canal);
-  if (!personas) return CANAL_GENERAL;
+  if (!personas) return grupoDe(canal) ? canal : CANAL_GENERAL;
   return personas[0] === miId ? personas[1] : personas[0];
 }
 
@@ -592,9 +620,12 @@ export async function recordatoriosPorEnviar() {
     if (count === 0 || !destinoId) continue;
     const destino = await db.usuario.findUnique({
       where: { id: destinoId },
-      select: { email: true, nombre: true, rol: true },
+      select: { email: true, nombre: true, rol: true, tambienEditor: true, tambienHardware: true },
     });
     if (!destino || !esDelEquipo(destino.rol)) continue;
+    // En un grupo, solo si sigue en él (p. ej. ya no es de hardware)
+    const grupo = grupoDe(t.canal);
+    if (grupo && !grupo.esMiembro(destino)) continue;
     listos.push({ ...t, destino, destinoId, ruta: rutaDeCanal(t.canal, destinoId) });
   }
   return listos;
@@ -605,7 +636,7 @@ export interface TareaEnLista extends Mensaje {
   chat: string;
 }
 
-/** Todas las tareas que «yo» puede ver (del General y de sus chats privados), con el nombre del chat */
+/** Todas las tareas que «yo» puede ver (de sus grupos y de sus chats privados), con el nombre del chat */
 export async function listarTareas(yo: UsuarioActual): Promise<TareaEnLista[]> {
   if (!esDelEquipo(yo.rol)) return [];
   const tareas = await db.mensajeEquipo.findMany({
@@ -625,16 +656,16 @@ export async function listarTareas(yo: UsuarioActual): Promise<TareaEnLista[]> {
     return {
       ...aMensaje(t),
       ruta,
-      chat: ruta === CANAL_GENERAL ? "General" : (nombres.get(ruta) ?? "—"),
+      chat: grupoDe(ruta)?.nombre ?? nombres.get(ruta) ?? "—",
     };
   });
 }
 
-/** Borra un mensaje: el suyo, cada uno; en el General, un administrador también puede borrar cualquiera */
+/** Borra un mensaje: el suyo, cada uno; en un grupo, un administrador también puede borrar cualquiera */
 export async function borrarMensaje(yo: UsuarioActual, mensajeId: string) {
   const mensaje = await mensajeVisible(yo, mensajeId);
   const puede =
-    mensaje.autorId === yo.id || (mensaje.canal === CANAL_GENERAL && tieneAccesoAdmin(yo.rol));
+    mensaje.autorId === yo.id || (!!grupoDe(mensaje.canal) && tieneAccesoAdmin(yo.rol));
   if (!puede) throw new ErrorMensaje("Solo puedes borrar tus mensajes.");
   await db.mensajeEquipo.delete({ where: { id: mensaje.id } });
   // La imagen también se borra del almacén (si falla, el mensaje ya no existe y nadie puede verla)

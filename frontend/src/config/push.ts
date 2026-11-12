@@ -3,6 +3,7 @@
  * cuando llega un mensaje, como los de WhatsApp, aunque la web esté cerrada.
  * El envío está en src/lib/push/push.ts y lo que hace el navegador al recibirlos, en public/sw.js.
  */
+import { grupoDe } from "./mensajes";
 
 /** Lo que le llega al navegador en cada aviso (lo lee public/sw.js) */
 export interface AvisoPush {
@@ -34,11 +35,11 @@ export function avisoDeMensaje(datos: {
   esTarea: boolean;
   /** La tarea es para quien recibe el aviso */
   tareaParaTi: boolean;
-  /** "general" o el id de quien escribe (la ruta del chat para quien lo recibe) */
+  /** El grupo ("general", "hardware"…) o el id de quien escribe (la ruta del chat para quien lo recibe) */
   ruta: string;
 }): AvisoPush {
-  const general = datos.ruta === "general";
-  const titulo = general ? `${datos.de} · General` : datos.de;
+  const grupo = grupoDe(datos.ruta);
+  const titulo = grupo ? `${datos.de} · ${grupo.nombre}` : datos.de;
   const antes = datos.tareaParaTi ? "📋 Tarea para ti: " : datos.esTarea ? "📋 Tarea: " : "";
   const texto = datos.texto.trim() || (datos.conImagen ? "📷 Imagen" : "");
   const cuerpo = recortar(`${antes}${datos.conImagen && datos.texto.trim() ? "📷 " : ""}${texto}`);

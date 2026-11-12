@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BellRing, MessagesSquare, Users } from "lucide-react";
+import { BellRing, Clapperboard, Cpu, MessagesSquare, Users } from "lucide-react";
 import { ROLES_EQUIPO, enLinea } from "@/config/equipo";
-import { cuandoEnLista } from "@/config/mensajes";
+import { cuandoEnLista, grupoDe } from "@/config/mensajes";
 import type { Conversacion } from "@/lib/mensajes/mensajes";
 import { cn } from "@/lib/utils";
 import { FotoAmpliable } from "@/components/cuenta/FotoAmpliable";
@@ -20,17 +20,25 @@ export function iniciales(nombre: string) {
 export const nombreRol = (rol: string | null) =>
   ROLES_EQUIPO.find((r) => r.rol === rol)?.nombre ?? "Ya no está en el equipo";
 
-/** El circulito con la foto o las iniciales (o el icono del grupo para el General). La foto se amplía al pulsarla */
+/** El icono de cada grupo (en vez de foto) */
+const ICONOS_GRUPO: Record<string, typeof Users> = {
+  general: Users,
+  hardware: Cpu,
+  edicion: Clapperboard,
+};
+
+/** El circulito con la foto o las iniciales (o el icono de un grupo). La foto se amplía al pulsarla */
 export function Avatar({
   nombre,
   foto,
-  general,
+  grupo,
   conectado,
   pequeno,
 }: {
   nombre: string;
   foto?: string | null;
-  general?: boolean;
+  /** El canal del grupo («general», «hardware»…): sale su icono */
+  grupo?: string | null;
   conectado?: boolean;
   /** 28 px en vez de 44 (junto a los mensajes del General) */
   pequeno?: boolean;
@@ -42,8 +50,11 @@ export function Avatar({
         pequeno ? "size-7 text-[11px]" : "size-11 text-sm",
       )}
     >
-      {general ? (
-        <Users aria-hidden="true" className="size-5" />
+      {grupo ? (
+        (() => {
+          const Icono = ICONOS_GRUPO[grupo] ?? Users;
+          return <Icono aria-hidden="true" className="size-5" />;
+        })()
       ) : foto ? (
         // Al pulsarla se ve en grande (también en la lista: abre la foto, no el chat)
         <FotoAmpliable
@@ -104,11 +115,11 @@ export function PantallaMensajes({
         </header>
         <ul className="min-h-0 flex-1 overflow-y-auto">
           {conversaciones.map((c) => {
-            const general = c.ruta === "general";
+            const grupo = grupoDe(c.ruta);
             const ultimo = c.ultimo
-              ? `${c.ultimo.mio ? "Tú: " : general ? `${c.ultimo.autorNombre}: ` : ""}${c.ultimo.texto}`
-              : general
-                ? "El chat de todo el equipo"
+              ? `${c.ultimo.mio ? "Tú: " : grupo ? `${c.ultimo.autorNombre}: ` : ""}${c.ultimo.texto}`
+              : grupo
+                ? grupo.enLista
                 : nombreRol(c.rol);
             return (
               <li key={c.ruta}>
@@ -123,8 +134,8 @@ export function PantallaMensajes({
                   <Avatar
                     nombre={c.nombre}
                     foto={c.foto}
-                    general={general}
-                    conectado={!general && enLinea(c.ultimaConexionEn)}
+                    grupo={grupo?.canal}
+                    conectado={!grupo && enLinea(c.ultimaConexionEn)}
                   />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
@@ -169,8 +180,8 @@ export function PantallaMensajes({
           <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center text-gris">
             <MessagesSquare aria-hidden="true" className="size-10" strokeWidth={1.5} />
             <p className="max-w-xs text-sm">
-              Elige un chat de la lista: el General para todo el equipo, o el de una persona para
-              hablar solo con ella.
+              Elige un chat de la lista: el General para todo el equipo, el grupo de tu
+              departamento, o el de una persona para hablar solo con ella.
             </p>
           </div>
         )}
