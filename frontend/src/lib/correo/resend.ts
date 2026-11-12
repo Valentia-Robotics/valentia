@@ -29,6 +29,7 @@ export const correoResend: ProveedorCorreo = {
         subject: correo.asunto,
         html: correo.html,
         text: correo.texto,
+        ...(correo.cabeceras && { headers: correo.cabeceras }),
       }),
     });
     if (!respuesta.ok) {

@@ -24,6 +24,7 @@ export const OPCIONALES: Record<string, Opcional[]> = {
   Kit: [{ campo: "stockMinimo" }],
   MovimientoStock: [{ campo: "minimoAntes" }, { campo: "minimoDespues" }, { campo: "reposicion" }],
   ListaEspera: [{ campo: "kitSlug" }, { campo: "avisadoEn" }],
+  CorreoNovedades: [{ campo: "botonTexto" }, { campo: "botonUrl" }, { campo: "terminadoEn" }],
   Visita: [{ campo: "origen" }],
   Ejercicio: [{ campo: "correcta" }, { campo: "explicacion" }, { campo: "solucion" }],
   Pedido: [
@@ -58,6 +59,8 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "tambienEditor" },
     { campo: "tambienHardware" },
     { campo: "rolFemenino" },
+    { campo: "novedades" },
+    { campo: "novedadesEn" },
     { campo: "navegadorRegistro" },
     { campo: "origenRegistro" },
   ],

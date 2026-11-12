@@ -88,6 +88,20 @@ export function FormularioCuenta({ modo, volver }: Props) {
         error={e.contrasena}
         ayuda={esRegistro ? "Al menos 8 caracteres." : undefined}
       />
+      {esRegistro && (
+        // Sin marcar por defecto: el consentimiento tiene que ser porque sí (RGPD)
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            name="novedades"
+            className="mt-0.5 size-4 shrink-0 accent-acento"
+          />
+          <span>
+            Avisadme por correo cuando saquéis kits nuevos. Pocos correos, y te puedes dar de baja
+            cuando quieras.
+          </span>
+        </label>
+      )}
       {!esRegistro && (
         <p className="-mt-2 text-right text-sm">
           <Link href="/recuperar" className="text-acento underline underline-offset-4">

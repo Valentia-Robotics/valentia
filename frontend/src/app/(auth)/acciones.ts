@@ -100,10 +100,13 @@ export async function registrarse(formulario: FormData): Promise<EstadoCuenta> {
           email,
           motivo: "REGISTRO",
           usuario: await db.usuario.create({
+            // Correos de novedades: solo si marcó la casilla (src/config/novedades.ts)
             data: {
               nombre,
               email,
               contrasenaHash,
+              novedades: formulario.get("novedades") === "on",
+              novedadesEn: new Date(),
               // Para el panel: con qué navegador se registró y cómo llegó (sin IP)
               navegadorRegistro: nombreDispositivo((await headers()).get("user-agent")),
               origenRegistro: origenDeLlegada(formulario.get("llegada"), dominioPropio()),

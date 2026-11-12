@@ -5,7 +5,7 @@
  * el diseño va con tablas y estilos escritos en cada etiqueta (es lo normal en los correos).
  */
 import { marca } from "@/config/marca";
-import { tienda } from "@/config/tienda";
+import { esMarcador, tienda } from "@/config/tienda";
 import type { Correo } from "./tipos";
 
 /** Colores de globals.css (los correos no pueden leer ese archivo) */
@@ -55,6 +55,12 @@ interface Contenido {
   tabla?: { concepto: string; importe: string; fuerte?: boolean; separador?: boolean }[];
   /** Letra pequeña al final */
   notas?: string[];
+  /** Palabra pequeña encima del título (los correos de novedades llevan «Publicidad», como pide la LSSI) */
+  etiqueta?: string;
+  /** Pie en HTML (por defecto: «Este correo se ha enviado automáticamente…») */
+  pie?: string;
+  /** Pie en texto plano (va con «pie») */
+  pieTexto?: string;
 }
 
 /** El "sobre" común a todos los correos: logo, tarjeta blanca y pie */
@@ -103,6 +109,7 @@ function maquetar(c: Contenido): string {
         <img src="${urlWeb("/images/brand/logo-negro.png")}" width="160" height="19" alt="${marca.nombre}" style="display:block;border:0;">
       </td></tr>
       <tr><td style="background:#ffffff;border-radius:24px;padding:36px 32px;">
+        ${c.etiqueta ? `<p style="margin:0 0 8px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:${C.gris};">${escapar(c.etiqueta)}</p>` : ""}
         <h1 style="margin:0 0 20px;font-size:24px;line-height:1.3;font-weight:600;color:${C.tinta};">${escapar(c.titulo)}</h1>
         ${c.parrafos.map(parrafo).join("")}
         ${tabla}
@@ -112,7 +119,7 @@ function maquetar(c: Contenido): string {
       </td></tr>
       <tr><td style="padding:24px 8px;font-size:12px;line-height:1.6;color:${C.gris};">
         ${marca.nombre} · ${marca.lema}<br>
-        Este correo se ha enviado automáticamente; no hace falta que respondas.
+        ${c.pie ?? "Este correo se ha enviado automáticamente; no hace falta que respondas."}
       </td></tr>
     </table>
   </td></tr>
@@ -142,6 +149,7 @@ function enTexto(c: Contenido): string {
     ...(c.notas ?? []).map(quitarHtml),
     "",
     `— ${marca.nombre}`,
+    ...(c.pieTexto ? ["", c.pieTexto] : []),
   ].join("\n");
 }
 
@@ -432,5 +440,37 @@ export function plantillaPedidoNuevoTienda(d: {
         : []),
       `Total cobrado: ${precio(d.totalCentimos)} (IVA incluido).`,
     ],
+  });
+}
+
+/**
+ * Correo de novedades que manda el equipo desde /admin/correos (kit nuevo, lanzamientos…).
+ * Es una función pura: el panel la usa también en el navegador para la vista previa.
+ * "urlBaja": el enlace personal para darse de baja (la LSSI exige uno en cada correo).
+ */
+export function plantillaNovedades(d: {
+  para: string;
+  nombre: string;
+  asunto: string;
+  titulo: string;
+  /** Párrafos (cada uno, sus líneas), ya partidos con parrafosDeTexto */
+  parrafos: string[][];
+  boton?: { texto: string; url: string };
+  urlBaja: string;
+}): Correo {
+  const quien = esMarcador(tienda.empresa.razonSocial) ? marca.nombre : tienda.empresa.razonSocial;
+  const urlBoton = d.boton && (d.boton.url.startsWith("/") ? urlWeb(d.boton.url) : d.boton.url);
+  const enlaceBaja = escapar(d.urlBaja);
+  return correo(d.para, d.asunto, {
+    resumen: d.parrafos[0]?.join(" ") ?? d.titulo,
+    etiqueta: "Publicidad · Novedades de Valentia",
+    titulo: d.titulo,
+    parrafos: [
+      saludo(d.nombre.split(" ")[0] || d.nombre),
+      ...d.parrafos.map((lineas) => lineas.map(escapar).join("<br>")),
+    ],
+    boton: d.boton && urlBoton ? { texto: escapar(d.boton.texto), url: urlBoton } : undefined,
+    pie: `Te escribimos porque en tu cuenta de ${escapar(quien)} pediste recibir novedades. ¿Prefieres no recibir más? <a href="${enlaceBaja}" style="color:${C.gris};text-decoration:underline;">Darme de baja</a>.`,
+    pieTexto: `Te escribimos porque en tu cuenta de ${quien} pediste recibir novedades. Para no recibir más: ${d.urlBaja}`,
   });
 }

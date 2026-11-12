@@ -354,6 +354,11 @@ model Usuario {
   tambienHardware   Boolean?
   /// El nombre del puesto en femenino («Editora», «Administradora»); null o false = masculino
   rolFemenino       Boolean?
+  /// ¿Quiere recibir los correos de novedades (kits nuevos…)? true = sí · false = no · null = aún no lo ha dicho.
+  /// Las reglas de quién los recibe están en src/config/novedades.ts
+  novedades         Boolean?
+  /// Cuándo dijo que sí o que no (sirve para demostrar el consentimiento, RGPD)
+  novedadesEn       DateTime?
   /// Navegador con el que se registró, por ejemplo "Chrome en Android" (null = cuenta anterior al 12-11-2026)
   navegadorRegistro String?
   /// Cómo llegó a la web antes de registrarse: "Código QR de una tarjeta", "Google", "Directo"… (src/config/llegada.ts)
@@ -382,6 +387,9 @@ model Usuario {
   mensajesEquipo MensajeEquipo[]
   lecturasCanal  LecturaCanal[]
   avisosPush     SuscripcionPush[]
+
+  correosNovedades CorreoNovedades[]
+  enviosNovedades  EnvioNovedades[]
 }
 
 /// Un mensaje de los chats del equipo (/mensajes): el «General» o una conversación privada entre dos.
@@ -1084,4 +1092,42 @@ model ValoracionEmpresa {
   creadoEn        DateTime @default(now())
 
   @@index([creadoEn])
+}
+
+/// Un correo de novedades que el equipo manda a los clientes desde /admin/correos
+model CorreoNovedades {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  asunto      String
+  titulo      String
+  /// El texto tal cual lo escribió el admin (párrafos separados por una línea en blanco)
+  texto       String
+  botonTexto  String?
+  botonUrl    String?
+  autorId     String    @db.ObjectId
+  autor       Usuario   @relation(fields: [autorId], references: [id])
+  /// Cuántas personas tenían que recibirlo al pulsar «Enviar»
+  total       Int
+  creadoEn    DateTime  @default(now())
+  /// null = enviándose (o se cortó a medias y se puede seguir)
+  terminadoEn DateTime?
+  /// Última vez que se apuntó un envío (si pasa mucho rato sin terminar, es que se cortó)
+  avanceEn    DateTime  @default(now())
+
+  envios EnvioNovedades[]
+
+  @@index([creadoEn])
+}
+
+/// A quién se ha mandado ya cada correo de novedades (nunca se manda dos veces a la misma persona)
+model EnvioNovedades {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  correoId  String          @db.ObjectId
+  correo    CorreoNovedades @relation(fields: [correoId], references: [id], onDelete: Cascade)
+  usuarioId String          @db.ObjectId
+  usuario   Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  /// false = el servicio de correo no lo aceptó
+  ok        Boolean
+  enviadoEn DateTime        @default(now())
+
+  @@unique([correoId, usuarioId])
 }
