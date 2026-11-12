@@ -56,6 +56,5 @@ Un 10 exige que cada punto tenga su nota máxima. Si alguno no la tiene, no se e
 
 ## Peticiones añadidas (11-11-2026, segunda tanda)
 
-11. **Todo muy ordenado:** cada cosa en su sitio, nada que aparezca de golpe, un solo mensaje por pantalla.
 12. **Poder probarlo en su ordenador (localhost), también en Windows,** antes de publicarlo.
 13. **Si el trabajo se corta por el límite de uso, seguir solo** en cuanto se restablezca.

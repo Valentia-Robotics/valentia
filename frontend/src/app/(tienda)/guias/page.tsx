@@ -37,13 +37,13 @@ export default function PaginaGuias() {
             <li key={guia.slug}>
               <Link
                 href={`/guias/${guia.slug}`}
-                className="flex h-full flex-col rounded-tarjeta bg-niebla p-6 transition-[background-color,box-shadow,translate] duration-300 hover:-translate-x-1 hover:-translate-y-1 hover:bg-white hover:shadow-[6px_6px_0_var(--color-acento)] hover:ring-1 hover:ring-tinta/15"
+                className="flex h-full flex-col rounded-tarjeta bg-niebla p-6 transition-[background-color,box-shadow,translate] duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-posada"
               >
                 <BookOpen aria-hidden="true" className="size-6 text-acento" strokeWidth={1.6} />
                 <h2 className="mt-4 text-2xl font-medium">{guia.titulo}</h2>
                 <p className="mt-2 flex-1 text-gris">{guia.descripcion}</p>
-                <p className="mt-4 font-mono text-xs text-tinta/70">
-                  ↳ {guia.minutos} min de lectura
+                <p className="mt-4 text-sm text-gris">
+                  {guia.minutos} min de lectura
                 </p>
               </Link>
             </li>

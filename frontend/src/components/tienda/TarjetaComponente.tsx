@@ -56,7 +56,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
         <div className={PIE_TARJETA}>
           <div>
             <p className="text-xl font-medium">{formatearPrecio(componente.precioCentimos)}</p>
-            <p className="font-mono text-xs text-gris">
+            <p className="text-xs text-gris">
               ● {textoTienda(componente.stock, componente.enReposicion)}
             </p>
           </div>

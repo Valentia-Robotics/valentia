@@ -647,6 +647,9 @@ dialog[open]::backdrop {
   /* Una sola letra para leer: la serif y la de máquina pasan a ser la normal */
   --font-newsreader: var(--font-inter);
   --font-jetbrains: var(--font-inter);
+  /* Hay que pisar también las de Tailwind: se calculan en :root y no ven el cambio de arriba */
+  --font-serif: var(--font-sans);
+  --font-mono: var(--font-sans);
 }
 
 /* Titulares: grandes y tranquilos (antes, apretados como un cartel) */

@@ -63,7 +63,7 @@ export default async function PaginaComponentes() {
               <li key={id}>
                 <a
                   href={`#${id.toLowerCase()}`}
-                  className="inline-flex items-center gap-2 rounded-boton bg-niebla px-4 py-2 font-mono text-xs transition-colors hover:bg-acento hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-boton bg-niebla px-4 py-2 text-sm transition-colors hover:bg-acento hover:text-white"
                 >
                   <Icono aria-hidden="true" className="size-4 text-acento" strokeWidth={1.6} />
                   {nombre}
