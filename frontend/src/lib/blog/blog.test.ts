@@ -29,6 +29,17 @@ describe("markdownAHtml", () => {
     expect(html).not.toContain("javascript:");
   });
 
+  it("un socio (Visualizalo) va sin nofollow; un dominio que solo se le parece, con nofollow", () => {
+    const html = markdownAHtml(
+      "[a](https://www.visualizalo.es/blog/x) [b](https://visualizalo.es) [c](https://visualizalo.es.mal.com) [d](https://novisualizalo.es) [e](http://www.visualizalo.es)",
+    );
+    expect(html).toContain('href="https://www.visualizalo.es/blog/x" rel="noopener" target="_blank"');
+    expect(html).toContain('href="https://visualizalo.es" rel="noopener" target="_blank"');
+    expect(html).toContain('href="https://visualizalo.es.mal.com" rel="noopener noreferrer nofollow"');
+    expect(html).toContain('href="https://novisualizalo.es" rel="noopener noreferrer nofollow"');
+    expect(html).toContain('href="http://www.visualizalo.es" rel="noopener noreferrer nofollow"');
+  });
+
   it("solo imágenes de bancos libres", () => {
     const html = markdownAHtml(
       "![a](https://images.unsplash.com/foto.jpg) ![b](https://xataka.com/foto.jpg)",
