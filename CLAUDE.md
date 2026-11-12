@@ -58,6 +58,11 @@ Sexta tanda (Jesse, 12-11-2026): los 3 kits de la portada van IGUALES en fila (`
 escenario negro usa `/images/componentes/<slug>.webp` (render de Alonso), no la foto de la BD; chips fijos al doble de resolución y 1,3×;
 la pestaña del menú «Crea tu robot» se llama «Configurador».
 
+Séptima tanda (Jesse, 12-11-2026): las fotos de las piezas salen SIEMPRE del render de Alonso si existe (`config/fotosPiezas.ts`, usado en
+`componenteDeFila`; en la BD puede haber una foto vieja) y `PiezasPortada` usa los `.webp`. Los kits de la portada son «fichas
+técnicas» (`GaleriaKits`): cristal oscuro con filete, foto en ventana clara con marcas de corte y datos como tabla mono.
+Pieza nueva con render → añadir su slug a `CON_RENDER`.
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,

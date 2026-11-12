@@ -2,6 +2,7 @@
  * Consultas del catálogo (kits, componentes y cursos) a la base de datos.
  * Las páginas usan estas funciones en lugar de hablar directamente con Prisma.
  */
+import { fotoPieza } from "@/config/fotosPiezas";
 import "server-only";
 import { db } from "@/lib/db";
 import { CATEGORIAS } from "@/lib/validaciones/catalogo";
@@ -103,7 +104,7 @@ function componenteDeFila(fila: FilaComponente): ComponenteCatalogo {
     precioCentimos: fila.precioCentimos,
     stock: fila.stock,
     enReposicion: fila.enReposicion,
-    imagen: fila.imagen,
+    imagen: fotoPieza(fila.slug, fila.imagen),
     voltaje: fila.voltaje,
     voltajeLogico: fila.voltajeLogico,
     voltajeLogicoMin: fila.voltajeLogicoMin,

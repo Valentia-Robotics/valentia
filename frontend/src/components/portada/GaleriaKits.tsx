@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CabeceraChip } from "./CabeceraChip";
 
 export interface KitGaleria {
   slug: string;
@@ -26,60 +25,78 @@ export function GaleriaKits({
   primeraReferencia = 1,
 }: {
   kits: KitGaleria[];
-  /** Número del primer chip (U2 si el destacado ya es U1) */
+  /** Número del primer kit (U1…) */
   primeraReferencia?: number;
 }) {
   return (
     <ul
       className={
-        kits.length >= 3
-          ? "grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
-          : "grid gap-8 sm:grid-cols-2 sm:gap-10"
+        kits.length >= 3 ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "grid gap-6 sm:grid-cols-2"
       }
     >
       {kits.map((kit, i) => (
-        <li key={kit.slug} className="chip-patas">
+        <li key={kit.slug}>
+          {/* Ficha técnica sobre la placa: cristal oscuro con filete fino, la foto en una ventana
+              clara con marcas de corte en las esquinas y los datos como una tabla de especificaciones */}
           <Link
             href={`/kits/${kit.slug}`}
-            className="group flex h-full flex-col overflow-hidden rounded-recto bg-white text-tinta shadow-[0_6px_0_var(--color-cobre)] transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-[0_10px_0_var(--color-cobre)] motion-reduce:hover:translate-0"
+            className="group flex h-full flex-col rounded-recto border border-white/15 bg-black/25 p-3 backdrop-blur-[2px] transition-[border-color,background-color] duration-300 hover:border-cobre/70 hover:bg-black/35"
           >
-            <CabeceraChip
-              referencia={primeraReferencia + i}
-              nivel={kit.nivel}
-              edadMinima={kit.edadMinima}
-            />
-            <div className="bg-niebla px-6 py-5">
+            <div className="relative overflow-hidden rounded-recto bg-niebla">
+              <span className="absolute top-3 left-3 font-mono text-[11px] text-placa">
+                U{primeraReferencia + i}
+              </span>
+              <span className="absolute top-3 right-3 font-mono text-[11px] text-tinta/55">
+                {kit.nivel}
+              </span>
+              {/* Marcas de corte */}
+              {[
+                "top-1.5 left-1.5 border-t border-l",
+                "top-1.5 right-1.5 border-t border-r",
+                "bottom-1.5 left-1.5 border-b border-l",
+                "bottom-1.5 right-1.5 border-b border-r",
+              ].map((c) => (
+                <span
+                  key={c}
+                  aria-hidden="true"
+                  className={`absolute size-2.5 border-tinta/30 ${c}`}
+                />
+              ))}
               <Image
                 src={kit.imagen}
                 alt={`Foto del kit ${kit.nombre}`}
                 width={800}
                 height={600}
                 unoptimized
-                className="mx-auto h-auto max-h-56 w-auto max-w-full transition-[scale] duration-500 group-hover:scale-[1.03]"
+                className="mx-auto h-auto max-h-60 w-auto max-w-full px-6 py-9 transition-[scale] duration-500 group-hover:scale-[1.04]"
               />
             </div>
-            <div className="flex flex-1 flex-col p-5">
-              <h3 className="text-xl font-medium">{kit.nombre}</h3>
+
+            <div className="flex flex-1 flex-col px-3 pt-5 pb-3 text-white">
+              <h3 className="text-xl leading-snug font-medium">{kit.nombre}</h3>
               {kit.hace.length > 0 && (
-                <ul className="mt-3 space-y-1.5 text-sm text-tinta/85">
-                  {kit.hace.map((texto) => (
-                    <li key={texto} className="flex gap-2.5">
-                      <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 bg-placa" />
-                      {texto}
-                    </li>
-                  ))}
-                </ul>
+                <p className="mt-2 font-serif text-base leading-snug text-white/75">
+                  {kit.hace.slice(0, 2).join(". ")}.
+                </p>
               )}
-              <p className="mt-4 font-mono text-xs text-tinta/60">
-                Montaje: {kit.montaje} · curso de {kit.lecciones}{" "}
-                {kit.lecciones === 1 ? "lección" : "lecciones"}
-              </p>
-              <div className="mt-auto flex items-center justify-between gap-3 border-t border-dotted border-tinta/25 pt-4">
-                <span className="text-lg font-medium tabular-nums">{kit.precio}</span>
-                <span
-                  aria-hidden="true"
-                  className="font-mono text-xs text-tinta/70 transition-colors group-hover:text-placa"
-                >
+              <dl className="mt-5 border-t border-dotted border-white/25 font-mono text-xs">
+                {[
+                  ["Edad", `desde ${kit.edadMinima} años`],
+                  ["Montaje", kit.montaje],
+                  ["Curso", `${kit.lecciones} ${kit.lecciones === 1 ? "lección" : "lecciones"}`],
+                ].map(([k, v]) => (
+                  <div
+                    key={k}
+                    className="flex justify-between gap-4 border-b border-dotted border-white/25 py-2"
+                  >
+                    <dt className="text-white/55">{k}</dt>
+                    <dd className="text-right text-white/90">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-auto flex items-end justify-between gap-3 pt-6">
+                <span className="text-3xl font-medium tabular-nums">{kit.precio}</span>
+                <span className="font-mono text-xs text-cobre transition-[translate] duration-300 group-hover:translate-x-1">
                   Ver el kit →
                 </span>
               </div>
