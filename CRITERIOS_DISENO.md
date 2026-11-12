@@ -58,3 +58,17 @@ Un 10 exige que cada punto tenga su nota máxima. Si alguno no la tiene, no se e
 
 12. **Poder probarlo en su ordenador (localhost), también en Windows,** antes de publicarlo.
 13. **Si el trabajo se corta por el límite de uso, seguir solo** en cuanto se restablezca.
+
+## Cambio de rumbo (12-11-2026)
+
+14. **Fuera el estilo «estudio»: se sigue `PROMPT_REDISENO.md`** (hardware industrial: carbón y papel de plano, un solo
+    naranja, letra mono para los datos, cajas de plano CAD, textos de ingeniero). Este prompt manda sobre los puntos
+    4 y 6 de arriba donde choquen (ahora sí hay datos técnicos, pero todos reales y sacados de la base de datos).
+15. **Portada: el despiece en un escritorio iluminado con personas reales montando el kit, y animado.** Jesse mandó la
+    foto del abuelo y la nieta en el taller: va de fondo grande, con toque 3D (se mueve en profundidad con el ratón) y
+    el coche 3D encima de su mesa con la perspectiva de la foto. Lo que tienen en las manos solo se puede cambiar por el
+    kit generando la foto otra vez (aquí no hay generador de imágenes): se le dice y se le da el texto para hacerlo.
+
+- 12-11-2026 · Tienda industrial + foto del taller en 3D: **9/10**. Wow 2 · Realismo 1,5 · Sencillez 1,5 · Movimiento 1 ·
+  Sin IA 1 · Objetivo 1 · Calidad 1. Falta para el 10: la foto con el kit de verdad en las manos y los modelos reales de
+  Alonso; probado en Chrome sin tarjeta gráfica (en un móvil de verdad irá más suave).

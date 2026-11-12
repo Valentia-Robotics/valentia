@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils";
 const paso = (i: number) => ({ "--i": i }) as CSSProperties;
 
 /**
- * CABECERA DE CADA PÁGINA (estilo «estudio»): papel cálido a todo el ancho, una línea pequeña que dice
- * dónde estás, el titular grande y, como mucho, una frase. Sin adornos: lo importante es el contenido
- * de debajo. Los tres bloques llegan uno detrás de otro, con calma.
+ * CABECERA DE CADA PÁGINA (tienda industrial): rejilla de plano a todo el ancho, la etiqueta de
+ * sección en mono («// SEC_02 · LÍNEA DE PRODUCTO»), titular grande con el espaciado cerrado y,
+ * como mucho, un párrafo técnico. Una línea fina la separa del contenido.
  * Va FUERA del <Contenedor> de la página (ocupa todo el ancho).
  *   compacta → menos alto (carrito, checkout, cuenta…)
- *   children → botones o enlaces debajo de la entradilla
+ *   children → botones, enlaces o una tira de datos debajo de la entradilla
  */
 export function CabeceraPagina({
   etiqueta,
@@ -26,23 +26,26 @@ export function CabeceraPagina({
   children?: ReactNode;
 }) {
   return (
-    <section className="bg-estudio text-tinta">
+    <section className="rejilla-plano border-b border-linea bg-carbon text-tinta">
       <div
         className={cn(
           "mx-auto max-w-6xl px-4 sm:px-6",
-          compacta ? "pt-10 pb-10 sm:pt-14 sm:pb-12" : "pt-14 pb-14 sm:pt-20 sm:pb-20",
+          compacta ? "pt-10 pb-10 sm:pt-12 sm:pb-12" : "pt-14 pb-14 sm:pt-20 sm:pb-16",
         )}
       >
         {etiqueta && (
-          <p className="llegar text-base text-gris" style={paso(0)}>
+          <p className="llegar mono-etiqueta text-gris" style={paso(0)}>
+            <span aria-hidden="true" className="text-acento">
+              {"// "}
+            </span>
             {etiqueta}
           </p>
         )}
         <h1
           style={paso(1)}
           className={cn(
-            "llegar titular-cartel max-w-3xl font-medium",
-            Boolean(etiqueta) && "mt-3",
+            "llegar titular-cartel max-w-4xl font-semibold",
+            Boolean(etiqueta) && "mt-4",
             compacta ? "text-4xl sm:text-5xl" : "text-5xl sm:text-6xl lg:text-7xl",
           )}
         >
@@ -50,7 +53,7 @@ export function CabeceraPagina({
         </h1>
         {entradilla && (
           <div
-            className="llegar mt-5 max-w-xl text-lg leading-relaxed text-tinta/70 sm:text-xl"
+            className="llegar mt-5 max-w-2xl text-base leading-relaxed text-gris sm:text-lg"
             style={paso(2)}
           >
             {entradilla}

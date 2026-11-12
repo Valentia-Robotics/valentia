@@ -23,16 +23,23 @@ export function BannerCookies() {
   const mostrarBanner = decididoEn === null && !panelAbierto;
 
   return (
-    <>
+    // Con la clase «tienda» el aviso usa siempre el estilo industrial (también si sale en un panel)
+    <div className="tienda contents">
       {mostrarBanner && (
         <section
           aria-label="Aviso de cookies"
           // Con nombre propio se queda quieto y encima mientras cambia la página (globals.css)
           style={{ viewTransitionName: "aviso-cookies" }}
           // Pequeño y en una esquina: no tapa la página (antes ocupaba media pantalla en el móvil)
-          className="fixed inset-x-3 bottom-3 z-[55] rounded-2xl bg-white p-4 shadow-flotante ring-1 ring-tinta/8 sm:right-auto sm:bottom-5 sm:left-5 sm:max-w-sm print:hidden"
+          className="fixed inset-x-3 bottom-3 z-[55] border border-borde-fuerte bg-panel p-4 shadow-flotante sm:right-auto sm:bottom-5 sm:left-5 sm:max-w-sm print:hidden"
         >
-          <p className="text-sm leading-relaxed text-tinta/75">
+          <p className="mono-etiqueta mb-2 text-gris-claro">
+            <span aria-hidden="true" className="text-acento">
+              {"// "}
+            </span>
+            Cookies
+          </p>
+          <p className="text-sm leading-relaxed text-gris">
             Usamos las cookies necesarias para que la web funcione y, si quieres, las de los vídeos
             de los cursos{hayAnalitica && " y las de Google Analytics"}.{" "}
             <Link href="/legal/cookies" className="text-tinta underline underline-offset-2">
@@ -40,20 +47,16 @@ export function BannerCookies() {
             </Link>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Boton variante="primario" onClick={aceptarTodo} className="rounded-full">
+            <Boton variante="primario" onClick={aceptarTodo}>
               Aceptar
             </Boton>
-            <Boton
-              variante="secundario"
-              onClick={rechazarTodo}
-              className="rounded-full border-solid! border-tinta/20!"
-            >
+            <Boton variante="secundario" onClick={rechazarTodo}>
               Solo necesarias
             </Boton>
             <button
               type="button"
               onClick={abrirPanel}
-              className="ml-auto px-2 py-2 text-sm text-gris underline-offset-4 hover:text-tinta hover:underline"
+              className="mono-etiqueta ml-auto px-2 py-2 text-gris underline-offset-4 hover:text-tinta hover:underline"
             >
               Configurar
             </button>
@@ -63,7 +66,7 @@ export function BannerCookies() {
       <Dialogo abierto={panelAbierto} alCerrar={cerrarPanel} titulo="Configurar cookies">
         <PanelPreferencias />
       </Dialogo>
-    </>
+    </div>
   );
 }
 
@@ -132,7 +135,7 @@ function Categoria({
   alCambiar?: (activa: boolean) => void;
 }) {
   return (
-    <label className="flex items-start justify-between gap-4 rounded-control bg-niebla p-4">
+    <label className="flex items-start justify-between gap-4 border border-linea bg-carbon p-4">
       <span>
         <span className="block font-medium">{titulo}</span>
         <span className="mt-1 block text-gris">{texto}</span>

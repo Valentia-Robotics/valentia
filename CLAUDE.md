@@ -31,23 +31,29 @@ Intercambio de enlaces: la ventana 3D lleva un crédito «Visor 3D de Visualizal
 los dominios de `SOCIOS_ENLACE` (`src/config/blog.ts`; hoy `visualizalo.es`) salen SIN nofollow (`enlaceDeSocio`,
 `markdownAHtml` + test); el resto de externos, con nofollow como siempre. Imágenes de la noticia en `public/images/blog/`.
 
-### Rediseño de la tienda pública, estilo «estudio» (11-11-2026, rama `claude/project-thread-qr311s`; petición de Jesse)
+### Tienda «industrial» (12-11-2026, rama `claude/project-thread-qr311s`; petición de Jesse, sustituye a «estudio»)
 
-Jesse: muy limpio, poco texto, para todas las edades, que no parezca hecho con IA; los paneles internos NO se tocan.
-- `MarcoWeb` envuelve la web pública en `<div class="tienda">`: en `globals.css` el bloque `.tienda { … }` cambia los
-  tokens (radios, papel `estudio` #f2efe9, sin serif ni mono, líneas continuas en vez de puntos) y
-  `@custom-variant tienda` permite `tienda:…` en componentes compartidos (`Boton`). Los paneles no llevan `.tienda`:
-  siguen igual. Estilo nuevo de la tienda → tocar ese bloque, no los tokens generales.
-- Portada: `HeroCoche` (tramo pegajoso de 300svh; el coche VR1 en 3D se abre al bajar y explica 5 piezas;
-  `escenaCoche.ts`, three con `import()`; sin WebGL o con reducir movimiento, la foto) → `KitsPortada` (3 tarjetas
-  iguales) → `BloqueComoFunciona` → `BloqueCursoQR` → `BloqueConfigurador` → `BloqueFinal` (lista de espera).
-  Borrados `HeroPortada`, `PiezasPortada`, `AvisoApertura`, `GaleriaKits`, `CampoPixeles`, `PaisajePixeles`, `Fundido`.
-- `CabeceraPagina` es papel con titular (sin lienzo). Entradas suaves: `.llegar` (al cargar, con `--i`) y `.aparecer`.
-- Ficha del kit: el kit en 3D (`modeloDeKit(slug)` → `public/modelos/kits/<slug>.glb`, de `npm run modelos:glb -- --kits`
-  + compresión meshopt como las piezas), «Qué hay en la caja» con fotos. Kit nuevo → exportar su .glb.
-- CSP (`next.config.ts`): `'wasm-unsafe-eval'` (descompresor meshopt) y `blob:` en `connect-src` (texturas de los .glb);
-  sin ellos el visor 3D no cargaba en producción.
-- Nota de Jesse: 8/10 en `CRITERIOS_DISENO.md`; faltan los modelos reales de Alonso y fotos reales.
+Jesse rechazó el estilo «estudio» (se parecía al del principio) y pidió seguir `PROMPT_REDISENO.md` (prompt maestro:
+grado hardware industrial, carbón #0A0C10 / papel de plano #F4F4F0, UN acento naranja #FF5500, Inter + JetBrains Mono
+para datos, esquinas rectas, líneas finas, cajas CAD con cruces en las esquinas y etiquetas `// SEC_0n`, textos de
+ingeniero; frases prohibidas en el prompt). Los paneles internos NO se tocan.
+- Tokens en `globals.css`, bloque `.tienda { … }` (oscuro); `.tienda .papel` lo vuelve a claro (tinta sobre papel).
+  Piezas: `ui/MarcoCAD` (+ `Cruces`), `ui/Led` (no pasarle `hidden`: su `inline-flex` gana; envolverlo), `ui/TablaDatos`.
+  `cn` NO fusiona clases de Tailwind: dos `display` a la vez → gana el orden del CSS.
+- Portada: `DespieceVR1` (tramo pegajoso de 400svh) → `LineaProducto` (`HojaKit`) → `BancoPruebasPortada` →
+  `FirmwarePortada` (trozo real de `firmware/coche-esp32`) → `BloqueFinal`. Datos de las hojas: `resumenTecnico(piezas)`
+  (motor de compatibilidad) y `obtenerKitsConPiezas()`. Capas del despiece y sus datos: `src/config/despieceVR1.ts`.
+- Despiece (`escenaDespiece.ts`, three con `import()`): de fondo la foto del taller (abuelo y nieta, de Jesse:
+  `public/images/portada/taller-fondo.webp`) pintada en el mismo lienzo con su mapa de profundidad
+  (`taller-profundidad.png`, `node scripts/profundidad-taller.mjs`; si cambia la foto, recolocar sus formas). Paralaje con
+  el ratón (en táctil se mece sola); el coche se apoya en la mesa de la foto (plano que solo recoge sombras, cámara a
+  ≈ 15° como la foto, luz de su ventana) y se mueve con ella. El encaje de la foto (`ENCUADRE`) debe ser el mismo que el
+  `<Image>` de `DespieceVR1`. Al despiezar la foto se desenfoca y se vela. Sin WebGL o con reducir movimiento: foto + PNG.
+- `/kits` y `/componentes`: hojas técnicas en rejilla con bordes por celda (no `gap-px` sobre fondo: las celdas vacías
+  salían grises). Fichas con lista de materiales, esquema de bloques y lecturas. Configurador = «banco de pruebas»:
+  `EsquemaBloques` (alimentación → control → periféricos, líneas por estado), `Lectura` (barra de segmentos),
+  `BancoPruebas`, avisos como registro `[ERR]/[WARN]`. Textos de las reglas en `reglas.ts` (ids sin cambiar).
+- `MarcoWeb` recibe `tiendaAbierta` de los layouts de servidor (no puede importar `compraAbierta`: lo usa `error.tsx`).
 
 ### Visor 3D de las piezas (11-11-2026, rama `claude/project-thread-kanu9n`; petición de Jesse, parte 1 del rediseño de la tienda)
 

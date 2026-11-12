@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles } from "lucide-react";
+import { formatearPrecio } from "@/lib/utils";
 import type { KitParaConfigurador } from "@/types/catalogo";
 
 interface Props {
@@ -11,59 +11,63 @@ interface Props {
   alEmpezarDesdeKit: (kit: KitParaConfigurador) => void;
 }
 
-/** "¿Cómo quieres empezar?": desde cero o con las piezas de un kit ya cargadas. */
+/** Punto de partida: banco vacío o la lista de materiales de un kit ya cargada. */
 export function InicioConfigurador({ kits, alEmpezarDesdeCero, alEmpezarDesdeKit }: Props) {
   return (
-    <section aria-labelledby="titulo-inicio" className="rounded-tarjeta bg-niebla p-5 sm:p-6">
-      <h2 id="titulo-inicio" className="text-2xl font-medium">
-        ¿Cómo quieres empezar?
+    <section aria-labelledby="titulo-inicio" className="border border-linea bg-panel p-4 sm:p-5">
+      <h2 id="titulo-inicio" className="mono-etiqueta text-gris">
+        <span className="text-acento">{"// "}</span>Punto de partida
       </h2>
-      <p className="mt-1 text-gris">
-        Puedes empezar desde cero o coger uno de nuestros kits y cambiarle lo que quieras.
-      </p>
 
-      <ul className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <li>
+      <ul className="mt-4 grid border-t border-l border-linea sm:grid-cols-2 xl:grid-cols-4">
+        <li className="border-r border-b border-linea">
           <button
             type="button"
             onClick={alEmpezarDesdeCero}
-            className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-tarjeta bg-tinta p-5 text-center text-white transition-colors hover:bg-grafito"
+            className="flex h-full w-full flex-col justify-between gap-6 p-4 text-left transition-colors duration-100 hover:bg-panel-alto"
           >
-            <Sparkles aria-hidden="true" className="size-8 text-acento-claro" strokeWidth={1.5} />
-            <span className="font-titulo text-lg font-medium">Desde cero</span>
-            <span className="text-sm text-gris-claro">Empieza eligiendo una placa</span>
+            <span className="mono-etiqueta text-acento">00</span>
+            <span>
+              <span className="block font-semibold">Banco vacío</span>
+              <span className="mt-1 block text-sm text-gris">Empieza por el microcontrolador</span>
+            </span>
           </button>
         </li>
-        {kits.map((kit) => (
-          <li key={kit.slug}>
+        {kits.map((kit, i) => (
+          <li key={kit.slug} className="border-r border-b border-linea">
             <button
               type="button"
               onClick={() => alEmpezarDesdeKit(kit)}
-              className="flex h-full w-full flex-col items-center gap-1 rounded-tarjeta bg-white p-4 text-center ring-1 ring-linea transition-shadow hover:shadow-flotante"
+              className="flex h-full w-full flex-col gap-2 p-4 text-left transition-colors duration-100 hover:bg-panel-alto"
             >
+              <span className="mono-etiqueta flex justify-between text-gris-claro">
+                <span>{String(i + 1).padStart(2, "0")}</span>
+                <span>{kit.piezas.reduce((n, p) => n + p.cantidad, 0)} piezas</span>
+              </span>
               <Image
                 src={kit.imagen}
-                alt={kit.nombre}
+                alt=""
                 width={200}
                 height={150}
                 unoptimized
-                className="h-24 w-auto object-contain"
+                className="h-20 w-auto self-center object-contain"
               />
-              <span className="text-xs text-gris">Partir del kit</span>
-              <span className="font-medium">{kit.nombre}</span>
+              <span className="text-sm font-semibold">{kit.nombre}</span>
+              <span className="font-mono text-[12px] text-gris">
+                BOM del kit · {formatearPrecio(kit.precioCentimos)}
+              </span>
             </button>
           </li>
         ))}
       </ul>
 
-      {/* Para quien compra un regalo sin saber de robótica: lo más sencillo es un kit cerrado */}
       <p className="mt-4 text-sm text-gris">
-        ¿Es para regalar? Lo más fácil es un{" "}
-        <Link href="/kits" className="text-tinta underline underline-offset-2 hover:text-acento">
-          kit
+        Un montaje del configurador se compra pieza a pieza y no incluye curso ni código QR. Para
+        eso, los{" "}
+        <Link href="/kits" className="text-tinta underline underline-offset-4 hover:text-acento">
+          kits
         </Link>
-        : trae todas las piezas y un curso en vídeo para montarlo. Los robots que se hacen aquí no
-        llevan curso.
+        .
       </p>
     </section>
   );

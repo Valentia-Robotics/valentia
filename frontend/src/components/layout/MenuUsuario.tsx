@@ -52,7 +52,7 @@ export function MenuUsuario() {
     return (
       <Link
         href="/login"
-        className="ml-2 hidden h-8 items-center rounded-boton bg-tinta px-4 text-[13px] font-medium text-white transition-colors hover:bg-grafito md:inline-flex"
+        className="ml-2 hidden h-8 items-center border border-borde-fuerte px-3.5 font-mono text-[12px] tracking-[0.06em] text-tinta uppercase transition-colors duration-100 hover:border-tinta hover:bg-panel-alto md:inline-flex"
       >
         Iniciar sesión
       </Link>
@@ -71,9 +71,9 @@ export function MenuUsuario() {
         aria-controls="menu-usuario"
         aria-label={`Menú de ${nombre}`}
         className={cn(
-          "flex size-8 items-center justify-center overflow-hidden rounded-full bg-tinta font-titulo text-sm text-white transition-colors hover:bg-grafito",
+          "flex size-8 items-center justify-center overflow-hidden border border-borde-fuerte bg-panel font-mono text-sm text-tinta transition-colors hover:border-tinta",
           // En "Mi cuenta" el círculo lleva un anillo azul: es la sección actual
-          enCuenta && "ring-2 ring-acento ring-offset-2",
+          enCuenta && "border-acento",
         )}
       >
         {sesion.user.image ? (
@@ -91,8 +91,8 @@ export function MenuUsuario() {
         id="menu-usuario"
         inert={!abierto}
         className={cn(
-          "absolute top-11 right-0 w-60 origin-top-right rounded-control bg-white p-2 shadow-flotante ring-1 ring-linea transition-[opacity,scale,translate,visibility] duration-180",
-          !abierto && "invisible -translate-y-1 scale-95 opacity-0",
+          "absolute top-11 right-0 w-60 origin-top-right border border-linea bg-panel p-2 shadow-flotante transition-[opacity,translate,visibility] duration-100",
+          !abierto && "invisible -translate-y-1 opacity-0",
         )}
       >
         <p className="px-3 pt-2 pb-3 text-sm">
@@ -135,7 +135,7 @@ export function MenuUsuario() {
             <button
               type="button"
               onClick={() => signOut({ redirectTo: "/" })}
-              className="flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-left hover:bg-niebla"
+              className="flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-left hover:bg-panel-alto"
             >
               <LogOut aria-hidden="true" className="size-4 text-gris" />
               Cerrar sesión
@@ -166,7 +166,7 @@ function ElementoMenu({
         onClick={alPulsar}
         aria-current={activo ? "page" : undefined}
         className={cn(
-          "flex items-center gap-2.5 rounded-control px-3 py-2 hover:bg-niebla",
+          "flex items-center gap-2.5 rounded-control px-3 py-2 hover:bg-panel-alto",
           activo && "bg-acento/8 font-medium text-acento",
         )}
       >

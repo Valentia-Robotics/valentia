@@ -26,11 +26,11 @@ export const reglas: Regla[] = [
     si: { categorias: ["MOTORES", "SENSORES", "EXTRAS"], excepto: ["protoboard"] },
     necesita: { tipos: ["placa"] },
     nivel: "error",
-    titulo: "Falta el cerebro",
+    titulo: "Sin MCU",
     mensaje:
-      "Tu robot necesita una placa (Arduino o ESP32) que dé las órdenes a {piezas}. Sin ella, nada se moverá.",
+      "{piezas} necesitan un microcontrolador (Arduino o ESP32) que lea sus señales o genere su control. Sin placa no hay lazo de control.",
     sugerencia: "arduino-uno-r3",
-    requisito: "Una placa que le dé órdenes (Arduino o ESP32)",
+    requisito: "Un microcontrolador (Arduino o ESP32)",
   },
   {
     tipo: "necesita",
@@ -39,11 +39,11 @@ export const reglas: Regla[] = [
     necesita: { tipos: ["driver-motores"] },
     unoPorCada: 2,
     nivel: "error",
-    titulo: "Los motores necesitan un driver",
+    titulo: "Motor DC sin etapa de potencia",
     mensaje:
-      "La placa no tiene fuerza para mover motores directamente. Cada driver controla 2 motores: con {cantidad} motores necesitas {necesarias} y tienes {tienes}.",
+      "Un GPIO entrega unos 20 mA; un motor DC arranca con cientos. Cada puente H doble controla 2 motores: con {cantidad} motores necesitas {necesarias} drivers y hay {tienes}.",
     sugerencia: "driver-motores-l298n",
-    requisito: "Un driver de motores (cada driver mueve 2 motores)",
+    requisito: "Un driver de motores (puente H; 2 motores por driver)",
   },
   {
     tipo: "necesita",
@@ -51,11 +51,11 @@ export const reglas: Regla[] = [
     si: { tipos: ["motor-dc", "servo"] },
     necesita: { tipos: ["bateria"] },
     nivel: "error",
-    titulo: "Faltan las pilas",
+    titulo: "Actuadores sin fuente de potencia",
     mensaje:
-      "Los motores gastan mucha energía y el cable USB del ordenador no basta para moverlos. Añade un portapilas o una batería.",
+      "Motores y servos superan los 500 mA que da un puerto USB 2.0. Añade una batería o un portapilas como fuente de potencia.",
     sugerencia: "portapilas-4xaa",
-    requisito: "Pilas o batería: el USB no tiene fuerza suficiente",
+    requisito: "Batería o portapilas: el USB no da corriente suficiente",
   },
   {
     tipo: "necesita",
@@ -63,9 +63,9 @@ export const reglas: Regla[] = [
     si: { tipos: ["motor-dc"] },
     necesita: { tipos: ["chasis-coche"] },
     nivel: "info",
-    titulo: "¿Dónde vas a montar los motores?",
+    titulo: "Motores sin soporte mecánico",
     mensaje:
-      "Un chasis te da la base, las ruedas y los agujeros para atornillar los motores sin complicarte.",
+      "El chasis 2WD trae ruedas, rueda loca y los taladros para fijar los motores con tornillería M3.",
     sugerencia: "chasis-coche-2wd",
   },
   {
@@ -74,9 +74,9 @@ export const reglas: Regla[] = [
     si: { tipos: ["placa"] },
     necesita: { tipos: ["bateria"] },
     nivel: "info",
-    titulo: "Funcionará conectado al ordenador",
+    titulo: "Alimentación solo por USB",
     mensaje:
-      "Sin pilas, tu robot se alimenta por el cable USB. Perfecto para aprender en la mesa; si quieres que sea autónomo, añade un portapilas.",
+      "Sin batería, la placa funciona a 5 V desde el USB del ordenador: válido en banco de pruebas. Para un montaje autónomo, añade una fuente.",
     sugerencia: "portapilas-4xaa",
   },
 
@@ -87,9 +87,9 @@ export const reglas: Regla[] = [
     si: { tipos: ["placa"] },
     maximo: 1,
     nivel: "aviso",
-    titulo: "Tu robot tiene {cantidad} placas",
+    titulo: "{cantidad} microcontroladores",
     mensaje:
-      "Normalmente un robot lleva un solo cerebro. Si de verdad quieres usar varias, tendrás que conectarlas entre sí (es un proyecto avanzado).",
+      "El montaje lleva un solo MCU. Para usar varios hay que comunicarlos entre sí (UART o I2C) y repartir el firmware: proyecto avanzado.",
   },
 
   /* ---------- Voltajes ---------- */
@@ -102,9 +102,9 @@ export const reglas: Regla[] = [
     caso: "defecto", // la placa trabaja con MENOS voltios que la pieza
     margen: 0,
     nivel: "aviso",
-    titulo: "Cuidado con los voltios de las señales",
+    titulo: "Niveles lógicos incompatibles",
     mensaje:
-      "Estas piezas usan señales de {voltajePieza} V: {piezas}. Los pines de tu placa son de {voltajeFuente} V y podrían dañarse: usa un adaptador de nivel lógico o una placa Arduino.",
+      "{piezas} trabajan con lógica de {voltajePieza} V y los GPIO de la placa son de {voltajeFuente} V (no tolerantes a 5 V). Usa un adaptador de nivel lógico o una placa de 5 V.",
     sugerencia: "arduino-uno-r3",
   },
   {
@@ -116,9 +116,9 @@ export const reglas: Regla[] = [
     caso: "exceso", // la placa trabaja con MÁS voltios que la pieza
     margen: 0,
     nivel: "info",
-    titulo: "Usa el pin de 3,3 V de la placa",
+    titulo: "Alimentar a 3,3 V",
     mensaje:
-      "Estas piezas funcionan a {voltajePieza} V: {piezas}. Conéctalas al pin de 3,3 V de la placa, no al de 5 V.",
+      "{piezas} funcionan a {voltajePieza} V: van al pin de 3,3 V de la placa, no al de 5 V.",
   },
   {
     tipo: "voltaje",
@@ -129,9 +129,9 @@ export const reglas: Regla[] = [
     caso: "exceso",
     margen: 0.25,
     nivel: "error",
-    titulo: "Demasiados voltios",
+    titulo: "Sobretensión en actuadores",
     mensaje:
-      "La batería da {voltajeFuente} V y estas piezas aguantan unos {voltajePieza} V: {piezas}. Podrían quemarse: usa un portapilas de 6 V.",
+      "La fuente da {voltajeFuente} V y {piezas} tienen una tensión nominal de {voltajePieza} V. Riesgo de dañar el bobinado: usa una fuente de 6 V.",
     sugerencia: "portapilas-4xaa",
   },
   {
@@ -143,16 +143,16 @@ export const reglas: Regla[] = [
     caso: "defecto",
     margen: 0.25,
     nivel: "aviso",
-    titulo: "Pocos voltios",
+    titulo: "Subtensión en actuadores",
     mensaje:
-      "La batería da {voltajeFuente} V y estas piezas necesitan unos {voltajePieza} V: {piezas}. Funcionarán, pero lentas y con poca fuerza.",
+      "La fuente da {voltajeFuente} V y {piezas} esperan {voltajePieza} V: menos par y menos velocidad que los nominales.",
   },
 
   /* ---------- Capacidad: pines y corriente ---------- */
   {
     tipo: "capacidad",
     id: "pines",
-    etiqueta: "Pines de la placa",
+    etiqueta: "GPIO",
     unidad: "pines",
     campo: "pines",
     proveedor: { tipos: ["placa"] },
@@ -162,24 +162,24 @@ export const reglas: Regla[] = [
       {
         desde: 1.0001, // más del 100 %
         nivel: "error",
-        titulo: "No caben tantos cables en la placa",
+        titulo: "GPIO insuficientes",
         mensaje:
-          "Tus piezas necesitan {usados} pines y solo hay {disponibles}. Quita alguna pieza o elige una placa con más pines, como la ESP32.",
+          "El montaje necesita {usados} GPIO y la placa ofrece {disponibles}. Quita periféricos o usa una placa con más pines (ESP32: 25).",
         sugerencia: "esp32-devkit",
       },
       {
         desde: 0.85,
         nivel: "info",
-        titulo: "La placa está casi llena",
+        titulo: "GPIO casi agotados",
         mensaje:
-          "Usas {usados} de {disponibles} pines ({porcentaje} %). Te queda poco sitio para ampliar.",
+          "{usados} de {disponibles} GPIO en uso ({porcentaje} %). Poco margen para ampliar.",
       },
     ],
   },
   {
     tipo: "capacidad",
     id: "corriente",
-    etiqueta: "Energía de la batería",
+    etiqueta: "Corriente pico",
     unidad: "mA",
     campo: "consumoMa",
     proveedor: { tipos: ["bateria"] },
@@ -189,17 +189,17 @@ export const reglas: Regla[] = [
       {
         desde: 1.0001,
         nivel: "error",
-        titulo: "La batería se queda corta",
+        titulo: "Corriente de pico por encima de la fuente",
         mensaje:
-          "Tu robot puede llegar a gastar {usados} mA y la batería da como mucho {disponibles} mA. Se reiniciará o los motores irán a tirones: usa una batería más potente.",
+          "Pico estimado de {usados} mA frente a {disponibles} mA máximos de la fuente. Caídas de tensión y reinicios del MCU (brown-out): usa una fuente de más capacidad.",
         sugerencia: "bateria-18650-2s",
       },
       {
         desde: 0.8,
         nivel: "aviso",
-        titulo: "La batería va justa",
+        titulo: "Fuente al límite",
         mensaje:
-          "Tu robot gasta {usados} de {disponibles} mA ({porcentaje} %). Funcionará, pero las pilas durarán poco.",
+          "Pico de {usados} mA sobre {disponibles} mA disponibles ({porcentaje} %). Funciona, pero con poca autonomía y la tensión cae en los arranques.",
         sugerencia: "bateria-18650-2s",
       },
     ],

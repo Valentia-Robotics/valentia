@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
  *   bloque     → negro y recto (portada): al pasar el ratón se levanta con una sombra azul
  *   punteado   → recto, con borde de puntos (acción secundaria de la portada)
  *   punteado-claro → igual, en blanco, sobre la placa verde de la portada
+ * En la tienda, todas se convierten en teclas de consola (ver estilosTienda).
  */
 type Variante =
   | "primario"
@@ -32,43 +33,56 @@ type Variante =
   | "punteado-claro";
 type Tamano = "md" | "lg" | "xl";
 
-/** En la tienda (clase .tienda) los botones no se «levantan» con sombra recta: solo cambian de tono */
-const CALMA = "tienda:hover:translate-0 tienda:hover:shadow-none";
+/*
+ * EN LA TIENDA (clase .tienda, estilo «industrial» de PROMPT_REDISENO.md) los botones son teclas de
+ * consola: esquinas vivas, letra mono en mayúsculas y, al pulsar, bajan 1 px (clase .tecla de
+ * globals.css). El de acción va en naranja de seguridad con texto carbón; los demás, solo contorno.
+ * Los paneles internos no llevan .tienda: ahí siguen los estilos de siempre.
+ */
+const TECLA_ACENTO =
+  "tecla tienda:bg-acento tienda:text-carbon tienda:hover:bg-acento-hover tienda:hover:translate-0 tienda:hover:shadow-none";
+const TECLA_CONTORNO =
+  "tienda:border tienda:border-solid tienda:border-borde-fuerte tienda:bg-transparent tienda:text-tinta tienda:hover:border-tinta tienda:hover:bg-panel-alto tienda:hover:translate-0 tienda:hover:shadow-none";
+
+const estilosTienda: Record<Variante, string> = {
+  primario: TECLA_ACENTO,
+  acento: TECLA_ACENTO,
+  bloque: TECLA_ACENTO,
+  secundario: TECLA_CONTORNO,
+  punteado: TECLA_CONTORNO,
+  "punteado-claro": TECLA_CONTORNO,
+  claro: "tecla tienda:bg-tinta tienda:text-carbon tienda:hover:bg-[#fff] tienda:hover:translate-0 tienda:hover:shadow-none",
+  enlace: "tienda:text-acento",
+  "enlace-claro": "tienda:text-acento",
+  peligro: "tecla tienda:bg-error tienda:text-carbon tienda:hover:bg-error/90",
+};
 
 const estilosVariante: Record<Variante, string> = {
   // Los de relleno se «levantan» al pasar el ratón, con una sombra recta (estilo taller)
   primario:
-    "bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento)] " +
-    CALMA +
-    " tienda:hover:bg-tinta/85",
+    "bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento)]",
   acento:
-    "bg-acento text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-tinta)] " +
-    CALMA +
-    " tienda:hover:bg-acento-hover",
+    "bg-acento text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-tinta)]",
   secundario:
-    "border border-dotted border-tinta/60 text-tinta hover:border-solid hover:border-tinta hover:bg-tinta/5 tienda:border-tinta/25",
+    "border border-dotted border-tinta/60 text-tinta hover:border-solid hover:border-tinta hover:bg-tinta/5",
   claro:
-    "bg-white text-tinta hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento-claro)] " +
-    CALMA +
-    " tienda:hover:bg-white/90",
+    "bg-white text-tinta hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_var(--color-acento-claro)]",
   enlace: "text-acento hover:underline underline-offset-4 px-0!",
   "enlace-claro": "text-acento-claro hover:underline underline-offset-4 px-0!",
   peligro: "bg-error text-white hover:bg-error/90",
   bloque:
-    "rounded-recto! bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)] tienda:rounded-boton! " +
-    CALMA +
-    " tienda:hover:bg-tinta/85",
+    "rounded-recto! bg-tinta text-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--color-acento)]",
   punteado:
-    "rounded-recto! border border-dotted border-tinta text-tinta hover:border-solid hover:bg-white/60 tienda:rounded-boton! tienda:border-tinta/25",
+    "rounded-recto! border border-dotted border-tinta text-tinta hover:border-solid hover:bg-white/60",
   "punteado-claro":
-    "rounded-recto! border border-dotted border-white text-white hover:border-solid hover:bg-white/10 tienda:rounded-boton! tienda:border-white/40",
+    "rounded-recto! border border-dotted border-white text-white hover:border-solid hover:bg-white/10",
 };
 
 const estilosTamano: Record<Tamano, string> = {
-  md: "h-10 px-5 text-sm",
-  lg: "h-12 px-7 text-base",
+  md: "h-10 px-5 text-sm tienda:px-4",
+  lg: "h-12 px-7 text-base tienda:px-6",
   // Tamaño "quiosco": botones grandes y fáciles de pulsar con el dedo
-  xl: "h-16 px-9 text-lg",
+  xl: "h-16 px-9 text-lg tienda:h-14 tienda:px-7",
 };
 
 interface PropsComunes {
@@ -99,8 +113,11 @@ export function Boton({
     // Al pulsar se hunde un poco: la respuesta se nota antes de que cargue nada
     "transition-[background-color,border-color,color,scale,translate,box-shadow] active:scale-[0.97]",
     "disabled:pointer-events-none disabled:opacity-50",
+    // Tienda: tecla de consola (mono, mayúsculas, respuesta instantánea)
+    "tienda:font-mono tienda:text-[13px] tienda:tracking-[0.06em] tienda:uppercase tienda:duration-100 tienda:active:scale-100",
     estilosTamano[tamano],
     estilosVariante[variante],
+    estilosTienda[variante],
     className,
   );
 

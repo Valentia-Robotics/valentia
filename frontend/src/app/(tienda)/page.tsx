@@ -1,13 +1,12 @@
-import { BloqueComoFunciona } from "@/components/portada/BloqueComoFunciona";
+import { BancoPruebasPortada } from "@/components/portada/BancoPruebasPortada";
 import { BloqueFinal } from "@/components/portada/BloqueFinal";
-import { HeroCoche } from "@/components/portada/HeroCoche";
-import { KitsPortada } from "@/components/portada/KitsPortada";
-import { BloqueConfigurador } from "@/components/tienda/BloqueConfigurador";
-import { BloqueCursoQR } from "@/components/tienda/BloqueCursoQR";
+import { DespieceVR1 } from "@/components/portada/DespieceVR1";
+import { FirmwarePortada } from "@/components/portada/FirmwarePortada";
+import { LineaProducto } from "@/components/portada/LineaProducto";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
-import { obtenerKits } from "@/lib/catalogo";
+import { obtenerKitsConPiezas } from "@/lib/catalogo";
 import { datosTienda } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 
@@ -20,33 +19,44 @@ export const revalidate = 300;
 
 export const metadata: Metadata = metadatosPagina({
   descripcion:
-    "Kits de robótica para montar en casa, con Arduino o ESP32 y curso en vídeo. No hace falta saber programar, y también es un buen regalo.",
+    "Kits de robótica modular sobre ESP32 y Arduino: chasis de bajo perfil, motores DC con reductora, sensores de línea y ultrasonidos, montaje sin soldadura y curso de firmware en C++.",
   ruta: "/",
 });
 
+/** El kit que se despieza en la portada */
+const SLUG_VR1 = "vr1-starter-kit";
+
 /**
- * PÁGINA DE INICIO (estilo «estudio»). Un orden claro, una idea por pantalla y nada que aparezca de golpe:
- *   1. El coche VR1 en 3D con el titular; al bajar se abre y cuenta sus cinco piezas (HeroCoche)
- *   2. Los kits: una tarjeta por kit
- *   3. Cómo funciona, en tres pasos
- *   4. El curso que trae cada kit (la tarjeta QR)
- *   5. El configurador
- *   6. Final: lista de espera mientras la tienda no cobra (o «elige tu kit»)
+ * PÁGINA DE INICIO (estilo industrial, PROMPT_REDISENO.md):
+ *   SEC_00/01 · El VR1 en 3D sobre el escritorio; al bajar se despieza en sus cinco capas (DespieceVR1)
+ *   SEC_02 · Línea de producto: una hoja técnica por kit
+ *   SEC_03 · Banco de pruebas: esquema de bloques y lecturas del VR1 → configurador
+ *   SEC_04 · Firmware real del VR1 y temario del curso
+ *   SEC_05 · Estado de la tienda: lista de espera mientras no se cobra (o «elegir kit»)
+ * Todos los datos salen de la base de datos (piezas, precios, lecciones) o del firmware.
  */
 export default async function Inicio() {
-  const kits = await obtenerKits();
+  const kits = await obtenerKitsConPiezas();
   // Los kits gratis (sin piezas) solo salen en /kits: la portada enseña lo que se monta
   const aLaVenta = kits.filter((k) => k.precioCentimos > 0);
+  const vr1 = aLaVenta.find((k) => k.slug === SLUG_VR1);
   const abierta = compraAbierta();
 
   return (
     <>
       <DatosEstructurados datos={datosTienda()} />
-      <HeroCoche compraAbierta={abierta} />
-      <KitsPortada kits={aLaVenta} />
-      <BloqueComoFunciona />
-      <BloqueCursoQR />
-      <BloqueConfigurador />
+      <DespieceVR1
+        precioCentimos={vr1?.precioCentimos ?? null}
+        bom={(vr1?.piezas ?? []).map((p) => ({
+          cantidad: p.cantidad,
+          nombre: p.componente.nombre,
+        }))}
+        lecciones={vr1?.curso.lecciones.length ?? null}
+        compraAbierta={abierta}
+      />
+      <LineaProducto kits={aLaVenta} />
+      <BancoPruebasPortada kit={vr1} />
+      <FirmwarePortada kit={vr1} />
       <BloqueFinal compraAbierta={abierta} />
     </>
   );

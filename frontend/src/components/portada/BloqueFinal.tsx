@@ -1,42 +1,63 @@
 import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
+import { Led } from "@/components/ui/Led";
+import { MarcoCAD } from "@/components/ui/MarcoCAD";
 import { tienda } from "@/config/tienda";
 import { formatearPrecio } from "@/lib/utils";
 
 /**
- * Último bloque de la portada, sobre el papel del estudio (la página acaba como empieza).
- * Mientras la tienda no cobra, pide el email para avisar el día que abra; después, invita a elegir kit.
+ * SEC_05 · ESTADO DE LA TIENDA: una consola con el estado (LED), los datos de envío y, mientras no se
+ * cobra, la lista de espera; con la tienda abierta, el botón para elegir kit.
  */
 export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
+  const envio = [
+    ["Zona", tienda.envio.nombreZona],
+    ["Plazo", tienda.envio.plazo],
+    ["Envío", formatearPrecio(tienda.envio.costeCentimos)],
+    ["Gratis desde", formatearPrecio(tienda.envio.gratisDesdeCentimos)],
+  ];
   return (
     <section
       id="avisame"
       aria-labelledby="titulo-final"
-      className="scroll-mt-nav bg-estudio py-24 sm:py-32"
+      className="rejilla-plano scroll-mt-nav border-t border-linea py-20 sm:py-28"
     >
-      <Contenedor className="aparecer max-w-2xl text-center">
-        <h2 id="titulo-final" className="titular-cartel text-5xl font-medium sm:text-7xl">
-          {compraAbierta ? "¿Te animas?" : "Abrimos muy pronto."}
-        </h2>
-        {compraAbierta ? (
-          <>
-            <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-tinta/70 sm:text-xl">
-              Envío a toda la {tienda.envio.nombreZona} en {tienda.envio.plazo}. Gratis desde{" "}
-              {formatearPrecio(tienda.envio.gratisDesdeCentimos)}.
-            </p>
+      <Contenedor className="max-w-4xl">
+        <MarcoCAD
+          etiqueta="SEC_05 · Estado de la tienda"
+          cota={compraAbierta ? "ONLINE" : "PREVENTA"}
+          className="aparecer bg-carbon p-6 pt-9 sm:p-10 sm:pt-12"
+        >
+          <Led
+            estado={compraAbierta ? "ok" : "aviso"}
+            parpadeo={!compraAbierta}
+            texto={compraAbierta ? "Venta abierta · stock disponible" : "Primera tirada en preparación"}
+          />
+          <h2 id="titulo-final" className="titular-cartel mt-5 text-4xl font-semibold sm:text-6xl">
+            {compraAbierta ? "Listo para enviar." : "Apertura de la venta: pronto."}
+          </h2>
+          {compraAbierta ? (
             <Boton href="/kits" variante="primario" tamano="lg" className="mt-8">
-              Elegir mi kit
+              Elegir kit
             </Boton>
-          </>
-        ) : (
-          <>
-            <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-tinta/70 sm:text-xl">
-              Déjanos tu correo y te avisamos el día que se pueda comprar.
-            </p>
-            <FormularioAvisame origen="portada" className="mx-auto mt-8 max-w-md text-left" />
-          </>
-        )}
+          ) : (
+            <>
+              <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-gris">
+                Déjanos un correo y te escribimos una sola vez: el día que se pueda comprar.
+              </p>
+              <FormularioAvisame origen="portada" className="mt-7 max-w-lg" />
+            </>
+          )}
+          <dl className="mt-10 grid grid-cols-2 border-t border-l border-linea font-mono text-[12px] sm:grid-cols-4">
+            {envio.map(([nombre, valor]) => (
+              <div key={nombre} className="border-r border-b border-linea px-3 py-2.5">
+                <dt className="mono-etiqueta text-[10px] text-gris">{nombre}</dt>
+                <dd className="mt-0.5 text-tinta">{valor}</dd>
+              </div>
+            ))}
+          </dl>
+        </MarcoCAD>
       </Contenedor>
     </section>
   );

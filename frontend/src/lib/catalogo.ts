@@ -158,3 +158,43 @@ export async function obtenerKitsParaConfigurador(): Promise<KitParaConfigurador
       piezas: kit.componentes.map((c) => ({ slug: c.componente.slug, cantidad: c.cantidad })),
     }));
 }
+
+/**
+ * Los kits a la venta con sus piezas ya convertidas en componentes del catálogo (para el resumen técnico
+ * de la portada y de /kits: placa, GPIO en uso, consumo…) y las lecciones de su curso.
+ */
+export async function obtenerKitsConPiezas() {
+  const kits = await db.kit.findMany({
+    where: { visible: true },
+    orderBy: { orden: "asc" },
+    include: {
+      componentes: { include: { componente: true } },
+      curso: {
+        select: {
+          titulo: true,
+          lecciones: {
+            orderBy: { orden: "asc" as const },
+            select: { slug: true, titulo: true, duracionMin: true },
+          },
+        },
+      },
+    },
+  });
+  return kits.map(({ componentes, ...kit }) => ({
+    ...kit,
+    piezas: componentes.map((c) => ({
+      componente: componenteDeFila(c.componente),
+      cantidad: c.cantidad,
+    })),
+  }));
+}
+
+export type KitConPiezas = Awaited<ReturnType<typeof obtenerKitsConPiezas>>[number];
+
+/** Las piezas de un kit (de obtenerKitPorSlug) como componentes del catálogo, para el resumen técnico */
+export function piezasDeKit(kit: KitConDetalle) {
+  return kit.componentes.map((c) => ({
+    componente: componenteDeFila(c.componente),
+    cantidad: c.cantidad,
+  }));
+}

@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { Link2, Plus } from "lucide-react";
 import { useState } from "react";
 import { FotoOModelo } from "@/components/tienda/FotoOModelo";
 import { Boton } from "@/components/ui/Boton";
 import { SelectorCantidad } from "@/components/ui/SelectorCantidad";
+import { TablaDatos } from "@/components/ui/TablaDatos";
 import { nombreCategoria } from "@/config/categorias";
 import { requisitosDe } from "@/lib/compatibilidad";
 import { fichaTecnica } from "@/lib/fichaTecnica";
@@ -36,7 +36,7 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
         nombre={componente.nombre}
         className="self-start"
         foto={
-          <div className="relative rounded-tarjeta bg-niebla p-6">
+          <div className="rejilla-plano-fina relative border border-linea bg-panel p-6">
             <Ver3dPieza componente={componente} />
             <Image
               src={componente.imagen}
@@ -52,43 +52,38 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
 
       <div>
         {/* El nombre ya aparece como título de la ventana */}
-        <p className="text-sm text-gris">{nombreCategoria(componente.categoria)}</p>
-        <p className="mt-1 text-2xl font-medium">{formatearPrecio(componente.precioCentimos)}</p>
-        <p className="mt-4 leading-relaxed text-tinta/80">{componente.descripcion}</p>
+        <p className="mono-etiqueta text-gris">
+          {nombreCategoria(componente.categoria)} · {componente.slug}
+        </p>
+        <p className="mt-1 font-mono text-2xl text-tinta">{formatearPrecio(componente.precioCentimos)}</p>
+        <p className="mt-4 text-[15px] leading-relaxed text-gris">{componente.descripcion}</p>
 
         {requisitos.length > 0 && (
-          <div className="mt-5 rounded-control bg-acento/5 p-4">
-            <p className="flex items-center gap-2 text-sm font-medium text-acento">
-              <Link2 aria-hidden="true" className="size-4" />
-              Para que funcione necesita
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+          <div className="mt-5 border border-linea p-4">
+            <p className="mono-etiqueta text-acento">Dependencias</p>
+            <ul className="mt-2 space-y-1 text-sm">
               {requisitos.map((r) => (
-                <li key={r}>{r}</li>
+                <li key={r} className="flex gap-2">
+                  <span className="font-mono text-gris-claro">→</span>
+                  {r}
+                </li>
               ))}
             </ul>
           </div>
         )}
 
-        <h3 className="mt-6 font-sans text-sm font-medium">Datos técnicos</h3>
-        <dl className="mt-2 divide-y divide-linea text-sm">
-          {fichaTecnica(componente).map((dato) => (
-            <div key={dato.nombre} className="flex justify-between gap-4 py-2">
-              <dt className="text-gris">{dato.nombre}</dt>
-              <dd className="text-right">{dato.valor}</dd>
-            </div>
-          ))}
-        </dl>
+        <h3 className="mono-etiqueta mt-6 text-gris">Especificaciones</h3>
+        <TablaDatos filas={fichaTecnica(componente)} densa className="mt-2" />
 
-        <p className="mt-4 text-sm text-gris">
+        <p className="mt-4 font-mono text-[12px] text-gris">
           {componente.stock > 0
-            ? `${componente.stock} unidades disponibles`
+            ? `${componente.stock} uds. en almacén`
             : textoTienda(0, componente.enReposicion)}
-          {enRobot > 0 && ` · ${enRobot} ya en tu robot`}
+          {enRobot > 0 && ` · ×${enRobot} en el banco`}
         </p>
 
         {/* Cantidad + botón de añadir */}
-        <div className="sticky bottom-0 -mx-5 mt-4 flex flex-col gap-3 bg-white px-5 py-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:p-0">
+        <div className="sticky bottom-0 -mx-5 mt-4 flex flex-col gap-3 bg-carbon px-5 py-4 sm:static sm:mx-0 sm:flex-row sm:items-center sm:p-0">
           <SelectorCantidad
             valor={cantidad}
             alCambiar={setCantidad}
@@ -105,10 +100,9 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
             onClick={() => alAnadir(cantidad)}
             className="w-full sm:flex-1"
           >
-            <Plus aria-hidden="true" className="size-5" />
             {disponibles === 0
-              ? "No hay más unidades"
-              : `Añadir ${cantidad > 1 ? `${cantidad} ` : ""}· ${formatearPrecio(componente.precioCentimos * cantidad)}`}
+              ? "Sin más unidades"
+              : `+ Añadir ${cantidad > 1 ? `${cantidad} ` : ""}· ${formatearPrecio(componente.precioCentimos * cantidad)}`}
           </Boton>
         </div>
       </div>

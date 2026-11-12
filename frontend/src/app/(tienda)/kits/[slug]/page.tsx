@@ -3,14 +3,6 @@ import { metadatosPagina } from "@/lib/metadatos";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  Check,
-  ChevronLeft,
-  CirclePlay,
-  Clock,
-  QrCode,
-  SlidersHorizontal,
-} from "lucide-react";
 import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import { BotonAnadirCarrito } from "@/components/tienda/BotonAnadirCarrito";
 import { BotonKitGratis } from "@/components/tienda/BotonKitGratis";
@@ -22,7 +14,7 @@ import { SeccionResenas } from "@/components/resenas/SeccionResenas";
 import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { GuiasRelacionadas } from "@/components/guias/GuiasRelacionadas";
 import { guiasRelacionadas } from "@/config/guias";
-import { listaDeTextos, obtenerKitPorSlug, obtenerKits } from "@/lib/catalogo";
+import { listaDeTextos, obtenerKitPorSlug, obtenerKits, piezasDeKit } from "@/lib/catalogo";
 import { datosKit, datosMigas } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 import { resenasDelKit } from "@/lib/resenas";
@@ -30,8 +22,13 @@ import { conseguirKitGratis } from "./acciones";
 import { formatearMedia } from "@/lib/resenas/formato";
 import { FotoOModelo } from "@/components/tienda/FotoOModelo";
 import { modeloDeKit } from "@/lib/modelos3d";
-import { precioDeKit } from "@/lib/utils";
+import { formatearNumero, precioDeKit } from "@/lib/utils";
 import { textoTienda } from "@/config/stock";
+import { EsquemaBloques } from "@/components/configurador/EsquemaBloques";
+import { Lectura } from "@/components/configurador/Lectura";
+import { Led } from "@/components/ui/Led";
+import { Cruces, MarcoCAD } from "@/components/ui/MarcoCAD";
+import { resumenTecnico } from "@/lib/resumenTecnico";
 
 /**
  * Se genera al compilar y se vuelve a leer de la base de datos cada 5 minutos como mucho: así el catálogo
@@ -61,12 +58,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     descripcion:
       kit.precioCentimos === 0
         ? `${kit.eslogan} Gratis y sin piezas: se activa al momento en tu cuenta.`
-        : `${kit.eslogan} Con todas las piezas y un curso en vídeo. No hace falta saber programar. Desde ${kit.edadMinima} años.`,
+        : `${kit.eslogan} Lista de materiales, esquema de bloques, consumo y GPIO, y curso de firmware en C++. Desde ${kit.edadMinima} años.`,
     ruta: `/kits/${kit.slug}`,
   });
 }
 
-/** FICHA DE KIT: imagen, precio, descripción, componentes incluidos y temario del curso */
+/** Título de sección en mono: «// SEC_02 · Lista de materiales» */
+function Seccion({ codigo, children, id }: { codigo: string; children: React.ReactNode; id: string }) {
+  return (
+    <div className="aparecer">
+      <p className="mono-etiqueta text-gris">
+        <span className="text-acento">{"// "}</span>
+        {codigo}
+      </p>
+      <h2 id={id} className="titular-cartel mt-3 text-3xl font-semibold sm:text-5xl">
+        {children}
+      </h2>
+    </div>
+  );
+}
+
+/**
+ * FICHA DE KIT como hoja técnica: vista 3D + cajetín de compra, descripción, lista de materiales,
+ * esquema de bloques con sus lecturas y temario del curso. Todo sale de la BD.
+ */
 export default async function PaginaKit({ params }: Props) {
   const { slug } = await params;
   const kit = await obtenerKitPorSlug(slug);
@@ -79,7 +94,23 @@ export default async function PaginaKit({ params }: Props) {
   const puntosFuertes = listaDeTextos(kit.puntosFuertes);
   const lecciones = kit.curso.lecciones;
   const minutosCurso = lecciones.reduce((total, l) => total + l.duracionMin, 0);
-  const totalPiezas = kit.componentes.reduce((total, c) => total + c.cantidad, 0);
+  const piezas = piezasDeKit(kit);
+  const totalPiezas = piezas.reduce((total, p) => total + p.cantidad, 0);
+  const r = resumenTecnico(piezas);
+  const estado = textoTienda(kit.stock, kit.enReposicion);
+  const matriz: [string, string][] = gratis
+    ? [
+        ["Contenido", "Curso digital"],
+        ["Lecciones", `${lecciones.length} · ${minutosCurso} min`],
+      ]
+    : [
+        ["MCU", r.mcu ?? "—"],
+        ["Lógica", r.logica ? `${formatearNumero(r.logica)} V` : "—"],
+        ["Actuadores", r.actuadores ?? "—"],
+        ["Sensores", r.sensores ? `${r.sensores} canales` : "—"],
+        ["Edad mín.", `${kit.edadMinima} años`],
+        ["Montaje", kit.tiempoMontaje],
+      ];
 
   return (
     <>
@@ -92,51 +123,64 @@ export default async function PaginaKit({ params }: Props) {
         ])}
       />
 
-      {/* ---------- Cabecera: imagen + compra ---------- */}
-      <section id="comprar" className="scroll-mt-nav">
-        <Contenedor className="pt-6 pb-4 sm:pb-8">
+      {/* ---------- Cabecera: vista 3D + cajetín de compra ---------- */}
+      <section id="comprar" className="rejilla-plano scroll-mt-nav border-b border-linea">
+        <Contenedor className="pt-6 pb-12 sm:pb-16">
           <Link
             href="/kits"
-            className="inline-flex items-center gap-1 text-sm text-gris transition-colors hover:text-tinta"
+            className="mono-etiqueta text-gris transition-colors duration-100 hover:text-tinta"
           >
-            <ChevronLeft aria-hidden="true" className="size-4" />
-            Todos los kits
+            ← Kits
           </Link>
 
-          <div className="mt-6 grid items-center gap-8 lg:grid-cols-[1.2fr_1fr] lg:gap-14">
-            {/* El kit en 3D (se gira con el dedo o el ratón) si tiene modelo; si no, su foto */}
-            <FotoOModelo
-              modelo={gratis ? null : modeloDeKit(kit.slug)}
-              nombre={kit.nombre}
-              className="llegar"
-              foto={
-                <div className="rounded-tarjeta bg-estudio p-6 sm:p-10">
-                  <FotoKitViaje slug={kit.slug}>
-                    <Image
-                      src={kit.imagen}
-                      alt={gratis ? kit.nombre : `Foto del kit ${kit.nombre} montado`}
-                      width={800}
-                      height={600}
-                      priority
-                      unoptimized
-                      className="mx-auto h-auto w-full"
-                    />
-                  </FotoKitViaje>
-                </div>
-              }
-            />
+          <div className="mt-6 grid items-start gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-12">
+            <MarcoCAD
+              etiqueta={gratis ? "Vista" : "Vista 3D · arrastra para girar"}
+              cota={`REF · ${kit.slug.toUpperCase()}`}
+              className="llegar bg-panel"
+            >
+              {/* El kit en 3D (se gira con el dedo o el ratón) si tiene modelo; si no, su foto */}
+              <FotoOModelo
+                modelo={gratis ? null : modeloDeKit(kit.slug)}
+                nombre={kit.nombre}
+                foto={
+                  <div className="rejilla-plano-fina p-6 sm:p-10">
+                    <FotoKitViaje slug={kit.slug}>
+                      <Image
+                        src={kit.imagen}
+                        alt={gratis ? kit.nombre : `Foto del kit ${kit.nombre} montado`}
+                        width={800}
+                        height={600}
+                        priority
+                        unoptimized
+                        className="mx-auto h-auto w-full"
+                      />
+                    </FotoKitViaje>
+                  </div>
+                }
+              />
+            </MarcoCAD>
 
             <div className="llegar" style={{ "--i": 1 } as React.CSSProperties}>
-              <p className="text-base text-gris">
-                Desde {kit.edadMinima} años · {kit.nivel}
-                {!gratis && ` · ${kit.tiempoMontaje} de montaje`}
-              </p>
-              <h1 className="titular-cartel mt-3 text-4xl font-medium sm:text-5xl">{kit.nombre}</h1>
-              <p className="mt-4 text-xl leading-snug text-tinta/75">{kit.eslogan}</p>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="mono-etiqueta text-gris">
+                  {kit.nivel}
+                  {!gratis && ` · ${totalPiezas} piezas`} · {lecciones.length}{" "}
+                  {lecciones.length === 1 ? "lección" : "lecciones"}
+                </p>
+                {!gratis && (
+                  <Led
+                    estado={estado === "En stock" ? "ok" : estado === "En reposición" ? "aviso" : "apagado"}
+                    texto={abierta ? estado : "Preventa"}
+                  />
+                )}
+              </div>
+              <h1 className="titular-cartel mt-3 text-4xl font-semibold sm:text-5xl">{kit.nombre}</h1>
+              <p className="mt-4 text-[15px] leading-relaxed text-gris">{kit.eslogan}</p>
               {resenas.total > 0 && (
                 <a
                   href="#opiniones"
-                  className="mt-3 inline-flex items-center gap-2 text-sm text-gris hover:text-tinta"
+                  className="mt-3 inline-flex items-center gap-2 font-mono text-[12px] text-gris hover:text-tinta"
                 >
                   <Estrellas nota={resenas.media} className="text-base" />
                   {formatearMedia(resenas.media)} · {resenas.total}{" "}
@@ -144,22 +188,26 @@ export default async function PaginaKit({ params }: Props) {
                 </a>
               )}
 
-              <ul className="mt-6 space-y-2.5 text-lg">
-                {puntosFuertes.map((punto) => (
-                  <li key={punto} className="flex gap-3">
-                    <Check aria-hidden="true" className="mt-1 size-5 shrink-0 text-exito" />
-                    <span>{punto}</span>
-                  </li>
+              <dl className="mt-6 grid grid-cols-2 border-t border-l border-linea font-mono text-[12px]">
+                {matriz.map(([nombre, valor]) => (
+                  <div key={nombre} className="border-r border-b border-linea px-3 py-2.5">
+                    <dt className="mono-etiqueta text-[10px] text-gris">{nombre}</dt>
+                    <dd className="mt-0.5 text-tinta">{valor}</dd>
+                  </div>
                 ))}
-              </ul>
+              </dl>
 
-              {/* Proximidad (Gestalt): el precio va pegado a lo que se hace con él (comprar,
-                  conseguirlo o pedir aviso), dentro de su propia zona */}
-              <div className="mt-8 border-t border-tinta/10 pt-6">
-                <p className="text-3xl font-medium">{precioDeKit(kit.precioCentimos)}</p>
-                <p className="mt-1 text-sm text-gris">
-                  {gratis ? "Sin pago · Se activa al momento" : "IVA incluido · Con curso en vídeo"}
-                </p>
+              {/* Proximidad (Gestalt): el precio va pegado a lo que se hace con él */}
+              <div className="relative mt-6 border border-linea bg-carbon p-5 sm:p-6">
+                <Cruces />
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="font-mono text-3xl text-tinta tabular-nums">
+                    {precioDeKit(kit.precioCentimos)}
+                  </p>
+                  <p className="mono-etiqueta text-gris">
+                    {gratis ? "Sin pago · activación inmediata" : "PVP · IVA incl."}
+                  </p>
+                </div>
 
                 {gratis ? (
                   <form action={conseguirKitGratis.bind(null, kit.slug)} className="mt-5">
@@ -167,13 +215,13 @@ export default async function PaginaKit({ params }: Props) {
                   </form>
                 ) : abierta && kit.stock === 0 ? (
                   // Sin unidades en el almacén (se cuentan en /stock): no se puede comprar, pero sí pedir aviso
-                  <div className="mt-5 rounded-tarjeta bg-niebla p-5 sm:p-6">
-                    <p className="font-medium">{textoTienda(0, kit.enReposicion)}</p>
-                    <p className="mt-1 text-sm text-gris">
+                  <div className="mt-5 border-t border-linea pt-5">
+                    <p className="mono-etiqueta text-tinta">{textoTienda(0, kit.enReposicion)}</p>
+                    <p className="mt-1.5 text-sm text-gris">
                       {kit.enReposicion
-                        ? "Se han agotado las unidades que teníamos y ya estamos preparando más."
-                        : "Ahora mismo no nos quedan unidades de este kit."}{" "}
-                      Déjanos tu email y te escribimos en cuanto vuelva a estar disponible.
+                        ? "Unidades agotadas; el siguiente lote ya está en producción."
+                        : "Sin unidades en almacén."}{" "}
+                      Te avisamos por correo cuando vuelva a haber.
                     </p>
                     <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
                   </div>
@@ -196,14 +244,15 @@ export default async function PaginaKit({ params }: Props) {
                       tamano="lg"
                       className="w-full sm:w-auto"
                     >
-                      <SlidersHorizontal aria-hidden="true" className="size-5" strokeWidth={1.8} />
-                      Personalizar este kit
+                      Abrir en el configurador
                     </Boton>
                   </div>
                 ) : (
-                  <div className="mt-5 rounded-tarjeta bg-niebla p-5 sm:p-6">
-                    <p className="text-lg font-medium">Abrimos muy pronto.</p>
-                    <p className="mt-1 text-gris">Déjanos tu correo y te avisamos ese día.</p>
+                  <div className="mt-5 border-t border-linea pt-5">
+                    <Led estado="aviso" parpadeo texto="Preventa · lista de espera abierta" />
+                    <p className="mt-2 text-sm text-gris">
+                      Un único correo el día que se abra la venta.
+                    </p>
                     <FormularioAvisame origen="kit" kitSlug={kit.slug} className="mt-4" />
                   </div>
                 )}
@@ -214,100 +263,147 @@ export default async function PaginaKit({ params }: Props) {
       </section>
 
       {/* ---------- Descripción ---------- */}
-      <section aria-labelledby="titulo-descripcion" className="mt-10 bg-estudio py-16 sm:mt-16 sm:py-24">
-        <Contenedor className="aparecer max-w-3xl text-center">
-          <h2 id="titulo-descripcion" className="titular-cartel text-4xl font-medium sm:text-6xl">
-            {gratis ? "Lo que vas a ver." : "Lo que vas a construir."}
-          </h2>
-          <p className="mt-6 text-lg leading-relaxed text-tinta/70 sm:text-xl">{kit.descripcion}</p>
+      <section aria-labelledby="titulo-descripcion" className="py-16 sm:py-24">
+        <Contenedor className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
+          <Seccion codigo="SEC_01 · Descripción" id="titulo-descripcion">
+            {gratis ? "Contenido del curso." : "Qué hace este kit."}
+          </Seccion>
+          <div className="aparecer">
+            <p className="text-[15px] leading-relaxed text-gris">{kit.descripcion}</p>
+            {puntosFuertes.length > 0 && (
+              <ol className="mt-6 border-t border-linea">
+                {puntosFuertes.map((punto, i) => (
+                  <li key={punto} className="flex gap-4 border-b border-linea py-2.5 text-[15px]">
+                    <span className="font-mono text-[12px] text-acento">{String(i + 1).padStart(2, "0")}</span>
+                    <span>{punto}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         </Contenedor>
       </section>
 
-      {/* ---------- Componentes incluidos ---------- */}
-      {kit.componentes.length > 0 && (
-        <section aria-labelledby="titulo-caja" className="py-16 sm:py-24">
+      {/* ---------- Lista de materiales ---------- */}
+      {piezas.length > 0 && (
+        <section aria-labelledby="titulo-caja" className="border-t border-linea py-16 sm:py-24">
           <Contenedor>
-            <div className="aparecer max-w-2xl">
-              <h2 id="titulo-caja" className="titular-cartel text-4xl font-medium sm:text-6xl">
-                Qué hay en la caja.
-              </h2>
-              <p className="mt-3 text-lg text-tinta/70 sm:text-xl">
-                {totalPiezas} piezas y nada más que comprar. Sin soldar.
-              </p>
+            <Seccion codigo="SEC_02 · Lista de materiales" id="titulo-caja">
+              {totalPiezas} piezas. Ninguna soldadura.
+            </Seccion>
+            <div className="aparecer mt-10 overflow-x-auto border border-linea">
+              <table className="w-full min-w-[40rem] border-collapse font-mono text-[12px]">
+                <thead>
+                  <tr className="border-b border-linea bg-panel text-left">
+                    {["", "Componente", "Cant.", "Tensión", "Consumo", "GPIO"].map((t) => (
+                      <th key={t} scope="col" className="mono-etiqueta px-3 py-2.5 font-normal text-gris">
+                        {t}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {kit.componentes.map(({ componente, cantidad }) => (
+                    <tr key={componente.id} className="border-b border-linea last:border-b-0">
+                      <td className="w-16 px-3 py-2">
+                        <Image
+                          src={componente.imagen}
+                          alt=""
+                          width={96}
+                          height={72}
+                          unoptimized
+                          className="h-auto w-12 bg-panel"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        {componente.visible ? (
+                          <Link
+                            href={`/componentes/${componente.slug}`}
+                            className="text-tinta underline decoration-linea underline-offset-4 transition-colors duration-100 hover:decoration-acento"
+                          >
+                            {componente.nombre}
+                          </Link>
+                        ) : (
+                          <span className="text-tinta">{componente.nombre}</span>
+                        )}
+                        <span className="block text-[11px] text-gris-claro">{componente.slug}</span>
+                      </td>
+                      <td className="px-3 py-2 text-tinta tabular-nums">×{cantidad}</td>
+                      <td className="px-3 py-2 text-gris tabular-nums">
+                        {componente.voltaje ? `${formatearNumero(componente.voltaje)} V` : "—"}
+                      </td>
+                      <td className="px-3 py-2 text-gris tabular-nums">
+                        {componente.consumoMa
+                          ? `${formatearNumero(componente.consumoMa * (componente.tipo === "bateria" ? 1 : cantidad))} mA${componente.tipo === "bateria" ? " máx." : ""}`
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2 text-gris tabular-nums">
+                        {componente.pines ? componente.pines * (componente.tipo === "placa" ? 1 : cantidad) : "—"}
+                        {componente.tipo === "placa" && componente.pines ? " disp." : ""}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </Contenedor>
+        </section>
+      )}
 
-            {/* Solo foto y nombre: los datos de cada pieza están en su ficha */}
-            <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {kit.componentes.map(({ componente, cantidad }) => {
-                const contenido = (
-                  <>
-                    <Image
-                      src={componente.imagen}
-                      alt=""
-                      width={240}
-                      height={180}
-                      unoptimized
-                      className="mx-auto aspect-[4/3] h-auto w-full max-w-40 object-contain"
-                    />
-                    <h3 className="mt-3 font-sans text-base leading-snug font-medium">
-                      {cantidad > 1 && <span className="text-gris">{cantidad} × </span>}
-                      {componente.nombre}
-                    </h3>
-                  </>
-                );
-                return (
-                  <li key={componente.id} className="aparecer">
-                    {componente.visible ? (
-                      <Link
-                        href={`/componentes/${componente.slug}`}
-                        className="block h-full rounded-tarjeta bg-estudio p-4 transition-[box-shadow,translate] duration-500 hover:-translate-y-1 hover:shadow-posada"
-                      >
-                        {contenido}
-                      </Link>
-                    ) : (
-                      <div className="h-full rounded-tarjeta bg-estudio p-4">{contenido}</div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+      {/* ---------- Esquema de bloques ---------- */}
+      {piezas.length > 0 && (
+        <section aria-labelledby="titulo-esquema" className="rejilla-plano border-t border-linea py-16 sm:py-24">
+          <Contenedor>
+            <Seccion codigo="SEC_03 · Esquema de bloques" id="titulo-esquema">
+              Cómo se conecta.
+            </Seccion>
+            <MarcoCAD etiqueta="Bloques · buses · alimentación" className="aparecer mt-10 bg-carbon p-5 pt-7 sm:p-7 sm:pt-9">
+              <EsquemaBloques piezas={piezas} />
+              <div className="mt-6 grid gap-5 border-t border-linea pt-5 sm:grid-cols-2">
+                {r.gpio && (
+                  <Lectura
+                    etiqueta="GPIO"
+                    usados={r.gpio.usados}
+                    disponibles={r.gpio.disponibles}
+                    unidad="pines"
+                    segmentos={Math.min(40, r.gpio.disponibles)}
+                  />
+                )}
+                {r.corriente && (
+                  <Lectura
+                    etiqueta="Corriente pico"
+                    usados={r.corriente.usados}
+                    disponibles={r.corriente.disponibles}
+                    unidad="mA"
+                  />
+                )}
+              </div>
+            </MarcoCAD>
           </Contenedor>
         </section>
       )}
 
       {/* ---------- Temario del curso ---------- */}
-      <section aria-labelledby="titulo-curso" className="bg-estudio py-16 sm:py-24">
-        <Contenedor className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
-          <div className="aparecer">
-            <p className="text-base text-gris">Curso incluido</p>
-            <h2 id="titulo-curso" className="titular-cartel mt-3 text-4xl font-medium sm:text-5xl">
+      <section aria-labelledby="titulo-curso" className="border-t border-linea py-16 sm:py-24">
+        <Contenedor className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
+          <div>
+            <Seccion codigo="SEC_04 · Curso incluido" id="titulo-curso">
               {kit.curso.titulo}
-            </h2>
-            <p className="mt-4 text-lg text-gris">{kit.curso.descripcion}</p>
-            <p className="mt-6 flex items-center gap-2 text-sm text-gris">
-              <Clock aria-hidden="true" className="size-4" />
-              {lecciones.length} {lecciones.length === 1 ? "lección" : "lecciones"} · {minutosCurso}{" "}
-              minutos de vídeo
-            </p>
-            <p className="mt-2 flex items-center gap-2 text-sm text-gris">
-              <QrCode aria-hidden="true" className="size-4" />
-              {gratis
-                ? "Se activa con un clic, sin código"
-                : "Se activa con el código QR de la caja"}
+            </Seccion>
+            <p className="aparecer mt-4 text-[15px] leading-relaxed text-gris">{kit.curso.descripcion}</p>
+            <p className="aparecer mt-6 font-mono text-[12px] text-gris">
+              {lecciones.length} {lecciones.length === 1 ? "lección" : "lecciones"} · {minutosCurso} min
+              de vídeo ·{" "}
+              {gratis ? "activación con un clic" : "activación con el QR de la caja"}
             </p>
           </div>
 
-          <ol className="aparecer divide-y divide-linea overflow-hidden rounded-tarjeta bg-white ring-1 ring-linea">
+          <ol className="aparecer border-t border-linea font-mono text-[13px]">
             {lecciones.map((leccion) => (
-              <li key={leccion.slug} className="flex items-center gap-4 p-5">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-tinta font-titulo text-white">
-                  {leccion.orden}
-                </span>
-                <span className="flex-1 font-medium">{leccion.titulo}</span>
-                <span className="flex shrink-0 items-center gap-1.5 text-sm text-gris">
-                  <CirclePlay aria-hidden="true" className="size-4" />
-                  {leccion.duracionMin} min
-                </span>
+              <li key={leccion.slug} className="flex items-baseline gap-4 border-b border-linea py-3">
+                <span className="text-gris-claro">L{String(leccion.orden).padStart(2, "0")}</span>
+                <span className="flex-1 font-sans text-[15px] text-tinta">{leccion.titulo}</span>
+                <span className="shrink-0 text-gris tabular-nums">{leccion.duracionMin}′</span>
               </li>
             ))}
           </ol>

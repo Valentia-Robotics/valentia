@@ -5,9 +5,9 @@
 
 export const marca = {
   nombre: "Valentia",
-  lema: "Kits de robótica para montar, con curso en vídeo",
+  lema: "Kits de robótica modular con ESP32 y Arduino",
   descripcion:
-    "Kits de robótica para montar en casa, con Arduino o ESP32 y un curso en vídeo que explica cada paso. Si nunca has programado, también es para ti.",
+    "Kits de robótica modular sobre ESP32 y Arduino: ensamblaje sin soldadura, conexiones magnéticas con pines pogo y un curso de programación en C++ sobre el hardware real.",
 
   /**
    * Archivos del logo (en public/images/brand).
@@ -39,10 +39,11 @@ export type EnlaceNavegacion = {
 
 /** Enlaces principales de la barra de navegación (el que corresponde a la página actual se marca) */
 export const enlacesNavegacion: EnlaceNavegacion[] = [
-  { href: "/", etiqueta: "Inicio" },
+  // Tienda «industrial» (12-11-2026): el logo lleva al inicio; el menú, a las tres líneas de producto
   { href: "/kits", etiqueta: "Kits" },
-  // Piezas sueltas y configurador son lo mismo para quien compra: elegir piezas una a una
-  { href: "/configurador", etiqueta: "Crea tu robot", tambien: ["/componentes"] },
+  { href: "/componentes", etiqueta: "Componentes" },
+  { href: "/configurador", etiqueta: "Configurador" },
+  { href: "/guias", etiqueta: "Guías" },
   { href: "/cursos", etiqueta: "Mis cursos", tambien: ["/activar"], soloConSesion: true },
 ];
 
@@ -70,7 +71,7 @@ export const columnasPie: {
     enlaces: [
       { href: "/kits", etiqueta: "Kits" },
       { href: "/componentes", etiqueta: "Componentes" },
-      { href: "/configurador", etiqueta: "Crea tu robot" },
+      { href: "/configurador", etiqueta: "Configurador" },
       { href: "/carrito", etiqueta: "Carrito" },
     ],
   },

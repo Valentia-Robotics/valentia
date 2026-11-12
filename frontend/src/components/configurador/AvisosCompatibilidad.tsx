@@ -1,14 +1,13 @@
 "use client";
 
-import { CircleCheck, CircleX, Info, Plus, TriangleAlert, type LucideIcon } from "lucide-react";
 import type { Aviso, Diagnostico, Nivel } from "@/lib/compatibilidad";
 import { cn } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 
-const estilos: Record<Nivel, { icono: LucideIcon; color: string; fondo: string; texto: string }> = {
-  error: { icono: CircleX, color: "text-error", fondo: "bg-error/8", texto: "Problema" },
-  aviso: { icono: TriangleAlert, color: "text-aviso", fondo: "bg-aviso/8", texto: "Atención" },
-  info: { icono: Info, color: "text-acento", fondo: "bg-acento/6", texto: "Consejo" },
+const estilos: Record<Nivel, { etiqueta: string; color: string; texto: string }> = {
+  error: { etiqueta: "ERR", color: "text-error", texto: "Error" },
+  aviso: { etiqueta: "WARN", color: "text-aviso", texto: "Advertencia" },
+  info: { etiqueta: "INFO", color: "text-gris", texto: "Nota" },
 };
 
 interface Props {
@@ -18,32 +17,34 @@ interface Props {
   alAnadirSugerencia: (slug: string) => void;
 }
 
-/** Lista de avisos de compatibilidad, del más grave al menos grave. */
+/**
+ * REGISTRO DE COMPATIBILIDAD del banco de pruebas: una línea por aviso, del más grave al menos grave,
+ * con su nivel en mono ([ERR] [WARN] [INFO]) y, si hay arreglo, la tecla para añadir la pieza sugerida.
+ */
 export function AvisosCompatibilidad({ diagnostico, buscarComponente, alAnadirSugerencia }: Props) {
   const { avisos, errores, advertencias } = diagnostico;
   const todoEncaja = errores === 0 && advertencias === 0;
 
   return (
-    <section aria-label="Compatibilidad" className="space-y-2">
+    <section aria-label="Compatibilidad" className="border-t border-linea">
       {/* Resumen que leen los lectores de pantalla cuando cambia */}
       <p role="status" className="sr-only">
         {todoEncaja
-          ? "Todo encaja"
-          : `${errores} problemas y ${advertencias} advertencias de compatibilidad`}
+          ? "Sin conflictos de compatibilidad"
+          : `${errores} errores y ${advertencias} advertencias de compatibilidad`}
       </p>
 
       {todoEncaja && (
-        <p className="flex items-start gap-2.5 rounded-control bg-exito/8 p-3 text-sm">
-          <CircleCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-exito" />
-          <span>
-            <strong className="font-medium text-exito">¡Todo encaja!</strong> Estas piezas funcionan
-            bien juntas.
+        <p className="flex items-start gap-3 border-b border-linea py-2.5 text-sm">
+          <span className="font-mono text-[11px] text-led">[OK]</span>
+          <span className="text-gris">
+            Sin conflictos: GPIO, corriente y niveles lógicos dentro de rango.
           </span>
         </p>
       )}
 
       {avisos.map((aviso) => (
-        <TarjetaAviso
+        <LineaAviso
           key={aviso.id}
           aviso={aviso}
           sugerida={aviso.sugerencia ? buscarComponente(aviso.sugerencia) : undefined}
@@ -54,7 +55,7 @@ export function AvisosCompatibilidad({ diagnostico, buscarComponente, alAnadirSu
   );
 }
 
-function TarjetaAviso({
+function LineaAviso({
   aviso,
   sugerida,
   alAnadirSugerencia,
@@ -63,25 +64,23 @@ function TarjetaAviso({
   sugerida?: ComponenteCatalogo;
   alAnadirSugerencia: (slug: string) => void;
 }) {
-  const { icono: Icono, color, fondo, texto } = estilos[aviso.nivel];
-
+  const { etiqueta, color, texto } = estilos[aviso.nivel];
   return (
-    <div className={cn("flex items-start gap-2.5 rounded-control p-3 text-sm", fondo)}>
-      <Icono aria-hidden="true" className={cn("mt-0.5 size-5 shrink-0", color)} />
+    <div className="flex items-start gap-3 border-b border-linea py-2.5 text-sm">
+      <span className={cn("w-11 shrink-0 font-mono text-[11px]", color)}>
+        <span aria-hidden="true">[{etiqueta}]</span>
+        <span className="sr-only">{texto}:</span>
+      </span>
       <div className="min-w-0">
-        <p className={cn("font-medium", color)}>
-          <span className="sr-only">{texto}: </span>
-          {aviso.titulo}
-        </p>
-        <p className="mt-0.5 text-tinta/80">{aviso.mensaje}</p>
+        <p className="font-medium text-tinta">{aviso.titulo}</p>
+        <p className="mt-0.5 text-[13px] leading-snug text-gris">{aviso.mensaje}</p>
         {sugerida && sugerida.stock > 0 && (
           <button
             type="button"
             onClick={() => alAnadirSugerencia(sugerida.slug)}
-            className="mt-2 inline-flex items-center gap-1 rounded-boton bg-white px-3 py-1.5 text-xs font-medium ring-1 ring-linea transition-colors hover:ring-tinta"
+            className="tecla mono-etiqueta mt-2 border border-borde-fuerte px-2.5 py-1.5 text-tinta transition-colors duration-100 hover:border-acento hover:text-acento"
           >
-            <Plus aria-hidden="true" className="size-3.5" />
-            Añadir {sugerida.nombre}
+            + Añadir {sugerida.nombre}
           </button>
         )}
       </div>

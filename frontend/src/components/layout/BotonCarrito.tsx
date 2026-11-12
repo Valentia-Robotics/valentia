@@ -28,15 +28,15 @@ export function BotonCarrito() {
       aria-label={etiqueta}
       aria-current={activo ? "page" : undefined}
       className={cn(
-        "relative inline-flex size-10 items-center justify-center rounded-full transition-colors hover:bg-tinta/5 hover:text-tinta",
-        activo ? "bg-acento/10 text-acento" : "text-tinta/80",
+        "relative inline-flex size-10 items-center justify-center border border-transparent transition-colors duration-100 hover:border-linea hover:bg-panel-alto hover:text-tinta",
+        activo ? "border-linea text-acento" : "text-tinta/80",
       )}
     >
       <ShoppingBag aria-hidden="true" className="size-[18px]" strokeWidth={1.6} />
       {cantidad > 0 && (
         <span
           aria-hidden="true"
-          className="absolute top-1 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-acento px-1 text-[10px] leading-none font-semibold text-white"
+          className="absolute top-1 right-0.5 flex h-4 min-w-4 items-center justify-center bg-acento px-1 font-mono text-[10px] leading-none font-medium text-carbon"
         >
           {cantidad > 99 ? "99+" : cantidad}
         </span>

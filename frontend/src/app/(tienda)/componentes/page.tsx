@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
-import { Cpu, SlidersHorizontal } from "lucide-react";
+import { Cpu } from "lucide-react";
 import { TarjetaComponente } from "@/components/tienda/TarjetaComponente";
 import { Boton } from "@/components/ui/Boton";
 import { Contenedor } from "@/components/ui/Contenedor";
@@ -39,13 +39,12 @@ export default async function PaginaComponentes() {
   return (
     <>
       <CabeceraPagina
-        etiqueta="Componentes"
-        titulo="Componentes sueltos."
-        entradilla="Para ampliar el kit que ya tienes o empezar otro proyecto. Si no tienes claro si una pieza va con las demás, pruébala en el configurador."
+        etiqueta="SEC_03 · Componentes"
+        titulo="Componentes."
+        entradilla="Las mismas referencias que van en los kits, sueltas: placas, actuadores, sensores y alimentación. Tensión, consumo y GPIO de cada una a la vista; la compatibilidad se comprueba en el configurador."
       >
         <Boton href="/configurador" variante="primario" tamano="lg">
-          <SlidersHorizontal aria-hidden="true" className="size-5" strokeWidth={1.8} />
-          Montar en el configurador
+          Abrir configurador
         </Boton>
       </CabeceraPagina>
       <Contenedor className="py-12 sm:py-16">
@@ -58,15 +57,16 @@ export default async function PaginaComponentes() {
 
         {/* Atajos a cada categoría */}
         <nav aria-label="Categorías" className="mt-10">
-          <ul className="flex flex-wrap gap-2">
-            {grupos.map(({ id, nombre, icono: Icono }) => (
-              <li key={id}>
+          <ul className="flex flex-wrap border-t border-l border-linea">
+            {grupos.map(({ id, nombre, piezas }, i) => (
+              <li key={id} className="border-r border-b border-linea">
                 <a
                   href={`#${id.toLowerCase()}`}
-                  className="inline-flex items-center gap-2 rounded-boton bg-niebla px-4 py-2 text-sm transition-colors hover:bg-acento hover:text-white"
+                  className="mono-etiqueta flex items-center gap-2 px-4 py-2.5 text-gris transition-colors duration-100 hover:bg-panel hover:text-tinta"
                 >
-                  <Icono aria-hidden="true" className="size-4 text-acento" strokeWidth={1.6} />
+                  <span className="text-gris-claro">{String(i + 1).padStart(2, "0")}</span>
                   {nombre}
+                  <span className="text-gris-claro">[{piezas.length}]</span>
                 </a>
               </li>
             ))}
@@ -85,22 +85,28 @@ export default async function PaginaComponentes() {
           </EstadoVacio>
         )}
 
-        {grupos.map(({ id, nombre, descripcion, piezas }) => (
+        {grupos.map(({ id, nombre, descripcion, piezas }, i) => (
           <section
             key={id}
             id={id.toLowerCase()}
             aria-labelledby={`titulo-${id}`}
             className="mt-16 scroll-mt-[calc(var(--spacing-nav)+1.5rem)]"
           >
-            <h2 id={`titulo-${id}`} className="text-4xl font-medium">
+            <p className="mono-etiqueta text-gris">
+              <span className="text-acento">{"// "}</span>CAT_{String(i + 1).padStart(2, "0")} ·{" "}
+              {piezas.length} {piezas.length === 1 ? "referencia" : "referencias"}
+            </p>
+            <h2 id={`titulo-${id}`} className="mt-2 text-3xl font-semibold sm:text-4xl">
               {nombre}
             </h2>
-            <p className="mt-1 text-gris">{descripcion}</p>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <p className="mt-1 text-[15px] text-gris">{descripcion}</p>
+            <ul className="mt-6 grid border-t border-l border-linea sm:grid-cols-2 lg:grid-cols-3">
               {piezas.map((componente) => (
-                <TarjetaComponente key={componente.slug} componente={componente} />
+                <li key={componente.slug} className="border-r border-b border-linea">
+                  <TarjetaComponente componente={componente} />
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         ))}
       </Contenedor>
