@@ -39,7 +39,7 @@ alargado, módulo de color con sensor/pantalla/robot/LED, engranajes), y por el 
 vías: `components/layout/piezasEstela.ts` (dibujo en canvas, sin imágenes). Segunda tanda: más piezas (diodos, electrolíticos,
 cerámicos, transistores, cristales, bobinas, pulsadores, resistencias con bandas, zumbador) y las del ratón van PEQUEÑAS
 (`TAMANO_CHIP_RATON` 0,5: Jesse no quería chips enormes). `ChipsFijos` (en `MarcoWeb`): 8 chips montados fijos en los márgenes
-laterales (solo ≥ 1360 px, uno cada 900 px de página, ni en el titular ni en el final de la web).
+laterales (solo ≥ 1500 px, ahora solo 3 sobre los kits; antes uno cada 900 px de página, ni en el titular ni en el final de la web).
 Tercera tanda (Jesse: «con animación y que peguen con el fondo, no pegotes»): los fijos están VIVOS (señal que corre por la
 pista, LED que respiran, engranajes que giran, ondas del zumbador; ~30 fps y solo mientras se ven; quietos con «reducir
 movimiento») y fundidos con el fondo (opacidad 0,62, desenfoque de 0,35 px, máscara radial, entran con fundido).

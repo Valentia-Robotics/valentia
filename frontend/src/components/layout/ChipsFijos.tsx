@@ -11,7 +11,7 @@ import { pintarPieza, type Pieza, type TipoPieza } from "./piezasEstela";
  * de la estela (piezasEstela.ts).
  *  - No salen en el titular (empiezan a 1000 px) ni en el final de la web (paran 900 px antes del
  *    final del contenido): el bloque del final se queda como estaba.
- *  - Solo en pantallas de 1360 px o más (en las estrechas no hay margen y taparían el texto).
+ *  - Solo en pantallas de 1500 px o más (en las estrechas no hay margen y taparían el texto).
  */
 const COBRE = "#d8a743";
 
@@ -132,7 +132,7 @@ const MONTAJES: Montaje[] = [
 
 const ANCHO = 150;
 /** Tamaño en pantalla respecto al dibujo */
-const ESCALA = 1.3;
+const ESCALA = 1.6;
 const ALTO = 170;
 
 function pieza(base: Partial<Pieza> & { tipo: TipoPieza }, x: number, y: number): Pieza {
@@ -355,7 +355,7 @@ export function ChipsFijos() {
     <div
       ref={capa}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-10 hidden overflow-hidden min-[1360px]:block print:hidden"
+      className="pointer-events-none absolute inset-0 z-10 hidden overflow-hidden min-[1500px]:block print:hidden"
     >
       {alturas.map((y, i) => {
         const lado = i % 2 === 0 ? "izquierda" : "derecha";

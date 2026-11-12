@@ -348,10 +348,22 @@ function pintarCuadrado(ctx: CanvasRenderingContext2D, p: Pieza) {
   patas(ctx, p.patas, l, m, true, 8);
   patas(ctx, p.patas, l, -m, false, -8);
   patas(ctx, p.patas, l, m, false, 8);
-  ctx.fillStyle = p.cuerpo;
+  // Cuerpo con volumen: sombra, degradado de luz arriba a la izquierda y borde biselado
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetY = 2;
+  const g = ctx.createLinearGradient(-m, -m, m, m);
+  g.addColorStop(0, "#2e2e2e");
+  g.addColorStop(0.5, p.cuerpo);
+  g.addColorStop(1, "#050505");
+  ctx.fillStyle = g;
   ctx.fillRect(-m, -m, l, l);
-  ctx.strokeStyle = "rgba(255,255,255,0.18)";
-  ctx.strokeRect(-m + 3, -m + 3, l - 6, l - 6);
+  ctx.restore();
+  ctx.strokeStyle = "rgba(255,255,255,0.28)";
+  ctx.strokeRect(-m + 0.5, -m + 0.5, l - 1, l - 1);
+  ctx.strokeStyle = "rgba(255,255,255,0.16)";
+  ctx.strokeRect(-m + 4, -m + 4, l - 8, l - 8);
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.beginPath();
   ctx.arc(-m + 8, -m + 8, 2.5, 0, Math.PI * 2);

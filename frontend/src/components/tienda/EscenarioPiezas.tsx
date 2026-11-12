@@ -53,7 +53,11 @@ export function EscenarioPiezas({ componentes }: { componentes: ComponenteCatalo
   return (
     <div className="aparecer mt-14 grid gap-px overflow-hidden rounded-recto bg-white/10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       {/* Los apartados */}
-      <ul role="tablist" aria-label="Apartados del configurador" className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-3 lg:grid-cols-1">
+      <ul
+        role="tablist"
+        aria-label="Apartados del configurador"
+        className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-3 lg:grid-cols-1"
+      >
         {apartados.map(({ id, nombre, icono: Icono, cuantas }, i) => (
           <li key={id} className="contents">
             <button
@@ -62,18 +66,20 @@ export function EscenarioPiezas({ componentes }: { componentes: ComponenteCatalo
               aria-selected={i === activa}
               onClick={() => setActiva(i)}
               onPointerEnter={(e) => e.pointerType === "mouse" && setActiva(i)}
-              className={`flex items-center gap-4 bg-tinta px-5 py-4 text-left transition-colors duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cobre sm:px-6 lg:py-5 ${
+              className={`flex items-center gap-3 bg-tinta px-4 py-4 text-left transition-colors duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cobre sm:gap-4 sm:px-5 sm:px-6 lg:py-5 ${
                 i === activa ? "bg-grafito" : "hover:bg-grafito/60"
               }`}
             >
-              <span className="font-mono text-xs text-white/40">0{i + 1}</span>
+              <span className="hidden font-mono text-xs text-white/40 sm:inline">0{i + 1}</span>
               <Icono
                 aria-hidden="true"
                 className={`size-5 transition-colors ${i === activa ? "text-cobre" : "text-white/50"}`}
                 strokeWidth={1.5}
               />
-              <span className="flex-1 text-lg text-white">{nombre}</span>
-              <span className="hidden font-mono text-xs text-white/40 sm:inline">{cuantas} piezas</span>
+              <span className="flex-1 text-base leading-tight text-white sm:text-lg">{nombre}</span>
+              <span className="hidden font-mono text-xs text-white/40 sm:inline">
+                {cuantas} piezas
+              </span>
             </button>
           </li>
         ))}
