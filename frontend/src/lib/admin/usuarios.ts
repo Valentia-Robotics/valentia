@@ -5,6 +5,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { textoContiene } from "@/lib/busqueda";
 import { ROLES_EQUIPO } from "@/config/equipo";
+import { ORIGEN_QR } from "@/config/llegada";
 import { ultimaConexion, ultimoDispositivo } from "@/lib/admin/equipo";
 import { db } from "@/lib/db";
 
@@ -22,6 +23,8 @@ const datosUsuario = {
   ultimaConexionEn: true,
   navegadorRegistro: true,
   origenRegistro: true,
+  /// Basta uno: quien activó un código de tarjeta (de kit o de bienvenida) escaneó su QR
+  codigos: { select: { id: true }, take: 1 },
   dispositivos: ultimoDispositivo,
   cursos: { select: { curso: { select: { id: true, titulo: true } } } },
 } as const;
@@ -74,8 +77,10 @@ export async function buscarUsuarios(busqueda: string, pagina: number) {
     total,
     totalEmpleados,
     totalPaginas: Math.max(1, Math.ceil(totalClientes / USUARIOS_POR_PAGINA)),
-    usuarios: filas.map(({ dispositivos, ...u }) => ({
+    usuarios: filas.map(({ dispositivos, codigos, ...u }) => ({
       ...u,
+      /** Cuentas anteriores al 12-11-2026: si activaron una tarjeta, llegaron por su QR */
+      origenLlegada: u.origenRegistro ?? (codigos.length > 0 ? ORIGEN_QR : null),
       ultimaConexion: ultimaConexion(u.ultimaConexionEn, dispositivos),
       /** Navegador del último acceso (el dispositivo usado más recientemente) */
       navegadorUltimo: dispositivos[0]?.nombre ?? null,

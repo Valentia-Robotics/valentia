@@ -115,11 +115,14 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                 </td>
                 <td className="whitespace-nowrap text-gris">{fecha(u.creadoEn)}</td>
                 <td className="text-xs">
-                  <ComoLlego
-                    navegador={u.navegadorRegistro}
-                    ultimo={u.navegadorUltimo}
-                    origen={u.origenRegistro}
-                  />
+                  {/* Solo para clientes: el equipo no se mide */}
+                  {!esDelEquipo(u.rol) && (
+                    <ComoLlego
+                      navegador={u.navegadorRegistro}
+                      ultimo={u.navegadorUltimo}
+                      origen={u.origenLlegada}
+                    />
+                  )}
                 </td>
                 <td>
                   {u.cursos.length === 0 ? (
