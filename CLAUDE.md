@@ -36,7 +36,10 @@ bajo el ratón). NO se pinta en el pie ni donde ya hay un `CampoPixeles` (titula
 final como estaba): el lienzo de `CampoPixeles` lleva `data-campo-pixeles`. Solo con ratón y sin «reducir movimiento».
 Chips (Jesse, mismo día): al pararse el ratón sale un chip al final del cable, distinto cada vez (cuadrado con patas,
 alargado, módulo de color con sensor/pantalla/robot/LED, engranajes), y por el camino resistencias, condensadores, LED y
-vías: `components/layout/piezasEstela.ts` (dibujo en canvas, sin imágenes).
+vías: `components/layout/piezasEstela.ts` (dibujo en canvas, sin imágenes). Segunda tanda: más piezas (diodos, electrolíticos,
+cerámicos, transistores, cristales, bobinas, pulsadores, resistencias con bandas, zumbador) y las del ratón van PEQUEÑAS
+(`TAMANO_CHIP_RATON` 0,5: Jesse no quería chips enormes). `ChipsFijos` (en `MarcoWeb`): 8 chips montados fijos en los márgenes
+laterales (solo ≥ 1360 px, uno cada 900 px de página, ni en el titular ni en el final de la web).
 
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 

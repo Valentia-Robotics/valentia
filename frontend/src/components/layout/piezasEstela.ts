@@ -4,12 +4,31 @@
  *  - Al final de cada cable (cuando el ratón se para) sale un chip grande, distinto cada vez:
  *    chip cuadrado con patas en los 4 lados, chip alargado de dos filas de patas, módulo de color
  *    con taladros y un dibujo (sensor de ultrasonidos, pantalla, robot, LED) o un par de engranajes.
- *  - Por el camino, piezas pequeñas: resistencias, condensadores, LED y vías.
+ *  - Por el camino, piezas pequeñas: resistencias (de chip y con bandas de colores), condensadores
+ *    (de chip, electrolíticos y cerámicos), diodos, LED, transistores, cristales, bobinas, pulsadores y vías.
  * Todo se dibuja en el lienzo (sin imágenes). `crearChip` y `crearPequena` eligen al azar; `pintarPieza` dibuja.
  */
 
 export type TipoPieza =
-  "cuadrado" | "alargado" | "modulo" | "engranajes" | "resistencia" | "condensador" | "led" | "via";
+  // Chips grandes (final del cable y chips fijos)
+  | "cuadrado"
+  | "alargado"
+  | "modulo"
+  | "engranajes"
+  | "zumbador"
+  // Piezas pequeñas (por el camino)
+  | "resistencia"
+  | "resistenciaBandas"
+  | "condensador"
+  | "electrolitico"
+  | "ceramico"
+  | "diodo"
+  | "led"
+  | "transistor"
+  | "cristal"
+  | "bobina"
+  | "boton"
+  | "via";
 
 export interface Pieza {
   tipo: TipoPieza;
@@ -31,7 +50,13 @@ export interface Pieza {
   vertical: boolean;
   /** Color de las pistas y la serigrafía (verde o cobre, el de la estela) */
   tinta: string;
+  /** Tamaño final (1 = el del dibujo). Los del ratón van pequeños: Jesse no quería chips enormes */
+  tamano: number;
 }
+
+/** Tamaño de las piezas que salen con el ratón (los chips fijos van a 1) */
+export const TAMANO_CHIP_RATON = 0.5;
+export const TAMANO_PEQUENA_RATON = 0.75;
 
 const PLATA = "#c9ccd1";
 const COBRE = "#d8a743";
@@ -63,9 +88,21 @@ export function crearChip(x: number, y: number, tinta: string): Pieza {
     "modulo",
     "modulo",
     "engranajes",
+    "zumbador",
   ]);
   const [texto, subtexto] = azar(NOMBRES);
-  const base = { tipo, x, y, vida: 1, edad: 0, texto, subtexto, tinta, vertical: false };
+  const base = {
+    tipo,
+    x,
+    y,
+    vida: 1,
+    edad: 0,
+    texto,
+    subtexto,
+    tinta,
+    vertical: false,
+    tamano: TAMANO_CHIP_RATON,
+  };
   if (tipo === "cuadrado") {
     const lado = Math.round(entre(44, 70));
     return {
@@ -99,36 +136,81 @@ export function crearChip(x: number, y: number, tinta: string): Pieza {
       vertical: false,
     };
   }
+  if (tipo === "zumbador") {
+    return {
+      ...base,
+      cuerpo: "#111111",
+      ancho: 46,
+      alto: 46,
+      patas: 0,
+      dibujo: "ninguno",
+      texto: "BZ1",
+    };
+  }
   return { ...base, cuerpo: COBRE, ancho: 60, alto: 40, patas: 0, dibujo: "ninguno" };
 }
+
+/** Prefijo de la referencia impresa de cada pieza pequeña (R1, C2, D3, Q1, Y1, L1, SW1) */
+const PREFIJO: Partial<Record<TipoPieza, string>> = {
+  resistencia: "R",
+  resistenciaBandas: "R",
+  condensador: "C",
+  electrolitico: "C",
+  ceramico: "C",
+  diodo: "D",
+  led: "D",
+  transistor: "Q",
+  cristal: "Y",
+  bobina: "L",
+  boton: "SW",
+};
+
+const PEQUENAS: TipoPieza[] = [
+  "resistencia",
+  "resistencia",
+  "resistenciaBandas",
+  "condensador",
+  "electrolitico",
+  "ceramico",
+  "diodo",
+  "led",
+  "transistor",
+  "cristal",
+  "bobina",
+  "boton",
+  "via",
+];
 
 /** Pieza pequeña para dejar por el camino */
 export function crearPequena(x: number, y: number, tinta: string, vertical: boolean): Pieza {
   contador++;
-  const tipo = azar<TipoPieza>(["resistencia", "resistencia", "condensador", "led", "via"]);
+  const tipo = azar(PEQUENAS);
   const numero = (contador % 9) + 1;
+  const cuerpos: Partial<Record<TipoPieza, string[]>> = {
+    led: COLORES_LED,
+    condensador: ["#a8794a", "#c08a55"],
+    electrolitico: ["#1f3f8f", "#151515", "#3a6b3a"],
+    ceramico: ["#d9822b", "#c9a227", "#3d6fd0"],
+    resistenciaBandas: ["#e2c99a", "#7fb4d9"],
+    bobina: ["#3a3a3a", "#6b4a2a"],
+    boton: ["#2a2a2a"],
+  };
   return {
     tipo,
     x,
     y,
     vida: 1,
     edad: 0,
-    cuerpo: tipo === "led" ? azar(COLORES_LED) : tipo === "condensador" ? "#a8794a" : "#151515",
+    cuerpo: azar(cuerpos[tipo] ?? ["#151515"]),
     ancho: 22,
     alto: 10,
     patas: 0,
-    texto:
-      tipo === "resistencia"
-        ? `R${numero}`
-        : tipo === "condensador"
-          ? `C${numero}`
-          : tipo === "led"
-            ? `D${numero}`
-            : "",
+    texto: PREFIJO[tipo] ? `${PREFIJO[tipo]}${numero}` : "",
     subtexto: "",
     dibujo: "ninguno",
     vertical,
     tinta,
+    tamano: TAMANO_PEQUENA_RATON,
   };
 }
 
@@ -146,11 +228,8 @@ export function pintarPieza(
   ctx.save();
   ctx.globalAlpha = Math.max(0, Math.min(1, p.vida * 1.4));
   ctx.translate(p.x - dx, p.y - dy);
-  ctx.scale(escala, escala);
-  if (
-    p.vertical &&
-    (p.tipo === "alargado" || p.tipo === "resistencia" || p.tipo === "condensador")
-  ) {
+  ctx.scale(escala * p.tamano, escala * p.tamano);
+  if (p.vertical && GIRAN.includes(p.tipo)) {
     ctx.rotate(Math.PI / 2);
   }
   switch (p.tipo) {
@@ -180,6 +259,33 @@ export function pintarPieza(
       ctx.fill();
       ctx.shadowBlur = 0;
       etiqueta(ctx, p.texto, 0, -12, p.tinta);
+      break;
+    case "zumbador":
+      pintarZumbador(ctx, p);
+      break;
+    case "resistenciaBandas":
+      pintarResistenciaBandas(ctx, p);
+      break;
+    case "electrolitico":
+      pintarElectrolitico(ctx, p);
+      break;
+    case "ceramico":
+      pintarCeramico(ctx, p);
+      break;
+    case "diodo":
+      pintarDiodo(ctx, p);
+      break;
+    case "transistor":
+      pintarTransistor(ctx, p);
+      break;
+    case "cristal":
+      pintarCristal(ctx, p);
+      break;
+    case "bobina":
+      pintarBobina(ctx, p);
+      break;
+    case "boton":
+      pintarBoton(ctx, p);
       break;
     case "via":
       ctx.strokeStyle = COBRE;
@@ -380,4 +486,173 @@ function engranaje(
   ctx.arc(0, 0, radio * 0.32, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+/** Piezas alargadas que se giran para seguir un tramo vertical del cable */
+const GIRAN: TipoPieza[] = [
+  "alargado",
+  "resistencia",
+  "resistenciaBandas",
+  "condensador",
+  "diodo",
+  "cristal",
+];
+
+/** Patita de cobre de una pieza de agujero pasante (línea + pad redondo) */
+function pata(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number) {
+  ctx.strokeStyle = PLATA;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.fillStyle = COBRE;
+  ctx.beginPath();
+  ctx.arc(x2, y2, 2.6, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+const BANDAS = [
+  "#5a3a1a",
+  "#d92d20",
+  "#f08a1a",
+  "#ffd21a",
+  "#2e9e4f",
+  "#2d4bff",
+  "#7a3fb5",
+  "#111111",
+];
+
+function pintarResistenciaBandas(ctx: CanvasRenderingContext2D, p: Pieza) {
+  pata(ctx, -9, 0, -18, 0);
+  pata(ctx, 9, 0, 18, 0);
+  ctx.fillStyle = p.cuerpo;
+  ctx.beginPath();
+  ctx.roundRect(-10, -4.5, 20, 9, 4);
+  ctx.fill();
+  // Bandas de colores (el valor), elegidas por su referencia: no cambian de un fotograma a otro
+  const semilla = p.texto.charCodeAt(1) || 3;
+  [-5, -1.5, 2, 6].forEach((x, i) => {
+    ctx.fillStyle = i === 3 ? "#c9a227" : BANDAS[(semilla + i * 3) % BANDAS.length];
+    ctx.fillRect(x - 1, -4.5, 2, 9);
+  });
+  etiqueta(ctx, p.texto, 0, -12, p.tinta, 9);
+}
+
+function pintarElectrolitico(ctx: CanvasRenderingContext2D, p: Pieza) {
+  // Visto desde arriba: lata redonda con la franja del negativo
+  ctx.fillStyle = p.cuerpo;
+  ctx.beginPath();
+  ctx.arc(0, 0, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.beginPath();
+  ctx.arc(0, 0, 9, Math.PI * 0.6, Math.PI * 1.4);
+  ctx.lineTo(0, 0);
+  ctx.fill();
+  ctx.strokeStyle = PLATA;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-4, -4);
+  ctx.lineTo(4, 4);
+  ctx.moveTo(4, -4);
+  ctx.lineTo(-4, 4);
+  ctx.stroke();
+  etiqueta(ctx, p.texto, 0, -16, p.tinta, 9);
+}
+
+function pintarCeramico(ctx: CanvasRenderingContext2D, p: Pieza) {
+  pata(ctx, -3, 5, -5, 13);
+  pata(ctx, 3, 5, 5, 13);
+  ctx.fillStyle = p.cuerpo;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 8, 6.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  etiqueta(ctx, "104", 0, 0, "rgba(0,0,0,0.55)", 6);
+  etiqueta(ctx, p.texto, 0, -13, p.tinta, 9);
+}
+
+function pintarDiodo(ctx: CanvasRenderingContext2D, p: Pieza) {
+  pata(ctx, -8, 0, -17, 0);
+  pata(ctx, 8, 0, 17, 0);
+  ctx.fillStyle = "#151515";
+  ctx.fillRect(-8, -4, 16, 8);
+  ctx.fillStyle = PLATA;
+  ctx.fillRect(4, -4, 2.5, 8);
+  etiqueta(ctx, p.texto, 0, -11, p.tinta, 9);
+}
+
+function pintarTransistor(ctx: CanvasRenderingContext2D, p: Pieza) {
+  // TO-92 visto desde arriba: medio círculo negro y tres patas
+  pata(ctx, -5, 4, -6, 13);
+  pata(ctx, 0, 4, 0, 13);
+  pata(ctx, 5, 4, 6, 13);
+  ctx.fillStyle = "#151515";
+  ctx.beginPath();
+  ctx.arc(0, 4, 8, Math.PI, 0);
+  ctx.closePath();
+  ctx.fill();
+  etiqueta(ctx, p.texto, 0, -10, p.tinta, 9);
+}
+
+function pintarCristal(ctx: CanvasRenderingContext2D, p: Pieza) {
+  pata(ctx, -9, 0, -16, 0);
+  pata(ctx, 9, 0, 16, 0);
+  ctx.fillStyle = PLATA;
+  ctx.beginPath();
+  ctx.roundRect(-11, -5, 22, 10, 5);
+  ctx.fill();
+  etiqueta(ctx, "16.000", 0, 0.5, "rgba(0,0,0,0.6)", 6);
+  etiqueta(ctx, p.texto, 0, -12, p.tinta, 9);
+}
+
+function pintarBobina(ctx: CanvasRenderingContext2D, p: Pieza) {
+  ctx.fillStyle = p.cuerpo;
+  ctx.fillRect(-8, -8, 16, 16);
+  ctx.strokeStyle = COBRE;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, 5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, 2, 0, Math.PI * 2);
+  ctx.stroke();
+  etiqueta(ctx, p.texto, 0, -15, p.tinta, 9);
+}
+
+function pintarBoton(ctx: CanvasRenderingContext2D, p: Pieza) {
+  ctx.fillStyle = PLATA;
+  for (const [sx, sy] of [
+    [-1, -1],
+    [1, -1],
+    [-1, 1],
+    [1, 1],
+  ])
+    ctx.fillRect(sx * 9 - 2, sy * 6 - 1.5, 4, 3);
+  ctx.fillStyle = p.cuerpo;
+  ctx.fillRect(-8, -8, 16, 16);
+  ctx.fillStyle = "#555";
+  ctx.beginPath();
+  ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+  etiqueta(ctx, p.texto, 0, -15, p.tinta, 9);
+}
+
+function pintarZumbador(ctx: CanvasRenderingContext2D, p: Pieza) {
+  const r = p.ancho / 2;
+  ctx.fillStyle = p.cuerpo;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = "#050505";
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+  etiqueta(ctx, "+", -r * 0.5, -r * 0.45, "rgba(255,255,255,0.6)", 10);
+  etiqueta(ctx, p.texto, 0, -r - 10, p.tinta, 9);
 }
