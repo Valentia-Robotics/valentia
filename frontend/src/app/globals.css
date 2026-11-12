@@ -625,3 +625,8 @@ dialog[open]::backdrop {
     opacity: 0;
   }
 }
+
+/* Colores más vivos al MOSTRAR los renders de Alonso (los archivos no se tocan): se veían algo descoloridos */
+.render-vivo {
+  filter: saturate(1.35) contrast(1.06);
+}

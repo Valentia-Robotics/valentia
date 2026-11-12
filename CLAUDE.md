@@ -65,7 +65,9 @@ Pieza nueva con render → añadir su slug a `CON_RENDER`.
 
 Octava tanda (Jesse, 12-11-2026): el chip negro de los kits (`ChipsFijos`) brilla con un barrido y un LED de estado que late; desde
 1360 px (a escala 0,72 hasta 1500). **Los renders de las piezas (`public/images/componentes`) son de Alonso y NO se regeneran ni se
-retocan** (se probó a avivar el color con `fotos:piezas` y Jesse lo rechazó: «quiero los modelos de Alonso»).
+retocan** (se probó a avivar el color con `fotos:piezas` y Jesse lo rechazó: «quiero los modelos de Alonso»). Para que no se vean descoloridos, se
+avivan SOLO al mostrarlos con la clase CSS `.render-vivo` (saturación 1,35, contraste 1,06); los ojos plateados del HC-SR04 o el
+amarillo del motor solo se cambian en el modelo de Alonso (visor 3D / sus renders).
 
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 

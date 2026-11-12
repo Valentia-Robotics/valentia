@@ -140,7 +140,7 @@ export function PiezasPortada() {
                     height={grande ? 360 : 200}
                     unoptimized
                     className={cn(
-                      "h-auto transition-[scale,rotate] duration-700",
+                      "render-vivo h-auto transition-[scale,rotate] duration-700",
                       grande ? "w-3/4 max-w-80" : "w-2/3 max-w-44",
                       esta ? "scale-105 -rotate-3" : "scale-95 rotate-0",
                     )}
