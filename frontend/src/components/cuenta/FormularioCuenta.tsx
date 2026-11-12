@@ -64,9 +64,10 @@ export function FormularioCuenta({ modo, volver }: Props) {
 
       {esRegistro && (
         <Campo
-          etiqueta="Nombre"
+          etiqueta="Nombre de usuario"
           name="nombre"
           autoComplete="given-name"
+          ayuda="Así te llamaremos en la web y en los correos."
           required
           error={e.nombre}
         />
