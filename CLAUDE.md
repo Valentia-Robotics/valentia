@@ -54,6 +54,10 @@ botones ni campos); los chips fijos van sin desenfoque (opacidad .9). «O elige 
 «Verla en 3D» (`Ver3dPieza`, que no se ha tocado más que el texto). Fundidos blanco → negro → blanco alrededor. `ChipsFijos` (Jesse, mismo día): solo 3, sobre la placa verde de los kits (`#kits`), nítidos (sin máscara ni opacidad); en fondo blanco o negro no hay chips fijos (el negro del final lleva los suyos de `CampoPixeles`). El configurador
 (`/configurador`) y sus modelos de Alonso no se tocan.
 
+Sexta tanda (Jesse, 12-11-2026): los 3 kits de la portada van IGUALES en fila (`GaleriaKits` con todos; fuera `ChipDestacado`); el
+escenario negro usa `/images/componentes/<slug>.webp` (render de Alonso), no la foto de la BD; chips fijos al doble de resolución y 1,3×;
+la pestaña del menú «Crea tu robot» se llama «Configurador».
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,
@@ -223,7 +227,7 @@ ratón es una pista que se apaga. Fondo `.campo-cielo` (azul → blanco abajo) e
 
 - Portada: héroe → aviso → **kits** (destacado + `GaleriaKits` con los DEMÁS: no se repite) → cómo funciona → piezas por
   dentro → configurador → curso QR → final. Fuera la cinta de piezas (`Marquesina` y su CSS `.cinta`).
-- Menú: Inicio · Kits · «Crea tu robot» (`/configurador`, también marca `/componentes`) · «Mis cursos» solo con sesión
+- Menú: Inicio · Kits · «Configurador» (`/configurador`, también marca `/componentes`) · «Mis cursos» solo con sesión
   (`soloConSesion` en `enlacesNavegacion`). Componentes sigue en el pie.
 - Sin etiquetas «de máquina» encima de las fotos (`fig. —`, `↳ /kits/…`).
 - Configurador vacío: el panel «Tu robot» ya no repite los kits (están en «¿Cómo quieres empezar?»).

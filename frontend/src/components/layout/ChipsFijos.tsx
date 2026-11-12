@@ -131,6 +131,8 @@ const MONTAJES: Montaje[] = [
 ];
 
 const ANCHO = 150;
+/** Tamaño en pantalla respecto al dibujo */
+const ESCALA = 1.3;
 const ALTO = 170;
 
 function pieza(base: Partial<Pieza> & { tipo: TipoPieza }, x: number, y: number): Pieza {
@@ -191,7 +193,8 @@ function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | 
     const canvas = lienzo.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-    const ppp = Math.min(window.devicePixelRatio || 1, 2);
+    // Se dibuja al doble de resolución como mínimo (y 1,3 veces más grande): el navegador reduce y queda nítido
+    const ppp = Math.min(Math.max(window.devicePixelRatio || 1, 2), 3) * ESCALA;
     canvas.width = ANCHO * ppp;
     canvas.height = ALTO * ppp;
     const cx = ANCHO / 2;
@@ -319,7 +322,7 @@ function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | 
         opacity: visible ? 1 : 0,
       }}
     >
-      <canvas ref={lienzo} style={{ width: ANCHO, height: ALTO }} />
+      <canvas ref={lienzo} style={{ width: ANCHO * ESCALA, height: ALTO * ESCALA }} />
     </div>
   );
 }
@@ -364,7 +367,7 @@ export function ChipsFijos() {
               top: y,
               // En medio del margen entre el borde de la ventana y el contenido (72rem de ancho)
               [lado === "izquierda" ? "left" : "right"]:
-                `calc((100% - 72rem) / 4 - ${ANCHO / 2}px)`,
+                `calc((100% - 72rem) / 4 - ${(ANCHO * ESCALA) / 2}px)`,
             }}
           >
             <ChipMontado montaje={MONTAJES[i]} lado={lado} />

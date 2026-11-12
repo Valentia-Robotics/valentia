@@ -20,7 +20,6 @@ export interface KitGaleria {
  * LOS DEMÁS KITS DE LA PORTADA, sobre la placa verde: cada uno es un chip blanco como el destacado
  * (cabecera negra con su referencia, patas plateadas y sombra cobre), con los mismos datos en corto.
  * Toda la tarjeta es un enlace a su ficha.
- * La foto NO usa FotoKitViaje: el kit destacado de arriba ya la usa y el nombre solo puede salir una vez.
  */
 export function GaleriaKits({
   kits,
@@ -60,7 +59,7 @@ export function GaleriaKits({
               />
             </div>
             <div className="flex flex-1 flex-col p-5">
-              <h4 className="text-xl font-medium">{kit.nombre}</h4>
+              <h3 className="text-xl font-medium">{kit.nombre}</h3>
               {kit.hace.length > 0 && (
                 <ul className="mt-3 space-y-1.5 text-sm text-tinta/85">
                   {kit.hace.map((texto) => (

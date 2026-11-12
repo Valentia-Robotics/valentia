@@ -122,7 +122,8 @@ export function EscenarioPiezas({ componentes }: { componentes: ComponenteCatalo
               }}
             >
               <Image
-                src={actual.pieza.imagen}
+                // El render de Alonso de esa pieza (el mismo modelo 3D), no la foto que haya en la BD
+                src={`/images/componentes/${actual.pieza.slug}.webp`}
                 alt={actual.pieza.nombre}
                 width={420}
                 height={420}
