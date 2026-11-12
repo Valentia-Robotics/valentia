@@ -14,7 +14,10 @@ export function HeroPortada({
   cifras: { kits: number; componentes: number; lecciones: number };
 }) {
   return (
-    <section aria-labelledby="titulo-portada" className="campo-placa relative isolate overflow-hidden text-white">
+    <section
+      aria-labelledby="titulo-portada"
+      className="campo-placa relative isolate overflow-hidden text-white"
+    >
       <CampoPixeles />
       {/* Regla de colores del borde izquierdo */}
       <div aria-hidden="true" className="absolute inset-y-6 left-3 flex w-1.5 flex-col sm:left-5">
