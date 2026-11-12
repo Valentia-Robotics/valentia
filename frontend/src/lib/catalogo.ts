@@ -25,7 +25,13 @@ export function obtenerKits() {
   return db.kit.findMany({
     where: { visible: true },
     orderBy: { orden: "asc" },
-    include: { curso: { select: { titulo: true, _count: { select: { lecciones: true } } } } },
+    include: {
+      curso: { select: { titulo: true, _count: { select: { lecciones: true } } } },
+      // Lo que va en la caja (la portada lo enseña en la ficha del kit destacado)
+      componentes: {
+        select: { cantidad: true, componente: { select: { nombre: true, categoria: true } } },
+      },
+    },
   });
 }
 

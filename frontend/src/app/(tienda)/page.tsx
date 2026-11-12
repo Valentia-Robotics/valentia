@@ -1,4 +1,3 @@
-import { AvisoApertura } from "@/components/portada/AvisoApertura";
 import { BloqueComoFunciona } from "@/components/portada/BloqueComoFunciona";
 import { BloqueFinal } from "@/components/portada/BloqueFinal";
 import { HeroPortada } from "@/components/portada/HeroPortada";
@@ -31,8 +30,8 @@ export const metadata: Metadata = metadatosPagina({
  * PÁGINA DE INICIO (estilo «taller»: carteles, campos de color con la placa de circuito, líneas de puntos)
  * Lo primero que se ve después del titular son los kits: es lo que viene a buscar quien entra.
  *   1. Campo de color con el titular y las dos entradas (HeroPortada)
- *      (debajo, mientras la tienda no cobra, un aviso pequeño con «Avísame»)
- *   2. Los kits: el destacado en grande y los demás en una galería de fotos (GaleriaKits)
+ *   2. Los kits: el destacado como hoja de datos (con el «Avísame» junto al precio mientras la
+ *      tienda no cobra) y los demás en tarjetas (GaleriaKits)
  *   3. Cómo funciona, en tres pasos, con cifras reales
  *   4. Las cinco piezas de un robot en un mosaico con «escáner»
  *   5. "O elige tú las piezas" → configurador (tramo oscuro)
@@ -51,7 +50,6 @@ export default async function Inicio() {
     <>
       <DatosEstructurados datos={datosTienda()} />
       <HeroPortada cifras={cifras} />
-      {!abierta && <AvisoApertura />}
       <KitsPortada
         estrella={destacado}
         // El destacado ya sale en grande: la galería enseña los demás (sin repetirlo)

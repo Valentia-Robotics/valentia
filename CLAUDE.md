@@ -18,6 +18,15 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Kits de la portada sin frases genéricas (12-11-2026, rama `claude/project-thread-x7f1xd`; petición de Jesse)
+
+`KitsPortada`: titular con el número real de kits («Tres kits para montar en casa, sin soldar.»), el destacado como hoja de
+datos (foto · qué hace · edad/nivel/montaje/curso · precio con el «Avísame» al lado mientras la tienda no cobra · «En la
+caja» con las piezas de la BD + baterías si lleva portapilas + cable USB + tarjeta QR) y los demás en tarjetas con los mismos
+datos en corto (`GaleriaKits`). Sin eslogan. Reglas puras en `components/portada/datosKit.ts` (+ test). `obtenerKits` trae
+ya las piezas (nombre, categoría, cantidad). Borrado `AvisoApertura` (el recuadro de aviso de encima). Choca con el PR #109
+(rediseño industrial), que borra `KitsPortada`: si se une #109, esta sección desaparece.
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,
