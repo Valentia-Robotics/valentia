@@ -67,7 +67,9 @@ const cabecerasSeguridad = [
   {
     key: "Permissions-Policy",
     value:
-      'camera=(), microphone=(), geolocation=(), usb=(), serial=(), bluetooth=(), payment=(self "https://js.stripe.com")',
+      // La cámara y el seguimiento de movimiento solo para el visor 3D de las piezas («Ver en tu espacio»,
+      // realidad aumentada): sin esto el navegador bloquea la cámara dentro del marco y el botón no hace nada
+      `camera=(self "${origenVisor3d()}"), xr-spatial-tracking=(self "${origenVisor3d()}"), microphone=(), geolocation=(), usb=(), serial=(), bluetooth=(), payment=(self "https://js.stripe.com")`,
   },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
 ];

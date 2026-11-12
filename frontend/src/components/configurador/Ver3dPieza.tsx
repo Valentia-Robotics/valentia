@@ -70,7 +70,7 @@ export function Ver3dPieza({ componente, className }: Props) {
             <iframe
               src={url}
               title={`${componente.nombre} en 3D: gírala y acércate`}
-              allow="fullscreen; xr-spatial-tracking"
+              allow="fullscreen; camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer"
               onLoad={() => setCargado(true)}
               className={cn(
                 "absolute inset-0 size-full border-0 transition-opacity duration-300",
