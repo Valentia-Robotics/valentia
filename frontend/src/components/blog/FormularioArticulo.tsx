@@ -45,7 +45,12 @@ export function FormularioArticulo({
       {estado.mensaje && <Aviso tipo={estado.ok ? "exito" : "error"}>{estado.mensaje}</Aviso>}
       {articulo && <input type="hidden" name="articuloId" value={articulo.id} />}
 
-      <CampoAdmin etiqueta="Título" name="titulo" defaultValue={articulo?.titulo} error={error("titulo")} />
+      <CampoAdmin
+        etiqueta="Título"
+        name="titulo"
+        defaultValue={articulo?.titulo}
+        error={error("titulo")}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectorAdmin
           etiqueta="Categoría"

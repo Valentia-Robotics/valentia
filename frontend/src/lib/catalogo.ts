@@ -5,6 +5,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { CATEGORIAS } from "@/lib/validaciones/catalogo";
+import { modeloDeComponente } from "@/lib/modelos3d";
 import type { ComponenteCatalogo, Especificacion, KitParaConfigurador } from "@/types/catalogo";
 
 /** Los kits que se muestran juntos con su curso y sus componentes */
@@ -105,6 +106,7 @@ function componenteDeFila(fila: FilaComponente): ComponenteCatalogo {
     conector: fila.conector,
     pines: fila.pines,
     especificaciones: listaDeEspecificaciones(fila.especificaciones),
+    modelo3d: modeloDeComponente(fila.slug),
   };
 }
 
