@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { Link2, Plus } from "lucide-react";
 import { useState } from "react";
-import { FotoOModelo } from "@/components/tienda/FotoOModelo";
 import { Boton } from "@/components/ui/Boton";
 import { SelectorCantidad } from "@/components/ui/SelectorCantidad";
 import { nombreCategoria } from "@/config/categorias";
@@ -29,24 +28,16 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
 
   return (
     <div className="grid gap-6 p-5 sm:grid-cols-[2fr_3fr] sm:p-6">
-      {/* Con modelo 3D (Alonso): se gira, se acerca y enseña sus medidas; sin él, la foto de siempre */}
-      <FotoOModelo
-        modelo={componente.modelo3d}
-        nombre={componente.nombre}
-        className="self-start"
-        foto={
-          <div className="rounded-tarjeta bg-niebla p-6">
-            <Image
-              src={componente.imagen}
-              alt={`Foto de ${componente.nombre}`}
-              width={320}
-              height={320}
-              unoptimized
-              className="mx-auto aspect-square h-auto w-full max-w-64"
-            />
-          </div>
-        }
-      />
+      <div className="self-start rounded-tarjeta bg-niebla p-6">
+        <Image
+          src={componente.imagen}
+          alt={`Foto de ${componente.nombre}`}
+          width={320}
+          height={320}
+          unoptimized
+          className="mx-auto aspect-square h-auto w-full max-w-64"
+        />
+      </div>
 
       <div>
         {/* El nombre ya aparece como título de la ventana */}

@@ -1,5 +1,4 @@
 import type { Categoria } from "@/generated/prisma/enums";
-import type { Modelo3D } from "@/config/modelos3d";
 
 export type { Categoria };
 
@@ -38,8 +37,6 @@ export interface ComponenteCatalogo {
   /** Pines que ocupa en la placa (en una placa: los que ofrece) */
   pines: number;
   especificaciones: Especificacion[];
-  /** Modelo 3D para girarlo y ver sus medidas (null = solo foto). Ver src/config/modelos3d.ts */
-  modelo3d?: Modelo3D | null;
 }
 
 /** Una pieza dentro de un robot o de un kit: qué componente y cuántas unidades */

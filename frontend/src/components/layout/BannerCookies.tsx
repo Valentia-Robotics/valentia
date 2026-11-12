@@ -40,8 +40,8 @@ export function BannerCookies() {
                 Usamos cookies necesarias para que la web funcione (sesión, carrito y pago). Con tu
                 permiso, también cargamos los reproductores de vídeo de YouTube y Vimeo en los
                 cursos, que ponen sus propias cookies
-                {hayAnalitica && ", y Google Analytics para saber qué páginas gustan más"}. No
-                usamos cookies de publicidad.{" "}
+                {hayAnalitica && ", y Google Analytics para saber qué páginas gustan más"}. No usamos
+                cookies de publicidad.{" "}
                 <Link href="/legal/cookies" className="text-acento underline underline-offset-2">
                   Más información sobre las cookies
                 </Link>
@@ -108,10 +108,7 @@ function PanelPreferencias() {
         <Boton variante="secundario" onClick={() => guardar({ videos: false, analitica: false })}>
           Rechazar opcionales
         </Boton>
-        <Boton
-          variante="primario"
-          onClick={() => guardar({ videos, analitica: hayAnalitica && analitica })}
-        >
+        <Boton variante="primario" onClick={() => guardar({ videos, analitica: hayAnalitica && analitica })}>
           Guardar mi elección
         </Boton>
       </div>
