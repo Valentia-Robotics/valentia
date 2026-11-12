@@ -16,6 +16,7 @@ import {
   textoConexion,
   tieneAccesoAdmin,
 } from "@/config/equipo";
+import { ORIGEN_QR } from "@/config/llegada";
 import { fecha } from "@/lib/admin/formato";
 import { buscarUsuarios } from "@/lib/admin/usuarios";
 import { exigirAdmin } from "@/lib/sesion";
@@ -64,7 +65,14 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
 
       <Caja sinRelleno>
         <Tabla
-          columnas={["Usuario", "Registro", "Cursos activados", "Pedidos", ""]}
+          columnas={[
+            "Usuario",
+            "Registro",
+            "Navegador y llegada",
+            "Cursos activados",
+            "Pedidos",
+            "",
+          ]}
           vacia={usuarios.length === 0 && "No hay ninguna cuenta que coincida con la búsqueda."}
         >
           {usuarios.map((u, i) => (
@@ -73,7 +81,7 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
               {(i === 0 || esDelEquipo(usuarios[i - 1].rol) !== esDelEquipo(u.rol)) && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="bg-niebla text-xs font-semibold tracking-wide text-gris uppercase"
                   >
                     {esDelEquipo(u.rol) ? `Empleados (${totalEmpleados})` : "Clientes"}
@@ -106,6 +114,13 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
                   )}
                 </td>
                 <td className="whitespace-nowrap text-gris">{fecha(u.creadoEn)}</td>
+                <td className="text-xs">
+                  <ComoLlego
+                    navegador={u.navegadorRegistro}
+                    ultimo={u.navegadorUltimo}
+                    origen={u.origenRegistro}
+                  />
+                </td>
                 <td>
                   {u.cursos.length === 0 ? (
                     <span className="text-gris">Ninguno</span>
@@ -135,6 +150,44 @@ export default async function UsuariosAdmin({ searchParams }: Props) {
         />
       </Caja>
     </>
+  );
+}
+
+/**
+ * Con qué navegador se registró (y con cuál entró la última vez, si es otro) y cómo llegó a la
+ * web: QR de una tarjeta, Google, Instagram, directo… Las cuentas creadas antes del 12-11-2026
+ * no lo tienen apuntado: «Desconocido» (del navegador se ve al menos el último acceso).
+ */
+function ComoLlego({
+  navegador,
+  ultimo,
+  origen,
+}: {
+  navegador: string | null;
+  ultimo: string | null;
+  origen: string | null;
+}) {
+  return (
+    <div className="space-y-1">
+      <p>
+        <span className="text-gris">Navegador: </span>
+        {navegador ?? ultimo ?? <span className="text-gris">Desconocido</span>}
+      </p>
+      {ultimo && ultimo !== (navegador ?? ultimo) && (
+        <p>
+          <span className="text-gris">Último acceso: </span>
+          {ultimo}
+        </p>
+      )}
+      <p>
+        <span className="text-gris">Llegó por: </span>
+        {origen ? (
+          <Insignia tono={origen === ORIGEN_QR ? "exito" : "neutro"}>{origen}</Insignia>
+        ) : (
+          <span className="text-gris">Desconocido</span>
+        )}
+      </p>
+    </div>
   );
 }
 

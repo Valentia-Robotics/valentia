@@ -97,6 +97,18 @@ export default function Privacidad() {
             <td>Interés legítimo en mejorar la web (art. 6.1.f)</td>
           </tr>
           <tr>
+            <td>
+              Saber cómo nos conoce la gente que crea una cuenta (por ejemplo, por Google o por el
+              QR de una tarjeta)
+            </td>
+            <td>
+              Al registrarte: el tipo de navegador y aparato (por ejemplo, «Chrome en Android») y
+              cómo llegaste a la web. Se apunta en tu pestaña solo mientras está abierta. La IP no
+              se guarda
+            </td>
+            <td>Interés legítimo en mejorar la web (art. 6.1.f)</td>
+          </tr>
+          <tr>
             <td>Cargar vídeos de YouTube o Vimeo en los cursos</td>
             <td>Datos técnicos del navegador que recogen esos servicios</td>
             <td>Tu consentimiento (art. 6.1.a), que puedes retirar en «Configurar cookies»</td>

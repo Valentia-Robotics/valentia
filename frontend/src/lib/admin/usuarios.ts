@@ -20,6 +20,8 @@ const datosUsuario = {
   rolFemenino: true,
   creadoEn: true,
   ultimaConexionEn: true,
+  navegadorRegistro: true,
+  origenRegistro: true,
   dispositivos: ultimoDispositivo,
   cursos: { select: { curso: { select: { id: true, titulo: true } } } },
 } as const;
@@ -75,6 +77,8 @@ export async function buscarUsuarios(busqueda: string, pagina: number) {
     usuarios: filas.map(({ dispositivos, ...u }) => ({
       ...u,
       ultimaConexion: ultimaConexion(u.ultimaConexionEn, dispositivos),
+      /** Navegador del último acceso (el dispositivo usado más recientemente) */
+      navegadorUltimo: dispositivos[0]?.nombre ?? null,
       cursos: u.cursos.map((c) => c.curso),
       pedidos: pedidosPorEmail.get(u.email) ?? 0,
     })),

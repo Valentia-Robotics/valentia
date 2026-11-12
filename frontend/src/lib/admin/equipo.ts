@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 
 /** Para pedir con cada persona lo último que hizo con un dispositivo */
 export const ultimoDispositivo = {
-  select: { ultimoUsoEn: true },
+  select: { ultimoUsoEn: true, nombre: true },
   orderBy: { ultimoUsoEn: "desc" },
   take: 1,
 } as const;
