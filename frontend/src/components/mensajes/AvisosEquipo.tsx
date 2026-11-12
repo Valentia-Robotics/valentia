@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AlarmClock, BellRing, Check, MessageCircle, X } from "lucide-react";
 import { apagarAlarma, marcarEstadoTarea, posponer, type Respuesta } from "@/app/mensajes/acciones";
-import { SEGUNDOS_REFRESCO_CONTADOR } from "@/config/mensajes";
+import { SEGUNDOS_REFRESCO_CONTADOR, grupoDe } from "@/config/mensajes";
 import { activarAvisos, estadoAvisos, repasarAvisos, type EstadoAvisos } from "@/lib/push/cliente";
 import { useAvisosEquipo, type Alarma, type UltimoMensaje } from "@/store/avisosEquipo";
 import { EtiquetaPrioridad } from "./TarjetaTarea";
@@ -346,7 +346,7 @@ export function AvisosEquipo({ email }: { email: string }) {
               className="min-w-0 flex-1"
             >
               <p className="text-xs font-semibold tracking-wide text-gris uppercase">
-                Nuevo mensaje{nuevo.ruta === "general" ? " en General" : ""}
+                Nuevo mensaje{grupoDe(nuevo.ruta) ? ` en ${grupoDe(nuevo.ruta)!.nombre}` : ""}
               </p>
               <p className="mt-0.5 font-medium">{nuevo.de}</p>
               <p className="mt-0.5 line-clamp-2 text-sm text-gris">{nuevo.texto}</p>

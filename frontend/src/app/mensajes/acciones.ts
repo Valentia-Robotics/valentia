@@ -82,7 +82,7 @@ export async function apagarAlarma(mensajeId: string): Promise<Respuesta> {
   return conEquipo((yo) => cerrarAlarma(yo, String(mensajeId)));
 }
 
-/** Borra un mensaje propio (o, si eres admin, cualquiera del General) */
+/** Borra un mensaje propio (o, si eres admin, cualquiera de un grupo) */
 export async function quitarMensaje(mensajeId: string): Promise<Respuesta> {
   return conEquipo(async (yo) => {
     await borrarMensaje(yo, String(mensajeId));

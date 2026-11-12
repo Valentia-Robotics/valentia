@@ -4,6 +4,8 @@ import {
   CANAL_GENERAL,
   calcularRecordatorio,
   canalDeRuta,
+  grupoDe,
+  gruposDe,
   leerDatosTarea,
   vencida,
   canalPrivado,
@@ -36,6 +38,27 @@ describe("mensajes del equipo", () => {
     expect(canalDeRuta(marina, dani)).toBe(canalPrivado(dani, marina));
     expect(canalDeRuta(dani, dani)).toBeNull(); // contigo mismo, no
     expect(canalDeRuta("../admin", dani)).toBeNull();
+    expect(canalDeRuta("hardware", dani)).toBe("hardware");
+    expect(canalDeRuta("edicion", dani)).toBe("edicion");
+    expect(personasDelCanal("hardware")).toBeNull();
+  });
+
+  it("cada grupo es solo para su departamento (y los admin, si también trabajan allí)", () => {
+    const canales = (p: Parameters<typeof gruposDe>[0]) => gruposDe(p).map((g) => g.canal);
+    expect(canales({ rol: "HARDWARE" })).toEqual(["general", "hardware"]);
+    expect(canales({ rol: "EDITOR" })).toEqual(["general", "edicion"]);
+    expect(canales({ rol: "ADMIN" })).toEqual(["general"]);
+    expect(canales({ rol: "ADMIN", tambienHardware: true })).toEqual(["general", "hardware"]);
+    expect(canales({ rol: "SIGMA", tambienEditor: true, tambienHardware: true })).toEqual([
+      "general",
+      "hardware",
+      "edicion",
+    ]);
+    // Un cliente no está en ninguno, aunque tenga marcas (solo valen para ADMIN y SIGMA)
+    expect(canales({ rol: "CLIENTE", tambienHardware: true, tambienEditor: true })).toEqual([]);
+    expect(canales({ rol: "EDITOR", tambienHardware: true })).toEqual(["general", "edicion"]);
+    expect(grupoDe("edicion")?.nombre).toBe("Edición");
+    expect(grupoDe(marina)).toBeNull();
   });
 
   it("limpia el texto y rechaza los vacíos o muy largos", () => {

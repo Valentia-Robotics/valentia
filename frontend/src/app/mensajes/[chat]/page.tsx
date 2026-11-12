@@ -3,12 +3,18 @@ import { notFound } from "next/navigation";
 import { Chat } from "@/components/mensajes/Chat";
 import { PantallaMensajes } from "@/components/mensajes/PantallaMensajes";
 import { esDelEquipo, tieneAccesoAdmin } from "@/config/equipo";
-import { abrirChat, companeros, huellaChat, listarConversaciones } from "@/lib/mensajes/mensajes";
+import { grupoDe } from "@/config/mensajes";
+import {
+  abrirChat,
+  companerosDelGrupo,
+  huellaChat,
+  listarConversaciones,
+} from "@/lib/mensajes/mensajes";
 import { exigirUsuario } from "@/lib/sesion";
 
 export const metadata: Metadata = { title: "Chat" };
 
-/** UN CHAT: /mensajes/general o /mensajes/<id de la otra persona> */
+/** UN CHAT: /mensajes/<grupo> (general, hardware, edicion) o /mensajes/<id de la otra persona> */
 interface Props {
   params: Promise<{ chat: string }>;
 }
@@ -25,7 +31,7 @@ export default async function PaginaChat({ params }: Props) {
     huellaChat(yo, chat),
   ]);
   const esta = conversaciones.find((c) => c.ruta === chat);
-  // Para elegir a quién va una tarea: en el General, todo el equipo; en un privado, los dos
+  // Para elegir a quién va una tarea: en un grupo, los de ese grupo; en un privado, los dos
   const yoMismo = { id: yo.id, nombre: `${yo.nombre} (tú)` };
   const persona = (c: { id: string; nombre: string; foto: string | null }) => ({
     id: c.id,
@@ -34,7 +40,7 @@ export default async function PaginaChat({ params }: Props) {
   });
   const personas = abierto.otro
     ? [persona(abierto.otro), yoMismo]
-    : [yoMismo, ...(await companeros(yo)).map(persona)];
+    : [yoMismo, ...(await companerosDelGrupo(yo, abierto.canal)).map(persona)];
 
   return (
     <PantallaMensajes conversaciones={conversaciones} activa={chat}>
@@ -42,7 +48,7 @@ export default async function PaginaChat({ params }: Props) {
         // key: al cambiar de chat, el cuadro de texto empieza vacío
         key={chat}
         ruta={chat}
-        titulo={esta?.nombre ?? abierto.otro?.nombre ?? "General"}
+        titulo={esta?.nombre ?? abierto.otro?.nombre ?? grupoDe(chat)?.nombre ?? "General"}
         foto={esta?.foto ?? abierto.otro?.foto ?? null}
         rol={abierto.otro?.rol ?? null}
         ultimaConexionEn={abierto.otro?.ultimaConexionEn ?? null}

@@ -5,11 +5,82 @@
  * Los clientes no lo ven nunca.
  *
  * Cada chat es un «canal» guardado como texto:
- *   - "general"                       → el chat de todos
+ *   - "general"                       → el grupo de todo el equipo
+ *   - "hardware" / "edicion"          → el grupo de cada departamento (Jesse, 12-11-2026)
  *   - "privado:<id menor>_<id mayor>" → el chat de dos personas (siempre el mismo, lo abra quien lo abra)
  */
+import {
+  FILTRO_EDITORES,
+  FILTRO_HARDWARE,
+  ROLES_EQUIPO,
+  esDelEquipo,
+  puedeEditarGuiones,
+  tieneEspacioHardware,
+} from "./equipo";
+import type { Rol } from "@/generated/prisma/enums";
 
 export const CANAL_GENERAL = "general";
+
+/** Lo que hace falta saber de una persona para saber en qué grupos está */
+export interface PersonaGrupo {
+  rol: Rol;
+  tambienEditor?: boolean | null;
+  tambienHardware?: boolean | null;
+}
+
+/** «Todo el equipo: administración, sigma, editores y hardware» (sale solo con cada rol nuevo) */
+const TODO_EL_EQUIPO = (() => {
+  const nombres = ROLES_EQUIPO.map((r) => r.plural.toLowerCase());
+  const ultimo = nombres.pop();
+  return `Todo el equipo: ${nombres.length ? `${nombres.join(", ")} y ${ultimo}` : ultimo}`;
+})();
+
+/**
+ * LOS GRUPOS (chats de varias personas, como el General). Quién está en cada uno sale SOLO de su
+ * rol: no hay que apuntar a nadie a mano. Un ADMIN o SIGMA entra en Hardware o en Edición solo si
+ * también trabaja allí («también hardware» / «también editor» en /admin/usuarios), igual que su
+ * espacio de archivos o «Mis guiones». Grupo nuevo → añadirlo aquí (el canal es también su dirección).
+ */
+export const GRUPOS = [
+  {
+    canal: CANAL_GENERAL,
+    nombre: "General",
+    descripcion: TODO_EL_EQUIPO,
+    enLista: "El chat de todo el equipo",
+    para: "todo el equipo",
+    esMiembro: (p: PersonaGrupo) => esDelEquipo(p.rol),
+    filtro: { rol: { in: ROLES_EQUIPO.map((r) => r.rol) } } as object,
+  },
+  {
+    canal: "hardware",
+    nombre: "Hardware",
+    descripcion: "Solo el equipo de hardware",
+    enLista: "El chat del equipo de hardware",
+    para: "el equipo de hardware",
+    esMiembro: tieneEspacioHardware,
+    filtro: FILTRO_HARDWARE as object,
+  },
+  {
+    canal: "edicion",
+    nombre: "Edición",
+    descripcion: "Solo el equipo de edición",
+    enLista: "El chat del equipo de edición",
+    para: "el equipo de edición",
+    esMiembro: puedeEditarGuiones,
+    filtro: FILTRO_EDITORES as object,
+  },
+] as const;
+
+export type Grupo = (typeof GRUPOS)[number];
+
+/** El grupo de un canal (o de una dirección: es lo mismo), o null si es un chat privado */
+export const grupoDe = (canal: string): Grupo | null =>
+  GRUPOS.find((g) => g.canal === canal) ?? null;
+
+export const esGrupo = (canal: string) => grupoDe(canal) !== null;
+
+/** Los grupos en los que está una persona (el General, siempre que sea del equipo) */
+export const gruposDe = (persona: PersonaGrupo) => GRUPOS.filter((g) => g.esMiembro(persona));
 
 /** Largo máximo de un mensaje (como una nota larga, no un documento: para eso, los archivos) */
 export const MAX_CARACTERES_MENSAJE = 4000;
@@ -38,11 +109,11 @@ export function personasDelCanal(canal: string): [string, string] | null {
 }
 
 /**
- * La dirección de cada chat: /mensajes/general o /mensajes/<id de la otra persona>.
+ * La dirección de cada chat: /mensajes/<grupo> (general, hardware, edicion) o /mensajes/<id de la otra persona>.
  * Devuelve el canal que corresponde a quien lo abre, o null si la dirección no vale.
  */
 export function canalDeRuta(ruta: string, miId: string): string | null {
-  if (ruta === CANAL_GENERAL) return CANAL_GENERAL;
+  if (esGrupo(ruta)) return ruta;
   if (!/^[0-9a-f]{24}$/.test(ruta) || ruta === miId) return null;
   return canalPrivado(miId, ruta);
 }

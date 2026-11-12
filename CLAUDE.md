@@ -283,6 +283,14 @@ tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de
     h1/h2 apretados, tarjetas de kit y componente con sombra recta azul, barra de navegación con línea de puntos.
 - Lighthouse móvil en local: portada 89 (antes 65, sobre todo por quitar el 3D). Accesibilidad, SEO y prácticas 100.
 
+### Grupos Hardware y Edición (12-11-2026, rama `claude/project-thread-7lhvvt`; petición de Jesse)
+
+Además del General, los chats de grupo «Hardware» y «Edición» (`GRUPOS` en `src/config/mensajes.ts`; canal = dirección:
+`/mensajes/hardware`, `/mensajes/edicion`). La pertenencia sale sola del rol: Hardware = `tieneEspacioHardware`, Edición =
+`puedeEditarGuiones` (un ADMIN/SIGMA entra solo si es «también hardware/editor»; si no, solo ve el General). Los avisos push,
+los sin leer, las tareas y los tics solo cuentan para sus miembros; un admin puede borrar mensajes en cualquier grupo suyo.
+**Grupo nuevo → añadirlo a `GRUPOS` (y su icono en `PantallaMensajes`).**
+
 ### Mensajes y tareas del equipo (09-11-2026, rama `claude/project-thread-0upidw`; petición de Jesse)
 
 «Como un WhatsApp»: `/mensajes` para los roles de `ROLES_EQUIPO` (un cliente recibe 404). Chat «General» y un chat
