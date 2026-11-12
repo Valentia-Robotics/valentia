@@ -18,14 +18,15 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
-### Kits de la portada sin frases genéricas (12-11-2026, rama `claude/project-thread-x7f1xd`; petición de Jesse)
+### Kits de la portada sobre la placa verde (12-11-2026, rama `claude/project-thread-x7f1xd`; petición de Jesse)
 
-`KitsPortada`: titular con el número real de kits («Tres kits para montar en casa, sin soldar.»), el destacado como hoja de
-datos (foto · qué hace · edad/nivel/montaje/curso · precio con el «Avísame» al lado mientras la tienda no cobra · «En la
-caja» con las piezas de la BD + baterías si lleva portapilas + cable USB + tarjeta QR) y los demás en tarjetas con los mismos
-datos en corto (`GaleriaKits`). Sin eslogan. Reglas puras en `components/portada/datosKit.ts` (+ test). `obtenerKits` trae
-ya las piezas (nombre, categoría, cantidad). Borrado `AvisoApertura` (el recuadro de aviso de encima). Choca con el PR #109
-(rediseño industrial), que borra `KitsPortada`: si se une #109, esta sección desaparece.
+Jesse: «la misma interfaz verde con chips, bien repartido, más organizado y más limpio», sin frases genéricas.
+`KitsPortada` es una placa perforada (`.placa-rejilla` en `globals.css`) con texto blanco: titular con el número real de kits
+(«Tres kits para montar en casa, sin soldar.»), UNA franja con el «Avísame» si la tienda no cobra (borrado `AvisoApertura`)
+y cada kit como un chip blanco (`CabeceraChip`: cabecera negra «U1 · nivel · edad»; `.chip-patas`: patas plateadas;
+sombra cobre). Destacado: foto, qué hace, edad/nivel/montaje/curso, «Qué trae la caja» plegado (piezas de la BD + baterías
+si hay portapilas + cable USB + tarjeta QR) y precio. Los demás en `GaleriaKits`. Sin eslogan. Reglas puras en
+`components/portada/datosKit.ts` (+ test). `obtenerKits` trae las piezas. Choca con el PR #109, que borra `KitsPortada`.
 
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 

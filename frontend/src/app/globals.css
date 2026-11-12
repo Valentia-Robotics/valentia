@@ -401,6 +401,48 @@
     linear-gradient(to bottom, transparent 70%, color-mix(in oklab, black 22%, transparent) 100%);
 }
 
+/*
+ * PLACA DE LOS KITS (portada): el mismo verde, con la rejilla de taladros de una placa perforada
+ * (puntos cobre muy suaves). Encima van los kits como chips blancos (.chip-patas).
+ */
+.placa-rejilla {
+  background-color: var(--color-placa);
+  background-image:
+    radial-gradient(
+      color-mix(in oklab, var(--color-cobre) 22%, transparent) 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 50% 0%,
+      color-mix(in oklab, var(--color-placa-claro) 70%, transparent) 0%,
+      transparent 75%
+    );
+  background-size:
+    18px 18px,
+    100% 100%;
+}
+
+/* Patas plateadas de un chip a los dos lados de la tarjeta (solo decoración) */
+.chip-patas {
+  position: relative;
+}
+.chip-patas::before,
+.chip-patas::after {
+  content: "";
+  position: absolute;
+  top: 2.75rem;
+  bottom: 1.25rem;
+  width: 7px;
+  background: repeating-linear-gradient(to bottom, #c9ccd1 0 5px, transparent 5px 16px);
+  pointer-events: none;
+}
+.chip-patas::before {
+  left: -7px;
+}
+.chip-patas::after {
+  right: -7px;
+}
+
 /* Máscaras del dibujo de la placa: se desvanece en el borde en lugar de cortarse */
 .mascara-abajo {
   /* En el móvil la placa va abajo del todo: se apaga más tarde para que se vea */
