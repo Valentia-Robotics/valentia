@@ -5,6 +5,7 @@
  * el diseño va con tablas y estilos escritos en cada etiqueta (es lo normal en los correos).
  */
 import { marca } from "@/config/marca";
+import { ponerNombre, primerNombre } from "@/config/novedades";
 import { esMarcador, tienda } from "@/config/tienda";
 import type { Correo } from "./tipos";
 
@@ -461,13 +462,15 @@ export function plantillaNovedades(d: {
   const quien = esMarcador(tienda.empresa.razonSocial) ? marca.nombre : tienda.empresa.razonSocial;
   const urlBoton = d.boton && (d.boton.url.startsWith("/") ? urlWeb(d.boton.url) : d.boton.url);
   const enlaceBaja = escapar(d.urlBaja);
-  return correo(d.para, d.asunto, {
-    resumen: d.parrafos[0]?.join(" ") ?? d.titulo,
+  return correo(d.para, ponerNombre(d.asunto, d.nombre), {
+    resumen: ponerNombre(d.parrafos[0]?.join(" ") ?? d.titulo, d.nombre),
     etiqueta: "Publicidad · Novedades de Valentia",
-    titulo: d.titulo,
+    titulo: ponerNombre(d.titulo, d.nombre),
     parrafos: [
-      saludo(d.nombre.split(" ")[0] || d.nombre),
-      ...d.parrafos.map((lineas) => lineas.map(escapar).join("<br>")),
+      d.nombre.trim() ? saludo(primerNombre(d.nombre)) : "Hola:",
+      ...d.parrafos.map((lineas) =>
+        lineas.map((l) => escapar(ponerNombre(l, d.nombre))).join("<br>"),
+      ),
     ],
     boton: d.boton && urlBoton ? { texto: escapar(d.boton.texto), url: urlBoton } : undefined,
     pie: `Te escribimos porque en tu cuenta de ${escapar(quien)} pediste recibir novedades. ¿Prefieres no recibir más? <a href="${enlaceBaja}" style="color:${C.gris};text-decoration:underline;">Darme de baja</a>.`,

@@ -38,4 +38,26 @@ describe("plantilla de novedades", () => {
     expect(correo.html).toContain("novedades/baja?u=1&amp;t=2");
     expect(correo.texto).toContain("https://valentiarobotics.com/novedades/baja?u=1&t=2");
   });
+
+  it("cambia [nombre] por el nombre de cada cliente, en el saludo, el asunto, el título y el texto", () => {
+    const hacer = (nombre: string) =>
+      plantillaNovedades({
+        para: "x@ejemplo.com",
+        nombre,
+        asunto: "[nombre], ya está aquí",
+        titulo: "Para ti, [Nombre]",
+        parrafos: [["Hemos pensado en ti, [NOMBRE]."]],
+        urlBaja: "https://valentiarobotics.com/novedades/baja?u=1&t=2",
+      });
+    const ana = hacer("Ana García");
+    expect(ana.asunto).toBe("Ana, ya está aquí");
+    expect(ana.html).toContain("Hola, Ana:");
+    expect(ana.html).toContain("Para ti, Ana");
+    expect(ana.html).toContain("Hemos pensado en ti, Ana.");
+    expect(ana.texto).toContain("Hemos pensado en ti, Ana.");
+    expect(ana.html).not.toContain("Jesse");
+    const luis = hacer("Luis");
+    expect(luis.html).toContain("Hola, Luis:");
+    expect(hacer("<b>X</b>").html).not.toContain("<b>X");
+  });
 });

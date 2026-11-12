@@ -20,7 +20,7 @@ export const metadata: Metadata = { title: "Correos a clientes" };
  * Solo llegan a quien pidió recibirlos (src/config/novedades.ts); cada uno lleva su enlace de baja.
  */
 export default async function CorreosAdmin() {
-  const yo = await exigirAdmin("/admin/correos");
+  await exigirAdmin("/admin/correos");
   const [resumen, correos, kits] = await Promise.all([
     resumenDestinatarios(),
     listarCorreosNovedades(),
@@ -46,7 +46,7 @@ export default async function CorreosAdmin() {
         la palabra «Publicidad» arriba, como pide la LSSI.
       </p>
 
-      <FormularioNovedades destinatarios={resumen.si} kits={kits} nombre={yo.nombre} />
+      <FormularioNovedades destinatarios={resumen.si} kits={kits} />
 
       <Caja titulo="Enviados" sinRelleno className="mt-6">
         <Tabla
