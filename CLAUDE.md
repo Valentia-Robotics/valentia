@@ -428,7 +428,7 @@ tarjeta (para contar personas) y solo abren ese curso.
   «BIENVENIDOS A» + logo; detrás pasos, caja con el código (cambia en cada tarjeta) y dirección.
 - `/activar` con código de bienvenida y sesión: se activa solo y redirige a `/cursos/bienvenida-a-valentia`.
   Kit gratis: si ya tenía el curso, el código se gasta igual para contarle (salvo que ya usara otra tarjeta).
-- Vídeo (12-11-2026): `https://www.youtube.com/watch?v=I_bZOpA_rXE` en `data/`; en producción hay que pegarlo en `/admin/cursos` (lección «Te damos la bienvenida»): seed:prod no cambia lo que existe.
+- Vídeo (12-11-2026): `https://www.youtube.com/watch?v=I_bZOpA_rXE` en `data/`; en producción lo pone solo el pre-despliegue (paso 4, `scripts/videos-pendientes.ts`: copia el vídeo de `data/cursos.json` a las lecciones que siguen en «PENDIENTE»; no pisa lo puesto en el panel).
 - `/admin/codigos/personas` (enlace «Ver lista» de la caja): quién se registró con tarjeta y botón «Borrar» con
   confirmación (`src/lib/admin/bienvenida.ts`). Solo clientes sin pedidos ni códigos de otros kits (`motivoNoBorrar`);
   al borrar, su tarjeta queda libre otra vez y deja de contar.
