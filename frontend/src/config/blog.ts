@@ -49,6 +49,13 @@ export const AUTOR_AUTOMATICO = "Equipo Valentia";
  */
 export const HOSTS_IMAGENES = ["images.unsplash.com", "images.pexels.com", "cdn.pixabay.com"];
 
+/**
+ * Webs de socios con las que se enlaza a propósito (12-11-2026): Visualizalo hace el visor 3D de las
+ * piezas y nos citamos mutuamente. Sus enlaces salen SIN nofollow (cuentan para Google) y se abren en
+ * otra pestaña. El resto de enlaces externos siguen con nofollow. Un subdominio cuenta (www.).
+ */
+export const SOCIOS_ENLACE = ["visualizalo.es"];
+
 /** Reglas de calidad: si un artículo de n8n no las cumple, espera la revisión del admin */
 export const CALIDAD_BLOG = {
   minimoPalabras: 600,

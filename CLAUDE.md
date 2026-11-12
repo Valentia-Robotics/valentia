@@ -18,6 +18,19 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
+
+Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,
+fondo transparente sobre `niebla`) y, si su slug está en `PIEZAS_CON_3D` (`src/config/visor3d.ts` + test), un chip
+«3D» arriba a la derecha de la foto (`Ver3dPieza`, en `TarjetaPieza` y `DetallePieza`) que abre el visor de
+Visualizalo en un `<iframe>` (`Dialogo posicion="grande"`: pantalla completa en móvil). El visor vive en
+`NEXT_PUBLIC_VISOR_3D_URL` (por defecto `https://www.visualizalo.es`, `/demo/vr-<slug>?ficha=1`) y su origen va en el
+`frame-src` de la CSP (`next.config.ts`): sin él la ventana se queda en blanco. El MG996R va solo con foto, sin 3D.
+**En producción las fotos hay que subirlas en `/admin/componentes`**: `seed:prod` no modifica filas existentes.
+Intercambio de enlaces: la ventana 3D lleva un crédito «Visor 3D de Visualizalo» enlazado, y en el blog los enlaces a
+los dominios de `SOCIOS_ENLACE` (`src/config/blog.ts`; hoy `visualizalo.es`) salen SIN nofollow (`enlaceDeSocio`,
+`markdownAHtml` + test); el resto de externos, con nofollow como siempre. Imágenes de la noticia en `public/images/blog/`.
+
 ### Foto de perfil en grande (11-11-2026, rama `claude/project-thread-51a75i`; petición de Jesse)
 
 En Mensajes, pulsar la foto de alguien (lista de chats, cabecera del chat, General) la abre en grande:

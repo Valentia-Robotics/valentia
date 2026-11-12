@@ -9,7 +9,21 @@ import {
   LARGO_META,
   PALABRAS_POR_MINUTO,
   SLUGS_RESERVADOS,
+  SOCIOS_ENLACE,
 } from "@/config/blog";
+
+/** ¿Enlace a la web de un socio (SOCIOS_ENLACE)? Solo https y el dominio exacto o un subdominio suyo. */
+export function enlaceDeSocio(href: string): boolean {
+  try {
+    const u = new URL(href);
+    return (
+      u.protocol === "https:" &&
+      SOCIOS_ENLACE.some((d) => u.hostname === d || u.hostname.endsWith(`.${d}`))
+    );
+  } catch {
+    return false;
+  }
+}
 
 /** ¿Imagen de un banco con licencia libre (o de la propia web)? */
 export function imagenPermitida(url: string): boolean {
@@ -45,12 +59,10 @@ export function markdownAHtml(markdown: string): string {
       h1: "h2",
       a: (etiqueta, atributos) => {
         const externo = /^https?:\/\//.test(atributos.href ?? "");
-        return {
-          tagName: etiqueta,
-          attribs: externo
-            ? { ...atributos, rel: "noopener noreferrer nofollow", target: "_blank" }
-            : atributos,
-        };
+        if (!externo) return { tagName: etiqueta, attribs: atributos };
+        // Un socio, sin nofollow: el enlace mutuo es lo que se acordó (SOCIOS_ENLACE)
+        const rel = enlaceDeSocio(atributos.href ?? "") ? "noopener" : "noopener noreferrer nofollow";
+        return { tagName: etiqueta, attribs: { ...atributos, rel, target: "_blank" } };
       },
       img: (etiqueta, atributos) => ({
         tagName: etiqueta,

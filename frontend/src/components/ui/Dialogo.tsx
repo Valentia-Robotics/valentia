@@ -8,8 +8,12 @@ interface Props {
   abierto: boolean;
   alCerrar: () => void;
   titulo: string;
-  /** "centro" = ventana en mitad de la pantalla · "abajo" = panel que sube desde abajo (móvil) */
-  posicion?: "centro" | "abajo";
+  /**
+   * "centro" = ventana en mitad de la pantalla · "abajo" = panel que sube desde abajo (móvil) ·
+   * "grande" = toda la pantalla en el móvil y una ventana grande en el ordenador, para contenido que
+   * llena el hueco (el visor 3D de una pieza): sin scroll, y el contenido ocupa lo que deja la cabecera
+   */
+  posicion?: "centro" | "abajo" | "grande";
   children: ReactNode;
   className?: string;
 }
@@ -46,11 +50,15 @@ export function Dialogo({
       // Un clic en el fondo oscuro (fuera del contenido) cierra la ventana
       onClick={(e) => e.target === e.currentTarget && alCerrar()}
       className={cn(
-        "overflow-y-auto overscroll-contain bg-white p-0 text-tinta shadow-flotante",
+        "bg-white p-0 text-tinta shadow-flotante",
         "backdrop:bg-tinta/50 lg:backdrop:backdrop-blur-sm",
-        posicion === "centro"
-          ? "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-3xl rounded-tarjeta open:animate-dialogo"
-          : "mx-0 mt-auto mb-0 max-h-[88dvh] w-full max-w-none rounded-t-tarjeta open:animate-subir",
+        posicion === "centro" &&
+          "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto overscroll-contain rounded-tarjeta open:animate-dialogo",
+        posicion === "abajo" &&
+          "mx-0 mt-auto mb-0 max-h-[88dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-tarjeta open:animate-subir",
+        // `open:flex` y no `flex`: un <dialog> cerrado se esconde con display:none, y `flex` lo pisaría
+        posicion === "grande" &&
+          "m-0 h-dvh max-h-none w-full max-w-none flex-col overflow-hidden open:flex open:animate-dialogo sm:m-auto sm:h-[min(88dvh,820px)] sm:w-[min(94vw,1200px)] sm:rounded-tarjeta",
         className,
       )}
     >

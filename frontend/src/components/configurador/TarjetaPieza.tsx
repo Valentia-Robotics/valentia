@@ -8,6 +8,7 @@ import { cn, formatearPrecio } from "@/lib/utils";
 import type { ComponenteCatalogo } from "@/types/catalogo";
 import { maximoDe } from "./useRobot";
 import { textoTienda } from "@/config/stock";
+import { Ver3dPieza } from "./Ver3dPieza";
 
 interface Props {
   componente: ComponenteCatalogo;
@@ -33,7 +34,8 @@ export function TarjetaPieza({ componente, enRobot, alAnadir, alVerDetalle }: Pr
         </span>
       )}
 
-      <div className="bg-niebla p-4">
+      <div className="relative bg-niebla p-4">
+        <Ver3dPieza componente={componente} />
         <Image
           src={componente.imagen}
           alt={componente.nombre}
