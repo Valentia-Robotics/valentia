@@ -2,6 +2,7 @@
  * Consultas del catálogo (kits, componentes y cursos) a la base de datos.
  * Las páginas usan estas funciones en lugar de hablar directamente con Prisma.
  */
+import { fotoPieza } from "@/config/fotosPiezas";
 import "server-only";
 import { db } from "@/lib/db";
 import { CATEGORIAS } from "@/lib/validaciones/catalogo";
@@ -25,7 +26,13 @@ export function obtenerKits() {
   return db.kit.findMany({
     where: { visible: true },
     orderBy: { orden: "asc" },
-    include: { curso: { select: { titulo: true, _count: { select: { lecciones: true } } } } },
+    include: {
+      curso: { select: { titulo: true, _count: { select: { lecciones: true } } } },
+      // Lo que va en la caja (la portada lo enseña en la ficha del kit destacado)
+      componentes: {
+        select: { cantidad: true, componente: { select: { nombre: true, categoria: true } } },
+      },
+    },
   });
 }
 
@@ -97,7 +104,7 @@ function componenteDeFila(fila: FilaComponente): ComponenteCatalogo {
     precioCentimos: fila.precioCentimos,
     stock: fila.stock,
     enReposicion: fila.enReposicion,
-    imagen: fila.imagen,
+    imagen: fotoPieza(fila.slug, fila.imagen),
     voltaje: fila.voltaje,
     voltajeLogico: fila.voltajeLogico,
     voltajeLogicoMin: fila.voltajeLogicoMin,

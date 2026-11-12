@@ -135,7 +135,7 @@ export function PanelRobot({
                       width={48}
                       height={48}
                       unoptimized
-                      className="size-12 shrink-0 rounded-control bg-white p-1 ring-1 ring-linea"
+                      className="render-vivo size-12 shrink-0 rounded-control bg-white p-1 ring-1 ring-linea"
                     />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">

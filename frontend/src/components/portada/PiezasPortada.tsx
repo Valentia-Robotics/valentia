@@ -12,27 +12,27 @@ import { PIEZAS_ROBOT, type PiezaRobot } from "./piezasRobot";
 /** `alt` describe la foto: Bing avisa de las imágenes sin texto alternativo */
 const FOTOS: Record<PiezaRobot["id"], { src: string; alt: string; dato: string }> = {
   chasis: {
-    src: "/images/componentes/chasis-coche-2wd.svg",
+    src: "/images/componentes/chasis-coche-2wd.webp",
     alt: "Chasis de metacrilato del coche robótico con dos ruedas y rueda loca",
     dato: "metacrilato · 2 ruedas + rueda loca",
   },
   placa: {
-    src: "/images/componentes/esp32-devkit.svg",
+    src: "/images/componentes/esp32-devkit.webp",
     alt: "Placa ESP32 con wifi y bluetooth, el cerebro del robot",
     dato: "ESP32 · wifi + bluetooth",
   },
   motores: {
-    src: "/images/componentes/motor-dc-reductora.svg",
+    src: "/images/componentes/motor-dc-reductora.webp",
     alt: "Motor DC con reductora para mover las ruedas",
     dato: "motor DC con reductora · 3-6 V",
   },
   sensores: {
-    src: "/images/componentes/sensor-ultrasonidos-hc-sr04.svg",
+    src: "/images/componentes/sensor-ultrasonidos-hc-sr04.webp",
     alt: "Sensor de ultrasonidos HC-SR04 para detectar obstáculos",
     dato: "ultrasonidos + sensores de línea",
   },
   bateria: {
-    src: "/images/componentes/bateria-18650-2s.svg",
+    src: "/images/componentes/bateria-18650-2s.webp",
     alt: "Portabaterías con dos baterías recargables 18650",
     dato: "2 × 18650 recargables",
   },
@@ -140,7 +140,7 @@ export function PiezasPortada() {
                     height={grande ? 360 : 200}
                     unoptimized
                     className={cn(
-                      "h-auto transition-[scale,rotate] duration-700",
+                      "render-vivo h-auto transition-[scale,rotate] duration-700",
                       grande ? "w-3/4 max-w-80" : "w-2/3 max-w-44",
                       esta ? "scale-105 -rotate-3" : "scale-95 rotate-0",
                     )}

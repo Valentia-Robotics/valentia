@@ -1,4 +1,3 @@
-import { AvisoApertura } from "@/components/portada/AvisoApertura";
 import { BloqueComoFunciona } from "@/components/portada/BloqueComoFunciona";
 import { BloqueFinal } from "@/components/portada/BloqueFinal";
 import { HeroPortada } from "@/components/portada/HeroPortada";
@@ -10,7 +9,7 @@ import { DatosEstructurados } from "@/components/seo/DatosEstructurados";
 import { Fundido } from "@/components/ui/Fundido";
 import type { Metadata } from "next";
 import { metadatosPagina } from "@/lib/metadatos";
-import { obtenerCifras, obtenerKits } from "@/lib/catalogo";
+import { obtenerCifras, obtenerComponentes, obtenerKits } from "@/lib/catalogo";
 import { datosTienda } from "@/lib/datosEstructurados";
 import { compraAbierta } from "@/lib/pagos";
 
@@ -31,8 +30,8 @@ export const metadata: Metadata = metadatosPagina({
  * PÁGINA DE INICIO (estilo «taller»: carteles, campos de color con la placa de circuito, líneas de puntos)
  * Lo primero que se ve después del titular son los kits: es lo que viene a buscar quien entra.
  *   1. Campo de color con el titular y las dos entradas (HeroPortada)
- *      (debajo, mientras la tienda no cobra, un aviso pequeño con «Avísame»)
- *   2. Los kits: el destacado en grande y los demás en una galería de fotos (GaleriaKits)
+ *   2. Los kits: el destacado como hoja de datos (con el «Avísame» junto al precio mientras la
+ *      tienda no cobra) y los demás en tarjetas (GaleriaKits)
  *   3. Cómo funciona, en tres pasos, con cifras reales
  *   4. Las cinco piezas de un robot en un mosaico con «escáner»
  *   5. "O elige tú las piezas" → configurador (tramo oscuro)
@@ -40,7 +39,11 @@ export const metadata: Metadata = metadatosPagina({
  *   7. Invitación final, sobre negro con la misma placa que el principio
  */
 export default async function Inicio() {
-  const [kits, cifras] = await Promise.all([obtenerKits(), obtenerCifras()]);
+  const [kits, cifras, componentes] = await Promise.all([
+    obtenerKits(),
+    obtenerCifras(),
+    obtenerComponentes(),
+  ]);
   const estrella = kits.find((k) => k.destacado) ?? kits[0];
   // Los kits gratis (sin piezas) solo salen en /kits: la portada enseña lo que se monta
   const aLaVenta = kits.filter((k) => k.precioCentimos > 0);
@@ -51,21 +54,23 @@ export default async function Inicio() {
     <>
       <DatosEstructurados datos={datosTienda()} />
       <HeroPortada cifras={cifras} />
-      {!abierta && <AvisoApertura />}
       <KitsPortada
         estrella={destacado}
         // El destacado ya sale en grande: la galería enseña los demás (sin repetirlo)
         kits={aLaVenta.filter((k) => k.slug !== destacado?.slug)}
         compraAbierta={abierta}
       />
+      {/* Del verde de placa al blanco, despacio: sin corte entre los kits y lo que sigue */}
+      <Fundido desde="placa" hasta="blanco" />
       <BloqueComoFunciona cifras={cifras} />
       <PiezasPortada />
-      {/* Un solo paso a oscuro (configurador) y vuelta a claro: la página fluye sin cortes */}
-      <Fundido desde="blanco" hasta="grafito" />
-      <BloqueConfigurador />
-      <Fundido desde="grafito" hasta="blanco" />
+      {/* Recorrido de color: verde (titular y kits) → blanco → negro de estudio (configurador) → blanco → negro (final).
+          Cada cambio va con un Fundido: nunca un corte seco de un fondo a otro */}
+      <Fundido desde="blanco" hasta="tinta" />
+      <BloqueConfigurador componentes={componentes} />
+      <Fundido desde="tinta" hasta="blanco" />
       <BloqueCursoQR />
-      <Fundido desde="blanco" hasta="tinta" corto />
+      <Fundido desde="blanco" hasta="tinta" />
       <BloqueFinal compraAbierta={abierta} />
     </>
   );

@@ -42,7 +42,7 @@ export function TarjetaPieza({ componente, enRobot, alAnadir, alVerDetalle }: Pr
           width={240}
           height={240}
           unoptimized
-          className="mx-auto aspect-square h-auto w-full max-w-44 transition-transform duration-300 group-hover:scale-105"
+          className="render-vivo mx-auto aspect-square h-auto w-full max-w-44 transition-transform duration-300 group-hover:scale-105"
         />
       </div>
 

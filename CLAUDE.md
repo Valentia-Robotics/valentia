@@ -18,6 +18,60 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Kits de la portada sobre la placa verde (12-11-2026, rama `claude/project-thread-x7f1xd`; petición de Jesse)
+
+Jesse: «la misma interfaz verde con chips, bien repartido, más organizado y más limpio», sin frases genéricas.
+`KitsPortada` es una placa perforada (`.placa-rejilla` en `globals.css`) con texto blanco: titular con el número real de kits
+(«Tres kits para montar en casa, sin soldar.»), UNA franja con el «Avísame» si la tienda no cobra (borrado `AvisoApertura`)
+y cada kit como un chip blanco (`CabeceraChip`: cabecera negra «U1 · nivel · edad»; `.chip-patas`: patas plateadas;
+sombra cobre). Destacado: foto, qué hace, edad/nivel/montaje/curso, «Qué trae la caja» plegado (piezas de la BD + baterías
+si hay portapilas + cable USB + tarjeta QR) y precio. Los demás en `GaleriaKits`. Sin eslogan. Reglas puras en
+`components/portada/datosKit.ts` (+ test). `obtenerKits` trae las piezas. Choca con el PR #109, que borra `KitsPortada`.
+
+### Cables que siguen al ratón en toda la web (12-11-2026, misma rama; petición de Jesse)
+
+`components/layout/EstelaCircuito` (en `MarcoWeb`): la estela de `CampoPixeles` (pista a 90°/45° que se apaga y acaba en un
+pad) en un lienzo fijo sobre toda la web pública. Verde de placa sobre fondos claros y cobre sobre oscuros (mira el fondo
+bajo el ratón). NO se pinta en el pie ni donde ya hay un `CampoPixeles` (titular, cabeceras, bloque final: Jesse quería el
+final como estaba): el lienzo de `CampoPixeles` lleva `data-campo-pixeles`. Solo con ratón y sin «reducir movimiento».
+Chips (Jesse, mismo día): al pararse el ratón sale un chip al final del cable, distinto cada vez (cuadrado con patas,
+alargado, módulo de color con sensor/pantalla/robot/LED, engranajes), y por el camino resistencias, condensadores, LED y
+vías: `components/layout/piezasEstela.ts` (dibujo en canvas, sin imágenes). Segunda tanda: más piezas (diodos, electrolíticos,
+cerámicos, transistores, cristales, bobinas, pulsadores, resistencias con bandas, zumbador) y las del ratón van PEQUEÑAS
+(`TAMANO_CHIP_RATON` 0,5: Jesse no quería chips enormes). `ChipsFijos` (en `MarcoWeb`): 8 chips montados fijos en los márgenes
+laterales (solo ≥ 1500 px, ahora solo 3 sobre los kits; antes uno cada 900 px de página, ni en el titular ni en el final de la web).
+Tercera tanda (Jesse: «con animación y que peguen con el fondo, no pegotes»): los fijos están VIVOS (señal que corre por la
+pista, LED que respiran, engranajes que giran, ondas del zumbador; ~30 fps y solo mientras se ven; quietos con «reducir
+movimiento») y fundidos con el fondo (opacidad 0,62, desenfoque de 0,35 px, máscara radial, entran con fundido).
+
+Cuarta tanda (Jesse: «que no cambie de repente de color los fondos»): la portada recorre verde → blanco → verde → blanco → negro con
+degradados `Fundido` (ahora admite `placa`) en cada cambio; `.placa-rejilla` arranca del color exacto donde acaba el titular
+(mezcla en `srgb`, no `oklab`: en oklab salía más oscuro y se veía una línea) y el configurador es `bg-placa` (antes `grafito`).
+
+Quinta tanda (Jesse, 12-11-2026): el cable del ratón ya NO lleva chips ni piezas pegados (solo el cable, y no se dibuja sobre enlaces,
+botones ni campos); los chips fijos van sin desenfoque (opacidad .9). «O elige tú las piezas» es ahora un escenario NEGRO de estudio
+(`tienda/EscenarioPiezas`): un apartado por categoría con su pieza de referencia (`REFERENCIA`), inclinación hacia el ratón y botón
+«Verla en 3D» (`Ver3dPieza`, que no se ha tocado más que el texto). Fundidos blanco → negro → blanco alrededor. `ChipsFijos` (Jesse, mismo día): solo 3, sobre la placa verde de los kits (`#kits`), nítidos (sin máscara ni opacidad); en fondo blanco o negro no hay chips fijos (el negro del final lleva los suyos de `CampoPixeles`). El configurador
+(`/configurador`) y sus modelos de Alonso no se tocan.
+
+Sexta tanda (Jesse, 12-11-2026): los 3 kits de la portada van IGUALES en fila (`GaleriaKits` con todos; fuera `ChipDestacado`); el
+escenario negro usa `/images/componentes/<slug>.webp` (render de Alonso), no la foto de la BD; chips fijos al doble de resolución y 1,3×;
+la pestaña del menú «Crea tu robot» se llama «Configurador».
+
+Séptima tanda (Jesse, 12-11-2026): las fotos de las piezas salen SIEMPRE del render de Alonso si existe (`config/fotosPiezas.ts`, usado en
+`componenteDeFila`; en la BD puede haber una foto vieja) y `PiezasPortada` usa los `.webp`. Los kits de la portada son «fichas
+técnicas» (`GaleriaKits`): cristal oscuro con filete, foto en ventana clara con marcas de corte y datos como tabla mono.
+Pieza nueva con render → añadir su slug a `CON_RENDER`.
+
+Octava tanda (Jesse, 12-11-2026): el chip negro de los kits (`ChipsFijos`) brilla con un barrido y un LED de estado que late; desde
+1360 px (a escala 0,72 hasta 1500). **Los renders de las piezas (`public/images/componentes`) son de Alonso y NO se regeneran ni se
+retocan** (se probó a avivar el color con `fotos:piezas` y Jesse lo rechazó: «quiero los modelos de Alonso»). Para que no se vean descoloridos, se
+avivan SOLO al mostrarlos con la clase CSS `.render-vivo` (saturación 1,35, contraste 1,06); los ojos plateados del HC-SR04 o el
+amarillo del motor solo se cambian en el modelo de Alonso (visor 3D / sus renders).
+
+Novena tanda (Jesse, 12-11-2026): el cable del ratón vuelve a dejar piezas MINI (resistencias, diodos, condensadores…; máx. 5 a la vez,
+una cada ~20 pasos con probabilidad .3); los chips grandes siguen sin salir del cursor.
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,
@@ -187,7 +241,7 @@ ratón es una pista que se apaga. Fondo `.campo-cielo` (azul → blanco abajo) e
 
 - Portada: héroe → aviso → **kits** (destacado + `GaleriaKits` con los DEMÁS: no se repite) → cómo funciona → piezas por
   dentro → configurador → curso QR → final. Fuera la cinta de piezas (`Marquesina` y su CSS `.cinta`).
-- Menú: Inicio · Kits · «Crea tu robot» (`/configurador`, también marca `/componentes`) · «Mis cursos» solo con sesión
+- Menú: Inicio · Kits · «Configurador» (`/configurador`, también marca `/componentes`) · «Mis cursos» solo con sesión
   (`soloConSesion` en `enlacesNavegacion`). Componentes sigue en el pie.
 - Sin etiquetas «de máquina» encima de las fotos (`fig. —`, `↳ /kits/…`).
 - Configurador vacío: el panel «Tu robot» ya no repite los kits (están en «¿Cómo quieres empezar?»).

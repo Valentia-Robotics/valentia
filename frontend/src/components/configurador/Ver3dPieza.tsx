@@ -38,14 +38,14 @@ export function Ver3dPieza({ componente, className }: Props) {
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        aria-label={`Ver ${componente.nombre} en 3D`}
+        aria-label={`Ver ${componente.nombre} en 3D, de cerca`}
         className={cn(
           "absolute top-2.5 right-2.5 z-10 inline-flex h-8 items-center gap-1 rounded-full bg-white/90 px-2.5 text-xs font-semibold text-tinta shadow-sm ring-1 ring-tinta/10 backdrop-blur-sm transition hover:bg-white hover:ring-acento/40 focus-visible:outline-2 focus-visible:outline-acento",
           className,
         )}
       >
         <Rotate3d aria-hidden="true" className="size-4 text-acento" />
-        3D
+        Verla en 3D
       </button>
 
       <Dialogo abierto={abierto} alCerrar={cerrar} titulo={componente.nombre} posicion="grande">
@@ -70,7 +70,7 @@ export function Ver3dPieza({ componente, className }: Props) {
             <iframe
               src={url}
               title={`${componente.nombre} en 3D: gírala y acércate`}
-              allow="fullscreen; xr-spatial-tracking"
+              allow="fullscreen; camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer"
               onLoad={() => setCargado(true)}
               className={cn(
                 "absolute inset-0 size-full border-0 transition-opacity duration-300",

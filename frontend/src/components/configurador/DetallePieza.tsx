@@ -37,7 +37,7 @@ export function DetallePieza({ componente, enRobot, alAnadir }: Props) {
           width={320}
           height={320}
           unoptimized
-          className="mx-auto aspect-square h-auto w-full max-w-64"
+          className="render-vivo mx-auto aspect-square h-auto w-full max-w-64"
         />
       </div>
 

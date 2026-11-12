@@ -740,6 +740,8 @@ export function CampoPixeles({
     <canvas
       ref={lienzo}
       aria-hidden="true"
+      // Marca para EstelaCircuito: aquí ya hay estela propia
+      data-campo-pixeles=""
       className={
         className ??
         // El dibujo se difumina por abajo (y por arriba en el bloque final, que viene de un fundido)

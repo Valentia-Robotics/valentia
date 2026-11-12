@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { ChipsFijos } from "@/components/layout/ChipsFijos";
+import { EstelaCircuito } from "@/components/layout/EstelaCircuito";
 import { BarraNavegacion } from "@/components/layout/BarraNavegacion";
 import { PieDePagina } from "@/components/layout/PieDePagina";
 import { TransicionPagina } from "@/components/layout/TransicionPagina";
@@ -12,10 +14,14 @@ export function MarcoWeb({ children }: { children: ReactNode }) {
     <>
       <BarraNavegacion />
       {/* pt-nav deja hueco para la barra de navegación fija */}
-      <main id="contenido" className="flex-1 pt-nav print:pt-0">
+      <main id="contenido" className="relative flex-1 pt-nav print:pt-0">
         <TransicionPagina>{children}</TransicionPagina>
+        {/* Chips fijos en los márgenes (solo pantallas anchas; ni en el titular ni en el final) */}
+        <ChipsFijos />
       </main>
       <PieDePagina />
+      {/* Los «cables» que siguen al ratón por toda la web (no en el pie ni donde ya hay placa animada) */}
+      <EstelaCircuito />
     </>
   );
 }

@@ -1,16 +1,23 @@
-import Image from "next/image";
-import { FotoKitViaje } from "@/components/tienda/FotoKitViaje";
-import { Boton } from "@/components/ui/Boton";
+import Link from "next/link";
+import { FormularioAvisame } from "@/components/espera/FormularioAvisame";
 import { Contenedor } from "@/components/ui/Contenedor";
-import type { KitResumen } from "@/lib/catalogo";
+import { listaDeTextos, type KitResumen } from "@/lib/catalogo";
 import { formatearPrecio } from "@/lib/utils";
-import { textoTienda } from "@/config/stock";
+import { cuantosKits, queHace } from "./datosKit";
 import { Etiqueta } from "./Etiqueta";
 import { GaleriaKits } from "./GaleriaKits";
 
 /**
- * LOS KITS EN LA PORTADA: primero el destacado, grande (su foto «viaja» a la ficha), y después
- * los demás en una galería de fotos sencilla (GaleriaKits; la portada no le pasa el destacado).
+ * LOS KITS EN LA PORTADA, SOBRE LA PLACA VERDE (Jesse, 12-11-2026: «la misma interfaz verde con
+ * chips, bien repartido, más organizado y más limpio», y sin frases genéricas).
+ * La sección es una placa perforada (.placa-rejilla) y cada kit, un chip blanco montado encima:
+ * cabecera negra con su referencia (U1, U2…), patas plateadas a los lados (.chip-patas) y sombra cobre.
+ * Pensado como cliente, en el orden en que se lo pregunta:
+ *   1. ¿Qué es esto? Titular con el número real de kits + qué trae cada caja.
+ *   2. ¿Puedo comprar ya? Mientras la tienda no cobra, UNA franja con el «Avísame» (antes un recuadro aparte).
+ *   3. Los kits, TODOS IGUALES en una fila (Jesse: el destacado grande y los demás pequeños se leía mal):
+ *      foto, qué hace, montaje, curso y precio en el mismo sitio de cada tarjeta, para compararlos.
+ * Todos los datos salen de la BD (lo que se cambie en el panel sale aquí solo).
  */
 export function KitsPortada({
   estrella,
@@ -21,90 +28,71 @@ export function KitsPortada({
   kits: KitResumen[];
   compraAbierta: boolean;
 }) {
+  // Todos iguales, en fila y con los mismos datos en el mismo sitio: así se comparan de un vistazo
+  const todos = estrella ? [estrella, ...kits] : kits;
+  const total = todos.length;
+  if (total === 0) return null;
+
   return (
     <section
+      id="kits"
       aria-labelledby="titulo-kits"
-      className="overflow-x-clip bg-white pt-14 pb-20 sm:pt-20 sm:pb-28"
+      className="placa-rejilla relative isolate overflow-x-clip pt-16 pb-20 text-white sm:pt-20 sm:pb-28"
     >
       <Contenedor>
-        <div className="aparecer">
-          <Etiqueta>Elige tu kit</Etiqueta>
-          <h2
-            id="titulo-kits"
-            className="titular-cartel mt-5 max-w-3xl text-5xl font-medium sm:text-7xl"
-          >
-            Un robot para cada curiosidad.
-          </h2>
+        <div className="aparecer grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
+          <div>
+            <Etiqueta oscura>Los kits</Etiqueta>
+            <h2
+              id="titulo-kits"
+              className="titular-cartel mt-5 max-w-3xl text-5xl font-medium sm:text-6xl"
+            >
+              {cuantosKits(total, true)} para montar en casa, sin soldar.
+            </h2>
+          </div>
+          <p className="max-w-md font-serif text-lg leading-snug text-white/85 lg:justify-self-end">
+            Las piezas se enchufan, encajan o se unen con imanes. Cada caja trae todo lo necesario,
+            también las baterías y el cable USB, y un curso en vídeo con el montaje y la
+            programación paso a paso.
+          </p>
         </div>
 
-        {estrella && (
-          <div className="mt-14 grid items-center gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-            <div className="aparecer order-2 lg:order-1">
-              <p className="font-mono text-xs text-tinta/60">
-                ● El kit destacado · {estrella.nivel} · desde {estrella.edadMinima} años
-              </p>
-              <h3 className="titular-cartel mt-3 text-4xl font-medium sm:text-5xl">
-                {estrella.nombre}
-              </h3>
-              <p className="mt-4 max-w-md font-serif text-xl leading-snug">{estrella.eslogan}</p>
-              <p className="mt-4 text-sm text-gris">
-                {formatearPrecio(estrella.precioCentimos)} · Curso de{" "}
-                {estrella.curso._count.lecciones} lecciones incluido
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Boton href={`/kits/${estrella.slug}#comprar`} variante="bloque" tamano="lg">
-                  {/* Con la tienda cerrada, la ficha enseña ahí el «Avísame» */}
-                  {!compraAbierta
-                    ? "Avísame cuando abra"
-                    : estrella.stock > 0
-                      ? "Comprar"
-                      : `${textoTienda(0, estrella.enReposicion)} · Avísame`}
-                </Boton>
-                <Boton href={`/kits/${estrella.slug}`} variante="punteado" tamano="lg">
-                  Ver el kit
-                </Boton>
-              </div>
-            </div>
-            <div className="acercar relative order-1 rounded-recto bg-niebla p-6 lg:order-2">
-              <FotoKitViaje slug={estrella.slug}>
-                <Image
-                  src={estrella.imagen}
-                  alt={`Foto del kit ${estrella.nombre} montado`}
-                  width={800}
-                  height={600}
-                  unoptimized
-                  className="mx-auto h-auto max-h-[min(52dvh,520px)] w-auto max-w-full"
-                />
-              </FotoKitViaje>
-            </div>
+        {!compraAbierta && (
+          <div className="mt-10 grid gap-4 border-y border-dashed border-white/25 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-center lg:gap-10">
+            <p className="text-base">
+              <span className="mr-2 inline-block size-2 bg-senal align-middle" aria-hidden="true" />
+              <strong className="font-semibold">Aún no vendemos online.</strong>{" "}
+              <span className="text-white/80">
+                Deja tu email y te mandamos un solo correo el día que abra la tienda.
+              </span>
+            </p>
+            <FormularioAvisame origen="portada" oscuro />
           </div>
         )}
 
-        {kits.length > 0 && (
-          <div className="aparecer mt-20">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <h3 className="text-2xl font-medium sm:text-3xl">
-                {estrella ? "Más kits" : "Todos los kits"}
-              </h3>
-              <p className="max-w-sm font-serif text-base leading-snug text-tinta/80">
-                Todos llevan las piezas, el cable y un curso en vídeo hecho para ellos.
-              </p>
-            </div>
-            <div className="mt-6">
-              <GaleriaKits
-                kits={kits.map((k) => ({
-                  slug: k.slug,
-                  nombre: k.nombre,
-                  imagen: k.imagen,
-                  nivel: k.nivel,
-                  edadMinima: k.edadMinima,
-                  precio: formatearPrecio(k.precioCentimos),
-                  lecciones: k.curso._count.lecciones,
-                }))}
-              />
-            </div>
-          </div>
-        )}
+        <div className="aparecer mt-12">
+          <GaleriaKits
+            kits={todos.map((k) => ({
+              slug: k.slug,
+              nombre: k.nombre,
+              imagen: k.imagen,
+              nivel: k.nivel,
+              edadMinima: k.edadMinima,
+              montaje: k.tiempoMontaje,
+              hace: queHace(listaDeTextos(k.puntosFuertes)).slice(0, 3),
+              precio: formatearPrecio(k.precioCentimos),
+              lecciones: k.curso._count.lecciones,
+            }))}
+          />
+          <p className="mt-8 text-right">
+            <Link
+              href="/kits"
+              className="font-mono text-xs text-white/75 underline-offset-4 hover:text-white hover:underline"
+            >
+              Ver todos los kits y compararlos →
+            </Link>
+          </p>
+        </div>
       </Contenedor>
     </section>
   );

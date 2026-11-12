@@ -42,7 +42,7 @@ export const enlacesNavegacion: EnlaceNavegacion[] = [
   { href: "/", etiqueta: "Inicio" },
   { href: "/kits", etiqueta: "Kits" },
   // Piezas sueltas y configurador son lo mismo para quien compra: elegir piezas una a una
-  { href: "/configurador", etiqueta: "Crea tu robot", tambien: ["/componentes"] },
+  { href: "/configurador", etiqueta: "Configurador", tambien: ["/componentes"] },
   { href: "/cursos", etiqueta: "Mis cursos", tambien: ["/activar"], soloConSesion: true },
 ];
 
@@ -70,7 +70,7 @@ export const columnasPie: {
     enlaces: [
       { href: "/kits", etiqueta: "Kits" },
       { href: "/componentes", etiqueta: "Componentes" },
-      { href: "/configurador", etiqueta: "Crea tu robot" },
+      { href: "/configurador", etiqueta: "Configurador" },
       { href: "/carrito", etiqueta: "Carrito" },
     ],
   },

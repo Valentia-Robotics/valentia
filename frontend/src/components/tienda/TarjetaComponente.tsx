@@ -21,7 +21,7 @@ export function TarjetaComponente({ componente }: { componente: ComponenteCatalo
           width={240}
           height={240}
           unoptimized
-          className="mx-auto aspect-square h-auto w-full max-w-48"
+          className="render-vivo mx-auto aspect-square h-auto w-full max-w-48"
         />
       </Link>
 
