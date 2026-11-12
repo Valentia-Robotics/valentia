@@ -6,6 +6,7 @@
  *
  *   npm run modelos:glb                  → todas (no pisa las que no estén en modelos.ts)
  *   npm run modelos:glb -- servo-sg90    → solo esa
+ *   npm run modelos:glb -- --kits        → los kits montados, en public/modelos/kits (ficha de cada kit)
  *
  * Usa Chrome (sin ventana), igual que npm run fotos:piezas.
  */
@@ -15,7 +16,8 @@ import { build } from "esbuild";
 import { chromium } from "@playwright/test";
 
 const RAIZ = path.resolve(import.meta.dirname, "..");
-const SALIDA = path.join(RAIZ, "public/modelos/componentes");
+const deKits = process.argv.includes("--kits");
+const SALIDA = path.join(RAIZ, deKits ? "public/modelos/kits" : "public/modelos/componentes");
 const elegidas = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 
 const { outputFiles } = await build({
@@ -39,7 +41,7 @@ pagina.on("pageerror", (e) => console.error("Error:", e.message));
 await pagina.setContent("<!doctype html><html><body></body></html>");
 await pagina.addScriptTag({ content: outputFiles[0].text });
 
-const todas = await pagina.evaluate(() => window.piezas);
+const todas = await pagina.evaluate((k) => (k ? window.kits : window.piezas), deKits);
 await mkdir(SALIDA, { recursive: true });
 for (const slug of elegidas.length ? elegidas : todas) {
   if (!todas.includes(slug)) {

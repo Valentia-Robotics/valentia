@@ -18,7 +18,6 @@ import { datosComponente, datosMigas } from "@/lib/datosEstructurados";
 import { fichaTecnica } from "@/lib/fichaTecnica";
 import { compraAbierta } from "@/lib/pagos";
 import { metadatosPagina } from "@/lib/metadatos";
-import { CampoPixeles } from "@/components/portada/CampoPixeles";
 import { formatearPrecio } from "@/lib/utils";
 import { textoTienda } from "@/config/stock";
 
@@ -85,13 +84,12 @@ export default async function PaginaComponente({ params }: Props) {
         </Link>
 
         <div className="mt-6 grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          {/* La foto, sobre la placa verde (como las cabeceras de la web); con modelo 3D, también en 3D */}
+          {/* La pieza en 3D si tiene modelo; si no, su foto sobre el papel del estudio */}
           <FotoOModelo
             modelo={componente.modelo3d}
             nombre={componente.nombre}
             foto={
-              <div className="relative isolate overflow-hidden rounded-tarjeta bg-placa p-6 sm:p-10">
-                <CampoPixeles variante="cabecera" />
+              <div className="rounded-tarjeta bg-estudio p-6 sm:p-10">
                 <Image
                   src={componente.imagen}
                   alt={`Foto de ${componente.nombre}`}
@@ -107,7 +105,7 @@ export default async function PaginaComponente({ params }: Props) {
 
           <div>
             <Etiqueta tono="acento">{nombreCategoria(componente.categoria)}</Etiqueta>
-            <h1 className="titular-cartel mt-5 text-5xl font-medium sm:text-6xl">
+            <h1 className="titular-cartel mt-4 text-4xl font-medium sm:text-5xl">
               {componente.nombre}
             </h1>
             <p className="mt-4 font-serif text-xl leading-snug text-tinta/80">

@@ -71,7 +71,7 @@ export function Visor3D({ modelo, nombre, alternativa, className }: Props) {
     <div className={className}>
       <div
         ref={marco}
-        className="relative aspect-square w-full overflow-hidden rounded-tarjeta bg-[radial-gradient(ellipse_at_50%_40%,#ffffff_0%,#f4f4f2_55%,#e9e9e5_100%)]"
+        className="relative aspect-square w-full overflow-hidden rounded-tarjeta bg-[radial-gradient(ellipse_at_50%_45%,#fffdf9_0%,#f2efe9_60%,#ebe7df_100%)]"
         role="img"
         aria-label={`Modelo 3D de ${nombre}. Arrastra para girarlo.`}
       >

@@ -31,9 +31,8 @@ export default async function PaginaKits() {
   return (
     <>
       <CabeceraPagina
-        etiqueta="Kits Valentia"
-        titulo="Elige tu primer robot."
-        entradilla="En cada caja van todas las piezas, el cable USB y una tarjeta para abrir el curso en vídeo. No tienes que comprar nada aparte."
+        titulo="Elige tu robot."
+        entradilla="En la caja va todo: piezas, baterías, cable y su curso en vídeo."
       />
       <Contenedor className="py-12 sm:py-16">
         {kits.length > 0 && <DatosEstructurados datos={datosListaKits(kits)} />}
