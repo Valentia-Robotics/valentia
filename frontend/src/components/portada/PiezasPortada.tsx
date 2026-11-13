@@ -66,11 +66,43 @@ export function PiezasPortada() {
     return () => observador.disconnect();
   }, []);
 
+  // En el móvil es una fila que se desliza: la pieza iluminada es la que queda en el centro, no la del temporizador
+  const [escritorio, setEscritorio] = useState(true);
   useEffect(() => {
-    if (!anda || encima !== null) return;
+    const consulta = window.matchMedia("(min-width: 1024px)");
+    const poner = () => setEscritorio(consulta.matches);
+    poner();
+    consulta.addEventListener("change", poner);
+    return () => consulta.removeEventListener("change", poner);
+  }, []);
+  const lista = useRef<HTMLOListElement>(null);
+  const cuadro = useRef(0);
+  function alDeslizar() {
+    if (escritorio || cuadro.current) return;
+    cuadro.current = requestAnimationFrame(() => {
+      cuadro.current = 0;
+      const ol = lista.current;
+      if (!ol) return;
+      const medio = ol.getBoundingClientRect().left + ol.clientWidth / 2;
+      let mejor = 0;
+      let distancia = Infinity;
+      Array.from(ol.children).forEach((hijo, i) => {
+        const r = hijo.getBoundingClientRect();
+        const d = Math.abs(r.left + r.width / 2 - medio);
+        if (d < distancia) {
+          distancia = d;
+          mejor = i;
+        }
+      });
+      setActiva(mejor);
+    });
+  }
+
+  useEffect(() => {
+    if (!anda || encima !== null || !escritorio) return;
     const id = setInterval(() => setActiva((i) => (i + 1) % PIEZAS_ROBOT.length), MS_POR_PIEZA);
     return () => clearInterval(id);
-  }, [anda, encima]);
+  }, [anda, encima, escritorio]);
 
   const iluminada = encima ?? activa;
 
@@ -96,6 +128,8 @@ export function PiezasPortada() {
 
         {/* Mosaico en ordenador (la placa, en grande); fila que se desliza en el móvil */}
         <ol
+          ref={lista}
+          onScroll={alDeslizar}
           aria-label="Las piezas de un robot"
           onPointerLeave={() => setEncima(null)}
           className="-mx-4 mt-12 flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:grid-rows-2 lg:overflow-visible lg:px-0 lg:pb-0"
@@ -109,7 +143,7 @@ export function PiezasPortada() {
                 key={pieza.id}
                 onPointerEnter={(e) => e.pointerType === "mouse" && setEncima(i)}
                 className={cn(
-                  "relative flex w-[78%] shrink-0 snap-start flex-col overflow-hidden rounded-recto bg-niebla p-5 transition-[box-shadow,translate,background-color] duration-500 sm:w-[46%] lg:w-auto",
+                  "relative flex w-[78%] shrink-0 snap-center flex-col overflow-hidden rounded-recto bg-niebla p-5 transition-[box-shadow,translate,background-color] duration-500 sm:w-[46%] lg:w-auto",
                   grande && "lg:col-span-2 lg:row-span-2",
                   esta
                     ? "-translate-x-1 -translate-y-1 bg-white shadow-[6px_6px_0_var(--color-acento)] ring-1 ring-tinta/15"

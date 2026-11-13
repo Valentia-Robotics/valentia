@@ -133,7 +133,7 @@ export function EscenarioPiezas({ componentes }: { componentes: ComponenteCatalo
                 width={420}
                 height={420}
                 unoptimized
-                className="render-vivo size-64 object-contain drop-shadow-[0_30px_30px_rgb(0_0_0/0.7)] sm:size-80"
+                className="render-vivo pieza-balanceo size-64 object-contain drop-shadow-[0_30px_30px_rgb(0_0_0/0.7)] sm:size-80"
               />
             </div>
             <div className="absolute inset-x-0 bottom-5 flex flex-col items-center gap-3 px-4 text-center">

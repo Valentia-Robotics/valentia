@@ -28,7 +28,7 @@ interface Montaje {
 }
 
 /** Siempre los mismos y en el mismo orden (no cambian al recargar) */
-const MONTAJES: Montaje[] = [
+export const MONTAJES: Montaje[] = [
   {
     chip: {
       tipo: "cuadrado",
@@ -130,10 +130,10 @@ const MONTAJES: Montaje[] = [
   },
 ];
 
-const ANCHO = 150;
+export const ANCHO = 150;
 /** Tamaño en pantalla respecto al dibujo */
-const ESCALA = 1.6;
-const ALTO = 170;
+export const ESCALA = 1.6;
+export const ALTO = 170;
 
 function pieza(base: Partial<Pieza> & { tipo: TipoPieza }, x: number, y: number): Pieza {
   return {
@@ -185,7 +185,7 @@ function puntoEn(pista: [number, number][], dist: number): [number, number] {
  * Va suave para no parecer un pegote: baja opacidad, un pelo de desenfoque y máscara que lo funde
  * con el fondo (ver el estilo de abajo).
  */
-function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | "derecha" }) {
+export function ChipMontado({ montaje, lado }: { montaje: Montaje; lado: "izquierda" | "derecha" }) {
   const lienzo = useRef<HTMLCanvasElement>(null);
   const [visible, setVisible] = useState(false);
 

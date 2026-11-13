@@ -630,3 +630,19 @@ dialog[open]::backdrop {
 .render-vivo {
   filter: saturate(1.35) contrast(1.06);
 }
+
+/* En el móvil no hay ratón que incline la pieza: se balancea sola, muy despacio */
+@media (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  .pieza-balanceo {
+    animation: balanceo 7s ease-in-out infinite;
+  }
+}
+@keyframes balanceo {
+  0%,
+  100% {
+    transform: perspective(900px) rotateY(-12deg) rotateX(3deg);
+  }
+  50% {
+    transform: perspective(900px) rotateY(12deg) rotateX(-3deg);
+  }
+}
