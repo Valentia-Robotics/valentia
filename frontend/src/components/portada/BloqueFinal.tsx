@@ -21,7 +21,7 @@ export function BloqueFinal({ compraAbierta }: { compraAbierta: boolean }) {
         <CampoPixeles variante="final" />
         <Contenedor className="aparecer relative max-w-2xl text-center">
           <h2 id="titulo-final" className="titular-cartel text-5xl font-medium sm:text-8xl">
-            Abrimos muy pronto
+            ¡Abrimos muy pronto!
           </h2>
           <p className="mx-auto mt-6 max-w-xl font-serif text-xl leading-snug text-white/75">
             Estamos montando las primeras cajas y probando cada robot antes de que salga a la venta. Si
