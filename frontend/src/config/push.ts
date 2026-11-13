@@ -3,7 +3,7 @@
  * cuando llega un mensaje, como los de WhatsApp, aunque la web esté cerrada.
  * El envío está en src/lib/push/push.ts y lo que hace el navegador al recibirlos, en public/sw.js.
  */
-import { grupoDe } from "./mensajes";
+import { duracionAudio, grupoDe } from "./mensajes";
 
 /** Lo que le llega al navegador en cada aviso (lo lee public/sw.js) */
 export interface AvisoPush {
@@ -32,6 +32,8 @@ export function avisoDeMensaje(datos: {
   de: string;
   texto: string;
   conImagen: boolean;
+  /** Si es una nota de voz, cuánto dura (segundos) */
+  segundosAudio?: number | null;
   esTarea: boolean;
   /** La tarea es para quien recibe el aviso */
   tareaParaTi: boolean;
@@ -41,7 +43,10 @@ export function avisoDeMensaje(datos: {
   const grupo = grupoDe(datos.ruta);
   const titulo = grupo ? `${datos.de} · ${grupo.nombre}` : datos.de;
   const antes = datos.tareaParaTi ? "📋 Tarea para ti: " : datos.esTarea ? "📋 Tarea: " : "";
-  const texto = datos.texto.trim() || (datos.conImagen ? "📷 Imagen" : "");
+  const texto =
+    datos.segundosAudio != null
+      ? `🎤 Nota de voz (${duracionAudio(datos.segundosAudio)})`
+      : datos.texto.trim() || (datos.conImagen ? "📷 Imagen" : "");
   const cuerpo = recortar(`${antes}${datos.conImagen && datos.texto.trim() ? "📷 " : ""}${texto}`);
   return {
     titulo,

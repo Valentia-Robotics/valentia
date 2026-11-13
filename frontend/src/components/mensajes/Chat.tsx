@@ -58,6 +58,7 @@ import {
 import { Avatar, nombreRol } from "./PantallaMensajes";
 import { SelectorEmojis } from "./SelectorEmojis";
 import { InfoGrupo } from "./InfoGrupo";
+import { Grabadora, ReproductorAudio } from "./NotaDeVoz";
 import { SelectorGifs } from "./SelectorGifs";
 import { TarjetaTarea } from "./TarjetaTarea";
 import { AvisoLlamadaEnCurso, BotonLlamar, SalaVideo, useLlamada } from "./Videollamada";
@@ -87,8 +88,11 @@ interface Props {
   modoLlamada: EntradaLlamada["modo"];
 }
 
-/** Un mensaje en pantalla: el que se está enviando lleva la imagen elegida para verla ya */
-type MensajeChat = Mensaje & { vistaPrevia?: string; fallo?: string };
+/**
+ * Un mensaje en pantalla: el que se está enviando lleva la imagen elegida (o la nota de voz
+ * grabada) para verla y oírla ya
+ */
+type MensajeChat = Mensaje & { vistaPrevia?: string; audioLocal?: string; fallo?: string };
 
 /** Lo necesario para volver a mandar un mensaje que no salió */
 interface Envio {
@@ -97,33 +101,40 @@ interface Envio {
   imagen: { archivo: File; url: string } | null;
   /** Un GIF de GIPHY (se manda solo su id: el servidor lo descarga) */
   gif?: GifEncontrado | null;
+  /** Una nota de voz grabada aquí (url = para oírla mientras se envía) */
+  audio?: { archivo: File; segundos: number; url: string } | null;
   tarea: OpcionesTareaValor | null;
   creadoEn: Date;
 }
 
 /**
- * Manda un mensaje con imagen (o con un GIF, por su id) por /api/mensajes/enviar (las acciones no
- * llevan archivos grandes)
+ * Manda un mensaje con imagen (o con un GIF, por su id, o una nota de voz) por /api/mensajes/enviar
+ * (las acciones no llevan archivos grandes)
  */
 async function enviarConImagen(
   ruta: string,
   texto: string,
-  imagen: File | { gif: string },
+  imagen: File | { gif: string } | { audio: File; segundos: number },
   tarea: object | null,
 ): Promise<Respuesta> {
   const datos = new FormData();
   datos.set("chat", ruta);
   datos.set("texto", texto);
   if (imagen instanceof File) datos.set("imagen", imagen);
-  else datos.set("gif", imagen.gif);
+  else if ("gif" in imagen) datos.set("gif", imagen.gif);
+  else {
+    datos.set("audio", imagen.audio);
+    datos.set("segundos", String(imagen.segundos));
+  }
+  const que = imagen instanceof File || "gif" in imagen ? "la imagen" : "la nota de voz";
   if (tarea) datos.set("tarea", JSON.stringify(tarea));
   try {
     const respuesta = await fetch("/api/mensajes/enviar", { method: "POST", body: datos });
     if (respuesta.ok) return { ok: true };
     const cuerpo = (await respuesta.json().catch(() => null)) as { error?: string } | null;
-    return { ok: false, mensaje: cuerpo?.error ?? "No se ha podido enviar la imagen." };
+    return { ok: false, mensaje: cuerpo?.error ?? `No se ha podido enviar ${que}.` };
   } catch {
-    return { ok: false, mensaje: "Sin conexión: no se ha podido enviar la imagen." };
+    return { ok: false, mensaje: `Sin conexión: no se ha podido enviar ${que}.` };
   }
 }
 
@@ -175,6 +186,8 @@ export function Chat(props: Props) {
   // La imagen elegida (o pegada, o arrastrada) que se enviará con el mensaje
   const [imagen, setImagen] = useState<{ archivo: File; url: string } | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
+  // Mientras se graba una nota de voz, la barra de grabación ocupa el sitio del cuadro de texto
+  const [grabando, setGrabando] = useState(false);
   const [hayNuevos, setHayNuevos] = useState(false);
   // Los mensajes que no han salido (un tic gris y «Reintentar»), solo en esta pantalla
   const [fallidos, setFallidos] = useState<(Envio & { error: string })[]>([]);
@@ -206,6 +219,8 @@ export function Chat(props: Props) {
           ? { ancho: null, alto: null }
           : null,
       vistaPrevia: f.gif?.vistaPrevia ?? f.imagen?.url,
+      audio: f.audio ? { segundos: f.audio.segundos } : null,
+      audioLocal: f.audio?.url,
       creadoEn: f.creadoEn,
       esTarea: !!f.tarea,
       estadoTarea: "PENDIENTE" as const,
@@ -381,6 +396,8 @@ export function Chat(props: Props) {
             ? { ancho: null, alto: null }
             : null,
         vistaPrevia: envio.gif?.vistaPrevia ?? envio.imagen?.url,
+        audio: envio.audio ? { segundos: envio.audio.segundos } : null,
+        audioLocal: envio.audio?.url,
         creadoEn: envio.creadoEn,
         esTarea: !!envio.tarea,
         estadoTarea: "PENDIENTE",
@@ -395,11 +412,18 @@ export function Chat(props: Props) {
       const datosTarea = envio.tarea && tareaParaEnviar(envio.tarea);
       let respuesta: Respuesta;
       try {
-        respuesta = envio.gif
-          ? await enviarConImagen(ruta, envio.texto, { gif: envio.gif.id }, datosTarea)
-          : envio.imagen
-            ? await enviarConImagen(ruta, envio.texto, envio.imagen.archivo, datosTarea)
-            : await enviarMensaje(ruta, envio.texto, datosTarea);
+        respuesta = envio.audio
+          ? await enviarConImagen(
+              ruta,
+              envio.texto,
+              { audio: envio.audio.archivo, segundos: envio.audio.segundos },
+              datosTarea,
+            )
+          : envio.gif
+            ? await enviarConImagen(ruta, envio.texto, { gif: envio.gif.id }, datosTarea)
+            : envio.imagen
+              ? await enviarConImagen(ruta, envio.texto, envio.imagen.archivo, datosTarea)
+              : await enviarMensaje(ruta, envio.texto, datosTarea);
       } catch {
         respuesta = { ok: false, mensaje: "Sin conexión: no se ha podido enviar." };
       }
@@ -413,7 +437,7 @@ export function Chat(props: Props) {
       }
       router.refresh();
       // La vista previa ya no hace falta cuando llega la imagen de verdad
-      const url = envio.imagen?.url;
+      const url = envio.imagen?.url ?? envio.audio?.url;
       if (url) setTimeout(() => URL.revokeObjectURL(url), 10_000);
     });
     areaTexto.current?.focus();
@@ -450,6 +474,19 @@ export function Chat(props: Props) {
     });
   };
 
+  /** Una nota de voz se envía nada más terminar de grabarla (sola, como en WhatsApp) */
+  const enviarAudio = (archivo: File, segundos: number) => {
+    setError(null);
+    mandar({
+      idLocal: idLocalNuevo(),
+      texto: "",
+      imagen: null,
+      audio: { archivo, segundos, url: URL.createObjectURL(archivo) },
+      tarea: null,
+      creadoEn: new Date(),
+    });
+  };
+
   const reintentar = (idLocal: string) => {
     const envio = fallidos.find((f) => f.idLocal === idLocal);
     if (!envio) return;
@@ -460,6 +497,7 @@ export function Chat(props: Props) {
   const descartar = (idLocal: string) => {
     const envio = fallidos.find((f) => f.idLocal === idLocal);
     if (envio?.imagen) URL.revokeObjectURL(envio.imagen.url);
+    if (envio?.audio) URL.revokeObjectURL(envio.audio.url);
     setFallidos((lista) => lista.filter((f) => f.idLocal !== idLocal));
   };
 
@@ -666,6 +704,13 @@ export function Chat(props: Props) {
                       )}
                       {m.esTarea && !pendiente && <TarjetaTarea tarea={m} accion={accion} />}
                       {m.imagen && <ImagenMensaje mensaje={m} pendiente={pendiente} />}
+                      {m.audio && (
+                        <ReproductorAudio
+                          src={m.audioLocal ?? `/api/mensajes/audio/${m.id}`}
+                          segundos={m.audio.segundos}
+                          mio={mio}
+                        />
+                      )}
                       {m.texto && (
                         <p
                           className={cn(
@@ -820,62 +865,71 @@ export function Chat(props: Props) {
             onChange={(e) => ponerImagen(e.target.files?.[0])}
           />
           <div className="mx-auto flex max-w-3xl items-end gap-1 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => setEsTarea((v) => !v)}
-              aria-pressed={esTarea}
-              aria-label="Tarea"
-              title="Marca el mensaje como tarea: se podrá poner «hecha»"
-              className={cn(
-                "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors",
-                esTarea
-                  ? "border-aviso bg-aviso/10 font-medium text-aviso-oscuro"
-                  : "border-linea text-gris hover:border-tinta hover:text-tinta",
-              )}
-            >
-              <ClipboardList aria-hidden="true" className="size-4" />
-              <span className="hidden sm:inline">Tarea</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => elegirArchivo.current?.click()}
-              aria-label="Enviar una imagen"
-              title="Enviar una imagen (también puedes pegarla o arrastrarla)"
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-gris transition-colors hover:bg-niebla hover:text-tinta"
-            >
-              <ImagePlus aria-hidden="true" className="size-5" />
-            </button>
-            <SelectorEmojis elegir={meterEmoji} />
-            <SelectorGifs elegir={enviarGif} />
-            <label className="sr-only" htmlFor="texto-mensaje">
-              Mensaje
-            </label>
-            <textarea
-              id="texto-mensaje"
-              ref={areaTexto}
-              value={texto}
-              onChange={(e) => setTexto(e.target.value)}
-              onKeyDown={alPulsarTecla}
-              onPaste={alPegar}
-              rows={1}
-              maxLength={MAX_CARACTERES_MENSAJE}
-              placeholder={
-                esTarea
-                  ? "Escribe la tarea…"
-                  : imagen
-                    ? "Añade un texto (opcional)"
-                    : "Escribe un mensaje"
-              }
-              className="field-sizing-content max-h-40 min-h-11 flex-1 resize-none rounded-2xl border border-linea bg-niebla px-4 py-2.5 text-[15px] outline-none focus:border-acento focus:bg-white"
-            />
-            <button
-              type="submit"
-              disabled={!texto.trim() && !imagen}
-              aria-label="Enviar"
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-acento text-white transition-colors hover:bg-acento-hover disabled:opacity-40"
-            >
-              <SendHorizontal aria-hidden="true" className="size-5" />
-            </button>
+            {!grabando && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setEsTarea((v) => !v)}
+                  aria-pressed={esTarea}
+                  aria-label="Tarea"
+                  title="Marca el mensaje como tarea: se podrá poner «hecha»"
+                  className={cn(
+                    "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors",
+                    esTarea
+                      ? "border-aviso bg-aviso/10 font-medium text-aviso-oscuro"
+                      : "border-linea text-gris hover:border-tinta hover:text-tinta",
+                  )}
+                >
+                  <ClipboardList aria-hidden="true" className="size-4" />
+                  <span className="hidden sm:inline">Tarea</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => elegirArchivo.current?.click()}
+                  aria-label="Enviar una imagen"
+                  title="Enviar una imagen (también puedes pegarla o arrastrarla)"
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-gris transition-colors hover:bg-niebla hover:text-tinta"
+                >
+                  <ImagePlus aria-hidden="true" className="size-5" />
+                </button>
+                <SelectorEmojis elegir={meterEmoji} />
+                <SelectorGifs elegir={enviarGif} />
+                <label className="sr-only" htmlFor="texto-mensaje">
+                  Mensaje
+                </label>
+                <textarea
+                  id="texto-mensaje"
+                  ref={areaTexto}
+                  value={texto}
+                  onChange={(e) => setTexto(e.target.value)}
+                  onKeyDown={alPulsarTecla}
+                  onPaste={alPegar}
+                  rows={1}
+                  maxLength={MAX_CARACTERES_MENSAJE}
+                  placeholder={
+                    esTarea
+                      ? "Escribe la tarea…"
+                      : imagen
+                        ? "Añade un texto (opcional)"
+                        : "Escribe un mensaje"
+                  }
+                  className="field-sizing-content max-h-40 min-h-11 flex-1 resize-none rounded-2xl border border-linea bg-niebla px-4 py-2.5 text-[15px] outline-none focus:border-acento focus:bg-white"
+                />
+              </>
+            )}
+            {/* Sin nada escrito, el botón de enviar es el micrófono (como en WhatsApp) */}
+            {grabando || (!texto.trim() && !imagen && !esTarea) ? (
+              <Grabadora alTerminar={enviarAudio} alCambiar={setGrabando} alFallar={setError} />
+            ) : (
+              <button
+                type="submit"
+                disabled={!texto.trim() && !imagen}
+                aria-label="Enviar"
+                className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-acento text-white transition-colors hover:bg-acento-hover disabled:opacity-40"
+              >
+                <SendHorizontal aria-hidden="true" className="size-5" />
+              </button>
+            )}
           </div>
         </form>
       ) : (
