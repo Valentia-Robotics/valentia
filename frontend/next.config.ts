@@ -44,7 +44,7 @@ const csp = [
   "font-src 'self'",
   `connect-src 'self' https://api.stripe.com https://*.stripe.com https://*.stripe.network https://*.vimeocdn.com${ga("https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com")}${desarrollo ? " ws: wss:" : ""}`,
   `frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://*.stripe.network https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com ${origenVisor3d()}`,
-  "media-src 'self' https:",
+  "media-src 'self' blob: https:",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -69,7 +69,7 @@ const cabecerasSeguridad = [
     value:
       // La cámara y el seguimiento de movimiento solo para el visor 3D de las piezas («Ver en tu espacio»,
       // realidad aumentada): sin esto el navegador bloquea la cámara dentro del marco y el botón no hace nada
-      `camera=(self "${origenVisor3d()}"), xr-spatial-tracking=(self "${origenVisor3d()}"), microphone=(), geolocation=(), usb=(), serial=(), bluetooth=(), payment=(self "https://js.stripe.com")`,
+      `camera=(self "${origenVisor3d()}"), xr-spatial-tracking=(self "${origenVisor3d()}"), microphone=(self), geolocation=(), usb=(), serial=(), bluetooth=(), payment=(self "https://js.stripe.com")`,
   },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
 ];

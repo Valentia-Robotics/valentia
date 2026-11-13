@@ -4,6 +4,7 @@ import { Contenedor } from "@/components/ui/Contenedor";
 import { listaDeTextos, type KitResumen } from "@/lib/catalogo";
 import { formatearPrecio } from "@/lib/utils";
 import { cuantosKits, queHace } from "./datosKit";
+import { FranjaChips } from "@/components/layout/FranjaChips";
 import { Etiqueta } from "./Etiqueta";
 import { GaleriaKits } from "./GaleriaKits";
 
@@ -70,7 +71,9 @@ export function KitsPortada({
           </div>
         )}
 
-        <div className="aparecer mt-12">
+        <FranjaChips />
+
+        <div className="aparecer mt-6">
           <GaleriaKits
             kits={todos.map((k) => ({
               slug: k.slug,
