@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Truck } from "lucide-react";
+import { Aviso } from "@/components/admin/Aviso";
 import { AccionesLotePedidos, FORMULARIO_LOTE } from "@/components/admin/AccionesLotePedidos";
 import { BotonAdmin } from "@/components/admin/BotonAdmin";
 import { Buscador } from "@/components/admin/Buscador";
@@ -28,6 +29,8 @@ export default async function PedidosAdmin({ searchParams }: Props) {
   await exigirAdmin("/admin/pedidos");
   const parametros = await searchParams;
   const q = typeof parametros.q === "string" ? parametros.q : "";
+  // Al borrar un pedido desde su ficha se vuelve aquí con su número (?borrado=VAL-…)
+  const borrado = typeof parametros.borrado === "string" ? parametros.borrado.slice(0, 40) : "";
   const estado = leerEstado(parametros.estado);
   const pagina = leerPagina(parametros.pagina);
   const { pedidos, total, totalPaginas, cuantos } = await buscarPedidos(q, estado, pagina);
@@ -85,6 +88,11 @@ export default async function PedidosAdmin({ searchParams }: Props) {
         />
       </div>
 
+      {borrado && (
+        <div className="mb-4">
+          <Aviso tipo="exito">Pedido {borrado} borrado.</Aviso>
+        </div>
+      )}
       <AccionesLotePedidos />
       <Caja sinRelleno>
         <Tabla

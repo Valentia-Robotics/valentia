@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BotonConfirmar } from "@/components/admin/BotonConfirmar";
 import { Cabecera } from "@/components/admin/Cabecera";
 import { Caja } from "@/components/admin/Caja";
 import { EstadoPedido } from "@/components/admin/EstadoPedido";
 import { FormularioPedido } from "@/components/admin/FormularioPedido";
 import { Insignia } from "@/components/admin/Insignia";
 import { Tabla } from "@/components/admin/Tabla";
+import { devuelveStockAlBorrar, motivoNoBorrarPedido } from "@/config/borrarPedido";
 import { tienda } from "@/config/tienda";
 import { fechaHora } from "@/lib/admin/formato";
 import { obtenerPedidoAdmin } from "@/lib/admin/pedidos";
@@ -15,6 +17,7 @@ import { exigirAdmin } from "@/lib/sesion";
 import { formatearPrecio } from "@/lib/utils";
 import { formatearTelefono } from "@/lib/validaciones/pedido";
 import { esId } from "@/lib/ids";
+import { borrarPedido } from "../acciones";
 
 export const metadata: Metadata = { title: "Pedido" };
 
@@ -38,6 +41,9 @@ export default async function PedidoAdmin({ params }: Props) {
     ["Entregado", pedido.entregadoEn],
     ["Cancelado", pedido.canceladoEn],
   ] as const;
+  const noSeBorra = motivoNoBorrarPedido(pedido);
+  const codigosSinUsar = pedido.codigos.filter((c) => !c.usadoEn).length;
+  const codigosUsados = pedido.codigos.length - codigosSinUsar;
 
   return (
     <>
@@ -165,6 +171,40 @@ export default async function PedidoAdmin({ params }: Props) {
               >
                 Ver el pago en Stripe ↗
               </Link>
+            )}
+          </Caja>
+          <Caja titulo="Borrar pedido">
+            {noSeBorra ? (
+              <p className="text-sm text-gris">{noSeBorra}</p>
+            ) : (
+              <>
+                <p className="mb-3 text-sm text-gris">
+                  Para quitar de la lista los pedidos de prueba. Desaparece de verdad: no se puede
+                  deshacer.
+                </p>
+                <BotonConfirmar
+                  accion={borrarPedido}
+                  datos={{ pedidoId: pedido.id }}
+                  titulo={`¿Borrar el pedido ${pedido.numero}?`}
+                  confirmar="Sí, borrar el pedido"
+                  texto={
+                    <ul className="list-disc space-y-1 pl-5">
+                      <li>Desaparece de la lista de pedidos para siempre.</li>
+                      {devuelveStockAlBorrar(pedido.estado) && (
+                        <li>Sus artículos vuelven al stock del almacén.</li>
+                      )}
+                      {codigosSinUsar > 0 && (
+                        <li>Se borran sus códigos de activación sin usar ({codigosSinUsar}).</li>
+                      )}
+                      {codigosUsados > 0 && (
+                        <li>Quien ya activó un código de este pedido conserva su curso.</li>
+                      )}
+                    </ul>
+                  }
+                >
+                  Borrar pedido
+                </BotonConfirmar>
+              </>
             )}
           </Caja>
         </div>

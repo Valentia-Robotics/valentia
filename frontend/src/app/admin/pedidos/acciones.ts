@@ -7,10 +7,12 @@
  * Al pasar a ENVIADO se manda un correo al cliente. Solo para ADMIN (se comprueba aquí).
  */
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { estadosPedido, transicionesPanel } from "@/config/estadosPedido";
 import { EstadoPedido } from "@/generated/prisma/enums";
 import { conErrores, type EstadoFormulario, texto, textos } from "@/lib/admin/formularios";
+import { borrarPedidos, type ResultadoBorrado } from "@/lib/admin/borrarPedidos";
 import { enviarAvisoEnvio } from "@/lib/avisosPedido";
 import { db } from "@/lib/db";
 import { cancelarIntentoPago } from "@/lib/pagos/stripe";
@@ -233,6 +235,49 @@ export async function enviarVariosPedidos(
         ? ` ${plural(saltados, "pedido ha", "pedidos han")} cambiado mientras tanto y no se ${saltados === 1 ? "ha" : "han"} tocado.`
         : ""),
   };
+}
+
+/** Botón «Borrar pedido» de la ficha: al borrarlo vuelve a la lista */
+export async function borrarPedido(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const id = texto(formulario, "pedidoId");
+  if (!esId(id)) return { ok: false, mensaje: "Este pedido ya no existe." };
+  const { borrados, saltados } = await borrarPedidos([id], cancelarIntentoPago);
+  if (!borrados.length) {
+    return { ok: false, mensaje: saltados[0]?.motivo ?? "Este pedido ya no existe." };
+  }
+  refrescar();
+  redirect(`/admin/pedidos?borrado=${encodeURIComponent(borrados[0]!)}`);
+}
+
+/** Casillas de la lista: borrar varios pedidos de prueba a la vez */
+export async function borrarVariosPedidos(
+  _anterior: EstadoFormulario,
+  formulario: FormData,
+): Promise<EstadoFormulario> {
+  await exigirAdminEnAccion();
+  const ids = z
+    .array(esquemaId)
+    .min(1)
+    .max(MAXIMO_LOTE)
+    .safeParse([...new Set(textos(formulario, "ids"))]);
+  if (!ids.success) return { ok: false, mensaje: "Marca al menos un pedido." };
+  const resultado = await borrarPedidos(ids.data, cancelarIntentoPago);
+  refrescar();
+  return { ok: resultado.borrados.length > 0, mensaje: mensajeBorrado(resultado) };
+}
+
+function mensajeBorrado({ borrados, saltados }: ResultadoBorrado): string {
+  const partes = [
+    borrados.length
+      ? `${plural(borrados.length, "pedido borrado", "pedidos borrados")}.`
+      : "No se ha borrado ningún pedido.",
+  ];
+  for (const s of saltados) partes.push(`${s.numero}: ${s.motivo}`);
+  return partes.join(" ");
 }
 
 function refrescar(pedidoId?: string) {

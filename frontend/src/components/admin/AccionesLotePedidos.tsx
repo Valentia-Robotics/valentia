@@ -1,8 +1,8 @@
 "use client";
 
-import { CheckCheck, PackageOpen, PackageCheck } from "lucide-react";
+import { CheckCheck, PackageOpen, PackageCheck, Trash2 } from "lucide-react";
 import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
-import { cambiarVariosPedidos } from "@/app/admin/pedidos/acciones";
+import { borrarVariosPedidos, cambiarVariosPedidos } from "@/app/admin/pedidos/acciones";
 import { estadoInicial } from "@/lib/admin/formularios";
 import { Aviso } from "./Aviso";
 import { BotonAdmin } from "./BotonAdmin";
@@ -21,10 +21,21 @@ function casillas(): HTMLInputElement[] {
 
 /**
  * Barra encima de la lista de pedidos: marca varios con las casillas y pásalos
- * todos a «Preparando» o a «Entregado» con un solo clic.
+ * todos a «Preparando» o a «Entregado» con un solo clic, o bórralos (solo los de prueba).
  */
 export function AccionesLotePedidos() {
-  const [respuesta, despachar, enviando] = useActionState(cambiarVariosPedidos, estadoInicial);
+  const [respuestaCambio, despachar, cambiando] = useActionState(
+    cambiarVariosPedidos,
+    estadoInicial,
+  );
+  const [respuestaBorrado, despacharBorrado, borrando] = useActionState(
+    borrarVariosPedidos,
+    estadoInicial,
+  );
+  // Se enseña la respuesta del último botón pulsado
+  const [ultimo, setUltimo] = useState<"cambio" | "borrado">("cambio");
+  const respuesta = ultimo === "borrado" ? respuestaBorrado : respuestaCambio;
+  const enviando = cambiando || borrando;
   const [marcados, setMarcados] = useState(0);
 
   // Cuenta las casillas marcadas cada vez que cambia una
@@ -46,7 +57,21 @@ export function AccionesLotePedidos() {
     // El botón pulsado lleva el estado elegido (name="estado")
     const boton = (evento.nativeEvent as SubmitEvent).submitter;
     const datos = new FormData(evento.currentTarget, boton);
-    startTransition(() => despachar(datos));
+    if (datos.get("estado") === "BORRAR") {
+      const cuantos = marcados === 1 ? "1 pedido" : `${marcados} pedidos`;
+      if (
+        !window.confirm(
+          `¿Borrar ${cuantos}? Desaparecen de la lista para siempre y lo que tenían apartado vuelve al stock. Los pedidos cobrados de verdad no se borran. No se puede deshacer.`,
+        )
+      ) {
+        return;
+      }
+      setUltimo("borrado");
+      startTransition(() => despacharBorrado(datos));
+    } else {
+      setUltimo("cambio");
+      startTransition(() => despachar(datos));
+    }
     // Ya están en "datos": se desmarcan para que no se cambien otra vez sin querer
     for (const c of casillas()) c.checked = false;
     setMarcados(0);
@@ -86,6 +111,17 @@ export function AccionesLotePedidos() {
         >
           <PackageCheck aria-hidden="true" className="size-4" />
           Pasar a «Entregado»
+        </BotonAdmin>
+        <BotonAdmin
+          type="submit"
+          name="estado"
+          value="BORRAR"
+          variante="peligro"
+          pequeno
+          disabled={enviando || marcados === 0}
+        >
+          <Trash2 aria-hidden="true" className="size-4" />
+          Borrar seleccionados
         </BotonAdmin>
       </div>
     </form>
