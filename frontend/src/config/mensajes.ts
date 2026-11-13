@@ -164,8 +164,10 @@ export function resumenMensaje(
   texto: string,
   conImagen: boolean,
   segundosAudio: number | null = null,
+  esSticker = false,
 ): string {
   if (segundosAudio !== null) return `🎤 Nota de voz (${duracionAudio(segundosAudio)})`;
+  if (esSticker) return "💟 Sticker";
   if (!conImagen) return texto;
   return texto ? `📷 ${texto}` : "📷 Foto";
 }

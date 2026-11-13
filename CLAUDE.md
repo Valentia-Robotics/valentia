@@ -18,6 +18,22 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Responder, cámara, stickers y llamada más rápida en el chat del equipo (13-11-2026, rama `claude/project-thread-bi92lx`; petición de Jesse)
+
+- **Responder a un mensaje** (como WhatsApp): botón «Responder» al pasar el ratón junto a la burbuja y, en pantallas táctiles,
+  deslizar la burbuja a la derecha (`Deslizable` en `Chat.tsx`; reglas puras en `src/config/respuestas.ts` + test). El mensaje
+  guarda una COPIA corta del citado (`MensajeEquipo.respondeAId/respondeAAutorId/respondeAAutor/respondeATexto`; el servidor
+  comprueba que es del MISMO chat, `citaDe`). Tocar la cita salta al original y lo ilumina; si se borra el original, la cita
+  dice «Mensaje borrado». Esc quita la respuesta. También vale para imágenes, GIF, stickers y notas de voz.
+- **Menú «+»** (`MenuAdjuntar`): Cámara · Galería · GIF · Sticker · Tarea (antes eran botones sueltos); los emojis siguen junto al
+  texto. Cámara: en el móvil `<input capture="environment">`; en el ordenador `CamaraWeb` (webcam con getUserMedia → JPG).
+- **Stickers**: de GIPHY (misma clave `GIPHY_API_KEY`; `/api/mensajes/gifs?tipo=stickers`), se guardan como imagen con
+  `MensajeEquipo.esSticker` y se ven sin burbuja (160 px). `SelectorGifs` es ahora el panel (sin botón propio) para los dos tipos.
+- **Llamada más rápida**: al abrir el chat, `POST /api/mensajes/llamada {accion:"preparar"}` (`prepararLlamada`: dirección + JWT de
+  una sala nueva al azar o de la llamada en curso; no crea nada ni avisa) y `preconnect` a 8x8.vc. Al pulsar «Llamar», el iframe
+  se abre al instante con esa dirección mientras `entrar` (con `sala`) apunta la llamada y avisa; las comprobaciones del
+  servidor van en paralelo. Una sala preparada solo se usa si nunca ha existido. «Conectando…» mientras carga el vídeo.
+
 ### Videollamadas en el chat del equipo (13-11-2026, rama `claude/project-thread-5d8evp`; petición de Jesse)
 
 Botón **Llamar** (cámara) en la cabecera de cada chat de `/mensajes` (General, Hardware, Edición y privados). Vídeo de

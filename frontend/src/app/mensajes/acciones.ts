@@ -49,8 +49,13 @@ export async function enviarMensaje(
   ruta: string,
   texto: string,
   tarea: TareaNueva | null,
+  respondeAId: string | null = null,
 ): Promise<Respuesta> {
-  return conEquipo((yo) => enviarYAvisar(yo, ruta, texto, tarea));
+  return conEquipo((yo) =>
+    enviarYAvisar(yo, ruta, texto, tarea, null, null, {
+      respondeAId: typeof respondeAId === "string" ? respondeAId : null,
+    }),
+  );
 }
 
 export async function marcarEstadoTarea(mensajeId: string, estado: Estado): Promise<Respuesta> {

@@ -15,6 +15,11 @@ export const MAX_CARACTERES_BUSQUEDA_GIF = 50;
 /** Solo GIFs aptos para todo el mundo y algo más (GIPHY: g, pg, pg-13, r) */
 export const CLASIFICACION_GIF = "pg-13";
 
+/** Qué se busca en GIPHY: GIFs normales o stickers (fondo transparente) */
+export type TipoGif = "gifs" | "stickers";
+export const leerTipoGif = (valor: unknown): TipoGif =>
+  valor === "stickers" ? "stickers" : "gifs";
+
 /** Un GIF tal como lo ve el selector del chat */
 export interface GifEncontrado {
   id: string;
