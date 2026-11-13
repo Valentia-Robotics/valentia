@@ -411,6 +411,13 @@ model MensajeEquipo {
   imagenAncho Int?
   imagenAlto  Int?
 
+  /// ---- Nota de voz (opcional): MP4/AAC, WebM u Ogg en el almacén PRIVADO; solo la oyen quienes ven el chat ----
+  audioClave    String?
+  /// audio/mp4, audio/webm o audio/ogg (comprobado por el contenido)
+  audioTipo     String?
+  /// Cuánto dura, en segundos (lo mide el navegador al grabar)
+  audioSegundos Int?
+
   /// ---- Si es una TAREA (como en Notion): estado, prioridad, entrega, responsable y recordatorio ----
   esTarea               Boolean         @default(false)
   estadoTarea           EstadoTarea     @default(PENDIENTE)

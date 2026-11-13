@@ -28,6 +28,7 @@ import { borrarPrivado } from "@/lib/almacenamiento/privado";
 import { db } from "@/lib/db";
 import { esId } from "@/lib/ids";
 import type { UsuarioActual } from "@/lib/sesion";
+import type { AudioGuardado } from "./audios";
 import type { ImagenGuardada } from "./imagenes";
 
 export class ErrorMensaje extends Error {}
@@ -134,6 +135,8 @@ export interface Mensaje {
   creadoEn: Date;
   /** Si lleva imagen, su tamaño (para reservar el hueco). La imagen se pide a /api/mensajes/imagen/<id> */
   imagen: { ancho: number | null; alto: number | null } | null;
+  /** Si es una nota de voz, cuánto dura. El audio se pide a /api/mensajes/audio/<id> */
+  audio: { segundos: number } | null;
   esTarea: boolean;
   estadoTarea: Estado;
   prioridad: Prioridad | null;
@@ -163,15 +166,24 @@ const camposMensaje = {
   imagenClave: true,
   imagenAncho: true,
   imagenAlto: true,
+  audioClave: true,
+  audioSegundos: true,
 } as const;
 
 /** De la fila de la BD a lo que ve la pantalla: la clave del almacén nunca sale del servidor */
 function aMensaje<
-  T extends { imagenClave: string | null; imagenAncho: number | null; imagenAlto: number | null },
->({ imagenClave, imagenAncho, imagenAlto, ...resto }: T) {
+  T extends {
+    imagenClave: string | null;
+    imagenAncho: number | null;
+    imagenAlto: number | null;
+    audioClave: string | null;
+    audioSegundos: number | null;
+  },
+>({ imagenClave, imagenAncho, imagenAlto, audioClave, audioSegundos, ...resto }: T) {
   return {
     ...resto,
     imagen: imagenClave ? { ancho: imagenAncho, alto: imagenAlto } : null,
+    audio: audioClave ? { segundos: audioSegundos ?? 0 } : null,
   };
 }
 
@@ -365,6 +377,8 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
             autorId: true,
             creadoEn: true,
             imagenClave: true,
+            audioClave: true,
+            audioSegundos: true,
           },
         }),
       ),
@@ -382,7 +396,11 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
       noLeidos: noLeidos.get(c.canal) ?? 0,
       ultimo: u
         ? {
-            texto: resumenMensaje(u.texto, !!u.imagenClave),
+            texto: resumenMensaje(
+              u.texto,
+              !!u.imagenClave,
+              u.audioClave ? (u.audioSegundos ?? 0) : null,
+            ),
             autorNombre: u.autorNombre,
             mio: u.autorId === yo.id,
             creadoEn: u.creadoEn,
@@ -410,6 +428,7 @@ export async function escribirMensaje(
   texto: string,
   tarea: DatosTarea | null,
   imagen: ImagenGuardada | null = null,
+  audio: AudioGuardado | null = null,
 ) {
   const { otro, puedeEscribir } = await comprobarCanal(yo, canal);
   if (!puedeEscribir) throw new ErrorMensaje("Esta persona ya no está en el equipo.");
@@ -443,6 +462,11 @@ export async function escribirMensaje(
         imagenClave: imagen.clave,
         imagenAncho: imagen.ancho,
         imagenAlto: imagen.alto,
+      }),
+      ...(audio && {
+        audioClave: audio.clave,
+        audioTipo: audio.tipo,
+        audioSegundos: audio.segundos,
       }),
       ...(tarea && {
         esTarea: true,
@@ -482,6 +506,8 @@ async function mensajeVisible(yo: UsuarioActual, mensajeId: string) {
       esTarea: true,
       responsableId: true,
       imagenClave: true,
+      audioClave: true,
+      audioTipo: true,
     },
   });
   if (!mensaje) throw new ErrorMensaje("Ese mensaje no existe.");
@@ -596,6 +622,8 @@ export async function ultimoSinLeer(yo: UsuarioActual) {
         autorNombre: true,
         creadoEn: true,
         imagenClave: true,
+        audioClave: true,
+        audioSegundos: true,
       },
       orderBy: { creadoEn: "desc" },
       take: 20,
@@ -611,7 +639,11 @@ export async function ultimoSinLeer(yo: UsuarioActual) {
   return {
     id: m.id,
     de: m.autorNombre,
-    texto: resumenMensaje(m.texto, !!m.imagenClave).slice(0, 140),
+    texto: resumenMensaje(
+      m.texto,
+      !!m.imagenClave,
+      m.audioClave ? (m.audioSegundos ?? 0) : null,
+    ).slice(0, 140),
     ruta: rutaDeCanal(m.canal, yo.id),
   };
 }
@@ -713,7 +745,24 @@ export async function borrarMensaje(yo: UsuarioActual, mensajeId: string) {
       console.error("[mensajes] No se ha podido borrar una imagen del almacén.", error),
     );
   }
+  if (mensaje.audioClave) {
+    await borrarPrivado(mensaje.audioClave).catch((error) =>
+      console.error("[mensajes] No se ha podido borrar una nota de voz del almacén.", error),
+    );
+  }
   return mensaje.canal;
+}
+
+/** La nota de voz de un mensaje (clave y tipo), si «yo» puede ver ese chat; si no, null (404) */
+export async function audioVisible(yo: UsuarioActual, mensajeId: string) {
+  try {
+    const mensaje = await mensajeVisible(yo, mensajeId);
+    if (!mensaje.audioClave) return null;
+    return { clave: mensaje.audioClave, tipo: mensaje.audioTipo ?? "audio/mp4" };
+  } catch (error) {
+    if (error instanceof ErrorMensaje) return null;
+    throw error;
+  }
 }
 
 /**

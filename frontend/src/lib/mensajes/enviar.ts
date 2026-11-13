@@ -21,6 +21,7 @@ import { avisoDeMensaje } from "@/config/push";
 import { registrarIntento } from "@/lib/limite";
 import { avisarPorPush } from "@/lib/push/push";
 import type { UsuarioActual } from "@/lib/sesion";
+import { guardarAudioMensaje } from "./audios";
 import { guardarImagenMensaje } from "./imagenes";
 import { ErrorMensaje, escribirMensaje, totalNoLeidos } from "./mensajes";
 
@@ -39,11 +40,13 @@ export async function enviarYAvisar(
   textoOriginal: string,
   tarea: TareaNueva | null,
   imagen: Buffer | null = null,
+  audio: { datos: Buffer; segundos: number } | null = null,
 ) {
+  if (imagen && audio) throw new ErrorMensaje("Manda la imagen y la nota de voz por separado.");
   const canal = canalDeRuta(String(ruta), yo.id);
   if (!canal) throw new ErrorMensaje("Ese chat no existe.");
   const texto = limpiarMensaje(String(textoOriginal ?? ""));
-  const problema = problemaMensaje(texto, !!imagen);
+  const problema = problemaMensaje(texto, !!imagen || !!audio);
   if (problema) throw new ErrorMensaje(problema);
   const datosTarea = tarea && typeof tarea === "object" ? leerDatosTarea(tarea) : null;
   if (typeof datosTarea === "string") throw new ErrorMensaje(datosTarea);
@@ -51,15 +54,20 @@ export async function enviarYAvisar(
     throw new ErrorMensaje("Has enviado muchos mensajes seguidos. Espera un poco.");
   if (imagen && !(await registrarIntento("imagenEquipo", yo.id)))
     throw new ErrorMensaje("Has enviado muchas imágenes seguidas. Espera un rato.");
+  if (audio && !(await registrarIntento("audioEquipo", yo.id)))
+    throw new ErrorMensaje("Has enviado muchas notas de voz seguidas. Espera un rato.");
 
   const guardada = imagen ? await guardarImagenMensaje(imagen) : null;
+  const audioGuardado = audio ? await guardarAudioMensaje(audio.datos, audio.segundos) : null;
   const { otro, yaTeniaSinLeer, responsable } = await escribirMensaje(
     yo,
     canal,
     texto,
     datosTarea,
     guardada,
+    audioGuardado,
   );
+  const segundosAudio = audioGuardado?.segundos ?? null;
 
   // Aviso push al momento (como WhatsApp) a todos los que ven el chat menos a mí. Después de
   // responder, para que quien envía no espere
@@ -68,6 +76,7 @@ export async function enviarYAvisar(
     avisarAlEquipo(yo, otro?.id ?? null, canal, {
       texto,
       conImagen,
+      segundosAudio,
       esTarea: !!datosTarea,
       responsableId: responsable?.id ?? null,
     }),
@@ -92,7 +101,7 @@ export async function enviarYAvisar(
       para: destino.email,
       nombre: destino.nombre,
       de: yo.nombre,
-      texto: resumenMensaje(texto, !!guardada),
+      texto: resumenMensaje(texto, !!guardada, segundosAudio),
       esTarea: !!datosTarea,
       ruta: otro ? yo.id : canal,
     }),
@@ -104,7 +113,13 @@ async function avisarAlEquipo(
   yo: UsuarioActual,
   otroId: string | null,
   canal: string,
-  datos: { texto: string; conImagen: boolean; esTarea: boolean; responsableId: string | null },
+  datos: {
+    texto: string;
+    conImagen: boolean;
+    segundosAudio: number | null;
+    esTarea: boolean;
+    responsableId: string | null;
+  },
 ) {
   const destinos = await db.usuario.findMany({
     where: otroId
@@ -130,6 +145,7 @@ async function avisarAlEquipo(
           de: yo.nombre,
           texto: datos.texto,
           conImagen: datos.conImagen,
+          segundosAudio: datos.segundosAudio,
           esTarea: datos.esTarea,
           tareaParaTi: datos.responsableId === id,
           ruta: otroId ? yo.id : canal,

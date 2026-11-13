@@ -343,6 +343,18 @@ tablas sobre `bg-salvia`. Tokens nuevos: `cielo`, `salvia`, `senal` (amarillo de
     h1/h2 apretados, tarjetas de kit y componente con sombra recta azul, barra de navegación con línea de puntos.
 - Lighthouse móvil en local: portada 89 (antes 65, sobre todo por quitar el 3D). Accesibilidad, SEO y prácticas 100.
 
+### Notas de voz en el chat del equipo (13-11-2026, rama `claude/project-thread-6jf8cb`; petición de Jesse)
+
+Sin texto escrito, el botón de enviar es un micrófono (`Grabadora` en `components/mensajes/NotaDeVoz.tsx`): graba, papelera
+para tirarla, «Enviar»; máx. 5 min (se envía sola) y 8 MB. Formato: el primero de `FORMATOS_GRABACION` que admita el
+navegador (MP4/AAC antes que WebM/Ogg: el iPhone no oye bien los WebM). Se guarda TAL CUAL (en Render no hay ffmpeg) en el
+almacén PRIVADO (`mensajes/audio-<azar>.<m4a|webm|ogg>`, `lib/mensajes/audios.ts`; tipo comprobado por los primeros bytes,
+`tipoAudioDeContenido`). Campos `MensajeEquipo.audioClave/audioTipo/audioSegundos` (la duración la mide el navegador: los
+WebM de Chrome no la traen). Envío por `POST /api/mensajes/enviar` (`audio` + `segundos`); se oye en
+`GET /api/mensajes/audio/<id>` (mismos permisos que el chat; **admite Range → 206: sin eso Safari no reproduce**,
+`lib/mensajes/trozos.ts`). Límite `audioEquipo` 60/hora. `Permissions-Policy` con `microphone=(self)` (antes `()`, que lo
+bloqueaba). Reglas puras + test en `config/notasDeVoz.test.ts`.
+
 ### Grupos Hardware y Edición (12-11-2026, rama `claude/project-thread-7lhvvt`; petición de Jesse)
 
 Además del General, los chats de grupo «Hardware» y «Edición» (`GRUPOS` en `src/config/mensajes.ts`; canal = dirección:
