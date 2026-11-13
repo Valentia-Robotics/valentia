@@ -76,6 +76,8 @@ Décima tanda (Jesse, 13-11-2026, PR nuevo tras fusionar el #118): en el móvil 
 (`ChipsFijos`, solo ≥ 1360 px) salen en una franja bajo el titular de los kits (`layout/FranjaChips`, a media escala) y la pieza del
 escenario negro se balancea sola con pantallas táctiles (`.pieza-balanceo`, `pointer: coarse`).
 
+Undécima tanda (Jesse, 13-11-2026): en el móvil, la pieza con marco azul de `PiezasPortada` es la que está centrada al deslizar la fila (`onScroll` + `snap-center`); el barrido por temporizador solo corre en ≥ 1024 px.
+
 ### Fotos realistas y «Ver en 3D» en el configurador (12-11-2026, rama `feature/visor-3d`; con Visualizalo)
 
 Cada pieza de `/configurador` tiene foto realista (`public/images/componentes/<slug>.webp`, render del mismo modelo 3D,
