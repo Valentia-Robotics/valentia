@@ -64,7 +64,7 @@ export function KitsPortada({
               <span className="mr-2 inline-block size-2 bg-senal align-middle" aria-hidden="true" />
               <strong className="font-semibold">Aún no vendemos online.</strong>{" "}
               <span className="text-white/80">
-                Deja tu email y te mandamos un solo correo el día que abra la tienda.
+                Deja tu email y te mandaremos un correo el día que abra la tienda.
               </span>
             </p>
             <FormularioAvisame origen="portada" oscuro />
