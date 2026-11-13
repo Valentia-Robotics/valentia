@@ -18,6 +18,15 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Borrar pedidos de prueba (13-11-2026, rama `claude/project-thread-hoplj7`; petición de Jesse)
+
+`/admin/pedidos`: «Borrar pedido» en la ficha (`BotonConfirmar`, vuelve a la lista con `?borrado=`) y «Borrar seleccionados»
+en la barra de casillas (`borrarPedido` / `borrarVariosPedidos`). Reglas puras en `src/config/borrarPedido.ts` (+ test);
+BD en `src/lib/admin/borrarPedidos.ts` (+ test). **Un pedido con `cobroReal` (cobrado de verdad) NO se borra**: cuenta en
+Finanzas; se cancela. Al borrar: si aún tenía las piezas apartadas (Pendiente/Pagado/Preparando) vuelven al stock; sus códigos
+sin usar (y sin lote) se borran; los ya activados se quedan sin pedido (quien lo activó conserva el curso); un pago de Stripe
+a medias se cancela antes.
+
 ### Kits de la portada sobre la placa verde (12-11-2026, rama `claude/project-thread-x7f1xd`; petición de Jesse)
 
 Jesse: «la misma interfaz verde con chips, bien repartido, más organizado y más limpio», sin frases genéricas.

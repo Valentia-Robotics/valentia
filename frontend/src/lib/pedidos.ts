@@ -209,7 +209,7 @@ async function reservarStock(
 }
 
 /** Unidades de cada componente y de cada kit que se llevó un pedido guardado (para devolverlas o reservarlas) */
-function salidasDePedido(
+export function salidasDePedido(
   lineas: { tipo: string; slug: string | null; cantidad: number; piezas: unknown }[],
 ): Salidas {
   const salidas = new Map<string, number>();
