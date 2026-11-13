@@ -126,3 +126,18 @@ export function leerSuscripcion(
   if (typeof auth !== "string" || !base64url.test(auth) || auth.length > 100) return null;
   return { endpoint, p256dh, auth };
 }
+
+/** El aviso de una videollamada que empieza: «📹 Jesse te llama» / «📹 Jesse · General» */
+export function avisoDeLlamada(datos: { id: string; de: string; ruta: string }): AvisoPush {
+  const grupo = grupoDe(datos.ruta);
+  return {
+    titulo: grupo ? `📹 ${datos.de} · ${grupo.nombre}` : `📹 ${datos.de} te llama`,
+    cuerpo: grupo
+      ? `Ha empezado una videollamada en ${grupo.nombre}. Toca para unirte.`
+      : "Videollamada. Toca para contestar.",
+    // ?llamada=1: al tocarlo se entra directamente en la llamada
+    url: `/mensajes/${datos.ruta}?llamada=1`,
+    etiqueta: `llamada-${datos.id}`,
+    ruta: datos.ruta,
+  };
+}

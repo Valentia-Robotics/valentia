@@ -93,6 +93,7 @@ export const OPCIONALES: Record<string, Opcional[]> = {
     { campo: "programadoPara" },
     { campo: "publicadoEn" },
   ],
+  LlamadaEquipo: [{ campo: "terminadaEn" }],
   MensajeEquipo: [
     { campo: "autorId", relacion: "autor" },
     { campo: "imagenClave" },

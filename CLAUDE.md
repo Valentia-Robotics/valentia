@@ -18,6 +18,20 @@ Command real de Render incluye `db:push`, que va antes de `build`: por eso insta
 terminados, y la base de datos ya es MongoDB Atlas (hosting previsto: Render).** Lo que falta para publicar lo tiene
 que hacer el usuario: lista en `INFORME.md` §3 y guía `DESPLIEGUE.md`. No empezar trabajo nuevo grande sin su aprobación.
 
+### Videollamadas en el chat del equipo (13-11-2026, rama `claude/project-thread-5d8evp`; petición de Jesse)
+
+Botón **Llamar** (cámara) en la cabecera de cada chat de `/mensajes` (General, Hardware, Edición y privados). Vídeo de
+**Jitsi**: con `JAAS_APP_ID`, `JAAS_KID` y `JAAS_CLAVE_PRIVADA` (JaaS de 8x8, plan Dev gratis hasta 25 personas/mes; Jesse
+eligió esta opción y ya puso las variables en Render) la sala se abre DENTRO de la web (`SalaVideo`, `<iframe>` a
+`https://8x8.vc/<appId>/<sala>?jwt=…`; el JWT RS256 lo firma el servidor, `lib/mensajes/jwtVideo.ts`); sin ellas, meet.jit.si
+en otra pestaña (allí la primera persona inicia sesión con Google). Reglas puras en `src/config/llamadas.ts` (+ test), BD y
+permisos en `src/lib/mensajes/llamadas.ts` (mismos que el chat: `comprobarCanal`), API `/api/mensajes/llamada` (GET estado;
+POST entrar/latido/salir). Modelo `LlamadaEquipo` (una viva por chat; `presentes` con latido cada 25 s; sin nadie en 150 s
+→ terminada). Al empezar: push «📹 … te llama» (`avisoDeLlamada`, url `?llamada=1` entra directo) y en la web tarjeta con
+«ring-ring» 2 min (`llamadas` en `/api/mensajes/no-leidos` → `AvisosEquipo`). Franja «Videollamada en curso · Unirme» en el
+chat (la huella del chat incluye la llamada). CSP `frame-src` y `Permissions-Policy` (cámara, micro, pantalla) con
+`https://8x8.vc`. 8x8.vc no se alcanza desde la nube: el vídeo real solo se ha podido probar en la web publicada.
+
 ### Kits de la portada sobre la placa verde (12-11-2026, rama `claude/project-thread-x7f1xd`; petición de Jesse)
 
 Jesse: «la misma interfaz verde con chips, bien repartido, más organizado y más limpio», sin frases genéricas.

@@ -371,6 +371,27 @@ además recuerda cada búsqueda 10 minutos). Si algún día se queda corta, en l
 GIPHY se pide la clave de producción (gratis). Sin la clave, el botón GIF explica que falta.
 Al enviar un GIF, la web lo descarga y lo guarda como una imagen más del chat (almacén privado).
 
+## 6 octies. Videollamadas del equipo (JaaS de 8x8)
+
+El botón **Llamar** (la cámara) de cada chat de Mensajes abre una videollamada. Con las claves de
+**JaaS** (Jitsi as a Service, de 8x8) la llamada se abre **dentro de la web**, sin cuentas. El plan
+**Dev** es gratis hasta 25 personas distintas al mes: de sobra para el equipo.
+
+1. Entra en <https://jaas.8x8.vc> y crea una cuenta (plan **Dev**, gratis).
+2. Copia tu **AppID** (empieza por `vpaas-magic-cookie-`).
+3. **API Keys** → **Add API key** → **Generate API key pair** → se descarga un archivo `.pk` (solo
+   una vez: guárdalo). En la lista sale su **Key ID** (`vpaas-magic-cookie-…/abc123`).
+4. Render → tu servicio → **Environment** → añade:
+   - `JAAS_APP_ID` = el AppID
+   - `JAAS_KID` = el Key ID entero (con la barra)
+   - `JAAS_CLAVE_PRIVADA` = abre el `.pk` con el Bloc de notas, copia TODO (desde
+     `-----BEGIN PRIVATE KEY-----` hasta `-----END PRIVATE KEY-----`) y pégalo tal cual.
+   → **Save changes** (Render vuelve a publicar la web sola).
+
+Sin esas tres variables, la llamada se abre en **meet.jit.si** en otra pestaña (también gratis); allí
+la primera persona que entra tiene que iniciar sesión con Google, GitHub o Facebook.
+La clave privada nunca sale del servidor: con ella la web firma un «pase» para cada persona y sala.
+
 ## 7. Copias de seguridad
 
 El plan **M0 no hace copias automáticas**. Desde tu ordenador, con tu IP añadida temporalmente (§4):

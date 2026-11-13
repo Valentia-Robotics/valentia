@@ -476,6 +476,31 @@ model SuscripcionPush {
   @@index([usuarioId])
 }
 
+/// Una VIDEOLLAMADA del equipo (Jesse, 13-11-2026) en un chat: General, Hardware, Edición o un
+/// privado. La sala de vídeo es de Jitsi (src/config/llamadas.ts); aquí solo se apunta quién la empezó
+/// y quién está dentro, para avisar a los demás y enseñar «Videollamada en curso · Unirme».
+/// Cada persona dentro manda un «latido» cada poco: si nadie lo manda, la llamada se da por terminada.
+model LlamadaEquipo {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  canal             String
+  /// Nombre de la sala de Jitsi: al azar y largo (quien no lo sepa no puede entrar)
+  sala              String            @unique
+  iniciadaPorId     String            @db.ObjectId
+  iniciadaPorNombre String
+  empezadaEn        DateTime          @default(now())
+  terminadaEn       DateTime?
+  presentes         PresenteLlamada[]
+
+  @@index([canal, terminadaEn])
+}
+
+/// Alguien dentro de una videollamada y cuándo mandó su último latido
+type PresenteLlamada {
+  usuarioId String   @db.ObjectId
+  nombre    String
+  vistoEn   DateTime
+}
+
 /// Las claves VAPID de los avisos push, creadas solas la primera vez (fila única «push»).
 /// Si existen las variables VAPID_CLAVE_PUBLICA y VAPID_CLAVE_PRIVADA, mandan ellas.
 model AjustesPush {

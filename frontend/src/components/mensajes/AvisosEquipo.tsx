@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { AlarmClock, BellRing, Check, MessageCircle, X } from "lucide-react";
+import { AlarmClock, BellRing, Check, MessageCircle, Video, X } from "lucide-react";
 import { apagarAlarma, marcarEstadoTarea, posponer, type Respuesta } from "@/app/mensajes/acciones";
 import { SEGUNDOS_REFRESCO_CONTADOR, grupoDe } from "@/config/mensajes";
 import { activarAvisos, estadoAvisos, repasarAvisos, type EstadoAvisos } from "@/lib/push/cliente";
 import { useAvisosEquipo, type Alarma, type UltimoMensaje } from "@/store/avisosEquipo";
+import type { LlamadaEntrante } from "@/lib/mensajes/llamadas";
 import { EtiquetaPrioridad } from "./TarjetaTarea";
 
 /** Un solo «altavoz» para toda la página: el navegador solo deja sonar después de tocar la página */
@@ -30,7 +31,7 @@ function prepararAltavoz() {
  * Sonidos sin archivos (los genera el navegador): «mensaje» = dos notas cortas, como un
  * «tilín»; «alarma» = tres pitidos. Si el navegador no deja sonar, se ve la tarjeta igual.
  */
-function sonar(tipo: "mensaje" | "alarma" = "alarma") {
+function sonar(tipo: "mensaje" | "alarma" | "llamada" = "alarma") {
   const ctx = prepararAltavoz();
   if (!ctx) return;
   try {
@@ -40,16 +41,22 @@ function sonar(tipo: "mensaje" | "alarma" = "alarma") {
             { inicio: 0, frecuencia: 988 },
             { inicio: 0.14, frecuencia: 1319 },
           ]
-        : [0, 0.25, 0.5].map((inicio) => ({ inicio, frecuencia: 880 }));
+        : tipo === "llamada"
+          ? // «Ring-ring» de teléfono: dos tonos dobles
+            [0, 0.12, 0.6, 0.72].map((inicio, i) => ({ inicio, frecuencia: i % 2 ? 523 : 659 }))
+          : [0, 0.25, 0.5].map((inicio) => ({ inicio, frecuencia: 880 }));
     for (const { inicio, frecuencia } of notas) {
       const osc = ctx.createOscillator();
       const vol = ctx.createGain();
-      osc.type = tipo === "mensaje" ? "sine" : "square";
+      osc.type = tipo === "alarma" ? "square" : "sine";
       osc.frequency.value = frecuencia;
       const t = ctx.currentTime + inicio;
       vol.gain.setValueAtTime(0.0001, t);
-      vol.gain.exponentialRampToValueAtTime(tipo === "mensaje" ? 0.3 : 0.2, t + 0.02);
-      vol.gain.exponentialRampToValueAtTime(0.0001, t + (tipo === "mensaje" ? 0.35 : 0.18));
+      vol.gain.exponentialRampToValueAtTime(tipo === "alarma" ? 0.2 : 0.3, t + 0.02);
+      vol.gain.exponentialRampToValueAtTime(
+        0.0001,
+        t + (tipo === "mensaje" ? 0.35 : tipo === "llamada" ? 0.11 : 0.18),
+      );
       osc.connect(vol).connect(ctx.destination);
       osc.start(t);
       osc.stop(t + 0.4);
@@ -99,6 +106,7 @@ function cartelEscondido() {
  *   - Con un mensaje nuevo: «tilín», tarjeta «Nuevo mensaje de…» y, si la pestaña está escondida,
  *     el título parpadea.
  *   - Alarmas de tareas: tarjetas abajo a la derecha, con pitido y aviso del navegador.
+ *   - Videollamadas: «📹 Jesse te llama» con su «ring-ring» mientras suena (Unirme / Ahora no).
  *   - Cartel para activar los avisos push en este aparato (con el paso extra del iPhone).
  */
 export function AvisosEquipo({ email }: { email: string }) {
@@ -113,6 +121,8 @@ export function AvisosEquipo({ email }: { email: string }) {
   const [avisos, setAvisos] = useState<EstadoAvisos | null>(null);
   const [cartel, setCartel] = useState(false);
   const [activando, setActivando] = useState(false);
+  const [llamadas, setLlamadas] = useState<LlamadaEntrante[]>([]);
+  const [colgadas, setColgadas] = useState<string[]>([]);
   const [, empezar] = useTransition();
 
   useEffect(() => {
@@ -154,8 +164,10 @@ export function AvisosEquipo({ email }: { email: string }) {
           total: number;
           alarmas: Alarma[];
           ultimo: UltimoMensaje | null;
+          llamadas?: LlamadaEntrante[];
         };
         poner(datos);
+        setLlamadas(datos.llamadas ?? []);
 
         // ¿Mensaje nuevo desde la última vez? (la primera vuelta solo aprende cuál era el último)
         const antes = ultimoVisto.current;
@@ -274,8 +286,22 @@ export function AvisosEquipo({ email }: { email: string }) {
     } catch {}
   };
 
+  // Las llamadas que suenan: no las que he dicho «Ahora no» ni la del chat que tengo abierto
+  // (allí ya sale la franja «Videollamada en curso · Unirme»)
+  const sonando = llamadas.filter(
+    (l) => !colgadas.includes(l.id) && ruta !== `/mensajes/${l.ruta}`,
+  );
+  const hayLlamada = sonando.length > 0;
+  // «Ring-ring» cada 3 segundos mientras haya una llamada sonando
+  useEffect(() => {
+    if (!hayLlamada) return;
+    sonar("llamada");
+    const id = setInterval(() => sonar("llamada"), 3000);
+    return () => clearInterval(id);
+  }, [hayLlamada]);
+
   const verTarjetaNuevo = nuevo && ruta !== `/mensajes/${nuevo.ruta}`;
-  if (alarmas.length === 0 && !verTarjetaNuevo && !cartel) return null;
+  if (alarmas.length === 0 && !verTarjetaNuevo && !cartel && !hayLlamada) return null;
 
   return (
     <div
@@ -283,6 +309,46 @@ export function AvisosEquipo({ email }: { email: string }) {
       aria-label="Avisos del equipo"
       className="fixed right-4 bottom-4 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 print:hidden"
     >
+      {sonando.slice(0, 2).map((l) => (
+        <div
+          key={l.id}
+          role="alert"
+          className="animate-tarjeta rounded-xl border-2 border-exito bg-white p-4 shadow-xl"
+        >
+          <div className="flex items-start gap-3">
+            <span className="relative inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-exito text-white">
+              <Video aria-hidden="true" className="size-5" />
+              <span className="absolute inset-0 animate-ping rounded-full bg-exito/40 motion-reduce:hidden" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold tracking-wide text-gris uppercase">
+                Videollamada{grupoDe(l.ruta) ? ` en ${grupoDe(l.ruta)!.nombre}` : ""}
+              </p>
+              <p className="mt-0.5 font-medium">
+                {grupoDe(l.ruta) ? `${l.de} ha empezado una llamada` : `${l.de} te llama`}
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2 text-sm">
+            <Link
+              href={`/mensajes/${l.ruta}?llamada=1`}
+              onClick={() => setColgadas((c) => [...c, l.id])}
+              className="inline-flex items-center gap-1.5 rounded-full bg-exito px-3 py-1.5 font-medium text-white hover:opacity-90"
+            >
+              <Video aria-hidden="true" className="size-4" />
+              Unirme
+            </Link>
+            <button
+              type="button"
+              onClick={() => setColgadas((c) => [...c, l.id])}
+              className="rounded-full border border-linea px-3 py-1.5 hover:border-tinta"
+            >
+              Ahora no
+            </button>
+          </div>
+        </div>
+      ))}
+
       {cartel && (
         <div className="animate-tarjeta rounded-xl border-2 border-acento bg-white p-4 shadow-xl">
           <div className="flex items-start gap-3">
