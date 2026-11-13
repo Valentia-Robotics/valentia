@@ -127,9 +127,9 @@ export function limpiarMensaje(texto: string): string {
     .trim();
 }
 
-/** Por qué no se puede enviar un mensaje, o null si está bien. Con imagen, el texto puede ir vacío */
-export function problemaMensaje(texto: string, conImagen = false): string | null {
-  if (!texto && !conImagen) return "Escribe algo antes de enviar.";
+/** Por qué no se puede enviar un mensaje, o null si está bien. Con imagen o audio, el texto puede ir vacío */
+export function problemaMensaje(texto: string, conAdjunto = false): string | null {
+  if (!texto && !conAdjunto) return "Escribe algo antes de enviar.";
   if (texto.length > MAX_CARACTERES_MENSAJE)
     return `El mensaje es muy largo (máximo ${MAX_CARACTERES_MENSAJE} caracteres).`;
   return null;
@@ -156,10 +156,104 @@ export function problemaImagen(archivo: { type: string; size: number }): string 
   return null;
 }
 
-/** Lo que sale de un mensaje en la lista de chats o en un correo: el texto, o «📷 Foto» */
-export function resumenMensaje(texto: string, conImagen: boolean): string {
+/**
+ * Lo que sale de un mensaje en la lista de chats o en un correo: el texto, «📷 Foto» o
+ * «🎤 Nota de voz (0:12)» (con `segundosAudio` si es un audio)
+ */
+export function resumenMensaje(
+  texto: string,
+  conImagen: boolean,
+  segundosAudio: number | null = null,
+): string {
+  if (segundosAudio !== null) return `🎤 Nota de voz (${duracionAudio(segundosAudio)})`;
   if (!conImagen) return texto;
   return texto ? `📷 ${texto}` : "📷 Foto";
+}
+
+/* ---------- Notas de voz (Jesse, 13-11-2026) ---------- */
+
+/** Lo más largo que puede durar una nota de voz (al llegar, la grabación se para sola) */
+export const MAX_SEGUNDOS_AUDIO = 5 * 60;
+/** Lo más que puede pesar (5 min de voz rondan 2-3 MB; esto deja margen) */
+export const MAX_MB_AUDIO = 8;
+export const MAX_BYTES_AUDIO = MAX_MB_AUDIO * 1024 * 1024;
+/** Menos de esto es un toque sin querer: no se envía */
+export const MIN_SEGUNDOS_AUDIO = 1;
+
+/**
+ * Formatos que graba el navegador, del que mejor se oye en todos los aparatos al que menos:
+ * MP4/AAC lo reproducen todos (también iPhone); WebM y Ogg con Opus, Chrome, Firefox y Android.
+ * Safari graba en MP4; Chrome y Edge recientes, también; Firefox, en Ogg o WebM.
+ */
+export const FORMATOS_GRABACION = [
+  "audio/mp4;codecs=mp4a.40.2",
+  "audio/mp4",
+  "audio/webm;codecs=opus",
+  "audio/ogg;codecs=opus",
+  "audio/webm",
+] as const;
+
+/** Tipos de audio que se aceptan (sin los «;codecs=…»). Se comprueba también el contenido */
+export const TIPOS_AUDIO_MENSAJE = ["audio/mp4", "audio/webm", "audio/ogg"] as const;
+export type TipoAudio = (typeof TIPOS_AUDIO_MENSAJE)[number];
+
+/** El primer formato de la lista que sabe grabar este navegador ("" = el que él quiera) */
+export function formatoGrabacion(admite: (tipo: string) => boolean): string {
+  return FORMATOS_GRABACION.find((tipo) => admite(tipo)) ?? "";
+}
+
+/** «audio/webm;codecs=opus» → «audio/webm»; null si no es un audio que aceptemos */
+export function tipoAudioBase(tipo: string): TipoAudio | null {
+  const base = tipo.split(";")[0].trim().toLowerCase();
+  // Algunos navegadores dicen video/webm o video/mp4 aunque solo haya sonido
+  const comoAudio = base.replace(/^video\//, "audio/");
+  return (TIPOS_AUDIO_MENSAJE as readonly string[]).includes(comoAudio)
+    ? (comoAudio as TipoAudio)
+    : null;
+}
+
+/**
+ * Qué audio es por su contenido (los primeros bytes), no por lo que diga el navegador:
+ * WebM empieza por 1A 45 DF A3, Ogg por «OggS» y MP4 lleva «ftyp» en el byte 4
+ */
+export function tipoAudioDeContenido(bytes: Uint8Array): TipoAudio | null {
+  if (bytes.length < 12) return null;
+  if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3)
+    return "audio/webm";
+  if (String.fromCharCode(...bytes.slice(0, 4)) === "OggS") return "audio/ogg";
+  if (String.fromCharCode(...bytes.slice(4, 8)) === "ftyp") return "audio/mp4";
+  return null;
+}
+
+/** La extensión con la que se guarda cada tipo */
+export function extensionAudio(tipo: TipoAudio): string {
+  return tipo === "audio/mp4" ? "m4a" : tipo === "audio/ogg" ? "ogg" : "webm";
+}
+
+/**
+ * Los segundos que manda el navegador, comprobados (redondeados; null si no valen). El navegador
+ * los mide mientras graba: los archivos WebM de Chrome no traen la duración dentro.
+ */
+export function leerSegundosAudio(valor: unknown): number | null {
+  const n = typeof valor === "number" ? valor : Number(String(valor ?? "").replace(",", "."));
+  if (!Number.isFinite(n) || n < MIN_SEGUNDOS_AUDIO || n > MAX_SEGUNDOS_AUDIO + 2) return null;
+  return Math.min(MAX_SEGUNDOS_AUDIO, Math.max(MIN_SEGUNDOS_AUDIO, Math.round(n)));
+}
+
+/** Por qué no vale una nota de voz, o null si vale */
+export function problemaAudio(archivo: { type: string; size: number }, segundos: number | null) {
+  if (!tipoAudioBase(archivo.type)) return "Ese formato de audio no se puede enviar.";
+  if (archivo.size === 0) return "La grabación ha salido vacía. Vuelve a probar.";
+  if (archivo.size > MAX_BYTES_AUDIO)
+    return `La nota de voz pesa demasiado (máximo ${MAX_MB_AUDIO} MB).`;
+  if (segundos === null) return "La nota de voz es demasiado corta o demasiado larga.";
+  return null;
+}
+
+/** 75 → «1:15»; 5 → «0:05» */
+export function duracionAudio(segundos: number): string {
+  const total = Math.max(0, Math.floor(segundos));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
 /** Tamaño con el que se reserva el hueco de una imagen en el chat (para que no salte al cargar) */
