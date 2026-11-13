@@ -417,6 +417,15 @@ model MensajeEquipo {
   audioTipo     String?
   /// Cuánto dura, en segundos (lo mide el navegador al grabar)
   audioSegundos Int?
+  /// La imagen es un sticker de GIPHY (se ve sin burbuja, como en WhatsApp). null = no
+  esSticker     Boolean?
+
+  /// ---- Respuesta a otro mensaje (como en WhatsApp): una COPIA corta del citado, para que la
+  /// cita se vea aunque el original sea antiguo. Si el original se borra, el texto pasa a «Mensaje borrado»
+  respondeAId      String? @db.ObjectId
+  respondeAAutorId String? @db.ObjectId
+  respondeAAutor   String?
+  respondeATexto   String?
 
   /// ---- Si es una TAREA (como en Notion): estado, prioridad, entrega, responsable y recordatorio ----
   esTarea               Boolean         @default(false)

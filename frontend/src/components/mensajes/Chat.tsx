@@ -23,9 +23,8 @@ import {
   CheckCheck,
   ChevronLeft,
   Clock3,
-  ClipboardList,
-  ImagePlus,
   ListTodo,
+  Reply,
   SendHorizontal,
   RotateCw,
   Trash2,
@@ -45,7 +44,15 @@ import {
   textoDia,
   trozosConEnlaces,
 } from "@/config/mensajes";
-import type { GifEncontrado } from "@/config/gifs";
+import type { GifEncontrado, TipoGif } from "@/config/gifs";
+import {
+  DESLIZAR_PARA_RESPONDER,
+  autorCita,
+  deslizadoBastante,
+  desplazamientoDeslizar,
+  textoCita,
+  type Cita,
+} from "@/config/respuestas";
 import type { Rol } from "@/generated/prisma/enums";
 import type { LecturaDeOtro, MiembroGrupo, Mensaje } from "@/lib/mensajes/mensajes";
 import { cn } from "@/lib/utils";
@@ -58,6 +65,7 @@ import {
 import { Avatar, nombreRol } from "./PantallaMensajes";
 import { SelectorEmojis } from "./SelectorEmojis";
 import { InfoGrupo } from "./InfoGrupo";
+import { CamaraWeb, MenuAdjuntar, esPantallaTactil, type OpcionAdjuntar } from "./MenuAdjuntar";
 import { Grabadora, ReproductorAudio } from "./NotaDeVoz";
 import { SelectorGifs } from "./SelectorGifs";
 import { TarjetaTarea } from "./TarjetaTarea";
@@ -103,6 +111,10 @@ interface Envio {
   gif?: GifEncontrado | null;
   /** Una nota de voz grabada aquí (url = para oírla mientras se envía) */
   audio?: { archivo: File; segundos: number; url: string } | null;
+  /** El GIF es un sticker (se ve sin burbuja) */
+  sticker?: boolean;
+  /** El mensaje al que responde (se ve la cita ya mientras se envía) */
+  respondeA?: Cita | null;
   tarea: OpcionesTareaValor | null;
   creadoEn: Date;
 }
@@ -116,10 +128,13 @@ async function enviarConImagen(
   texto: string,
   imagen: File | { gif: string } | { audio: File; segundos: number },
   tarea: object | null,
+  extra: { respondeA?: string | null; sticker?: boolean } = {},
 ): Promise<Respuesta> {
   const datos = new FormData();
   datos.set("chat", ruta);
   datos.set("texto", texto);
+  if (extra.respondeA) datos.set("respondeA", extra.respondeA);
+  if (extra.sticker) datos.set("sticker", "1");
   if (imagen instanceof File) datos.set("imagen", imagen);
   else if ("gif" in imagen) datos.set("gif", imagen.gif);
   else {
@@ -164,7 +179,10 @@ export function Chat(props: Props) {
   const fotoDe = useMemo(() => new Map(personas.map((p) => [p.id, p.foto ?? null])), [personas]);
   const router = useRouter();
   const refrescar = useCallback(() => router.refresh(), [router]);
-  const videollamada = useLlamada(ruta, props.modoLlamada, refrescar);
+  const videollamada = useLlamada(ruta, props.modoLlamada, refrescar, {
+    activa: puedeEscribir,
+    enCurso: props.llamada,
+  });
   const { entrar: entrarEnLlamada } = videollamada;
   // Desde el aviso «te llama» (o el push): /mensajes/<chat>?llamada=1 entra directamente
   useEffect(() => {
@@ -183,6 +201,15 @@ export function Chat(props: Props) {
     opcionesVacias(responsablePorDefecto),
   );
   const [error, setError] = useState<string | null>(null);
+  // El mensaje al que se va a responder (la cita sale encima del cuadro de texto)
+  const [respondiendo, setRespondiendo] = useState<Cita | null>(null);
+  // El mensaje al que se acaba de saltar desde una cita (se ilumina un momento)
+  const [resaltado, setResaltado] = useState<string | null>(null);
+  // Panel de GIFs o de stickers abierto (desde el menú «+») y la cámara del ordenador
+  const [panelGiphy, setPanelGiphy] = useState<TipoGif | null>(null);
+  const cerrarGiphy = useCallback(() => setPanelGiphy(null), []);
+  const [camaraWeb, setCamaraWeb] = useState(false);
+  const cerrarCamara = useCallback(() => setCamaraWeb(false), []);
   // La imagen elegida (o pegada, o arrastrada) que se enviará con el mensaje
   const [imagen, setImagen] = useState<{ archivo: File; url: string } | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
@@ -202,6 +229,8 @@ export function Chat(props: Props) {
   const caja = useRef<HTMLDivElement>(null);
   const areaTexto = useRef<HTMLTextAreaElement>(null);
   const elegirArchivo = useRef<HTMLInputElement>(null);
+  // En el móvil, «Cámara» abre la cámara del sistema con este input
+  const hacerFoto = useRef<HTMLInputElement>(null);
   const pegadoAbajo = useRef(true);
   const ultimoVisto = useRef(props.mensajes.at(-1)?.id);
 
@@ -221,6 +250,8 @@ export function Chat(props: Props) {
       vistaPrevia: f.gif?.vistaPrevia ?? f.imagen?.url,
       audio: f.audio ? { segundos: f.audio.segundos } : null,
       audioLocal: f.audio?.url,
+      esSticker: !!f.sticker,
+      respondeA: f.respondeA ?? null,
       creadoEn: f.creadoEn,
       esTarea: !!f.tarea,
       estadoTarea: "PENDIENTE" as const,
@@ -398,6 +429,8 @@ export function Chat(props: Props) {
         vistaPrevia: envio.gif?.vistaPrevia ?? envio.imagen?.url,
         audio: envio.audio ? { segundos: envio.audio.segundos } : null,
         audioLocal: envio.audio?.url,
+        esSticker: !!envio.sticker,
+        respondeA: envio.respondeA ?? null,
         creadoEn: envio.creadoEn,
         esTarea: !!envio.tarea,
         estadoTarea: "PENDIENTE",
@@ -410,6 +443,8 @@ export function Chat(props: Props) {
         hechaPor: null,
       });
       const datosTarea = envio.tarea && tareaParaEnviar(envio.tarea);
+      const respondeA = envio.respondeA?.id ?? null;
+      const extra = { respondeA, sticker: !!envio.sticker };
       let respuesta: Respuesta;
       try {
         respuesta = envio.audio
@@ -418,12 +453,13 @@ export function Chat(props: Props) {
               envio.texto,
               { audio: envio.audio.archivo, segundos: envio.audio.segundos },
               datosTarea,
+              extra,
             )
           : envio.gif
-            ? await enviarConImagen(ruta, envio.texto, { gif: envio.gif.id }, datosTarea)
+            ? await enviarConImagen(ruta, envio.texto, { gif: envio.gif.id }, datosTarea, extra)
             : envio.imagen
-              ? await enviarConImagen(ruta, envio.texto, envio.imagen.archivo, datosTarea)
-              : await enviarMensaje(ruta, envio.texto, datosTarea);
+              ? await enviarConImagen(ruta, envio.texto, envio.imagen.archivo, datosTarea, extra)
+              : await enviarMensaje(ruta, envio.texto, datosTarea, respondeA);
       } catch {
         respuesta = { ok: false, mensaje: "Sin conexión: no se ha podido enviar." };
       }
@@ -452,37 +488,92 @@ export function Chat(props: Props) {
     setOpciones(opcionesVacias(responsablePorDefecto));
     // La vista previa se queda para el mensaje que se está enviando: no se suelta aún
     if (imagen) setImagen(null);
+    setRespondiendo(null);
     mandar({
       idLocal: idLocalNuevo(),
       texto: limpio,
       imagen,
       tarea: esTarea ? opciones : null,
+      respondeA: respondiendo,
       creadoEn: new Date(),
     });
   };
 
-  /** Un GIF se envía nada más elegirlo, solo (lo que estés escribiendo se queda en el cuadro) */
-  const enviarGif = (gif: GifEncontrado) => {
+  /**
+   * Un GIF o un sticker se envía nada más elegirlo, solo (lo que estés escribiendo se queda en el
+   * cuadro). Si estabas respondiendo a un mensaje, el GIF es la respuesta.
+   */
+  const enviarGif = (gif: GifEncontrado, sticker: boolean) => {
     setError(null);
+    setRespondiendo(null);
     mandar({
       idLocal: idLocalNuevo(),
       texto: "",
       imagen: null,
       gif,
+      sticker,
       tarea: null,
+      respondeA: respondiendo,
       creadoEn: new Date(),
     });
   };
 
+  /** Lo que se elige en el menú «+» */
+  const alAdjuntar = (opcion: OpcionAdjuntar) => {
+    setError(null);
+    if (opcion === "tarea") setEsTarea((v) => !v);
+    else if (opcion === "galeria") elegirArchivo.current?.click();
+    else if (opcion === "gif") setPanelGiphy("gifs");
+    else if (opcion === "sticker") setPanelGiphy("stickers");
+    // En el móvil, la cámara del sistema; en el ordenador, la webcam en una ventana
+    else if (esPantallaTactil()) hacerFoto.current?.click();
+    else setCamaraWeb(true);
+  };
+
+  /** Responder a un mensaje: la cita sale encima del cuadro y se escribe la respuesta */
+  const responder = (m: MensajeChat) => {
+    setRespondiendo({
+      id: m.id,
+      autorId: m.autorId,
+      autorNombre: m.autorNombre,
+      texto: textoCita({
+        texto: m.texto,
+        conImagen: !!m.imagen,
+        segundosAudio: m.audio ? m.audio.segundos : null,
+        esSticker: m.esSticker,
+        esTarea: m.esTarea,
+      }),
+    });
+    areaTexto.current?.focus();
+  };
+
+  /** Al tocar una cita: salta al mensaje original y lo ilumina un momento */
+  const irAMensaje = (id: string) => {
+    const el = document.getElementById(`mensaje-${id}`);
+    if (!el) {
+      setError("Ese mensaje es antiguo o se ha borrado: ya no sale en este chat.");
+      return;
+    }
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setResaltado(id);
+  };
+  useEffect(() => {
+    if (!resaltado) return;
+    const id = setTimeout(() => setResaltado(null), 1600);
+    return () => clearTimeout(id);
+  }, [resaltado]);
+
   /** Una nota de voz se envía nada más terminar de grabarla (sola, como en WhatsApp) */
   const enviarAudio = (archivo: File, segundos: number) => {
     setError(null);
+    setRespondiendo(null);
     mandar({
       idLocal: idLocalNuevo(),
       texto: "",
       imagen: null,
       audio: { archivo, segundos, url: URL.createObjectURL(archivo) },
       tarea: null,
+      respondeA: respondiendo,
       creadoEn: new Date(),
     });
   };
@@ -503,6 +594,12 @@ export function Chat(props: Props) {
 
   // Intro envía; Mayús + Intro hace otra línea. En el móvil, Intro siempre hace otra línea
   const alPulsarTecla = (evento: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Escape quita la respuesta (como en WhatsApp Web)
+    if (evento.key === "Escape" && respondiendo) {
+      evento.preventDefault();
+      setRespondiendo(null);
+      return;
+    }
     if (evento.key !== "Enter" || evento.shiftKey || evento.nativeEvent.isComposing) return;
     if (window.matchMedia("(pointer: coarse)").matches) return;
     evento.preventDefault();
@@ -656,6 +753,9 @@ export function Chat(props: Props) {
               const pendiente = m.id.startsWith("pendiente-");
               const fallido = !!m.fallo;
               const puedeBorrar = !pendiente && !fallido && (mio || (general && soyAdmin));
+              const puedeResponder = puedeEscribir && !pendiente && !fallido;
+              // Un sticker va sin burbuja (salvo que lleve texto)
+              const sinBurbuja = m.esSticker && !m.texto && !m.esTarea;
               const idLocal = m.id.replace(/^fallido-/, "");
               return (
                 <Fragment key={m.id}>
@@ -665,8 +765,9 @@ export function Chat(props: Props) {
                     </li>
                   )}
                   <li
+                    id={`mensaje-${m.id}`}
                     className={cn(
-                      "group flex max-w-[85%] flex-col sm:max-w-[70%]",
+                      "group flex max-w-[85%] scroll-my-24 flex-col sm:max-w-[70%]",
                       mio ? "items-end self-end" : "items-start self-start",
                       !mismoAutor && "mt-1.5",
                       // En el General, la foto de quien escribe va a la izquierda (como en un grupo)
@@ -682,84 +783,123 @@ export function Chat(props: Props) {
                         />
                       </span>
                     )}
-                    <div
-                      className={cn(
-                        "relative rounded-2xl px-3 py-2 text-[15px] shadow-sm",
-                        mio ? "rounded-br-md bg-[#E3E8FF]" : "rounded-bl-md bg-white",
-                        pendiente && "opacity-60",
-                        fallido && "ring-1 ring-error/40",
-                        m.esTarea && "min-w-64 border-l-4",
-                        m.esTarea &&
-                          (m.prioridad === "ALTA"
-                            ? "border-error"
-                            : m.prioridad === "MEDIA"
-                              ? "border-[#E8B100]"
-                              : m.prioridad === "BAJA"
-                                ? "border-exito"
-                                : "border-tinta/30"),
-                      )}
-                    >
-                      {general && !mio && !mismoAutor && (
-                        <p className="mb-0.5 text-xs font-semibold text-acento">{m.autorNombre}</p>
-                      )}
-                      {m.esTarea && !pendiente && <TarjetaTarea tarea={m} accion={accion} />}
-                      {m.imagen && <ImagenMensaje mensaje={m} pendiente={pendiente} />}
-                      {m.audio && (
-                        <ReproductorAudio
-                          src={m.audioLocal ?? `/api/mensajes/audio/${m.id}`}
-                          segundos={m.audio.segundos}
-                          mio={mio}
-                        />
-                      )}
-                      {m.texto && (
-                        <p
-                          className={cn(
-                            "break-words whitespace-pre-wrap",
-                            m.esTarea &&
-                              m.estadoTarea === "HECHA" &&
-                              "text-gris line-through decoration-gris/60",
-                          )}
-                        >
-                          {trozosConEnlaces(m.texto).map((t, j) =>
-                            t.enlace ? (
-                              <a
-                                key={j}
-                                href={t.enlace}
-                                target="_blank"
-                                rel="noopener noreferrer nofollow"
-                                className="break-all text-acento underline"
-                              >
-                                {t.texto}
-                              </a>
-                            ) : (
-                              <Fragment key={j}>{t.texto}</Fragment>
-                            ),
-                          )}
-                        </p>
-                      )}
-                      <p className="mt-0.5 flex items-center justify-end gap-1 text-[11px] text-gris">
-                        <span>{horaMensaje(m.creadoEn)}</span>
-                        {mio && (
-                          <Tics
-                            estado={
-                              fallido
-                                ? "fallido"
-                                : pendiente
-                                  ? "enviando"
-                                  : leidoPorTodos(m, lecturas)
-                                    ? "leido"
-                                    : "enviado"
-                            }
-                            general={general}
-                            alPulsar={
-                              general && !pendiente && !fallido
-                                ? () => setVerLectura((v) => (v === m.id ? null : m.id))
-                                : undefined
-                            }
+                    <Deslizable activo={puedeResponder} alResponder={() => responder(m)} mio={mio}>
+                      <div
+                        className={cn(
+                          "relative rounded-2xl text-[15px] transition-shadow",
+                          sinBurbuja
+                            ? "w-fit px-0 py-0"
+                            : cn(
+                                "px-3 py-2 shadow-sm",
+                                mio ? "rounded-br-md bg-[#E3E8FF]" : "rounded-bl-md bg-white",
+                              ),
+                          resaltado === m.id && "ring-2 ring-acento ring-offset-2",
+                          pendiente && "opacity-60",
+                          fallido && "ring-1 ring-error/40",
+                          m.esTarea && "min-w-64 border-l-4",
+                          m.esTarea &&
+                            (m.prioridad === "ALTA"
+                              ? "border-error"
+                              : m.prioridad === "MEDIA"
+                                ? "border-[#E8B100]"
+                                : m.prioridad === "BAJA"
+                                  ? "border-exito"
+                                  : "border-tinta/30"),
+                        )}
+                      >
+                        {general && !mio && !mismoAutor && !sinBurbuja && (
+                          <p className="mb-0.5 text-xs font-semibold text-acento">
+                            {m.autorNombre}
+                          </p>
+                        )}
+                        {m.respondeA && (
+                          <CitaEnMensaje
+                            cita={m.respondeA}
+                            miId={miId}
+                            alPulsar={() => irAMensaje(m.respondeA!.id)}
                           />
                         )}
-                      </p>
-                    </div>
+                        {m.esTarea && !pendiente && <TarjetaTarea tarea={m} accion={accion} />}
+                        {m.imagen && (
+                          <ImagenMensaje mensaje={m} pendiente={pendiente} sticker={m.esSticker} />
+                        )}
+                        {m.audio && (
+                          <ReproductorAudio
+                            src={m.audioLocal ?? `/api/mensajes/audio/${m.id}`}
+                            segundos={m.audio.segundos}
+                            mio={mio}
+                          />
+                        )}
+                        {m.texto && (
+                          <p
+                            className={cn(
+                              "break-words whitespace-pre-wrap",
+                              m.esTarea &&
+                                m.estadoTarea === "HECHA" &&
+                                "text-gris line-through decoration-gris/60",
+                            )}
+                          >
+                            {trozosConEnlaces(m.texto).map((t, j) =>
+                              t.enlace ? (
+                                <a
+                                  key={j}
+                                  href={t.enlace}
+                                  target="_blank"
+                                  rel="noopener noreferrer nofollow"
+                                  className="break-all text-acento underline"
+                                >
+                                  {t.texto}
+                                </a>
+                              ) : (
+                                <Fragment key={j}>{t.texto}</Fragment>
+                              ),
+                            )}
+                          </p>
+                        )}
+                        <p
+                          className={cn(
+                            "mt-0.5 flex items-center justify-end gap-1 text-[11px] text-gris",
+                            sinBurbuja && "ml-auto w-fit rounded-full bg-white/90 px-1.5 shadow-sm",
+                          )}
+                        >
+                          <span>{horaMensaje(m.creadoEn)}</span>
+                          {mio && (
+                            <Tics
+                              estado={
+                                fallido
+                                  ? "fallido"
+                                  : pendiente
+                                    ? "enviando"
+                                    : leidoPorTodos(m, lecturas)
+                                      ? "leido"
+                                      : "enviado"
+                              }
+                              general={general}
+                              alPulsar={
+                                general && !pendiente && !fallido
+                                  ? () => setVerLectura((v) => (v === m.id ? null : m.id))
+                                  : undefined
+                              }
+                            />
+                          )}
+                        </p>
+                        {puedeResponder && (
+                          // En el ordenador, al pasar el ratón sale «Responder» junto a la burbuja
+                          <button
+                            type="button"
+                            onClick={() => responder(m)}
+                            aria-label="Responder a este mensaje"
+                            title="Responder"
+                            className={cn(
+                              "absolute top-1 hidden size-8 items-center justify-center rounded-full bg-white text-gris opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-tinta focus:opacity-100 pointer-fine:inline-flex",
+                              mio ? "-left-10" : "-right-10",
+                            )}
+                          >
+                            <Reply aria-hidden="true" className="size-4" />
+                          </button>
+                        )}
+                      </div>
+                    </Deslizable>
 
                     {general && verLectura === m.id && (
                       <QuienLoHaLeido mensaje={m} lecturas={lecturas} />
@@ -825,6 +965,34 @@ export function Chat(props: Props) {
               {error}
             </p>
           )}
+          {panelGiphy && (
+            <SelectorGifs
+              key={panelGiphy}
+              tipo={panelGiphy}
+              elegir={(g) => enviarGif(g, panelGiphy === "stickers")}
+              alCerrar={cerrarGiphy}
+            />
+          )}
+          {respondiendo && (
+            <div className="mx-auto mb-2 flex max-w-3xl animate-tarjeta items-center gap-2 rounded-xl border-l-4 border-acento bg-niebla py-1.5 pr-1.5 pl-3">
+              <Reply aria-hidden="true" className="size-4 shrink-0 text-acento" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-acento">
+                  Respondiendo a{" "}
+                  {autorCita(respondiendo, miId) === "Tú" ? "tu mensaje" : respondiendo.autorNombre}
+                </p>
+                <p className="truncate text-sm text-gris">{respondiendo.texto}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRespondiendo(null)}
+                aria-label="No responder a este mensaje"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-gris hover:bg-white hover:text-tinta"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+          )}
           {esTarea && <OpcionesTarea valor={opciones} cambiar={setOpciones} personas={personas} />}
           {imagen && (
             <div className="mx-auto mb-2 flex max-w-3xl items-center gap-3 rounded-xl border border-linea bg-niebla p-2">
@@ -864,36 +1032,34 @@ export function Chat(props: Props) {
             aria-hidden="true"
             onChange={(e) => ponerImagen(e.target.files?.[0])}
           />
+          {/* «Cámara» en el móvil: abre la cámara del sistema directamente */}
+          <input
+            ref={hacerFoto}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={(e) => {
+              ponerImagen(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+          {camaraWeb && (
+            <CamaraWeb
+              alCerrar={cerrarCamara}
+              alHacerFoto={(foto) => {
+                setCamaraWeb(false);
+                ponerImagen(foto);
+              }}
+            />
+          )}
           <div className="mx-auto flex max-w-3xl items-end gap-1 sm:gap-2">
             {!grabando && (
               <>
-                <button
-                  type="button"
-                  onClick={() => setEsTarea((v) => !v)}
-                  aria-pressed={esTarea}
-                  aria-label="Tarea"
-                  title="Marca el mensaje como tarea: se podrá poner «hecha»"
-                  className={cn(
-                    "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors",
-                    esTarea
-                      ? "border-aviso bg-aviso/10 font-medium text-aviso-oscuro"
-                      : "border-linea text-gris hover:border-tinta hover:text-tinta",
-                  )}
-                >
-                  <ClipboardList aria-hidden="true" className="size-4" />
-                  <span className="hidden sm:inline">Tarea</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => elegirArchivo.current?.click()}
-                  aria-label="Enviar una imagen"
-                  title="Enviar una imagen (también puedes pegarla o arrastrarla)"
-                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-gris transition-colors hover:bg-niebla hover:text-tinta"
-                >
-                  <ImagePlus aria-hidden="true" className="size-5" />
-                </button>
+                <MenuAdjuntar elegir={alAdjuntar} esTarea={esTarea} />
                 <SelectorEmojis elegir={meterEmoji} />
-                <SelectorGifs elegir={enviarGif} />
                 <label className="sr-only" htmlFor="texto-mensaje">
                   Mensaje
                 </label>
@@ -945,24 +1111,44 @@ export function Chat(props: Props) {
  * La imagen de un mensaje: con su hueco reservado (no hace saltar el chat al cargar) y, al tocarla,
  * se abre en grande en otra pestaña. Mientras se envía, se ve la que eligió quien la manda.
  */
-function ImagenMensaje({ mensaje, pendiente }: { mensaje: MensajeChat; pendiente: boolean }) {
-  const { ancho, alto } = tamanoEnChat(mensaje.imagen?.ancho ?? null, mensaje.imagen?.alto ?? null);
+function ImagenMensaje({
+  mensaje,
+  pendiente,
+  sticker,
+}: {
+  mensaje: MensajeChat;
+  pendiente: boolean;
+  sticker: boolean;
+}) {
+  const { ancho, alto } = tamanoEnChat(
+    mensaje.imagen?.ancho ?? null,
+    mensaje.imagen?.alto ?? null,
+    sticker ? 160 : 320,
+  );
   const src = mensaje.vistaPrevia ?? `/api/mensajes/imagen/${mensaje.id}`;
   const foto = (
     <Image
       src={src}
-      alt={mensaje.texto ? `Imagen: ${mensaje.texto.slice(0, 80)}` : "Imagen enviada en el chat"}
+      alt={
+        sticker
+          ? "Sticker"
+          : mensaje.texto
+            ? `Imagen: ${mensaje.texto.slice(0, 80)}`
+            : "Imagen enviada en el chat"
+      }
       width={ancho}
       height={alto}
       unoptimized
       loading="lazy"
       className={cn(
-        "block h-auto max-w-full rounded-xl bg-niebla object-cover",
+        "block h-auto max-w-full",
+        sticker ? "object-contain" : "rounded-xl bg-niebla object-cover",
         !mensaje.imagen?.ancho && "max-h-80 w-auto",
       )}
       style={{ aspectRatio: mensaje.imagen?.ancho ? `${ancho} / ${alto}` : undefined }}
     />
   );
+  if (sticker) return <div className="mb-0.5">{foto}</div>;
   if (pendiente || mensaje.vistaPrevia) return <div className="-mx-1 mb-1">{foto}</div>;
   return (
     <a
@@ -1050,6 +1236,113 @@ function QuienLoHaLeido({ mensaje, lecturas }: { mensaje: Mensaje; lecturas: Lec
           <strong>Sin leer:</strong> {no.join(", ")}
         </p>
       )}
+    </div>
+  );
+}
+
+/** La cita dentro de un mensaje que responde a otro: al tocarla, se salta al original */
+function CitaEnMensaje({
+  cita,
+  miId,
+  alPulsar,
+}: {
+  cita: Cita;
+  miId: string;
+  alPulsar: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={alPulsar}
+      title="Ir al mensaje"
+      className="mb-1 block w-full min-w-36 rounded-lg border-l-4 border-acento bg-black/5 px-2 py-1 text-left hover:bg-black/10"
+    >
+      <span className="block truncate text-xs font-semibold text-acento">
+        {autorCita(cita, miId)}
+      </span>
+      <span className="line-clamp-2 text-sm break-words text-tinta/70">{cita.texto}</span>
+    </button>
+  );
+}
+
+/**
+ * DESLIZAR PARA RESPONDER (pantallas táctiles), como en WhatsApp: se arrastra la burbuja hacia la
+ * derecha, sale la flecha de responder y, al soltar pasado el umbral, se responde. Se mueve con
+ * estilos directos (sin volver a pintar el chat en cada movimiento del dedo).
+ */
+function Deslizable({
+  activo,
+  alResponder,
+  mio,
+  children,
+}: {
+  activo: boolean;
+  alResponder: () => void;
+  mio: boolean;
+  children: React.ReactNode;
+}) {
+  const caja = useRef<HTMLDivElement>(null);
+  const flecha = useRef<HTMLSpanElement>(null);
+  const toque = useRef<{ x: number; y: number; dx: number; dy: number; aviso: boolean } | null>(
+    null,
+  );
+
+  const mover = (px: number, suave: boolean) => {
+    if (caja.current) {
+      caja.current.style.transition = suave ? "transform 0.2s ease-out" : "none";
+      caja.current.style.transform = px ? `translateX(${px}px)` : "";
+    }
+    if (flecha.current)
+      flecha.current.style.opacity = String(Math.min(1, px / DESLIZAR_PARA_RESPONDER));
+  };
+
+  const soltar = (responder: boolean) => {
+    const t = toque.current;
+    toque.current = null;
+    mover(0, true);
+    if (responder && t && deslizadoBastante(t.dx, t.dy)) alResponder();
+  };
+
+  return (
+    <div
+      className={cn("relative", activo && "touch-pan-y", mio ? "self-end" : "self-start")}
+      onTouchStart={(e) => {
+        if (!activo || e.touches.length !== 1) return;
+        const p = e.touches[0];
+        toque.current = { x: p.clientX, y: p.clientY, dx: 0, dy: 0, aviso: false };
+      }}
+      onTouchMove={(e) => {
+        const t = toque.current;
+        if (!t) return;
+        const p = e.touches[0];
+        t.dx = p.clientX - t.x;
+        t.dy = p.clientY - t.y;
+        const px = desplazamientoDeslizar(t.dx, t.dy);
+        if (px === null) {
+          // Es el scroll del chat: se deja la burbuja quieta
+          if (Math.abs(t.dy) > 12) soltar(false);
+          return;
+        }
+        mover(px, false);
+        // Una vibración corta al pasar el umbral (como en WhatsApp)
+        if (!t.aviso && deslizadoBastante(t.dx, t.dy)) {
+          t.aviso = true;
+          navigator.vibrate?.(10);
+        }
+      }}
+      onTouchEnd={() => soltar(true)}
+      onTouchCancel={() => soltar(false)}
+    >
+      {activo && (
+        <span
+          ref={flecha}
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 -left-9 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white text-acento opacity-0 shadow-sm"
+        >
+          <Reply className="size-4" />
+        </span>
+      )}
+      <div ref={caja}>{children}</div>
     </div>
   );
 }

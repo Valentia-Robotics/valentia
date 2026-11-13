@@ -1,11 +1,11 @@
 /**
- * BUSCAR GIFs PARA EL CHAT: GET /api/mensajes/gifs?q=<texto>&desde=<n>
+ * BUSCAR GIFs PARA EL CHAT: GET /api/mensajes/gifs?q=<texto>&desde=<n>&tipo=<gifs|stickers>
  * Solo para el equipo. Sin texto devuelve los GIFs del momento. La búsqueda la hace el servidor
  * con la clave de GIPHY (GIPHY_API_KEY), que así nunca llega al navegador.
  * Sin clave responde 503 con «sinClave»: el selector explica cómo activarlos.
  */
 import { esDelEquipo } from "@/config/equipo";
-import { limpiarBusquedaGif } from "@/config/gifs";
+import { leerTipoGif, limpiarBusquedaGif } from "@/config/gifs";
 import { registrarIntento } from "@/lib/limite";
 import { buscarGifs, hayGifs } from "@/lib/mensajes/gifs";
 import { ErrorMensaje } from "@/lib/mensajes/mensajes";
@@ -27,7 +27,8 @@ export async function GET(peticion: Request) {
     return respuesta({ error: "Has buscado muchos GIFs seguidos. Espera un poco." }, 429);
 
   try {
-    return respuesta({ gifs: await buscarGifs(busqueda, desde) }, 200);
+    const tipo = leerTipoGif(parametros.get("tipo"));
+    return respuesta({ gifs: await buscarGifs(busqueda, desde, tipo) }, 200);
   } catch (error) {
     if (error instanceof ErrorMensaje) return respuesta({ error: error.message }, 502);
     console.error("[gifs] Error al buscar GIFs.", error);

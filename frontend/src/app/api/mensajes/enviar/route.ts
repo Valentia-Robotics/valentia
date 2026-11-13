@@ -49,6 +49,7 @@ export async function POST(peticion: Request) {
   const imagen = formulario.get("imagen");
   const gif = formulario.get("gif");
   const audio = formulario.get("audio");
+  const respondeA = formulario.get("respondeA");
   const conGif = typeof gif === "string" && gif !== "";
   const conAudio = audio instanceof File && audio.size > 0;
   const segundos = leerSegundosAudio(formulario.get("segundos"));
@@ -86,6 +87,11 @@ export async function POST(peticion: Request) {
       tarea,
       contenido,
       conAudio ? { datos: Buffer.from(await audio.arrayBuffer()), segundos: segundos! } : null,
+      {
+        respondeAId: typeof respondeA === "string" && respondeA ? respondeA : null,
+        // Un sticker es un GIF de GIPHY que se ve sin burbuja
+        esSticker: conGif && formulario.get("sticker") === "1",
+      },
     );
   } catch (error) {
     if (error instanceof ErrorMensaje || error instanceof ErrorAlmacenPrivado) {

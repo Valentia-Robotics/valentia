@@ -13,6 +13,7 @@ import {
   esIdGif,
   leerListaGiphy,
   type GifEncontrado,
+  type TipoGif,
 } from "@/config/gifs";
 import { MAX_BYTES_IMAGEN, MAX_MB_IMAGEN } from "@/config/mensajes";
 import { ErrorMensaje } from "./mensajes";
@@ -50,9 +51,16 @@ async function pedirAGiphy(ruta: string, parametros: Record<string, string>) {
   return respuesta.json().catch(() => null);
 }
 
-/** Busca GIFs (sin texto: los del momento). «desde» = cuántos se han visto ya (para «Ver más») */
-export async function buscarGifs(busqueda: string, desde = 0): Promise<GifEncontrado[]> {
-  const clave = `${busqueda.toLowerCase()}|${desde}`;
+/**
+ * Busca GIFs o stickers (sin texto: los del momento). «desde» = cuántos se han visto ya (para «Ver
+ * más»). Los stickers son GIFs con el fondo transparente (en el chat se ven sin burbuja).
+ */
+export async function buscarGifs(
+  busqueda: string,
+  desde = 0,
+  tipo: TipoGif = "gifs",
+): Promise<GifEncontrado[]> {
+  const clave = `${tipo}|${busqueda.toLowerCase()}|${desde}`;
   const guardado = cache.get(clave);
   if (guardado && guardado.hasta > Date.now()) return guardado.gifs;
 
@@ -63,8 +71,8 @@ export async function buscarGifs(busqueda: string, desde = 0): Promise<GifEncont
     bundle: "messaging_non_clips",
   };
   const cuerpo = busqueda
-    ? await pedirAGiphy("gifs/search", { ...comunes, q: busqueda, lang: "es" })
-    : await pedirAGiphy("gifs/trending", comunes);
+    ? await pedirAGiphy(`${tipo}/search`, { ...comunes, q: busqueda, lang: "es" })
+    : await pedirAGiphy(`${tipo}/trending`, comunes);
   const gifs = leerListaGiphy(cuerpo, PRUEBAS);
 
   if (cache.size > 300) cache.clear(); // no crece sin parar
@@ -72,7 +80,7 @@ export async function buscarGifs(busqueda: string, desde = 0): Promise<GifEncont
   return gifs;
 }
 
-/** Los bytes del GIF elegido, para guardarlo en el chat. Lanza ErrorMensaje si no se puede */
+/** Los bytes del GIF (o sticker: GIPHY los da por el mismo camino) elegido, para guardarlo en el chat. Lanza ErrorMensaje si no se puede */
 export async function descargarGif(id: string): Promise<Buffer> {
   if (!hayGifs()) throw new ErrorMensaje("Los GIFs aún no están activados.");
   if (!esIdGif(id)) throw new ErrorMensaje("Ese GIF no existe.");

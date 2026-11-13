@@ -10,6 +10,7 @@ import { after } from "next/server";
 import {
   DOMINIO_JAAS,
   conPresente,
+  esNombreSala,
   datosJwtJaas,
   debeSonar,
   direccionSala,
@@ -38,11 +39,14 @@ export interface LlamadaEnCurso {
   /** Nombres de los que están dentro ahora */
   dentro: string[];
   yoDentro: boolean;
+  /** El nombre de la sala (para saber si la entrada preparada de antemano sirve) */
+  sala: string;
 }
 
 /** Para entrar: a dónde ir y cómo (dentro de la web o en otra pestaña) */
 export interface EntradaLlamada {
   id: string;
+  sala: string;
   modo: "incrustada" | "pestana";
   direccion: string;
 }
@@ -77,6 +81,7 @@ const resumen = (fila: Fila, yo: UsuarioActual): LlamadaEnCurso => {
     empezadaEn: fila.empezadaEn,
     dentro: dentro.map((p) => p.nombre),
     yoDentro: dentro.some((p) => p.usuarioId === yo.id),
+    sala: fila.sala,
   };
 };
 
@@ -111,7 +116,7 @@ async function llamadaMia(yo: UsuarioActual, id: string): Promise<Fila> {
 }
 
 /** La dirección para que «yo» entre en la sala (con mi pase si es JaaS) */
-function entrada(yo: UsuarioActual, fila: Fila): EntradaLlamada {
+function entrada(yo: UsuarioActual, fila: { id: string; sala: string }): EntradaLlamada {
   const s = servicio();
   const jwt =
     s.modo === "incrustada"
@@ -125,23 +130,67 @@ function entrada(yo: UsuarioActual, fila: Fila): EntradaLlamada {
           s.clavePrivada,
         )
       : undefined;
-  return { id: fila.id, modo: s.modo, direccion: direccionSala(s, fila.sala, yo.nombre, jwt) };
+  return {
+    id: fila.id,
+    sala: fila.sala,
+    modo: s.modo,
+    direccion: direccionSala(s, fila.sala, yo.nombre, jwt),
+  };
+}
+
+/** Una entrada preparada de antemano (sin llamada todavía: id vacío) */
+export type EntradaPreparada = Omit<EntradaLlamada, "id">;
+
+/**
+ * PARA QUE «LLAMAR» SEA INSTANTÁNEO (Jesse, 13-11-2026): al abrir el chat, el navegador pide ya la
+ * dirección de la sala con su pase (JWT) firmado. Si hay una llamada en curso, la de esa sala; si
+ * no, la de una sala nueva al azar que aún no existe para nadie. Al pulsar «Llamar», el vídeo
+ * empieza a cargar AL MOMENTO con esa dirección mientras el servidor apunta la llamada y avisa a
+ * los demás (`entrarEnLlamada` con esa misma sala). No crea nada ni avisa a nadie.
+ */
+export async function prepararLlamada(
+  yo: UsuarioActual,
+  ruta: string,
+): Promise<EntradaPreparada | null> {
+  const canal = canalDeRuta(ruta, yo.id);
+  if (!canal) return null;
+  const [permitido, viva] = await Promise.all([canalPermitido(yo, ruta), llamadaViva(canal)]);
+  if (!permitido || !permitido.puedeEscribir) return null;
+  const sala = viva?.sala ?? nombreSala(randomBytes(12).toString("hex"));
+  const { id: _sinId, ...resto } = entrada(yo, { id: "", sala });
+  void _sinId;
+  return resto;
 }
 
 /**
  * «Llamar» / «Unirme»: si el chat ya tiene una llamada viva, entras en ella; si no, se empieza una y
  * se avisa a los demás (push al móvil + tarjeta «te llama» en la web).
  */
-export async function entrarEnLlamada(yo: UsuarioActual, ruta: string): Promise<EntradaLlamada> {
-  const permitido = await canalPermitido(yo, ruta);
+export async function entrarEnLlamada(
+  yo: UsuarioActual,
+  ruta: string,
+  salaPreparada?: string,
+): Promise<EntradaLlamada> {
+  // Las comprobaciones van a la vez (antes, una detrás de otra): se tarda menos en entrar.
+  // La llamada viva solo se usa si el permiso ha salido bien
+  const canal = canalDeRuta(ruta, yo.id);
+  if (!canal) throw new ErrorMensaje("Ese chat no existe.");
+  const [permitido, dentroDelLimite, viva, salaUsada] = await Promise.all([
+    canalPermitido(yo, ruta),
+    registrarIntento("llamadaEquipo", yo.id),
+    llamadaViva(canal),
+    // La sala preparada solo vale si es nueva de verdad (nunca la de una llamada anterior)
+    salaPreparada && esNombreSala(salaPreparada)
+      ? db.llamadaEquipo.findFirst({ where: { sala: salaPreparada }, select: { canal: true } })
+      : Promise.resolve({ canal: "" }),
+  ]);
   if (!permitido) throw new ErrorMensaje("Ese chat no existe.");
   if (!permitido.puedeEscribir)
     throw new ErrorMensaje("Esta persona ya no está en el equipo: no se le puede llamar.");
-  if (!(await registrarIntento("llamadaEquipo", yo.id)))
+  if (!dentroDelLimite)
     throw new ErrorMensaje("Has empezado muchas llamadas seguidas. Espera un poco.");
 
   const yoPresente = { usuarioId: yo.id, nombre: yo.nombre };
-  const viva = await llamadaViva(permitido.canal);
   if (viva) {
     const puesta = await db.llamadaEquipo.update({
       where: { id: viva.id },
@@ -153,7 +202,8 @@ export async function entrarEnLlamada(yo: UsuarioActual, ruta: string): Promise<
   const nueva = await db.llamadaEquipo.create({
     data: {
       canal: permitido.canal,
-      sala: nombreSala(randomBytes(12).toString("hex")),
+      sala:
+        salaPreparada && !salaUsada ? salaPreparada : nombreSala(randomBytes(12).toString("hex")),
       iniciadaPorId: yo.id,
       iniciadaPorNombre: yo.nombre,
       presentes: conPresente([], yoPresente),

@@ -23,6 +23,7 @@ import {
   type Prioridad,
 } from "@/config/mensajes";
 import { llamadaActiva, presentesActivos } from "@/config/llamadas";
+import { CITA_BORRADA, textoCita, type Cita } from "@/config/respuestas";
 import { esDelEquipo, puestoCompleto, ROLES_EQUIPO, tieneAccesoAdmin } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
 import { borrarPrivado } from "@/lib/almacenamiento/privado";
@@ -138,6 +139,10 @@ export interface Mensaje {
   imagen: { ancho: number | null; alto: number | null } | null;
   /** Si es una nota de voz, cuánto dura. El audio se pide a /api/mensajes/audio/<id> */
   audio: { segundos: number } | null;
+  /** La imagen es un sticker (se ve sin burbuja) */
+  esSticker: boolean;
+  /** Si responde a otro mensaje: la cita (quién y un extracto) */
+  respondeA: Cita | null;
   esTarea: boolean;
   estadoTarea: Estado;
   prioridad: Prioridad | null;
@@ -169,6 +174,11 @@ const camposMensaje = {
   imagenAlto: true,
   audioClave: true,
   audioSegundos: true,
+  esSticker: true,
+  respondeAId: true,
+  respondeAAutorId: true,
+  respondeAAutor: true,
+  respondeATexto: true,
 } as const;
 
 /** De la fila de la BD a lo que ve la pantalla: la clave del almacén nunca sale del servidor */
@@ -179,12 +189,38 @@ function aMensaje<
     imagenAlto: number | null;
     audioClave: string | null;
     audioSegundos: number | null;
+    esSticker: boolean | null;
+    respondeAId: string | null;
+    respondeAAutorId: string | null;
+    respondeAAutor: string | null;
+    respondeATexto: string | null;
   },
->({ imagenClave, imagenAncho, imagenAlto, audioClave, audioSegundos, ...resto }: T) {
+>({
+  imagenClave,
+  imagenAncho,
+  imagenAlto,
+  audioClave,
+  audioSegundos,
+  esSticker,
+  respondeAId,
+  respondeAAutorId,
+  respondeAAutor,
+  respondeATexto,
+  ...resto
+}: T) {
   return {
     ...resto,
     imagen: imagenClave ? { ancho: imagenAncho, alto: imagenAlto } : null,
     audio: audioClave ? { segundos: audioSegundos ?? 0 } : null,
+    esSticker: !!esSticker && !!imagenClave,
+    respondeA: respondeAId
+      ? {
+          id: respondeAId,
+          autorId: respondeAAutorId,
+          autorNombre: respondeAAutor ?? "",
+          texto: respondeATexto ?? "",
+        }
+      : null,
   };
 }
 
@@ -380,6 +416,7 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
             imagenClave: true,
             audioClave: true,
             audioSegundos: true,
+            esSticker: true,
           },
         }),
       ),
@@ -401,6 +438,7 @@ export async function listarConversaciones(yo: UsuarioActual): Promise<Conversac
               u.texto,
               !!u.imagenClave,
               u.audioClave ? (u.audioSegundos ?? 0) : null,
+              !!u.esSticker,
             ),
             autorNombre: u.autorNombre,
             mio: u.autorId === yo.id,
@@ -430,9 +468,12 @@ export async function escribirMensaje(
   tarea: DatosTarea | null,
   imagen: ImagenGuardada | null = null,
   audio: AudioGuardado | null = null,
+  extra: { respondeAId?: string | null; esSticker?: boolean } = {},
 ) {
   const { otro, puedeEscribir } = await comprobarCanal(yo, canal);
   if (!puedeEscribir) throw new ErrorMensaje("Esta persona ya no está en el equipo.");
+  // Si responde a otro mensaje, tiene que ser de ESTE chat (nunca se cita algo de otro chat)
+  const cita = extra.respondeAId ? await citaDe(canal, extra.respondeAId) : null;
 
   // El responsable tiene que poder ver el chat: en uno privado, una de sus dos personas; en un
   // grupo, alguien de ese grupo
@@ -469,6 +510,13 @@ export async function escribirMensaje(
         audioTipo: audio.tipo,
         audioSegundos: audio.segundos,
       }),
+      ...(imagen && extra.esSticker && { esSticker: true }),
+      ...(cita && {
+        respondeAId: cita.id,
+        respondeAAutorId: cita.autorId,
+        respondeAAutor: cita.autorNombre,
+        respondeATexto: cita.texto,
+      }),
       ...(tarea && {
         esTarea: true,
         prioridad: tarea.prioridad,
@@ -493,6 +541,39 @@ async function teniaSinLeer(usuarioId: string, canal: string, autorId: string) {
     select: { id: true },
   });
   return !!pendiente;
+}
+
+/** La cita de un mensaje de este canal (para responderle). Lanza ErrorMensaje si no está */
+async function citaDe(canal: string, id: string): Promise<Cita> {
+  const original = esId(id)
+    ? await db.mensajeEquipo.findFirst({
+        where: { id, canal },
+        select: {
+          id: true,
+          autorId: true,
+          autorNombre: true,
+          texto: true,
+          imagenClave: true,
+          audioClave: true,
+          audioSegundos: true,
+          esSticker: true,
+          esTarea: true,
+        },
+      })
+    : null;
+  if (!original) throw new ErrorMensaje("El mensaje al que respondes ya no existe.");
+  return {
+    id: original.id,
+    autorId: original.autorId,
+    autorNombre: original.autorNombre,
+    texto: textoCita({
+      texto: original.texto,
+      conImagen: !!original.imagenClave,
+      segundosAudio: original.audioClave ? (original.audioSegundos ?? 0) : null,
+      esSticker: !!original.esSticker,
+      esTarea: original.esTarea,
+    }),
+  };
 }
 
 /** Busca un mensaje y comprueba que «yo» puede verlo */
@@ -625,6 +706,7 @@ export async function ultimoSinLeer(yo: UsuarioActual) {
         imagenClave: true,
         audioClave: true,
         audioSegundos: true,
+        esSticker: true,
       },
       orderBy: { creadoEn: "desc" },
       take: 20,
@@ -644,6 +726,7 @@ export async function ultimoSinLeer(yo: UsuarioActual) {
       m.texto,
       !!m.imagenClave,
       m.audioClave ? (m.audioSegundos ?? 0) : null,
+      !!m.esSticker,
     ).slice(0, 140),
     ruta: rutaDeCanal(m.canal, yo.id),
   };
@@ -740,6 +823,11 @@ export async function borrarMensaje(yo: UsuarioActual, mensajeId: string) {
   const puede = mensaje.autorId === yo.id || (!!grupoDe(mensaje.canal) && tieneAccesoAdmin(yo.rol));
   if (!puede) throw new ErrorMensaje("Solo puedes borrar tus mensajes.");
   await db.mensajeEquipo.delete({ where: { id: mensaje.id } });
+  // Las respuestas que lo citaban se quedan, pero su cita ya no enseña lo borrado
+  await db.mensajeEquipo.updateMany({
+    where: { canal: mensaje.canal, respondeAId: mensaje.id },
+    data: { respondeATexto: CITA_BORRADA },
+  });
   // La imagen también se borra del almacén (si falla, el mensaje ya no existe y nadie puede verla)
   if (mensaje.imagenClave) {
     await borrarPrivado(mensaje.imagenClave).catch((error) =>

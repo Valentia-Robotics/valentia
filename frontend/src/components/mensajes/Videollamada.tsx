@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, PhoneOff, Video } from "lucide-react";
 import { SEGUNDOS_LATIDO, textoPresentes } from "@/config/llamadas";
-import type { EntradaLlamada, LlamadaEnCurso } from "@/lib/mensajes/llamadas";
+import { DOMINIO_JAAS } from "@/config/llamadas";
+import type { EntradaLlamada, EntradaPreparada, LlamadaEnCurso } from "@/lib/mensajes/llamadas";
 
 /**
  * VIDEOLLAMADAS EN EL CHAT (Jesse, 13-11-2026). Tres piezas que usa Chat:
@@ -26,26 +27,97 @@ async function pedir(cuerpo: object): Promise<Record<string, unknown>> {
   return datos;
 }
 
+/** Cuánto vale una entrada preparada (su pase dura 3 horas: se renueva mucho antes) */
+const MINUTOS_PREPARADA = 20;
+
 /**
  * El estado de la llamada de un chat. `modo` lo sabe ya la página (hay o no claves de JaaS): para
  * abrir meet.jit.si en otra pestaña hay que hacerlo en el mismo toque (si no, el navegador lo bloquea).
+ *
+ * MÁS RÁPIDA (Jesse, 13-11-2026): al abrir el chat se deja preparada la entrada (dirección + pase)
+ * y se adelanta la conexión con 8x8. Al pulsar «Llamar», el vídeo empieza a cargar en ese mismo
+ * instante; el aviso a los demás va a la vez, sin esperarlo.
  */
-export function useLlamada(ruta: string, modo: EntradaLlamada["modo"], alCambiar: () => void) {
+export function useLlamada(
+  ruta: string,
+  modo: EntradaLlamada["modo"],
+  alCambiar: () => void,
+  opciones: { activa: boolean; enCurso: LlamadaEnCurso | null },
+) {
   const [sala, setSala] = useState<EntradaLlamada | null>(null);
   const [entrando, setEntrando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const salaActual = useRef<EntradaLlamada | null>(null);
   const pestana = useRef<Window | null>(null);
+  const preparada = useRef<{ entrada: EntradaPreparada; en: number } | null>(null);
+  const { activa, enCurso } = opciones;
+  const salaEnCurso = enCurso?.sala ?? null;
+
+  // Abrir antes la conexión con 8x8 (nombre, conexión segura): el vídeo arranca antes
+  useEffect(() => {
+    if (!activa || modo !== "incrustada") return;
+    const enlaces = ["preconnect", "dns-prefetch"].map((rel) => {
+      const enlace = document.createElement("link");
+      enlace.rel = rel;
+      enlace.href = `https://${DOMINIO_JAAS}`;
+      if (rel === "preconnect") enlace.crossOrigin = "anonymous";
+      document.head.appendChild(enlace);
+      return enlace;
+    });
+    return () => enlaces.forEach((e) => e.remove());
+  }, [activa, modo]);
+
+  // Preparar la entrada al abrir el chat, cada MINUTOS_PREPARADA y cuando empieza o acaba una
+  // llamada en el chat (así apunta a la sala buena)
+  const preparar = useCallback(async () => {
+    try {
+      const datos = await pedir({ accion: "preparar", chat: ruta });
+      const entrada = datos.entrada as EntradaPreparada | null;
+      preparada.current = entrada ? { entrada, en: Date.now() } : null;
+    } catch {
+      preparada.current = null; // al pulsar «Llamar» se hace como siempre
+    }
+  }, [ruta]);
+  useEffect(() => {
+    if (!activa) return;
+    void preparar();
+    const id = setInterval(() => void preparar(), MINUTOS_PREPARADA * 60_000);
+    return () => clearInterval(id);
+  }, [activa, preparar, salaEnCurso]);
 
   const entrar = useCallback(async () => {
     if (salaActual.current || entrando) return;
     setError(null);
     setEntrando(true);
-    // En el mismo toque: una pestaña vacía que luego se lleva a la sala
-    if (modo === "pestana") pestana.current = window.open("", "_blank");
+    // ¿Sirve la entrada preparada? Si hay una llamada en curso, solo si es de esa sala
+    const lista = preparada.current;
+    const usable =
+      lista &&
+      Date.now() - lista.en < MINUTOS_PREPARADA * 60_000 &&
+      lista.entrada.modo === modo &&
+      (!salaEnCurso || lista.entrada.sala === salaEnCurso)
+        ? lista.entrada
+        : null;
+    preparada.current = null; // una sala nueva no se usa dos veces
+    // En el mismo toque: la pestaña (ya en la sala si estaba preparada; si no, vacía y luego se lleva)
+    if (modo === "pestana") {
+      pestana.current = null;
+      if (usable) window.open(usable.direccion, "_blank", "noopener");
+      else pestana.current = window.open("", "_blank");
+    }
+    // Dentro de la web: el vídeo empieza a cargar YA, mientras el servidor apunta la llamada
+    if (usable && modo === "incrustada") {
+      const provisional = { ...usable, id: "" };
+      salaActual.current = provisional;
+      setSala(provisional);
+    }
     try {
-      const datos = (await pedir({ accion: "entrar", chat: ruta })) as unknown as EntradaLlamada;
-      if (datos.modo === "pestana") {
+      const datos = (await pedir({
+        accion: "entrar",
+        chat: ruta,
+        sala: usable?.sala,
+      })) as unknown as EntradaLlamada;
+      if (datos.modo === "pestana" && datos.sala !== usable?.sala) {
         if (pestana.current && !pestana.current.closed) {
           pestana.current.opener = null;
           pestana.current.location.href = datos.direccion;
@@ -53,30 +125,42 @@ export function useLlamada(ruta: string, modo: EntradaLlamada["modo"], alCambiar
           pestana.current = window.open(datos.direccion, "_blank", "noopener");
         }
       }
-      salaActual.current = datos;
-      setSala(datos);
+      // Si colgó mientras tanto, se sale ya de la llamada que se acaba de apuntar
+      if (usable && modo === "incrustada" && salaActual.current?.sala !== usable.sala) {
+        colgarAlSalir(datos);
+        return;
+      }
+      // Misma sala: el vídeo sigue cargando sin parpadear (solo se apunta el id de la llamada)
+      const final =
+        usable && datos.sala === usable.sala ? { ...datos, direccion: usable.direccion } : datos;
+      salaActual.current = final;
+      setSala(final);
       alCambiar();
     } catch (e) {
       pestana.current?.close();
+      salaActual.current = null;
+      setSala(null);
       setError(e instanceof Error ? e.message : "No se ha podido hacer la llamada.");
     } finally {
       setEntrando(false);
     }
-  }, [ruta, modo, entrando, alCambiar]);
+  }, [ruta, modo, entrando, alCambiar, salaEnCurso]);
 
   const colgar = useCallback(() => {
     const actual = salaActual.current;
     salaActual.current = null;
     setSala(null);
-    if (!actual) return;
+    // Para la siguiente llamada, otra entrada preparada
+    if (activa) setTimeout(() => void preparar(), 1500);
+    if (!actual?.id) return; // aún no estaba apuntada: entrar() la cierra al volver
     void pedir({ accion: "salir", id: actual.id })
       .catch(() => undefined)
       .finally(alCambiar);
-  }, [alCambiar]);
+  }, [alCambiar, activa, preparar]);
 
   // «Sigo dentro» cada poco; si la llamada ya ha terminado (o no hay conexión), se cierra
   useEffect(() => {
-    if (!sala) return;
+    if (!sala?.id) return;
     const id = setInterval(() => {
       pedir({ accion: "latido", id: sala.id })
         .then((d) => {
@@ -108,7 +192,7 @@ export function useLlamada(ruta: string, modo: EntradaLlamada["modo"], alCambiar
 }
 
 function colgarAlSalir(sala: EntradaLlamada | null) {
-  if (!sala) return;
+  if (!sala?.id) return;
   void fetch("/api/mensajes/llamada", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -250,12 +334,34 @@ export function SalaVideo({
           Colgar
         </button>
       </div>
+      <div className="relative min-h-0 flex-1">
+        <MarcoLlamada key={sala.direccion} direccion={sala.direccion} titulo={titulo} />
+      </div>
+    </div>
+  );
+}
+
+/** El vídeo de JaaS. Mientras carga, «Conectando…» (para que se vea que ya está en marcha) */
+function MarcoLlamada({ direccion, titulo }: { direccion: string; titulo: string }) {
+  const [cargado, setCargado] = useState(false);
+  return (
+    <>
+      {!cargado && (
+        <p
+          role="status"
+          className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-white/80"
+        >
+          <Video aria-hidden="true" className="size-5 animate-pulse" />
+          Conectando con la videollamada…
+        </p>
+      )}
       <iframe
-        src={sala.direccion}
+        src={direccion}
         title={`Videollamada con ${titulo}`}
         allow="camera; microphone; display-capture; fullscreen; autoplay; clipboard-write"
-        className="min-h-0 w-full flex-1 border-0"
+        onLoad={() => setCargado(true)}
+        className="absolute inset-0 size-full border-0"
       />
-    </div>
+    </>
   );
 }

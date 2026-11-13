@@ -41,6 +41,7 @@ export async function enviarYAvisar(
   tarea: TareaNueva | null,
   imagen: Buffer | null = null,
   audio: { datos: Buffer; segundos: number } | null = null,
+  extra: { respondeAId?: string | null; esSticker?: boolean } = {},
 ) {
   if (imagen && audio) throw new ErrorMensaje("Manda la imagen y la nota de voz por separado.");
   const canal = canalDeRuta(String(ruta), yo.id);
@@ -66,6 +67,7 @@ export async function enviarYAvisar(
     datosTarea,
     guardada,
     audioGuardado,
+    extra,
   );
   const segundosAudio = audioGuardado?.segundos ?? null;
 
@@ -101,7 +103,7 @@ export async function enviarYAvisar(
       para: destino.email,
       nombre: destino.nombre,
       de: yo.nombre,
-      texto: resumenMensaje(texto, !!guardada, segundosAudio),
+      texto: resumenMensaje(texto, !!guardada, segundosAudio, !!extra.esSticker),
       esTarea: !!datosTarea,
       ruta: otro ? yo.id : canal,
     }),
