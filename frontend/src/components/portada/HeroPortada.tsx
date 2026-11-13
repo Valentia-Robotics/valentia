@@ -34,14 +34,14 @@ export function HeroPortada({
         {/* Sin animación de entrada: es lo primero grande que pinta la página (LCP) */}
         <p className="mt-8 max-w-sm font-serif text-lg leading-snug sm:text-xl">
           No hace falta saber programar. En la caja van todas las piezas y un curso que te acompaña
-          desde la primera pieza hasta que el robot echa a andar.
+          desde la primera pieza hasta que el robot comienza a funcionar.
         </p>
         <div className="mt-9 flex flex-wrap gap-3">
           <Boton href="/kits" variante="bloque" tamano="lg">
             Ver los kits
           </Boton>
           <Boton href="/configurador" variante="punteado-claro" tamano="lg">
-            Crear mi robot
+            Crear mi propio kit
           </Boton>
         </div>
         <p className="mt-10 font-mono text-xs text-white/70">
