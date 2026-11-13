@@ -11,6 +11,7 @@ import {
   miembrosDelGrupo,
   listarConversaciones,
 } from "@/lib/mensajes/mensajes";
+import { llamadaDelChat, llamadaIncrustada } from "@/lib/mensajes/llamadas";
 import { exigirUsuario } from "@/lib/sesion";
 
 export const metadata: Metadata = { title: "Chat" };
@@ -27,9 +28,10 @@ export default async function PaginaChat({ params }: Props) {
   // Primero se abre (y se marca como leído), así la lista ya sale sin su número
   const abierto = await abrirChat(yo, chat);
   if (!abierto) notFound();
-  const [conversaciones, huella] = await Promise.all([
+  const [conversaciones, huella, llamada] = await Promise.all([
     listarConversaciones(yo),
     huellaChat(yo, chat),
+    llamadaDelChat(yo, chat),
   ]);
   const esta = conversaciones.find((c) => c.ruta === chat);
   // Para elegir a quién va una tarea: en un grupo, los de ese grupo; en un privado, los dos
@@ -62,6 +64,8 @@ export default async function PaginaChat({ params }: Props) {
         personas={personas}
         miembros={miembros}
         lecturas={abierto.lecturas}
+        llamada={llamada}
+        modoLlamada={llamadaIncrustada() ? "incrustada" : "pestana"}
       />
     </PantallaMensajes>
   );

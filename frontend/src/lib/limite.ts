@@ -60,6 +60,8 @@ export const LIMITES = {
   mensajeEquipo: { maximo: 300, minutos: 60 },
   /** Imágenes en los mensajes del equipo (por persona): cada una se procesa con sharp */
   imagenEquipo: { maximo: 60, minutos: 60 },
+  /** Empezar o unirse a una videollamada del equipo (por persona). Los latidos no cuentan */
+  llamadaEquipo: { maximo: 60, minutos: 60 },
   /** Notas de voz en los mensajes del equipo (por persona) */
   audioEquipo: { maximo: 60, minutos: 60 },
   /** Búsquedas de GIFs en el chat (por persona): GIPHY gratis deja pocas llamadas por hora */

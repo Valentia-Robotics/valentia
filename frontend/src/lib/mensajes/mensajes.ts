@@ -22,6 +22,7 @@ import {
   type Estado,
   type Prioridad,
 } from "@/config/mensajes";
+import { llamadaActiva, presentesActivos } from "@/config/llamadas";
 import { esDelEquipo, puestoCompleto, ROLES_EQUIPO, tieneAccesoAdmin } from "@/config/equipo";
 import type { Rol } from "@/generated/prisma/enums";
 import { borrarPrivado } from "@/lib/almacenamiento/privado";
@@ -105,7 +106,7 @@ export async function miembrosDelGrupo(yo: UsuarioActual, canal: string): Promis
  * Comprueba que «yo» puede usar ese canal. Para un chat privado, que la otra persona siga en el
  * equipo (si ya no lo está, el chat se puede leer pero no escribir). Devuelve la otra persona.
  */
-async function comprobarCanal(
+export async function comprobarCanal(
   yo: UsuarioActual,
   canal: string,
 ): Promise<{ otro: Companero | null; puedeEscribir: boolean }> {
@@ -573,7 +574,7 @@ export async function cerrarAlarma(yo: UsuarioActual, mensajeId: string) {
 }
 
 /** Los canales que «yo» puede ver, como filtro: sus grupos y sus chats privados */
-const filtroMisCanales = (yo: UsuarioActual) => ({
+export const filtroMisCanales = (yo: UsuarioActual) => ({
   OR: [
     { canal: { in: gruposDe(yo).map((g) => g.canal) } },
     { canal: { startsWith: "privado:", contains: yo.id } },
@@ -793,7 +794,7 @@ export async function huellaChat(yo: UsuarioActual, ruta: string): Promise<strin
     if (error instanceof ErrorMensaje) return null;
     throw error;
   }
-  const [cuantos, ultimo, tareas, sinLeer, leidos] = await Promise.all([
+  const [cuantos, ultimo, tareas, sinLeer, leidos, llamada] = await Promise.all([
     db.mensajeEquipo.count({ where: { canal } }),
     db.mensajeEquipo.findFirst({
       where: { canal },
@@ -808,12 +809,24 @@ export async function huellaChat(yo: UsuarioActual, ruta: string): Promise<strin
     }),
     totalNoLeidos(yo),
     leidosDeLosMios(yo, canal),
+    // La videollamada en curso (empieza, entra o sale alguien → se ve al momento)
+    db.llamadaEquipo.findFirst({
+      where: { canal, terminadaEn: null },
+      orderBy: { empezadaEn: "desc" },
+    }),
   ]);
+  const enLlamada =
+    llamada && llamadaActiva(llamada)
+      ? `${llamada.id.slice(-6)}:${presentesActivos(llamada.presentes)
+          .map((p) => p.usuarioId.slice(-4))
+          .sort()
+          .join("")}`
+      : "";
   const estados = tareas
     .map((t) => `${t.estadoTarea[0]}${t.prioridad?.[0] ?? "-"}${t.hechaEn?.getTime() ?? ""}`)
     .join("");
   return createHash("sha1")
-    .update(`${cuantos}.${ultimo?.id ?? ""}.${sinLeer}.${estados}.${leidos}`)
+    .update(`${cuantos}.${ultimo?.id ?? ""}.${sinLeer}.${estados}.${leidos}.${enLlamada}`)
     .digest("base64url")
     .slice(0, 16);
 }

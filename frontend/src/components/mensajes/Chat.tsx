@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Fragment,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -60,6 +61,8 @@ import { InfoGrupo } from "./InfoGrupo";
 import { Grabadora, ReproductorAudio } from "./NotaDeVoz";
 import { SelectorGifs } from "./SelectorGifs";
 import { TarjetaTarea } from "./TarjetaTarea";
+import { AvisoLlamadaEnCurso, BotonLlamar, SalaVideo, useLlamada } from "./Videollamada";
+import type { EntradaLlamada, LlamadaEnCurso } from "@/lib/mensajes/llamadas";
 
 interface Props {
   ruta: string;
@@ -79,6 +82,10 @@ interface Props {
   lecturas: LecturaDeOtro[];
   /** Solo en un grupo: quién está dentro (la ventana «Info del grupo») */
   miembros: MiembroGrupo[];
+  /** La videollamada en curso de este chat (o null) */
+  llamada: LlamadaEnCurso | null;
+  /** Dónde se abren las llamadas: dentro de la web (JaaS) o en otra pestaña (meet.jit.si) */
+  modoLlamada: EntradaLlamada["modo"];
 }
 
 /**
@@ -156,6 +163,18 @@ export function Chat(props: Props) {
   // La foto de cada persona, para ponerla junto a sus mensajes en un grupo
   const fotoDe = useMemo(() => new Map(personas.map((p) => [p.id, p.foto ?? null])), [personas]);
   const router = useRouter();
+  const refrescar = useCallback(() => router.refresh(), [router]);
+  const videollamada = useLlamada(ruta, props.modoLlamada, refrescar);
+  const { entrar: entrarEnLlamada } = videollamada;
+  // Desde el aviso «te llama» (o el push): /mensajes/<chat>?llamada=1 entra directamente
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("llamada") !== "1") return;
+    url.searchParams.delete("llamada");
+    window.history.replaceState(null, "", url.pathname + url.search);
+    // En otra pestaña hace falta un toque (el navegador la bloquearía): queda la franja «Unirme»
+    if (props.modoLlamada === "incrustada") void entrarEnLlamada();
+  }, [props.modoLlamada, entrarEnLlamada]);
   const [texto, setTexto] = useState("");
   const [esTarea, setEsTarea] = useState(false);
   // En un privado, la tarea es para la otra persona salvo que se cambie
@@ -535,6 +554,13 @@ export function Chat(props: Props) {
             </div>
           </>
         )}
+        {puedeEscribir && (
+          <BotonLlamar
+            alPulsar={() => void videollamada.entrar()}
+            ocupado={videollamada.entrando}
+            titulo={titulo}
+          />
+        )}
         <Link
           href="/mensajes/tareas"
           className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gris hover:bg-niebla hover:text-tinta"
@@ -543,6 +569,33 @@ export function Chat(props: Props) {
           <span className="hidden sm:inline">Tareas</span>
         </Link>
       </header>
+
+      {props.llamada && !videollamada.sala && (
+        <AvisoLlamadaEnCurso
+          llamada={props.llamada}
+          alUnirse={() => void videollamada.entrar()}
+          ocupado={videollamada.entrando}
+        />
+      )}
+      {videollamada.error && (
+        <p
+          role="alert"
+          className="flex items-center gap-2 border-b border-error/30 bg-error/10 px-3 py-2 text-sm text-error-oscuro sm:px-4"
+        >
+          <span className="min-w-0 flex-1">{videollamada.error}</span>
+          <button
+            type="button"
+            onClick={videollamada.quitarError}
+            aria-label="Cerrar el aviso"
+            className="inline-flex size-7 items-center justify-center rounded hover:bg-error/10"
+          >
+            <X aria-hidden="true" className="size-4" />
+          </button>
+        </p>
+      )}
+      {videollamada.sala && (
+        <SalaVideo sala={videollamada.sala} titulo={titulo} alColgar={videollamada.colgar} />
+      )}
 
       {grupo && (
         <InfoGrupo
